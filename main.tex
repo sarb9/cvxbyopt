@@ -345,13 +345,13 @@ In the following two subsections we will solve for the $\inf$ in the RHS of \cre
 \begin{remark}
     We specialize to $R$ being the unnormalised negentropy function, so that we can make the connection to the KL term in IDS.
 \end{remark}
-Note that for $a \in \Delta(\cC)$ we have
+Note that for $a \in \R^{|\cC|}$ we have
 \begin{align*}
-    R^\star(a) = \sum_{x \in \cC} \exp(a(x))\,,
+    R^\star(a) = \sum_{x \in \cC} \exp(a(x)) = \langle \exp(a) , 1_\cC \rangle \,,
 \end{align*}
-and $R'(a) = \ln(a)$, which means that
+and $R'(p) = \ln(p)$, which means that
 \begin{align*}
-    R^\star(R'(a)) = \sum_{x \in \cC} a(x) = 1\,.
+    R^\star(R'(p)) = \sum_{x \in \cC} p(x) = 1\,.
 \end{align*}
 Suppose that $X \sim p$, $Y = f(X)$, and $(p_\star, f) \sim \nu$, and define
 \begin{align*}
@@ -406,17 +406,7 @@ Then we can write
     \Delta(\nu, p) +
     \E\!\left[
         \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta}
-        \sum_{z \in \cC}\exp\left(\ln(q_z) - \eta E(X, Y)_z\right)
-        \right]
-    - \frac{1}{\eta}
-    \\
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta}
-        \sum_{z \in \cC}q_z \exp\left(- \eta E(X, Y)_z\right)
+        + \frac{1}{\eta} \left\langle\exp(\ln(q) - \eta E(X, Y)), 1_\cC\right\rangle
         \right]
     - \frac{1}{\eta}
     \\
@@ -519,16 +509,10 @@ The minimizer $E$ in the general case has the following close form.
 \subsection{IS estimator class--multiplicative in $y$}
 Restrict $E(x,y)$ to be of the form
 \begin{align*}
-    E(x,y) & = \frac{y}{p(x)} T(x)\,,
+    E(x,y) & = \frac{y}{p(x)} T(x) \quad \text{or} \quad \left( = \frac{y}{p(x)}T(x|\cdot) \right)\,.
 \end{align*}
-where a special case could be a probability kernel as
-\begin{align*}
-    E(x,y)                  & = \frac{T(x|\cdot) y}{p(x)} \,\,(= \hat{s}_x(\cdot))\,, \\
-    \text{and} \quad
-    \sum_{x \in \cC} T(x|y) & = 1\quad \text{for all } y \in \cC\,,
-\end{align*}
-which includes all importance sampling estimators that are \textbf{multiplicative} in y.
-Let $\nu \in \Delta(\Delta(\cC) \times \cF_b)$ and $p \in \Delta(\cC)$.
+with $T: \cC \to \R^{|\cC|}$, and $p\in\Delta(\cC)$.
+Let $\nu \in \Delta(\Delta(\cC) \times \cF_b)$.
 We are interested in the $T$ that minimizes
 \begin{align*}
     \eta \bar \Lambda(T)
@@ -545,16 +529,16 @@ We are interested in the $T$ that minimizes
     \Delta(\nu, p) +
     \E\!\left[
         \E\left[
-            \langle p_\star, \tfrac{T(X|\cdot) Y}{p(X)} \rangle
+            \langle p_\star, \tfrac{T(X) Y}{p(X)} \rangle
             + \frac{1}{\eta}
-            \langle q, \exp(- \eta \tfrac{T(X|\cdot) Y}{p(X)})\rangle
+            \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
             \bigg| X
             \right]
         \right]
     - \frac{1}{\eta}\,.
 \end{align*}
-Note that we drop the sampling notation but it's important to remember that $f, p_\star, X$ and $Y$ are random.
-Define the shorthand $T_x = T(x| \cdot) \in \R^{|\cC|}$.
+Note that we drop it from the notation, but it's important to remember that $f, p_\star, X$ and $Y$ are random.
+Define the shorthand $T_x = T(x) \in \R^{|\cC|}$.
 Then through differentiation we have
 \begin{align*}
     \nabla_{T_x} \bar{\Lambda}(T)
@@ -583,43 +567,49 @@ where the expectation is over $(p_\star, f) \sim \nu$.
 We want to solve for $T_x$ such that the gradient is zero, so for coordinate $z \in \cC$ we have
 \begin{align}
     q(z) \E\!\left[
-        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X|z))
-        | x
-        \right]
-    =
-    \E\!\left[
-        f(X) p_{\star, z}
-        | x
-        \right]
-    =
-    \PP(x_\star = z)
-    \E\!\left[
-        f(X)
-        | x_\star = z, x
-        \right]
-    \label{eq:zero-grad}
-\end{align}
-If $p_\star$ is a Dirac on $z$ almost surely, then the RHS is $\E[f(X)|X=x]$,
-while if $T(x|z) \geq 0$ then the LHS is bounded by
-\begin{align*}
-    q(z)
-    \E\!\left[
-        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X|z))
+        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X)_z)
         | X = x
         \right]
-    \leq
-    q(z)
-    \E\!\left[f(X)| X = x\right]\,.
-\end{align*}
-\begin{remark}
-    If $T(x|\cdot) \geq 0$, the gradient can't be zero in the general case.
+     & =
+    \E\!\left[
+        f(X) p_\star(z)
+        | X = x
+        \right]
+    \label{eq:zero-grad-element-wise}
+    \\
+    \Rightarrow
+    q \odot \E\!\left[
+        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X))
+        | X = x
+        \right]
+     & =
+    \E\!\left[
+        f(X) p_\star
+        | X = x
+        \right]
+    \label{eq:zero-grad-vector}
+\end{align}
+\begin{remark}[Negative $T(x)_z$]
+    If $p_\star$ is a Dirac on $z$ almost surely, then the RHS in \cref{eq:zero-grad} is $\E[f(X)|X=x]$,
+    while if $T(x)_z \geq 0$ then the LHS is bounded by
+    \begin{align*}
+        q(z)
+        \E\!\left[
+            f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X)_z)
+            | X = x
+            \right]
+        \leq
+        q(z)
+        \E\!\left[f(X)| X = x\right]\,.
+    \end{align*}
+    So, if $T(x) \geq 0$, the gradient can't be zero when $q(z)< 1$.
 \end{remark}
 \begin{remark}
-    The LHS is the first derivative of the moment generating function of $f(X)|X=x$ evaluated at $-\frac{\eta}{p(X)} T(x|z)$.
+    The LHS is the first derivative of the moment generating function of $f(X)|X=x$ evaluated at $-\frac{\eta}{p(X)} T(x)_z$.
 \end{remark}
-\paragraph{$\bullet$ Closed form for $T(x|z)$?}
-It can be seen that it's unlikely that $T(x|z)$ has a closed form.
-However, there might be a chance to use \cref{eq:zero-grad} when this is evaluated on $\bar{\Lambda}$:
+\paragraph{$\bullet$ Closed form for $T(x)_z$?}
+It's unlikely that $T(x)_z$ has a closed form.
+However, it might be possible to use \cref{eq:zero-grad-vector} to simplify $\bar{\Lambda}(T)$:
 \begin{align}
     \eta\bar{\Lambda}(T)
      & =
@@ -635,9 +625,9 @@ However, there might be a chance to use \cref{eq:zero-grad} when this is evaluat
      & =
     \Delta(\nu, p) +
     \E\!\left[
-        \langle p_\star, \tfrac{T(X|\cdot) Y}{p(X)} \rangle
+        \langle p_\star, \tfrac{T(X) Y}{p(X)} \rangle
         + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X|\cdot) Y}{p(X)})\rangle
+        \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
         \right]
     - \frac{1}{\eta}
     \nonumber
@@ -645,17 +635,17 @@ However, there might be a chance to use \cref{eq:zero-grad} when this is evaluat
      & =
     \Delta(\nu, p) +
     \E\!\left[
-        \langle f(X) p_\star, \tfrac{T(X|\cdot)}{p(X)} \rangle
+        \langle f(X) p_\star, \tfrac{T(X)}{p(X)} \rangle
         + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X|\cdot) Y}{p(X)})\rangle
+        \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
         \right]
     - \frac{1}{\eta}\,,
     \label{eq:checkpiont1}
 \end{align}
-For the first term, we can use \cref{eq:zero-grad} to get
+For the first term, we can use \cref{eq:zero-grad-vector} to get
 \begin{align*}
     \E\!\left[
-        \langle f(X) p_\star, \tfrac{T(X|\cdot)}{p(X)} \rangle
+        \langle f(X) p_\star, \tfrac{T(X)}{p(X)} \rangle
         | X =x
         \right]
      & =
@@ -664,75 +654,54 @@ For the first term, we can use \cref{eq:zero-grad} to get
         f(X) p_\star
         | X =x
         \right]
-    , \tfrac{T(x|\cdot)}{p(x)}
-    \right\rangle
-    \\
-     & =
-    \left\langle
-    \E\!\left[
-        f(x) q \odot \exp(- \tfrac{\eta f(x)}{p(x)} T(x|\cdot))
-        \right]
-    , \tfrac{T(x|\cdot)}{p(x)}
+    , \tfrac{T(x)}{p(x)}
     \right\rangle
     \\
      & =
     \left\langle
     q \odot
     \E\!\left[
-        f(x)
-        \exp(- \tfrac{\eta f(x)}{p(x)} T(x|\cdot))
+        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X))
+        | X =x
         \right]
-    , \tfrac{T(x|\cdot)}{p(x)}
+    , \tfrac{T(x)}{p(x)}
     \right\rangle
     \\
      & =
     \E\!\left[
-        Y
         \left\langle
-        q
-        , \tfrac{T(x|\cdot)}{p(x)}
-        \odot
-        \exp(- \tfrac{\eta Y}{p(X)} T(X|\cdot))
+        q \odot
+        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X))
+        , \tfrac{T(x)}{p(x)}
         \right\rangle
-        | X = x
-        \right]\,,
+        | X =x\right]
+    \\
+     & =
+    \E\!\left[
+        \left\langle
+        q \odot
+        \exp(- \tfrac{\eta f(X)}{p(X)} T(X))
+        , \tfrac{T(x)}{p(x)} f(X)
+        \right\rangle
+        | X =x\right]
 \end{align*}
 putting this back into the expectation in \cref{eq:checkpiont1} gives
 \begin{align*}
       & \E\!\left[
-        \langle f(X) p_\star, \tfrac{T(X|\cdot)}{p(X)} \rangle
+        \langle f(X) p_\star, \tfrac{T(X)}{p(X)} \rangle
         + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X|\cdot) Y}{p(X)})\rangle
+        \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
         \right]
     \\
     = &
     \E\!\left[
-        Y
         \left\langle
-        q
-        , \tfrac{T(X|\cdot)}{p(X)}
-        \odot
-        \exp(- \tfrac{\eta T(X|\cdot) Y}{p(X)})
+        q \odot
+        \exp(- \tfrac{\eta f(X)}{p(X)} T(X))
+        , \tfrac{T(X)}{p(X)} f(X)
         \right\rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \tfrac{\eta T(X|\cdot) Y}{p(X)})\rangle
-        \right]
-    \\
-    = &
-    \E\!\left[
-        Y
-        \left\langle
-        q
-        \odot
-        \exp(- \tfrac{\eta T(X|\cdot) Y}{p(X)})
-        , \tfrac{T(x|\cdot)}{p(X)}
-        \right\rangle
-        + \frac{1}{\eta}
-        \langle
-        q
-        \odot
-        \exp(- \tfrac{\eta T(X|\cdot) Y}{p(X)})
-        , 1_\cC\rangle
+        +
+        \langle q \odot \exp(- \tfrac{\eta T(X) Y}{p(X)}),  \tfrac{1}{\eta} 1_\cC\rangle
         \right]
     \\
     = &
@@ -740,12 +709,12 @@ putting this back into the expectation in \cref{eq:checkpiont1} gives
         \left\langle
         q
         \odot
-        \exp(- \tfrac{\eta T(X|\cdot) Y}{p(X)})
-        , Y \tfrac{T(X|\cdot)}{p(X)} + \frac{1}{\eta} 1_\cC
+        \exp(- \tfrac{\eta T(X) Y}{p(X)})
+        , Y \tfrac{T(X)}{p(X)} + \tfrac{1}{\eta} 1_\cC
         \right\rangle
         \right]\,,
 \end{align*}
-which makes the whole thing
+which makes the whole thing equal to
 \begin{align*}
     \bar{\Lambda}(T)
      & =
@@ -757,8 +726,8 @@ which makes the whole thing
             \left\langle
             q
             \odot
-            \exp(- \tfrac{\eta T(X|\cdot) Y}{p(X)})
-            , \tfrac{\eta T(X|\cdot)Y}{p(X)} +  1_\cC
+            \exp(- \tfrac{\eta T(X) Y}{p(X)})
+            , \tfrac{\eta T(X)Y}{p(X)} +  1_\cC
             \right\rangle
             \right]
     -1
@@ -780,6 +749,7 @@ This should play well with the new exponential term.
 
 
 \clearpage
+\section{Archive(useless for now)}
 \paragraph{$\bullet$ The other way around?}
 Continuing from \cref{eq:zero-grad} we have
 \begin{align*}
@@ -922,8 +892,6 @@ We want to find $T_x$ such that the gradient is zero, so for coordinate $z \in \
 
 
 
-\clearpage
-\section{Archive(useless for now)}
 \begin{align*}
      & \nabla_{T_x}
     \Lambda(T)      \\
