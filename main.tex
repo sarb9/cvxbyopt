@@ -78,13 +78,18 @@
 \renewcommand{\d}[1]{\operatorname{d}\!#1}
 \newcommand{\abovelabel}[1]{\stackrel{\raisebox{0.5mm}{\textrm{\tiny \color{red} #1}}}}
 \newcommand{\ta}{\tilde{a}}
+\newcommand{\tP}{P'}
+\newcommand{\tA}{A'}
+\newcommand{\fmd}{\texttt{MD}}
 
 \newcommand{\mdalg}{\textsf{MD}\xspace}
 \newcommand{\smdalg}{\textsf{SMD}\xspace}
+\newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
 \newcommand{\olo}{\texttt{OLO}\xspace}
 \newcommand{\blo}{\texttt{BLO}\xspace}
 \newcommand{\bco}{\texttt{BCO}\xspace}
 \newcommand{\oco}{\texttt{OCO}\xspace}
+\newcommand{\hl}{\hat{\ell}\xspace}
 
 
 \begin{document}
@@ -233,36 +238,6 @@ for $t = 1$ to $n$:
     The analysis works even if $\ell_t$ that is adapted to $\ell_1, a_1, \cdots, a_{t-1}$.
 \end{remark}
 
-\begin{theorem}[\cite{lattimore2024bandit}, Theorem 8.11]
-    \label{thm:md-with-D_star}
-    We have
-    \begin{align*}
-        \sum_{t=1}^{n} \langle a_t - a_\star, \ell_t \rangle
-        \leq \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) + \sum_{t=1}^{n} \cS_t(\eta \ell_t)
-        \right)\,,
-    \end{align*}
-    where $\cS_t(u) = D_{F^\star}(R'(q_t)- u , R'(q_t))$.
-\end{theorem}
-\begin{proof}
-    Starting from the second part of
-    \begin{align*}
-        \Reg_n(a_\star)
-         & \leq
-        \sum_{t=1}^{n} \langle \ell_t, a_t - a_{t+1} \rangle
-        + \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) -
-        \sum_{t=1}^{n} D_F(a_{t+1}, a_t)
-        \right) \\
-         & \leq
-        \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) + \sum_{t=1}^{n} D_F(a_{t}, \tilde{a}_{t+1})
-        \right)\,.
-    \end{align*}
-\end{proof}
 \section{Bandit linear optimization(\blo)}
 Instead of $\ell_t$, the learner only observes $y_t = \langle \ell_t, a_t \rangle$.
 
@@ -276,10 +251,10 @@ $a_1 = \argmin_{a \in \cA} F(a)$
 $\ta_1 = \argmin_{a \in \Rd} F(a)$
 for $t = 1$ to $n$:
     Choose $P_t \in \Delta(\cA)$, s.t. $\E_{A \sim P_t}[A] = a_t$
-    Play $A_t \sim P_t$ and observe $Y_t$
-    Compute $\hat{\ell}_t = E_t(A_t, Y_t)$
-    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hat{\ell}_t\rangle + F(a)$
-    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \hat{\ell}_t\rangle + F(a)$
+    Play $A_t \sim P_t$ and observe $Y_t=\langle A_t, \ell_t \rangle$
+    Compute $\hl_t = E_t(A_t, Y_t)$
+    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hl_t\rangle + F(a)$
+    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \hl_t\rangle + F(a)$
 \end{lstlisting}
             \caption{\smdalg}\label{alg:SMD}
         \end{mdframed}
@@ -289,22 +264,22 @@ for $t = 1$ to $n$:
 Instead of choosing an action $a_t \in \cA$, \smdalg chooses an
 \textit{exploration} distribution $P_t \in \cP(\cA)$
 \textbf{with mean} $a_t$ in round $t \in [n]$.
-Next, \smdalg pretends that $\hat{\ell}$ which is an \textit{estimate} of $\ell_t$ is the actual loss.
+Next, \smdalg pretends that $\hl$ which is an \textit{estimate} of $\ell_t$ is the actual loss.
 \textbf{In the most general form}, this estimate can be made through a function
 $E_t: \cA \times \R \to \Rd$ in each round $t \in [n]$
-such that $\hat{\ell}_t = E_t(A_t, Y_t)$.
+such that $\hl_t = E_t(A_t, Y_t)$.
 Since losses are linear in \blo, there is
 \begin{align*}
     \texttt{reg}_t : \E_t[\langle A_t, \ell \rangle| a_t] = \langle a_t, \ell\rangle\,,
 \end{align*}
 which means \smdalg and \mdalg have the \textbf{same expected loss} given
 the \mdalg action $a_t$, and they only differ through the losses they use:
-\mdalg uses $\ell_t$, but \smdalg uses $\hat{\ell}_t$.
+\mdalg uses $\ell_t$, but \smdalg uses $\hl_t$.
 
-Since $a_t$ depends on the random estimates $\hat{\ell}_{1:t-1}$,
+Since $a_t$ depends on the random estimates $\hl_{1:t-1}$,
 we use $\bar{A}_t$ as in the following theorem.
 \begin{theorem}[Unbiased-\smdalg]\label{thm:SMD-unbiased}
-    Suppose $\E[\hat{\ell}_t|\bar{A}_t] = \ell_t$ (unbiased estimator).
+    Suppose $\E[\hl_t|\bar{A}_t] = \ell_t$ (unbiased estimator).
     The following results continue to hold
     \begin{align*}
         \Reg_n(a_\star)
@@ -314,7 +289,7 @@ we use $\bar{A}_t$ as in the following theorem.
         \E\left[
             \sum_{t=1}^{n}
             \left(
-            \langle \hat{\ell}_t, \bar{A}_t - \bar{A}_{t+1} \rangle
+            \langle \hl_t, \bar{A}_t - \bar{A}_{t+1} \rangle
             - \frac{1}{\eta}
             D_F(\bar{A}_{t+1}, \bar{A}_t)
             \right)
@@ -339,305 +314,127 @@ we use $\bar{A}_t$ as in the following theorem.
             \right]
         =
         \E\left[
-            \sum_{t=1}^{n} \langle \bar{A}_t - a_\star, \hat{\ell}_t\rangle
+            \sum_{t=1}^{n} \langle \bar{A}_t - a_\star, \hl_t\rangle
             \right]\,,
     \end{align*}
     and doing the same steps for the random game in the expectation and Remark~\ref{rem:ellt-adapted}.
 \end{proof}
 
-\subsubsection{\smdalg in the shade}
-Suppose there are two sampling rules $P_t$ and $P_t'$ where
-$\E_{A \sim P_t}[A] = \E_{A \sim P_t'}[A]$, and \smdalg can choose
-from them for sampling $A_t$ at round $t$.
-In \olo, these two \textit{result in the exact same loss} in round $t$,
-and the reason for prefering one over the other is \textit{better exploration}.
-The situation is much different for \bco.
-
-This observation hints us that $P_t$ can be chosen as a function of $\bar{A}_t$:
-amongst all distributions $P$ that have the mean $\bar{A}_t$ choose the one that
-explores the best.
-Better exploration means having better $\hat{\ell}_{t}$, and $\hat{\ell}_t$ is a
-random vector that depends on both $P_t$ and $E_t$;
-in this sense the best sampling (exploration) rule depends on the current
-estimation scheme $E_t$, and vice-versa.
-
-The \smdalg can be tweaked in two ways.
-\begin{enumerate}
-    \item The estimates are biased $\E_t[\hat{\ell}_t] \neq \ell_t$,
-    \item The actions are biased $\E_{A \sim P_t}[A_t] \neq a_t$,
-\end{enumerate}
-
-
-The algorithm can \textit{pretend} the actual sequence of losses is
-$g_1, \cdots, g_n$, and account for the difference of this sequence and
-the actual sequence $\ell_1, \cdots, \ell_n$.
-The regret would be
-\begin{align*}
-    \Reg_n(a_\star)
-     & = \E\left[
-        \sum_{t=1}^{n} \langle A_t - a_\star \rangle
-    \right]       \\
-     & = \E\left[
-        \sum_{t=1}^{n} \langle P_t - a_\star \rangle
-    \right]       \\
-     & = \E\left[
-        \sum_{t=1}^{n} \langle \ell_t - g_t, A_t - a_\star \rangle
-        + \langle g_t, A_t - a_\star \rangle
-    \right]       \\
-\end{align*}
-
-
-\begin{theorem}[Biased-\smdalg]\label{thm:SMD-unbiased}
-    The expected regret of \smdalg is bounded as
-    \begin{align*}
-        \Reg_n(a_\star)
-         & \leq
-        \frac{D_F(a_\star, \bar{A}_1)}{\eta}
-        +
-        \E\left[
-            \sum_{t=1}^{n}
-            \left(
-            \langle \hat{\ell}_t, \bar{A}_t - \bar{A}_{t+1} \rangle
-            - \frac{1}{\eta}
-            D_F(\bar{A}_{t+1}, \bar{A}_t)
-            \right)
-            \right]
-        \\
-         & \leq
-        \frac{1}{\eta}\left(
-        D_F(a_\star, \bar{A}_1)
-        +
-        \E\left[
-            \sum_{t=1}^{n} D_F(\bar{A}_{t}, \tilde{A}_{t+1})
-            \right]
-        \right)\,.
-    \end{align*}
-\end{theorem}
-\begin{proof}
-    The proof follows simply from
-    \begin{align*}
-        \Reg_n(a_\star)
-        =
-        \E\left[
-            \sum_{t=1}^{n} \langle A_t - a_\star, \ell_t\rangle
-            \right]
-        =
-        \E\left[
-            \sum_{t=1}^{n} \langle \bar{A}_t - a_\star, \hat{\ell}_t\rangle
-            \right]\,,
-    \end{align*}
-    and doing the same steps for the random game in the expectation and Remark~\ref{rem:ellt-adapted}.
-\end{proof}
-
-\subsection{Bayesian setting, TS \& OSMD}
-\textcolor{red}{TODO: clean up this section to match the notation of \smdalg.}
+\subsubsection{Biased \smdalg}
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
             \begin{lstlisting}
-args: $P$, $\eta$, $F$ and $E$ 
-$\bar{A}_1 = \argmin_{a \in \cA} F(a)$
+args: $\eta \in \R$, $F$
+$a_1 = \argmin_{a \in \cA} F(a)$
+$\ta_1 = \argmin_{a \in \Rd} F(a)$
 for $t = 1$ to $n$:
-    Play $A_t \sim P_{A^b_t}$.
-    Update $\bar{A}_{t+1} = \argmin_{a \in \cA} \eta \langle E(\bar{A}_t, A_t, Y_t), a \rangle + D_F(a, \bar{A}_t)$.
+    Choose $\tP_t \in \Delta(\cA)$, perhaps as a function of $a_t$
+    Play $\tA_t \sim \tP_t$ and observe $Y_t = \langle \tA_t, \ell_t\rangle$
+    Compute $\hl_t = E_t(\tA_t, Y_t)$
+    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hl_t\rangle + F(a)$
 \end{lstlisting}
-            \caption{OSMD}\label{alg:OSMD}
+            \caption{Biased \smdalg}\label{alg:biased-SMD}
         \end{mdframed}
     \end{minipage}
 \end{algorithm}
-\citet{zimmert2019connections} suppose that (with simplifications)
-\begin{enumerate}
-    \item The exploration is done through a collection
-          $P = \{P_a: a \in \cA\}$ such that $P_a \in \Delta(\cA)$ and
-          $\E_{A \sim P_a}[A] = a$.
-    \item The estimation is done through a function
-          $E: \cA \times \cA \times \R \to \R^d$ such that
-          \begin{align*}
-              \E_{A \sim P_a}\left[
-                  E(a, A, \underbrace{\langle \ell_t, A\rangle}_{Y_t})
-                  \right] = \ell_t\,.
-          \end{align*}
-    \item Let $\texttt{MD}(\ell, b; \eta) = \argmin_{a \in \cA} \eta \langle \ell, a \rangle + D_F(a, b)$.
-\end{enumerate}
-The stability term is what inside the
-expectation in Theorem~\ref{thm:SMD},
+
+Suppose there are two sampling rules $P_t$ and $P_t'$ where
+$\E_{A \sim P_t}[A] = \E_{A \sim P_t'}[A]$, and \smdalg can choose
+from them for sampling $A_t$ at round $t$.
+In \blo, these two \textit{result in the exact same loss} in round $t$,
+and the reason for prefering one over the other is \textit{better exploration}.
+The situation is different for \bco.
+
+This observation hints us that $P_t$ can (should?) be chosen as a function of $\bar{A}_t$:
+amongst all distributions $P$ that have the mean $\bar{A}_t$ choose the one that
+explores the best.
+Better exploration means having better $\hl_{t}$, and $\hl_t$ is a
+random vector that depends on both $P_t$ and $E_t$;
+in this sense the best sampling (exploration) rule depends on the current
+estimation scheme $E_t$, and vice-versa.
+
+\paragraph{Bias:}
+Maintaining {\smdalg}'s two degree of freedoms $E_t$ and $P_t$ in
+a way that $\E[\hl_t] = \ell_t$ can be costly in terms of the bound on
 \begin{align*}
-    \texttt{stab}_t(a) & \triangleq
-    \E_{A_t \sim P_a}\left[
-        \langle
-        \hat{\ell}_t,
-        a - \bar{A}_{t+1}
-        \rangle
-        - \frac{D_F(\bar{A}_{t+1}, a)}{\eta}
-        \right]
-    \\
-                       & =
-    \E_{A_t \sim P_a}\left[
-        \langle E(a, A_t, Y_t), a - \bar{A}_{t+1} \rangle
-        - \frac{D_F(\bar{A}_{t+1}, a)}{\eta}
+    \E\left[
+        \sum_{t=1}^{n} D_F(\bar{A}_{t}, \tilde{A}_{t+1})
         \right]\,,
 \end{align*}
-where $\bar{A}_{t+1} = \texttt{MD}(\hat{\ell}_t, \bar{A}_t)$,
-which means the loss comes from $A_t$ but the `anchor' comes from $\bar{A}_t$.
+and its look-alikes. We have access to two sources of bias to control this quantity:
+\begin{enumerate}
+    \item $\E_{A \sim P_t}[A] \neq a_t$, where $a_t$ is the \mdalg action based on $\hl_1, \cdots \hl_{t-1}$,
+    \item $\E_{A \sim P_t}[\hl_t] \neq \ell_t$, recall that $\hl_t = E_t(A_t, \langle A_t, \ell \rangle)$, so randomness is only by $A_t$.
+\end{enumerate}
+Note that even if $P_t$ is biased, the learner
+\textbf{has a chance to make $\hl_t$ unbiased}
+by choosing appropriate $E_t$.
 
-\paragraph{Bayesian:}
-Suppose that $(\ell_1, \ell_2, \cdots, \ell_n) \sim \nu$,
-and $A_\star = \argmin_{a \in \cA} \sum_{t=1}^{n} \langle \ell_t, a\rangle$ is random.
-The \textsf{MTS} \textit{Bayesian} algorithm just does one thing differently:
-\begin{align*}
-    \bar{A}^b_{t+1} = \E_{t}[A_\star]\,,
-\end{align*}
-so instead of \textsf{MD} update, it uses the expected optimal action.
-
-The crucial connection is made through the fact that
-\begin{align*}
-    \E_{t-1}[A_t] = \E_{t-1}[A_\star]\,.
-\end{align*}
-
-
-\begin{algorithm}[h!]
-    \begin{minipage}{8cm}
-        \begin{mdframed}
-            \begin{lstlisting}
-args: Prior $\nu$, and $P$
-$A_1^b = \E[A_\star]$
-for $t = 1$ to $n$:
-    Play $A_t \sim P_{A^b_t}$.
-    Update $\bar{A}^b_{t+1} = \E_{t}[A_\star]$.
-\end{lstlisting}
-            \caption{MTS}\label{alg:MTS}
-        \end{mdframed}
-    \end{minipage}
-\end{algorithm}
-
-Beginning with the definition of the per-step Bayesian regret,
-\begin{align*}
-    \E_{t-1}[\Delta_t]
-     & =\E_{t-1}[\langle A_t - A_\star, \ell_t \rangle]                        \\
-     & =\E_{t-1}[\langle \bar{A}^b_t - A_\star, \hat{\ell}_t \rangle]          \\
-     & = \E_{t-1}[\langle \bar{A}^b_t - \bar{A}^b_{t+1}, \hat{\ell}_t \rangle]
-\end{align*}
-Let $A_t \sim P_{\bar{A}^b_t}$, and recall the $\textsf{MD}$ update
-\begin{align*}
-    \texttt{MD}_t \triangleq \texttt{MD}(\hat{\ell}_t, \bar{A}^b_t) = \argmin_{a \in \cA} \eta \langle \underbrace{E(\bar{A}^b_t, A_t, Y_t)}_{\hat{\ell}_t}, a \rangle + D_F(a, \bar{A}^b_t)\,,
-\end{align*}
-so
-\begin{align*}
-     & \langle \hat{\ell}_t, \texttt{MD}_t \rangle + \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)
-    \leq
-    \langle \hat{\ell}_t, \bar{A}^b_{t+1} \rangle + \frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b)                 \\
-    \Rightarrow
-     & \langle \hat{\ell}_t, \texttt{MD}_t - \bar{A}_{t}^b \rangle + \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)
-    \leq
-    \langle \hat{\ell}_t, \bar{A}^b_{t+1} - \bar{A}_{t}^b \rangle + \frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b) \\
-    \Rightarrow
-     & \langle \hat{\ell}_t, \bar{A}_{t}^b - \bar{A}^b_{t+1} \rangle
-    \leq
-    \langle \hat{\ell}_t, \bar{A}_{t}^b - \texttt{MD}_t \rangle
-    +
-    \frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b)
-    - \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)\,,
-\end{align*}
-which gives
-\begin{align*}
-    \E_{t-1}[\Delta_t]
-     & = \E_{t-1}[\langle \bar{A}^b_t - \bar{A}^b_{t+1}, \hat{\ell}_t \rangle] \\
-     & \leq \E_{t-1}\left[
-    \underbrace{
-        \langle \hat{\ell}_t, \bar{A}_{t}^b - \texttt{MD}_t \rangle
-        - \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)}_{
-        \texttt{stab}_t(\bar{A}_t^b; \eta)
-    }
-    +\frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b)
-    \right]                                          \,,                       \\
-\end{align*}
-which means bounding the $\texttt{stab}_t(a, \eta)$ gives a regret bound for the Bayesian regret
-since the sum of divergences is bounded by \citet{lattimore2019information}[Thm 3].
-
-\section{Bandit convex optimization(\bco)}
-\subsection{\bco in one dimension}
-
-\subsubsection{\smdalg with negentropy}
-Fix $F(a): \R^d \to \R$ to be the negentropy potential,
-\begin{align*}
-    F(a) = \langle a, \ln(a) - 1 \rangle\,.
-\end{align*}
-Then it's easy to check that
-\begin{align}
-    \ta_{t+1} = a_t \odot \exp(-\eta \hat{\ell}_t)
-\end{align}
-
-\begin{theorem}[\cite{lattimore2024bandit}, Theorem 8.14]
-    \label{thm:exp-imp-regret}
-    Let $x_\star = \argmin_{x \in \cC} \sum_{t=1}^{n} f_t(x)$ and
-    $p_\star \in \Delta(\cC)$ be a Dirac on $x_\star$.
-    The expected regret of \cref{alg:exp-imp} is bounded by
+\begin{theorem}[Biased-\smdalg, (\cite{lattimore2024bandit}, Theorem 8.14)]\label{thm:SMD-biased}
+    Suppose that $\E_{\tA \sim \tP_t}[\tA] = \bar{\tA}$.
+    The expected regret of Biased-\smdalg is bounded by
     \begin{align*}
-        \E\left[\Reg_n(x_\star)\right]
-        = \frac{\log(|\cC|)}{\eta} +
-        \sum_{t=1}^{n} \E\left[
-            \langle p_t - p_\star, f_t \rangle
-            + \langle p_\star - q_t, \hat{s}_t \rangle
-            + \frac{1}{\eta} \cS_t(\eta \hat{s}_t)
-            \right]\,.
+        \frac{D_F(a_\star, a_1)}{\eta} +
+        \sum_{t=1}^{n}
+        \E\left[
+            \langle \tA_t - a_\star, \ell_t\rangle
+            - \langle a_t - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_{F^\star}(\nabla F(\tA_{t}) - \eta \hl_t, \nabla F(\tA_{t}))
+            \right]\,,
     \end{align*}
+    where $a_t$ is the mirror decent action $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
 \end{theorem}
 \begin{proof}
+    Note that $a_t$ is random here since $\hl_1, \cdots, \hl_{t-1}$ are random.
     We have
     \begin{align*}
-        \E\left[\Reg_n(x_\star)\right]
+        \Reg_n(a_\star)
          & =
-        \E\left[
-            \sum_{t=1}^{n} \langle p_t - p_\star, f_t \rangle
-        \right] \\
-         & =
-        \E\left[
-        \sum_{t=1}^{n}
-        \underbrace{\langle p_t - p_\star, f_t \rangle}_{\text{actual}}
-        - \underbrace{\langle q_t - p_\star, \hat{s}_t \rangle}_{\text{shadow}}
-        + \langle q_t - p_\star, \hat{s}_t \rangle
-        \right] \\
-         & \leq
-        \frac{\log(|\cC|)}{\eta}+
         \E\left[
             \sum_{t=1}^{n}
-            \langle p_t - p_\star, f_t \rangle
-            - \langle q_t - p_\star, \hat{s}_t \rangle
-            + \frac{1}{\eta} \cS_t(\eta \hat{s}_t)
-            \right]
+            \langle \tA_t - a_\star, \ell_t\rangle
+        \right] \\
+         & =
+        \E\left[
+            \sum_{t=1}^{n}
+            \langle \tA_t - a_\star, \ell_t\rangle
+            - \langle a_t - a_\star, \hl_t\rangle
+            + \langle a_t - a_\star, \hl_t\rangle
+            \right],
     \end{align*}
-    where the last inequality follows from \cref{thm:exp-imp}.
+    where $P_t$ is any distribution that has mean $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
+    \begin{align*}
+        \Reg_n(a_\star)
+         & =
+        \E\left[
+            \sum_{t=1}^{n}
+            \langle \tA_t - a_\star, \ell_t\rangle
+            - \langle a_t - a_\star, \hl_t\rangle
+            + \langle a_t - a_\star, \hl_t\rangle
+        \right] \\
+         & \leq
+        \frac{D_F(a_\star, a_1)}{\eta} +
+        \E\left[
+            \sum_{t=1}^{n}
+            \langle \tA_t - a_\star, \ell_t\rangle
+            - \langle a_t - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_{F^\star}(\nabla{F}(a_t) - \eta \hl_t, \nabla{F}(a_t))
+            \right]\,,
+    \end{align*}
+    where the inequality is by theorem~\ref{thm:MD}.
 \end{proof}
-
-\subsection{Exploration By Optimisation}
-The idea is to bound the term inside the expectation in \cref{thm:exp-imp-regret} uniformly over all $t \in [n]$.
-For the learner, the degree of freedom is in the choice of the estimator $\hat{s}_t$ and the exploration distribution $p_t$.
-To this end, define
-\begin{itemize}
-    \item $\cG$ be the set of all functions $g:\cC \to \R$, i.e., $\cG = \R^{|\cC|}$ (all loss vectors),
-    \item $\cE$ be the set of all functions $E: \cC \times \R \to \cG$ (choice of $\hat{s}$),
-    \item
-          $\Lambda_\eta(q, p, E, r, f) =
-              \frac{1}{\eta}
-              \E_{X\sim p}\!\left[
-                  \langle p - r, f \rangle
-                  + \langle r - q, E(X, Y) \rangle
-                  + \frac{1}{\eta} \cS_q(\eta E(X, Y))
-                  \right]$,
-\end{itemize}
-where $q \in \Delta(\cC)$ is the exponential weights distribution at time $t$, $p \in \Delta(\cC)$ is the exploration distribution, $E \in \cE$ is the estimator, $r \in \Delta(\cC)$ is the Dirac on the best action, and $f \in \cF_b$ is the loss function.
-Note that the randomness is only through $X$ and $Y$, where $X \sim p$ and $Y = f(X)$.
-% Therefore, fix $t \in [n]$ and define
-% \begin{align*}
-%     \Lambda_\eta(q) & =
-%     \inf_{p \in \Delta(\cC), E \in \cE}
-%     \sup_{r \in \Delta(\cC), f \in \cF_b} \frac{1}{\eta}
-%     \Lambda_\eta(q, p, E, r, f)\,.
-% \end{align*}
 \begin{remark}
-    There is a bit of waste later since we suppose that $r \in \Delta(\cC)$, but it could've been restricted to Dirac distributions.
+
+    Note that $\hl_t$ is adapted to $A'_t$ since the algorithm actually plays
+    $A'_t \sim P_t'$. So you can think that $P'_t$ is the exploration policy that
+    is actually played which is not \smdalg as $\E_{A'_t}[A] \neq a_t$.
+    However, in the analysis the algorithm assumes that $a_t$ is played
+    \textbf{without any randomization} (so technically \mdalg) and
+    $\hl_1, \cdots, \hl_n$ is the actual loss sequence.
 \end{remark}
 
+\subsection{Exploration By Optimization(\expbyopt)}
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
@@ -651,289 +448,374 @@ for $t = 1$ to $n$:
     sample $X_t \sim p_t$, and observe $Y_t = f_t(X_t)$
     compute $\hat{s}_t(x) = E_t(X_t, Y_t)$
 \end{lstlisting}
-            \caption{Exploration by Optimisation}\label{alg:exp-by-opt}
+            \caption{\expbyopt}\label{alg:exp-by-opt}
         \end{mdframed}
     \end{minipage}
 \end{algorithm}
-It's worth noting that \cref{alg:exp-by-opt} is a instantiation of \cref{alg:exp-imp} where the estimator $\hat{s}_t$ and the exploration distribution $p_t$ are chosen by solving an optimisation problem.
 
-\begin{theorem}[\cite{lattimore2024bandit}, Theorem 8.15] \label{thm:exp-by-opt-regret}
-    The expected regret of \cref{alg:exp-by-opt} is bounded by
-    \begin{align*}
-        \E\left[
-            \Reg_n(x_\star)
-            \right]
-         & \leq
-        \frac{\log(|\cC|)}{\eta}
-        +
-        n\eta \sup_{q \in \Delta(\cC)} \Lambda_\eta(q) + n\eta\epsilon\,.
-    \end{align*}
-\end{theorem}
-
-Therefore, from \cref{thm:exp-by-opt-regret}, to bound the regret of \cref{alg:exp-by-opt} it suffices to bound
-\begin{align}
-    \Lambda^\star_\cC =
-    \sup_{\eta > 0, q \in \Delta(\cC)}
-    \inf_{p \in \Delta(\cC), E \in \cE}
-    \sup_{y \in \cC, f \in \cF_b}
-    \Lambda_\eta(q, p, E, y, f)\,.
-    \label{eq:exp-by-opt-saddle}
-\end{align}
-
-The following lemma shows that the order of the infimum and supremum can be interchanged.
-\begin{lemma}
-    \label{lem:exp-by-opt-minimax-wrong}
-    For all $\eta > 0$ and $q \in \Delta(\cC)$,  we have
-    \begin{align*}
-        \inf_{p \in \Delta(\cC), E \in \cE}
-        \sup_{r \in \Delta(\cC), f \in \cF_b}
-        \Lambda_\eta(q, p, E, r, f)
-        =
-        \sup_{r \in \Delta(\cC), f \in \cF_b}
-        \inf_{p \in \Delta(\cC), E \in \cE}
-        \Lambda_\eta(q, p, E, r, f)\,.
-    \end{align*}
-\end{lemma}
-This lemma is \textcolor{red}{wrong} though... The minimax theorem only applies if the sup player should can choose from a joint distribution over $r$ and $f$.
-
-Let $\nu \in \Delta(\Delta(\cC) \times \cF_b)$ be a joint distribution over $p_\star \in \Delta(\cC)$ and $f \in \cF_b$.
-\textit{$p_\star$ is the same thing as $r$...}
-Define the bayesian version of $\Lambda_\eta(q, p, E, \nu)$ as
+Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
+The idea is to choose the best $P_t$ and $E_t$ given $a_t$,
+hoping that the term inside the expectation in \cref{thm:SMD-biased} could
+then be bounded uniformly for all $t \in [n]$.
+To this end, define
 \begin{align*}
-    \bar{\Lambda}_\eta(q, p, E, \nu) & :=
+    \Lambda_{a, \eta}(P, E || a_\star, \ell) =
     \frac{1}{\eta}
-    \E_{X \sim p, (p_\star, f) \sim \nu}\!\left[
-        \langle p_\star - q, E(X, Y) \rangle
-        + \langle p_\star - p, f \rangle
-        + \frac{1}{\eta} \cS_q(\eta E(X, Y))
-        \right]\,.
-\end{align*}
-It's easy to see that
-\begin{align*}
-    \inf_{p \in \Delta(\cC), E \in \cE}
-    \sup_{r \in \Delta(\cC), f \in \cF_b}
-    \Lambda_\eta(q, p, E, r, f)
-     & \leq
-    \inf_{p \in \Delta(\cC), E \in \cE}
-    \sup_{\nu \in \Delta(\Delta(\cC) \times \cF_b)}
-    \bar{\Lambda}_\eta(q, p, E, \nu)\,.
-\end{align*}
-\begin{lemma}[\cite{lattimore2024bandit}, Lemma 8.21]
-    \label{lem:exp-by-opt-minimax}
-    For all $\eta > 0$ and $q \in \Delta(\cC)$,  we have
-    \begin{align*}
-        \inf_{p \in \Delta(\cC), E \in \cE}
-        \sup_{\nu \in \Delta(\Delta(\cC) \times \cF_b)}
-        \bar{\Lambda}_\eta(q, p, E, \nu)
-         & =
-        \sup_{\nu \in \Delta(\Delta(\cC) \times \cF_b)}
-        \inf_{p \in \Delta(\cC), E \in \cE}
-        \bar{\Lambda}_\eta(q, p, E, \nu)\,.
-    \end{align*}
-\end{lemma}
-In the following two subsections we will solve for the $\inf$ in the RHS of \cref{lem:exp-by-opt-minimax}. In the following $q\in \Delta(\cC)$ is fixed and we will drop it from the notation.
-
-\subsection{Simplifying $\Lambda_\eta$}
-\begin{remark}
-    We specialize to $R$ being the unnormalised negentropy function, so that we can make the connection to the KL term in IDS.
-\end{remark}
-Note that for $a \in \R^{|\cC|}$ we have
-\begin{align*}
-    R^\star(a) = \sum_{x \in \cC} \exp(a(x)) = \langle \exp(a) , 1_\cC \rangle \,,
-\end{align*}
-and $R'(p) = \ln(p)$, which means that
-\begin{align*}
-    R^\star(R'(p)) = \sum_{x \in \cC} p(x) = 1\,.
-\end{align*}
-Suppose that $X \sim p$, $Y = f(X)$, and $(p_\star, f) \sim \nu$, and define
-\begin{align*}
-    \Delta(\nu, p) & = \E\!\left[
-        \langle p_\star - p, f \rangle
+    \E\left[
+        \langle \tA - a_\star, \ell\rangle
+        - \langle a - a_\star, \hl\rangle
+        + \frac{1}{\eta} D_{F^\star}(\nabla F(\tA) - \eta \hl, \nabla F(\tA))
         \right]\,,
 \end{align*}
-Then we can write
+where $\hl = E(\tA, Y) = E(\tA, \langle \tA, \ell\rangle)$.
+Note that the randomness is only through $\tA \sim P$.
+
+A bound on the following quantity would be ideal:
 \begin{align*}
-     & \eta \Lambda_\eta(q, p, E, \nu)
-    \\
+    \Lambda_{\cA, \cL, F}^\star =
+    \sup_{\eta \geq 0, a \in \cA}
+    \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
+    \sup_{a_\star \in \cA, \ell \in \cL}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)\,.
+\end{align*}
+
+To allow the second sup player to randomize, let
+$\nu \in \cP(\cA \times \cL)$ and
+\begin{align*}
+    \Lambda_{a, \eta}(P, E || \nu) =
+    \frac{1}{\eta}
+    \E_{A_\star, \ell \sim \nu}\left[
+        \langle \tA - A_\star, \ell\rangle
+        - \langle a - A_\star, \hl\rangle
+        + \frac{1}{\eta} D_{F^\star}(\nabla F(\tA) - \eta \hl, \nabla F(\tA))
+        \right]\,,
+\end{align*}
+which results in the following minimax problem.
+\begin{lemma}[\cite{lattimore2024bandit}, Lemma 8.21]
+    \label{lem:exp-by-opt-minimax}
+    For all $\eta > 0, a \in \cA$,  we have
+    \begin{align*}
+        \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
+        \sup_{\nu \in \cP(\cA \times \cL)}
+        \Lambda_{a,\eta}(P, E || \nu)
+        =
+        \sup_{\nu \in \cP(\cA \times \cL)}
+        \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
+        \Lambda_{a,\eta}(P, E || \nu)\,.
+    \end{align*}
+\end{lemma}
+
+\subsubsection{When $F$ is negentropy and $\cA$ is the simplex}
+We specialize to the case where $F$ is the negentropy function
+and $\cA$ is the simplex $\Delta(d)$, and consider a fixed $\eta > 0$ and
+$a \in \cA$ therefore dropping them from the $\Lambda_{a, \eta}$ notation.
+For $a \in \Rd$,
+\begin{align*}
+    R(a) \triangleq \langle a, \ln(a) - 1 \rangle\,,
+\end{align*}
+is the negentropy function defined on $\Rd$.
+We have
+\begin{align*}
+    R^\star(a) = \langle \exp(a), 1\rangle\,,\qquad R'(a) = \ln(a)\,.
+\end{align*}
+Moreover, let
+\begin{align*}
+    \Delta(\nu, P) & =
+    \E_{A \sim P, (A_\star \times \ell) \sim \nu}\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]\,.
+\end{align*}
+Next, with $\hl = \langle E(A, Y), A\rangle = \langle E(A, \langle A, \ell \rangle), A\rangle$, we have
+\begin{align*}
+    \eta \Lambda(P, E || \nu)
      & =
     \E\!\left[
-        \langle p_\star - q, E(X, Y) \rangle
-        + \langle p_\star - p, f \rangle
-        + \frac{1}{\eta} \cS_q(\eta E(X, Y))
+        \langle A - A_\star, \ell \rangle
+        - \langle A - A_\star, \hl \rangle
+        + \frac{1}{\eta} D_{R^\star}(R'(A) - \eta \hl, R'(A))
         \right]
     \\
      & =
-    \Delta(\nu, p) +
+    \Delta(\nu, P) +
     \E\!\left[
-        \langle p_\star - q, E(X, Y) \rangle
+    \langle A_\star - A, \hl \rangle
+    + \frac{1}{\eta}
+    \left(
+    R^\star\left(R'(A) - \eta \hl\right)
+    - R^\star(R'(A))
+    - {R^\star}'(R'(A))^\top (- \eta \hl)
+    \right)
+    \right]
+    \\
+     & =
+    \Delta(\nu, P) +
+    \E\!\left[
+        \langle A_\star - A, \hl \rangle
         + \frac{1}{\eta}
         \left(
-        R^\star\left(R'(q) - \eta E(X, Y)\right)
-        - R^\star(R'(q))
-        - \nabla R^\star(R'(q))^\top (- \eta E(X, Y))
+        R^\star\left(R'(A) - \eta \hl\right)
+        - R^\star(R'(A))
+        + \eta A^\top \hl
         \right)
         \right]
     \\
      & =
-    \Delta(\nu, p) +
+    \Delta(\nu, P) +
     \E\!\left[
-        \langle p_\star - q, E(X, Y) \rangle
+        \langle A_\star, \hl \rangle
+        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(A))
+        \right]
+    \\
+     & =
+    \Delta(\nu, P) +
+    \E\!\left[
+        \langle A_\star, \hl \rangle
         + \frac{1}{\eta}
-        \left(
-        R^\star\left(\ln(q) - \eta E(X, Y)\right)
-        - 1
-        + \eta \langle q, E(X, Y) \rangle
-        \right)
-        \right]
-    \\
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta} R^\star\left(\ln(q) - \eta E(X, Y)\right)
-        \right]
-    - \frac{1}{\eta}
-    \\
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta} \left\langle\exp(\ln(q) - \eta E(X, Y)), 1_\cC\right\rangle
-        \right]
-    - \frac{1}{\eta}
-    \\
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta E(X, Y))\rangle
+        \langle q, \exp(- \eta \hl)\rangle
         \right]
     - \frac{1}{\eta}
 \end{align*}
 
-\subsection{Unrestricted estimator class $\cE$}
-The minimizer $E$ in the general case has the following close form.
+\paragraph{Optimizing for $E$}
+The inf player can choose the best optimizer give the action of the
+adversary and its own sampling policy $P$.
+The following lemma shows that the \textit{optimal unrestricted estimator}
+has a closed form.
 \begin{lemma}
-    Given $\nu \in \Delta(\Delta(\cC), \cF_b)$, and $p \in \Delta(\cC)$
-    define $G_{\nu, p} \in \cE$ as
+    Given $\nu \in \Delta(\cA \times \cL)$, and $P \in \Delta(d)$
+    define $G_{\nu, p} \in (\Rd)^{(\cA \times \R)}$ as
     \begin{align*}
-        G_{\nu, p}(x, y) & =
+        G_{\nu, P}(a, y) & =
         \frac{1}{\eta}\left(
-        R'(q) - R'(\E[p_\star|f(x) = y])
+        R'(a) - R'(\E[A_\star|A = a, \langle \ell, A\rangle = y])
         \right)\,,
     \end{align*}
     then we have
     $
-        \inf_{E \in \cE}
-        \Lambda_\eta(p, E, \nu)
+        \inf_{E \in (\Rd)^{\cA \times \R}}
+        \Lambda(P, E|| \nu)
         =
-        \Lambda_\eta(p, G_{\nu, p}, \nu)\,.
+        \Lambda(P, G_{\nu, p}|| \nu)\,.
     $
 \end{lemma}
 \begin{proof}
-    By taking the derivative of $\Lambda_\eta(p, E, \nu)$ with respect to $E(x,y)$ we have
+    By taking the derivative of $\Lambda(p, E || \nu)$ with respect to $E(a,y)$
+    for a \textit{non-random} $(a,y) \in \cA \times \R$ we have
     \begin{align*}
-         & \nabla_{E(x,y)}
-        \Lambda_\eta(p, E, \nu)
-        \\
+        \tfrac{\partial}{\partial E(a,y)} \Lambda_\eta(P, E || \nu)
          & =
-        \tfrac{\PP(f(x)=y,X=x)}{\eta}
-        \nabla_{E(x,y)}
+        \tfrac{\partial}{\partial E(a,y)}
         \E\!\left[
-            \langle p_\star, E(X, Y) \rangle
-            + \tfrac{1}{\eta}
-            \langle q, \exp(- \eta E(X, Y))\rangle
-            |
-            X = x, f(x) = y
-            \right]
-        \\
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+            - \frac{1}{\eta} R^\star(R'(A))
+        \right] \\
          & =
-        \tfrac{\PP(f(x)=y,X=x)}{\eta}
+        \tfrac{\partial}{\partial E(a,y)}
         \E\!\left[
-            p_\star
-            -
-            q \odot \exp(- \eta E(X, Y))
-            |
-            X = x, f(x) = y
-            \right]
-        \\
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+        \right] \\
          & =
-        \tfrac{\PP(f(x)=y,X=x)}{\eta}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
+        \tfrac{\partial}{\partial E(a,y)}
         \E\!\left[
-            p_\star
-            |
-            X = x, f(x) = y
-            \right]
-        -
-        \tfrac{1}{\eta}
-        q \odot \exp(- \eta E(x, y))\,.
-    \end{align*}
-    By setting the gradient to zero, for any $z \in \cC$ we have
-    \begin{align*}
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+            |A = a, \langle\ell, A\rangle = y
+        \right] \\
+         & =
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
+        \tfrac{\partial}{\partial E(a,y)}
         \E\!\left[
-            p_\star
-            |
-            X = x, f(x) = y
-            \right]_z
+            \langle A_\star, E(A, Y) \rangle
+            + \frac{1}{\eta} R^\star\left(R'(A) - \eta E(A, Y)\right)
+            |A = a, \langle\ell, A\rangle = y
+        \right] \\
          & =
-        q_z \exp(- \eta E(x, y))_z\,,
-    \end{align*}
-    which gives
-    \begin{align*}
-        E(x, y)_z
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
+        \E\!\left[
+        A_\star
+        - {R^\star}'\left(R'(A) - \eta E(A, Y)\right)
+        |A = a, \langle\ell, A\rangle = y
+        \right] \\
          & =
-        -\frac{1}{\eta} \ln\left(
-        \frac{\E\!\left[p_\star|X = x, f(x) = y\right]_z}{q_z}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
+        \left(
+        \E\!\left[
+            A_\star
+            |A = a, \langle\ell, A\rangle = y\right]
+        - {R^\star}'\left(R'(a) - \eta E(a, y)\right)
         \right)
-        \\
-         & =
-        \frac{1}{\eta}\left(
-        \ln(q_z)-
-        \ln\left(
-            \E\!\left[p_\star|X = x, f(x) = y\right]_z
-            \right)
-        \right)\,,
     \end{align*}
-    which, since $R'(q_z) = \ln(q_z)$ gives the desired result.
+    the result follows by setting the gradient to zero.
 \end{proof}
 
-\subsection{IS estimator class--multiplicative in $y$}
-Restrict $E(x,y)$ to be of the form
+\paragraph{Restricted $E$---multiplicative in $Y$:}
+The player (even in the primal problem), has the knowledge of
+$\eta$ and $a$, and also has the control over $P$,
+so given these three variables, it can limit its search for the
+optimal estimator.
+However, the space $(\Rd)^{(\cA \times \R)}$ is huge,
+and this is a problem for solving the primal problem.
+The learner can further restrict its search to be only over
+estimators $E(x,y)$ of the form
 \begin{align*}
-    E(x,y) & = \frac{y}{p(x)} T(x) \quad \text{or} \quad \left( = \frac{y}{p(x)}T(x|\cdot) \right)\,.
+    E(a,y) & = \frac{y}{P(a)} T(a) \quad \text{or} \quad \left( = \frac{y}{P(a)}T(a|\cdot) \right)\,,
 \end{align*}
-with $T: \cC \to \R^{|\cC|}$, and $p\in\Delta(\cC)$.
-Let $\nu \in \Delta(\Delta(\cC) \times \cF_b)$.
-We are interested in the $T$ that minimizes
+and then only optimizes for $T \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
+So, we are interested in the $T$ that minimizes
 \begin{align*}
-    \eta \bar \Lambda(T)
-     & :=
-    \Delta(\nu, p) +
+    \eta \Lambda(P, E || \nu)
+     & =
+    \Delta(\nu, P) +
     \E\!\left[
-        \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta E(X, Y))\rangle
+        \langle A_\star, \hl \rangle
+        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(A))
+        \right]\,,
+\end{align*}
+but note that the first term $\Delta(\nu, P)$
+and the last term $R^\star(R'(A))$ can be dropped
+from the optimization since they don't depend on the estimator choice
+$E$ (no $\hl$ present).
+
+Define the shorthand $T_a = T(a) \in \R^{|\cC|}$,
+and solve for the best $T_a$ through differentiation
+(dropping $\Delta(\nu, P)$ and $R^\star(R'(A))$)
+\begin{align*}
+    \tfrac{\partial}{\partial T_a} \Lambda(P, E||\nu)
+     & =
+    \tfrac{\partial}{\partial T_a}
+    \eta^{-1}
+    \E\!\left[
+        \langle A_\star, \hl \rangle
+        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
         \right]
-    - \frac{1}{\eta}
     \\
-     & :=
-    \Delta(\nu, p) +
+     & =
+    \tfrac{P(a)}{\eta} \cdot
+    \tfrac{\partial}{\partial T_a}
     \E\!\left[
-        \E\left[
-            \langle p_\star, \tfrac{T(X) Y}{p(X)} \rangle
-            + \frac{1}{\eta}
-            \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
-            \bigg| X
-            \right]
+        \langle A_\star, \tfrac{Y}{P(a)}T_a \rangle
+        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
+        | A = a
         \right]
-    - \frac{1}{\eta}\,.
+    \\
+     & =
+    \tfrac{P(a)}{\eta} \cdot
+    \E\!\left[
+        \tfrac{Y}{P(a)} A_\star
+        - \tfrac{Y}{P(a)} {R^\star}'\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
+        | A = a
+        \right]
+    \\
+     & =
+    \tfrac{1}{\eta} \cdot
+    \E\!\left[
+        Y A_\star
+        - Y {R^\star}'\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
+        | A = a
+        \right]\,,
 \end{align*}
-Note that we drop it from the notation, but it's important to remember that $f, p_\star, X$ and $Y$ are random.
-Define the shorthand $T_x = T(x) \in \R^{|\cC|}$.
-Then through differentiation we have
+where by setting the derivative to zero we have
+\begin{align}
+    \E\!\left[
+        Y A_\star
+        | A = a
+        \right]
+     & =
+    \E\!\left[
+        Y {R^\star}'\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
+        | A = a
+    \right] \nonumber \\
+    \abovelabel{$\odot \tfrac{T_a}{P(a)}$}
+    \Rightarrow
+    \E\!\left[
+        \hl \odot A_\star
+        | A = a
+        \right]
+     & =
+    \E\!\left[
+        \hl \odot {R^\star}'\left(R'(A) - \eta \hl\right)
+        | A = a
+        \right]\,. \label{eq:mul-E-opt}
+\end{align}
+It can be seen that $T_a$ doesn't have a closed form,
+but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
+Since each $T_a$ can be chosen separately,
+we condition of $A$ in the original definition
+$\lambda(P, E || \nu)$; we get
 \begin{align*}
-    \nabla_{T_x} \bar{\Lambda}(T)
+     & \E\!\left[
+        \Delta(\nu, \delta_A) +
+        \langle A_\star, \hl \rangle
+        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(A))
+        \big| A = a
+        \right]
+    \\
+     & =\E\!\left[
+        \Delta(\nu, \delta_a) +
+        \langle a_\star \odot \hl, 1 \rangle
+        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(a))
+        \big|A=a
+        \right]
+    \\
+     & =\E\!\left[
+        \Delta(\nu, \delta_a)
+        + \langle \hl, {R^\star}'\left(R'(a) - \eta \hl\right)\rangle
+        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(a))
+        \big|A=a
+        \right]
+    \\
+     & =\E\!\left[
+        \Delta(\nu, \delta_a) +
+        \frac{1}{\eta}
+        D_{R^\star}\left(R'(a) - \eta \hl, R'(a)\right)
+        \big|A=a
+        \right]\,,
+\end{align*}
+... and we've been lucky.
+Putting this back into the original definition of
+$\Lambda(P, E || \nu)$ gives
+\begin{align*}
+    \Lambda(P, E || \nu)
+     & =
+    \frac{1}{\eta}
+    \Delta(\nu, P) +
+    \frac{1}{\eta^2}
+    \E\!\left[
+        D_{R^\star}\left(R'(A) - \eta \hl, R'(A)\right)
+        \right]\,,
+\end{align*}
+and with this $E$ is out of the picture---the learner only needs to choose a good $P$.
+\begin{remark}[A curious reappearence]
+    Although we're in the dual world, it's tempting to think of
+    $R'(A) - \eta \hl$ as $R'(\tilde{A}_+)$, where $\tilde{A}_+$
+    is the \textit{next round's unrestricted optimal action} in \mdalg analysis.
+    With that, we have
+    \begin{align*}
+        \Lambda(P, E || \nu)
+         & =
+        \frac{1}{\eta}
+        \Delta(\nu, P) +
+        \frac{1}{\eta^2}
+        \E\!\left[
+            D_{R^\star}\left(R'(\tilde{A}_+), R'(A)\right)
+            \right]\,,
+    \end{align*}
+    and the term that appear inside the sum in theorem~\ref{alg:MD}
+    appears inside the expectation.
+\end{remark}
+\clearpage
+empty
+\newpage
+\begin{align*}
+    \tfrac{\partial}{\partial T_x} \Lambda(P, E||\nu)
      & = \tfrac{p(x)}{\eta}\nabla_{T_x} \E\!\left[
         \langle p_\star, \tfrac{T_x Y}{p(X)} \rangle
         + \frac{1}{\eta}
@@ -1096,8 +978,7 @@ putting this back into the expectation in \cref{eq:checkpiont1} gives
         \langle q \odot \exp(- \tfrac{\eta T(X) Y}{p(X)}),  \tfrac{1}{\eta} 1_\cC\rangle
         \right]
     \\
-    = &
-    \E\!\left[
+    = & \E\!\left[
         \left\langle
         q
         \odot
@@ -1105,6 +986,29 @@ putting this back into the expectation in \cref{eq:checkpiont1} gives
         , Y \tfrac{T(X)}{p(X)} + \tfrac{1}{\eta} 1_\cC
         \right\rangle
         \right]\,,
+\end{align*}
+Let $\hat{\ell} = \tfrac{\eta T(X) Y}{p(X)}$, then
+\begin{align*}
+    \left\langle
+    q
+    \odot
+    \exp(- \tfrac{\eta T(X) Y}{p(X)})
+    , Y \tfrac{T(X)}{p(X)} + \tfrac{1}{\eta} 1_\cC
+    \right\rangle
+    - 1
+     & =
+    \left\langle
+    q \odot \exp(-\hl)
+    , \hl + \tfrac{1}{\eta} 1_\cC
+    \right\rangle
+    - 1
+    \\
+     & =
+    \left\langle
+    q,\hl \odot \exp(-\hl)
+    + \tfrac{1}{\eta} \exp(-\hl)
+    \right\rangle
+    - 1
 \end{align*}
 which makes the whole thing equal to
 \begin{align*}
@@ -1126,18 +1030,134 @@ which makes the whole thing equal to
     \right)\,.
 \end{align*}
 Recall that $q$ was fixed through the minimax step, so we still have
+\subsection{Bayesian setting, TS \& OSMD}
+\textcolor{red}{TODO: clean up this section to match the notation of \smdalg.}
+\begin{algorithm}[h!]
+    \begin{minipage}{12cm}
+        \begin{mdframed}
+            \begin{lstlisting}
+args: $P$, $\eta$, $F$ and $E$ 
+$\bar{A}_1 = \argmin_{a \in \cA} F(a)$
+for $t = 1$ to $n$:
+    Play $A_t \sim P_{A^b_t}$.
+    Update $\bar{A}_{t+1} = \argmin_{a \in \cA} \eta \langle E(\bar{A}_t, A_t, Y_t), a \rangle + D_F(a, \bar{A}_t)$.
+\end{lstlisting}
+            \caption{OSMD}\label{alg:OSMD}
+        \end{mdframed}
+    \end{minipage}
+\end{algorithm}
+\citet{zimmert2019connections} suppose that (with simplifications)
+\begin{enumerate}
+    \item The exploration is done through a collection
+          $P = \{P_a: a \in \cA\}$ such that $P_a \in \Delta(\cA)$ and
+          $\E_{A \sim P_a}[A] = a$.
+    \item The estimation is done through a function
+          $E: \cA \times \cA \times \R \to \R^d$ such that
+          \begin{align*}
+              \E_{A \sim P_a}\left[
+                  E(a, A, \underbrace{\langle \ell_t, A\rangle}_{Y_t})
+                  \right] = \ell_t\,.
+          \end{align*}
+    \item Let $\texttt{MD}(\ell, b; \eta) = \argmin_{a \in \cA} \eta \langle \ell, a \rangle + D_F(a, b)$.
+\end{enumerate}
+The stability term is what inside the
+expectation in Theorem~\ref{thm:SMD},
 \begin{align*}
-    q_z & = \frac{\exp(-\eta\sum_{u=1}^{t-1}\hat{s}_u(z))}{\sum_{y\in\cC}\exp(-\eta\sum_{u=1}^{t-1}\hat{s}_u(y))}
+    \texttt{stab}_t(a) & \triangleq
+    \E_{A_t \sim P_a}\left[
+        \langle
+        \hl_t,
+        a - \bar{A}_{t+1}
+        \rangle
+        - \frac{D_F(\bar{A}_{t+1}, a)}{\eta}
+        \right]
     \\
-        & = \frac{
-        \exp(-\eta\sum_{u=1}^{t-1} E_u(X_u, Y_u)_z)
-    }{\sum_{h\in\cC}\exp(-\eta\sum_{u=1}^{t-1}E_u(X_u, Y_u)_h)}
-    \\
-        & = \frac{
-        \exp(-\eta\sum_{u=1}^{t-1} Y_u \tfrac{T_u(X_u|z)}{p_u(z)})
-    }{\sum_{h\in\cC}\exp(-\eta\sum_{u=1}^{t-1} Y_u \tfrac{T_u(X_u|h)}{p_u(h)})}\,,
+                       & =
+    \E_{A_t \sim P_a}\left[
+        \langle E(a, A_t, Y_t), a - \bar{A}_{t+1} \rangle
+        - \frac{D_F(\bar{A}_{t+1}, a)}{\eta}
+        \right]\,,
 \end{align*}
-This should play well with the new exponential term.
+where $\bar{A}_{t+1} = \texttt{MD}(\hl_t, \bar{A}_t)$,
+which means the loss comes from $A_t$ but the `anchor' comes from $\bar{A}_t$.
+
+\paragraph{Bayesian:}
+Suppose that $(\ell_1, \ell_2, \cdots, \ell_n) \sim \nu$,
+and $A_\star = \argmin_{a \in \cA} \sum_{t=1}^{n} \langle \ell_t, a\rangle$ is random.
+The \textsf{MTS} \textit{Bayesian} algorithm just does one thing differently:
+\begin{align*}
+    \bar{A}^b_{t+1} = \E_{t}[A_\star]\,,
+\end{align*}
+so instead of \textsf{MD} update, it uses the expected optimal action.
+
+The crucial connection is made through the fact that
+\begin{align*}
+    \E_{t-1}[A_t] = \E_{t-1}[A_\star]\,.
+\end{align*}
+
+
+\begin{algorithm}[h!]
+    \begin{minipage}{8cm}
+        \begin{mdframed}
+            \begin{lstlisting}
+args: Prior $\nu$, and $P$
+$A_1^b = \E[A_\star]$
+for $t = 1$ to $n$:
+    Play $A_t \sim P_{A^b_t}$.
+    Update $\bar{A}^b_{t+1} = \E_{t}[A_\star]$.
+\end{lstlisting}
+            \caption{MTS}\label{alg:MTS}
+        \end{mdframed}
+    \end{minipage}
+\end{algorithm}
+
+Beginning with the definition of the per-step Bayesian regret,
+\begin{align*}
+    \E_{t-1}[\Delta_t]
+     & =\E_{t-1}[\langle A_t - A_\star, \ell_t \rangle]                 \\
+     & =\E_{t-1}[\langle \bar{A}^b_t - A_\star, \hl_t \rangle]          \\
+     & = \E_{t-1}[\langle \bar{A}^b_t - \bar{A}^b_{t+1}, \hl_t \rangle]
+\end{align*}
+Let $A_t \sim P_{\bar{A}^b_t}$, and recall the $\textsf{MD}$ update
+\begin{align*}
+    \texttt{MD}_t \triangleq \texttt{MD}(\hl_t, \bar{A}^b_t) = \argmin_{a \in \cA} \eta \langle \underbrace{E(\bar{A}^b_t, A_t, Y_t)}_{\hl_t}, a \rangle + D_F(a, \bar{A}^b_t)\,,
+\end{align*}
+so
+\begin{align*}
+     & \langle \hl_t, \texttt{MD}_t \rangle + \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)
+    \leq
+    \langle \hl_t, \bar{A}^b_{t+1} \rangle + \frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b)                 \\
+    \Rightarrow
+     & \langle \hl_t, \texttt{MD}_t - \bar{A}_{t}^b \rangle + \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)
+    \leq
+    \langle \hl_t, \bar{A}^b_{t+1} - \bar{A}_{t}^b \rangle + \frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b) \\
+    \Rightarrow
+     & \langle \hl_t, \bar{A}_{t}^b - \bar{A}^b_{t+1} \rangle
+    \leq
+    \langle \hl_t, \bar{A}_{t}^b - \texttt{MD}_t \rangle
+    +
+    \frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b)
+    - \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)\,,
+\end{align*}
+which gives
+\begin{align*}
+    \E_{t-1}[\Delta_t]
+     & = \E_{t-1}[\langle \bar{A}^b_t - \bar{A}^b_{t+1}, \hl_t \rangle] \\
+     & \leq \E_{t-1}\left[
+    \underbrace{
+        \langle \hl_t, \bar{A}_{t}^b - \texttt{MD}_t \rangle
+        - \frac{1}{\eta} D_F(\texttt{MD}_t, \bar{A}_t^b)}_{
+        \texttt{stab}_t(\bar{A}_t^b; \eta)
+    }
+    +\frac{1}{\eta}D_F(\bar{A}^b_{t+1}, \bar{A}_t^b)
+    \right]                                          \,,                \\
+\end{align*}
+which means bounding the $\texttt{stab}_t(a, \eta)$ gives a regret bound for the Bayesian regret
+since the sum of divergences is bounded by \citet{lattimore2019information}[Thm 3].
+
+\section{Bandit convex optimization(\bco)}
+\subsection{\bco in one dimension}
+
 
 
 \clearpage
