@@ -344,7 +344,7 @@ $\E_{A \sim P_t}[A] = \E_{A \sim P_t'}[A]$, and \smdalg can choose
 from them for sampling $A_t$ at round $t$.
 In \blo, these two \textit{result in the exact same loss} in round $t$,
 and the reason for prefering one over the other is \textit{better exploration}.
-The situation is different for \bco.
+The situation is different for \bco later.
 
 This observation hints us that $P_t$ can (should?) be chosen as a function of $\bar{A}_t$:
 amongst all distributions $P$ that have the mean $\bar{A}_t$ choose the one that
@@ -365,14 +365,14 @@ a way that $\E[\hl_t] = \ell_t$ can be costly in terms of the bound on
 and its look-alikes. We have access to two sources of bias to control this quantity:
 \begin{enumerate}
     \item $\E_{A \sim P_t}[A] \neq a_t$, where $a_t$ is the \mdalg action based on $\hl_1, \cdots \hl_{t-1}$,
-    \item $\E_{A \sim P_t}[\hl_t] \neq \ell_t$, recall that $\hl_t = E_t(A_t, \langle A_t, \ell \rangle)$, so randomness is only by $A_t$.
+    \item $\E_{A \sim P_t}[\hl_t] \neq \ell_t$. Recall that $\hl_t = E_t(A_t, \langle A_t, \ell \rangle)$, so randomness is only by $A_t$.
 \end{enumerate}
 Note that even if $P_t$ is biased, the learner
 \textbf{has a chance to make $\hl_t$ unbiased}
 by choosing appropriate $E_t$.
 
 \begin{theorem}[Biased-\smdalg, (\cite{lattimore2024bandit}, Theorem 8.14)]\label{thm:SMD-biased}
-    Suppose that $\E_{\tA \sim \tP_t}[\tA] = \bar{\tA}$.
+    Suppose that $\E_{\tA \sim \tP_t}[\tA] = \bar{\tA}_t$.
     The expected regret of Biased-\smdalg is bounded by
     \begin{align*}
         \frac{D_F(a_\star, a_1)}{\eta} +
@@ -424,8 +424,7 @@ by choosing appropriate $E_t$.
     \end{align*}
     where the inequality is by theorem~\ref{thm:MD}.
 \end{proof}
-\begin{remark}
-
+\begin{remark}[No-randomness in the virtual game]
     Note that $\hl_t$ is adapted to $A'_t$ since the algorithm actually plays
     $A'_t \sim P_t'$. So you can think that $P'_t$ is the exploration policy that
     is actually played which is not \smdalg as $\E_{A'_t}[A] \neq a_t$.
@@ -434,19 +433,44 @@ by choosing appropriate $E_t$.
     $\hl_1, \cdots, \hl_n$ is the actual loss sequence.
 \end{remark}
 
+\begin{remark}[Closer look at theorem~\ref{thm:SMD-biased}---dummy bound]
+    \label{rem:dummy-bound}
+    If we look closer at theorem~\ref{alg:biased-SMD}, we can see that
+    $\sum_{t=1}^{n} \E[\langle \hat{A}_t - a_\star, \ell_t\rangle]$ term
+    that appears on the RHS of the claim is exactly $\Reg_n(a_\star)$,
+    so we did bound $\Reg_n(a_\star)$ by $\Reg_n(a_\star) + \square$ and
+    for this theorem to be useful this $\square$ better be negative.
+    Precisely, we did nothing other than adding and subtracting the value of the game
+    that is played on $\hl_{1:n}$: the algorithm is \mdalg (not {\smdalg})
+    and the loss sequence is $\hl_{1:n}$.
+    So if we show the value of this game by $\hat{G}_n$, all we did is
+    \begin{align*}
+        \Reg_n(a_\star) = \Reg_n(a_\star) - \hat{G}_n + \hat{G}_n \,,
+    \end{align*}
+    which is an equality so far.
+    The inequality is there for two reasons: (1) the upper-bound on
+    $+ \hat{G}_n$, which is \textit{unavoidable},
+    (2) $a_\star \neq \hat{a}_\star$---the true minimizer of the
+    \textit{estimated game sequence} $\hl_{1:n}$ is not necessarily
+    $a_\star$.
+    The second reason might actually make the $\square$ term positive
+    and the theorem useless.
+    Needless to say, the theorem still holds if we exchange $a_\star$
+    for $\hat{a}_\star$.
+\end{remark}
+
 \subsection{Exploration By Optimization(\expbyopt)}
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
             \begin{lstlisting}
 args: learning rate $\eta >0$, precision $\epsilon > 0$
-let $\cC \in K$ be finite
 for $t = 1$ to $n$:
-    compute $q_t(x) = \frac{\exp(-\eta\sum_{u=1}^{t-1}\hat{s}_u(x))}{\sum_{y\in\cC}\exp(-\eta\sum_{u=1}^{t-1}\hat{s}_u(x))}$ for all $x \in \cC$
-    find distribution $p_t \in \Delta(\cC)$ and $E_t \in \cE$ such that
-        $\Lambda_\eta(q_t, p_t, E_t) \leq \inf_{p,E} \Lambda_\eta(q_t) + \epsilon$
-    sample $X_t \sim p_t$, and observe $Y_t = f_t(X_t)$
-    compute $\hat{s}_t(x) = E_t(X_t, Y_t)$
+    compute $a_t = \fmd(\hl_{1:t-1})$
+    find distribution $P_t \in \Delta(\cA)$ and $E_t \in (\Rd)^{(\cA \times \R)}$ s.t.
+        $\sup_{\ell, a_\star} \Lambda_{a_t, \eta}(P_t, E_t) \leq \inf_{P,E} \sup_{\ell, a_\star} \Lambda_{a_t, \eta}(P, E) + \epsilon$
+    sample $A_t \sim P_t$, and observe $Y_t = \langle \ell_t, A_t \rangle$
+    compute $\hl_t = E_t(A_t, Y_t)$
 \end{lstlisting}
             \caption{\expbyopt}\label{alg:exp-by-opt}
         \end{mdframed}
@@ -457,40 +481,46 @@ Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $a
 The idea is to choose the best $P_t$ and $E_t$ given $a_t$,
 hoping that the term inside the expectation in \cref{thm:SMD-biased} could
 then be bounded uniformly for all $t \in [n]$.
-To this end, define
+To this end, with $A\sim P$ and
+$\hl = E(A, Y) = E(A, \langle A, \ell\rangle)$, define
 \begin{align*}
-    \Lambda_{a, \eta}(P, E || a_\star, \ell) =
+    \Lambda_{a, \eta}(P, E || a_\star, \ell) \triangleq
     \frac{1}{\eta}
     \E\left[
-        \langle \tA - a_\star, \ell\rangle
+        \langle A - a_\star, \ell\rangle
         - \langle a - a_\star, \hl\rangle
-        + \frac{1}{\eta} D_{F^\star}(\nabla F(\tA) - \eta \hl, \nabla F(\tA))
+        + \frac{1}{\eta} D_{F^\star}(\nabla F(a) - \eta \hl, \nabla F(a))
         \right]\,,
 \end{align*}
-where $\hl = E(\tA, Y) = E(\tA, \langle \tA, \ell\rangle)$.
-Note that the randomness is only through $\tA \sim P$.
-
 A bound on the following quantity would be ideal:
 \begin{align*}
-    \Lambda_{\cA, \cL, F}^\star =
+    \Lambda_{\cA, \cL, F}^\star \triangleq
     \sup_{\eta \geq 0, a \in \cA}
     \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
     \sup_{a_\star \in \cA, \ell \in \cL}
     \Lambda_{a, \eta}(P, E || a_\star, \ell)\,.
 \end{align*}
-
-To allow the second sup player to randomize, let
-$\nu \in \cP(\cA \times \cL)$ and
+Moreover, if we allow the second sup player to randomize, the resulting
+saddle point value can't get smaller,
+so let $\nu \in \cP(\cA \times \cL)$ and
 \begin{align*}
-    \Lambda_{a, \eta}(P, E || \nu) =
+    \Lambda_{a, \eta}(P, E || \nu) \triangleq
     \frac{1}{\eta}
-    \E_{A_\star, \ell \sim \nu}\left[
+    \E_{(A_\star, \ell) \sim \nu}\left[
         \langle \tA - A_\star, \ell\rangle
         - \langle a - A_\star, \hl\rangle
-        + \frac{1}{\eta} D_{F^\star}(\nabla F(\tA) - \eta \hl, \nabla F(\tA))
+        + \frac{1}{\eta} D_{F^\star}(\nabla F(a) - \eta \hl, \nabla F(a))
         \right]\,,
 \end{align*}
-which results in the following minimax problem.
+and note that
+\begin{align*}
+    \sup_{a_\star \in \cA, \ell \in \cL}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+    \leq
+    \sup_{\nu \in \cP(\cA \times \cL)}
+    \Lambda_{a, \eta}(P, E || \nu)
+\end{align*}
+which results in the following minimax theorem.
 \begin{lemma}[\cite{lattimore2024bandit}, Lemma 8.21]
     \label{lem:exp-by-opt-minimax}
     For all $\eta > 0, a \in \cA$,  we have
@@ -504,58 +534,53 @@ which results in the following minimax problem.
         \Lambda_{a,\eta}(P, E || \nu)\,.
     \end{align*}
 \end{lemma}
+\begin{remark}
+    The second $A_\star$ in $\Lambda(P, E || \nu)$
+    can be switched with any fixed action $a \in \cA$.
+    See remark~\ref{rem:dummy-bound}.
+\end{remark}
 
-\subsubsection{When $F$ is negentropy and $\cA$ is the simplex}
-We specialize to the case where $F$ is the negentropy function
-and $\cA$ is the simplex $\Delta(d)$, and consider a fixed $\eta > 0$ and
-$a \in \cA$ therefore dropping them from the $\Lambda_{a, \eta}$ notation.
-For $a \in \Rd$,
-\begin{align*}
-    R(a) \triangleq \langle a, \ln(a) - 1 \rangle\,,
-\end{align*}
-is the negentropy function defined on $\Rd$.
-We have
-\begin{align*}
-    R^\star(a) = \langle \exp(a), 1\rangle\,,\qquad R'(a) = \ln(a)\,.
-\end{align*}
-Moreover, let
+\paragraph{Simplifying $\Lambda(P, E || \nu)$:}
+Now on, we study $\Lambda(P, E || \nu)$ for some fixed
+$a \in \cA$ and $\eta \geq 0$ and drop them from the notation.
+Let
 \begin{align*}
     \Delta(\nu, P) & =
     \E_{A \sim P, (A_\star \times \ell) \sim \nu}\!\left[
         \langle A - A_\star, \ell \rangle
         \right]\,.
 \end{align*}
-Next, with $\hl = \langle E(A, Y), A\rangle = \langle E(A, \langle A, \ell \rangle), A\rangle$, we have
+Next, with $\hl = E(A, Y)= E(A, \langle A, \ell \rangle)$, we have
 \begin{align*}
     \eta \Lambda(P, E || \nu)
      & =
     \E\!\left[
         \langle A - A_\star, \ell \rangle
-        - \langle A - A_\star, \hl \rangle
-        + \frac{1}{\eta} D_{R^\star}(R'(A) - \eta \hl, R'(A))
+        - \langle a - A_\star, \hl \rangle
+        + \frac{1}{\eta} D_{R^\star}(R'(a) - \eta \hl, R'(a))
         \right]
     \\
      & =
     \Delta(\nu, P) +
     \E\!\left[
-    \langle A_\star - A, \hl \rangle
+    \langle A_\star - a, \hl \rangle
     + \frac{1}{\eta}
     \left(
-    R^\star\left(R'(A) - \eta \hl\right)
-    - R^\star(R'(A))
-    - {R^\star}'(R'(A))^\top (- \eta \hl)
+    R^\star\left(R'(a) - \eta \hl\right)
+    - R^\star(R'(a))
+    - {R^\star}'(R'(a))^\top (- \eta \hl)
     \right)
     \right]
     \\
      & =
     \Delta(\nu, P) +
     \E\!\left[
-        \langle A_\star - A, \hl \rangle
+        \langle A_\star - a, \hl \rangle
         + \frac{1}{\eta}
         \left(
-        R^\star\left(R'(A) - \eta \hl\right)
-        - R^\star(R'(A))
-        + \eta A^\top \hl
+        R^\star\left(R'(a) - \eta \hl\right)
+        - R^\star(R'(a))
+        + \eta a^\top \hl
         \right)
         \right]
     \\
@@ -563,18 +588,9 @@ Next, with $\hl = \langle E(A, Y), A\rangle = \langle E(A, \langle A, \ell \rang
     \Delta(\nu, P) +
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(A))
-        \right]
-    \\
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
-        \langle A_\star, \hl \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \hl)\rangle
-        \right]
-    - \frac{1}{\eta}
+        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(a))
+        \right]\,,
 \end{align*}
 
 \paragraph{Optimizing for $E$}
@@ -586,9 +602,9 @@ has a closed form.
     Given $\nu \in \Delta(\cA \times \cL)$, and $P \in \Delta(d)$
     define $G_{\nu, p} \in (\Rd)^{(\cA \times \R)}$ as
     \begin{align*}
-        G_{\nu, P}(a, y) & =
-        \frac{1}{\eta}\left(
-        R'(a) - R'(\E[A_\star|A = a, \langle \ell, A\rangle = y])
+        G_{\nu, P}(b, y) & =
+        \frac{P(A)}{\eta}\left(
+        R'(a) - R'(\E[A_\star|\langle \ell, A\rangle = y])
         \right)\,,
     \end{align*}
     then we have
@@ -600,56 +616,84 @@ has a closed form.
     $
 \end{lemma}
 \begin{proof}
-    By taking the derivative of $\Lambda(p, E || \nu)$ with respect to $E(a,y)$
-    for a \textit{non-random} $(a,y) \in \cA \times \R$ we have
+    By taking the derivative of $\Lambda(p, E || \nu)$ with respect to $E(b,y)$
+    for a \textit{non-random} $(b,y) \in \cA \times \R$ we have
     \begin{align*}
-        \tfrac{\partial}{\partial E(a,y)} \Lambda_\eta(P, E || \nu)
+        \tfrac{\partial}{\partial E(b,y)} \Lambda_\eta(P, E || \nu)
+        %  & =
+        % \tfrac{\partial}{\partial E(b,y)}
+        % \E\!\left[
+        %     \langle A_\star, \hl \rangle
+        %     + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+        %     - \frac{1}{\eta} R^\star(R'(a))
+        % \right] \\
          & =
-        \tfrac{\partial}{\partial E(a,y)}
+        \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
             \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
-            - \frac{1}{\eta} R^\star(R'(A))
+            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
         \right] \\
          & =
-        \tfrac{\partial}{\partial E(a,y)}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
+        \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
             \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+            |A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
-        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
-        \tfrac{\partial}{\partial E(a,y)}
-        \E\!\left[
-            \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
-            |A = a, \langle\ell, A\rangle = y
-        \right] \\
-         & =
-        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
-        \tfrac{\partial}{\partial E(a,y)}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
+        \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
             \langle A_\star, E(A, Y) \rangle
-            + \frac{1}{\eta} R^\star\left(R'(A) - \eta E(A, Y)\right)
-            |A = a, \langle\ell, A\rangle = y
+            + \frac{1}{\eta} R^\star\left(R'(a) - \eta E(A, Y)\right)
+            |A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
-        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \E\!\left[
         A_\star
-        - {R^\star}'\left(R'(A) - \eta E(A, Y)\right)
-        |A = a, \langle\ell, A\rangle = y
+        - {R^\star}'\left(R'(a) - \eta E(A, Y)\right)
+        |A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
-        \tfrac{\PP(\langle \ell, A\rangle=y, A=a)}{\eta}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \left(
         \E\!\left[
             A_\star
-            |A = a, \langle\ell, A\rangle = y\right]
+            |A = b, \langle\ell, A\rangle = y\right]
         - {R^\star}'\left(R'(a) - \eta E(a, y)\right)
-        \right)
+        \right)\,,
     \end{align*}
-    the result follows by setting the gradient to zero.
+    and by setting the gradient to zero, we get
+    \begin{align*}
+        \E\!\left[
+            A_\star
+            |A = b, \langle\ell, A\rangle = y\right]
+         & = {R^\star}'\left(R'(a) - \eta E(a, y)\right) \\
+        \Rightarrow
+        R'\left(\E\!\left[
+            A_\star
+            |A = b, \langle\ell, A\rangle = y\right]\right)
+         & = R'(a) - \eta E(a, y)                        \\
+        \Rightarrow
+        E(a, y)
+         & =
+        \frac{1}{\eta}
+        R'\left(\E\!\left[
+            A_\star
+            |A = b, \langle\ell, A\rangle = y\right]\right)
+        - R'(a)                                          \\
+        \Rightarrow
+        E(a, y)
+         & =
+        \frac{P(b)}{\eta}
+        R'\left(\E\!\left[
+            A_\star
+            |\langle\ell, b\rangle = y\right]\right)
+        - R'(a)                                          \,,
+    \end{align*}
+    where the last equation follows from the independence of $A$ and $\ell$.
 \end{proof}
 
 \paragraph{Restricted $E$---multiplicative in $Y$:}
@@ -662,7 +706,7 @@ and this is a problem for solving the primal problem.
 The learner can further restrict its search to be only over
 estimators $E(x,y)$ of the form
 \begin{align*}
-    E(a,y) & = \frac{y}{P(a)} T(a) \quad \text{or} \quad \left( = \frac{y}{P(a)}T(a|\cdot) \right)\,,
+    E(b,y) & = \frac{y}{P(b)} T(b) \quad \text{or} \quad \left( = \frac{y}{P(b)}T(b|\cdot) \right)\,,
 \end{align*}
 and then only optimizes for $T \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
 So, we are interested in the $T$ that minimizes
@@ -672,8 +716,8 @@ So, we are interested in the $T$ that minimizes
     \Delta(\nu, P) +
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(A))
+        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+        - \frac{1}{\eta} R^\star(R'(a))
         \right]\,,
 \end{align*}
 but note that the first term $\Delta(\nu, P)$
@@ -681,105 +725,116 @@ and the last term $R^\star(R'(A))$ can be dropped
 from the optimization since they don't depend on the estimator choice
 $E$ (no $\hl$ present).
 
-Define the shorthand $T_a = T(a) \in \R^{|\cC|}$,
-and solve for the best $T_a$ through differentiation
-(dropping $\Delta(\nu, P)$ and $R^\star(R'(A))$)
+Define the shorthand $T_b = T(b) \in \R^{|\cC|}$,
+and solve for the best $T_b$ through differentiation
+(dropping $\Delta(\nu, P)$ and $R^\star(R'(a))$)
 \begin{align*}
-    \tfrac{\partial}{\partial T_a} \Lambda(P, E||\nu)
+    \tfrac{\partial}{\partial T_b} \Lambda(P, E||\nu)
      & =
-    \tfrac{\partial}{\partial T_a}
+    \tfrac{\partial}{\partial T_b}
     \eta^{-1}
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
+        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
         \right]
     \\
      & =
-    \tfrac{P(a)}{\eta} \cdot
-    \tfrac{\partial}{\partial T_a}
+    \tfrac{P(b)}{\eta} \cdot
+    \tfrac{\partial}{\partial T_b}
     \E\!\left[
-        \langle A_\star, \tfrac{Y}{P(a)}T_a \rangle
-        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
-        | A = a
+        \langle A_\star, \tfrac{Y}{P(b)}T_a \rangle
+        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        | A = b
         \right]
     \\
      & =
-    \tfrac{P(a)}{\eta} \cdot
+    \tfrac{P(b)}{\eta} \cdot
     \E\!\left[
-        \tfrac{Y}{P(a)} A_\star
-        - \tfrac{Y}{P(a)} {R^\star}'\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
-        | A = a
+        \tfrac{Y}{P(b)} A_\star
+        - \tfrac{Y}{P(b)} {R^\star}'\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        | A = b
         \right]
     \\
      & =
     \tfrac{1}{\eta} \cdot
     \E\!\left[
         Y A_\star
-        - Y {R^\star}'\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
-        | A = a
+        - Y {R^\star}'\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        | A = b
         \right]\,,
 \end{align*}
-where by setting the derivative to zero we have
+whereby by setting the derivative to zero, we have
 \begin{align}
     \E\!\left[
         Y A_\star
-        | A = a
+        | A = b
         \right]
      & =
     \E\!\left[
-        Y {R^\star}'\left(R'(A) - \eta \tfrac{Y}{P(a)}T_a\right)
-        | A = a
+        Y {R^\star}'\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        | A = b
     \right] \nonumber \\
-    \abovelabel{$\odot \tfrac{T_a}{P(a)}$}
+    \abovelabel{$\odot \tfrac{T_b}{P(b)}$}
     \Rightarrow
     \E\!\left[
         \hl \odot A_\star
-        | A = a
+        | A = b
         \right]
      & =
     \E\!\left[
-        \hl \odot {R^\star}'\left(R'(A) - \eta \hl\right)
-        | A = a
-        \right]\,. \label{eq:mul-E-opt}
+        \hl \odot {R^\star}'\left(R'(a) - \eta \hl\right)
+        | A = b
+        \right]\,, \label{eq:mul-E-opt}
 \end{align}
-It can be seen that $T_a$ doesn't have a closed form,
+for all $b \in \cA$.
+It can be seen that $T_b$ doesn't have a closed form,
 but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
-Since each $T_a$ can be chosen separately,
-we condition of $A$ in the original definition
-$\lambda(P, E || \nu)$; we get
+Starting from the definition of $\Lambda(P, E || \nu)$,
+we have
 \begin{align*}
-     & \E\!\left[
-        \Delta(\nu, \delta_A) +
+    \eta \Lambda(P, E || \nu)
+     & =
+    \Delta(\nu, P) +
+    \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(A) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(A))
-        \big| A = a
-        \right]
-    \\
-     & =\E\!\left[
-        \Delta(\nu, \delta_a) +
-        \langle a_\star \odot \hl, 1 \rangle
         + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
         - \frac{1}{\eta} R^\star(R'(a))
-        \big|A=a
         \right]
     \\
-     & =\E\!\left[
-        \Delta(\nu, \delta_a)
-        + \langle \hl, {R^\star}'\left(R'(a) - \eta \hl\right)\rangle
-        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(a))
-        \big|A=a
+     & =
+    \Delta(\nu, P) +
+    \E\!\left[
+        \E\!\left[
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+            - \frac{1}{\eta} R^\star(R'(a))
+            \bigg|
+            A
+            \right]
         \right]
     \\
-     & =\E\!\left[
-        \Delta(\nu, \delta_a) +
-        \frac{1}{\eta}
+     &
+    \abovelabel{by eq~\ref{eq:mul-E-opt}}
+    =
+    \Delta(\nu, P) +
+    \E\!\left[
+        \E\!\left[
+            \langle {R^\star}'\left(R'(a) - \eta \hl\right), \hl \rangle
+            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+            - \frac{1}{\eta} R^\star(R'(a))
+            \bigg|
+            A
+            \right]
+        \right]
+    \\
+     & =
+    \Delta(\nu, P) +
+    \frac{1}{\eta}
+    \E\!\left[
         D_{R^\star}\left(R'(a) - \eta \hl, R'(a)\right)
-        \big|A=a
-        \right]\,,
+        \right]
 \end{align*}
-... and we've been lucky.
+... and we reach at a familiar term.
 Putting this back into the original definition of
 $\Lambda(P, E || \nu)$ gives
 \begin{align*}
@@ -789,13 +844,13 @@ $\Lambda(P, E || \nu)$ gives
     \Delta(\nu, P) +
     \frac{1}{\eta^2}
     \E\!\left[
-        D_{R^\star}\left(R'(A) - \eta \hl, R'(A)\right)
+        D_{R^\star}\left(R'(a) - \eta \hl, R'(a)\right)
         \right]\,,
 \end{align*}
 and with this $E$ is out of the picture---the learner only needs to choose a good $P$.
 \begin{remark}[A curious reappearence]
     Although we're in the dual world, it's tempting to think of
-    $R'(A) - \eta \hl$ as $R'(\tilde{A}_+)$, where $\tilde{A}_+$
+    $R'(a) - \eta \hl$ as $R'(\tilde{a}_+)$, where $\tilde{a}_+$
     is the \textit{next round's unrestricted optimal action} in \mdalg analysis.
     With that, we have
     \begin{align*}
@@ -805,12 +860,16 @@ and with this $E$ is out of the picture---the learner only needs to choose a goo
         \Delta(\nu, P) +
         \frac{1}{\eta^2}
         \E\!\left[
-            D_{R^\star}\left(R'(\tilde{A}_+), R'(A)\right)
+            D_R\left(a, \tilde{a}_+\right)
             \right]\,,
     \end{align*}
-    and the term that appear inside the sum in theorem~\ref{alg:MD}
+    and the term that is inside the sum in theorem~\ref{alg:MD}
     appears inside the expectation.
 \end{remark}
+
+
+
+
 \clearpage
 empty
 \newpage
