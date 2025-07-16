@@ -249,6 +249,104 @@ for $t = 1$ to $n$:
     Much of comes after hinges on the generality of the proof of this theorem---analysis of \mdalg.
 \end{remark}
 
+\subsection{When $\cA=\Delta(d)$ and $F$ is the negentropy}
+The case that $\cA = \Delta(d)$ is the simplex and the potential
+is negentropy,
+\begin{align*}
+    R(p) = \begin{cases}
+               \langle p, \ln(p) - 1 \rangle & p \in \Delta(d)         \\
+               \infty                        & p \in \text{otherwise,} \\
+           \end{cases}
+\end{align*}
+is of special interest as it results in a sort of universal algorithm for all
+action sets as long as they have a covering---the learner
+can come up with the cover $\cA$ and randomize over that.
+That being said, while being theoretically interesting, such an algorithm
+would be computationally expensive as the size of the cover grows.
+
+Since $\cA = \Delta(d)$ in this section, instead of showing actions with
+$a$ we use $p$ as probability measures over $d$ atoms.
+Note that $D_R = D_{KL}$, $R^\star(q) = \langle \exp(q), 1\rangle$,
+and $R'(p) = \ln(p)$.
+\begin{theorem}[\mdalg on simplex]\label{thm:md-simplex}
+    Suppose that $\eta \|\ell_t\|_\infty \leq 1$ for all $t \in [n]$,
+    then the regret of \mdalg with $R$ as the potential,
+    when $\cA = \Delta(d)$ is bounded as
+    \begin{align*}
+        \Reg_n(a_\star) \leq
+        \frac{\ln(d)}{\eta}
+        +
+        \eta\sum_{t=1}^{n} \langle a_t, \ell_t^2\rangle\,.
+    \end{align*}
+\end{theorem}
+\begin{proof}
+    From theorem~\ref{thm:MD}, we have
+    \begin{align*}
+        \Reg_n(a_\star)
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_R(a_\star, a_1) + \sum_{t=1}^{n} D_{R^\star}\left(R'(a_t) - \eta \ell_t, R'(a_t)\right)
+        \right)
+        \\
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        \ln(d) + \sum_{t=1}^{n} R^\star(R'(a_t) - \eta \ell_t) - R^\star(R'(a_t)) - a_t^\top(-\eta \ell_t)
+        \right)
+        \\
+         & =
+        \frac{1}{\eta}
+        \left(
+        \ln(d) + \sum_{t=1}^{n} \langle \exp(\ln(a_t) - \eta \ell_t) - \exp(\ln(a_t)), 1 \rangle + \langle a_t, \eta \ell_t\rangle
+        \right)
+        \\
+         & =
+        \frac{1}{\eta}
+        \left(
+        \ln(d) + \sum_{t=1}^{n} \langle a_t, \exp(- \eta \ell_t) - 1 \rangle + \langle a_t, \eta \ell_t\rangle
+        \right)
+        \\
+         &
+        \abovelabel{$\eta \|\ell_t\|_\infty \leq 1$}
+        \leq
+        \frac{1}{\eta}
+        \left(
+        \ln(d) + \sum_{t=1}^{n} \langle a_t, 1 - \eta \ell_t + \eta^2 \ell_t^2 - 1 \rangle + \langle a_t, \eta \ell_t\rangle
+        \right)
+        \\
+         &
+        =
+        \frac{1}{\eta}
+        \left(
+        \ln(d) + \eta^2\sum_{t=1}^{n} \langle a_t, \ell_t^2\rangle
+        \right)\,.
+    \end{align*}
+\end{proof}
+\begin{remark}[An explicit bound]
+    In order to get a bound in terms of $d$ and $n$,
+    we can further suppose that $\ell_t \in [0,1]^d$
+    and then from theorem~\ref{thm:md-simplex} we have
+    \begin{align*}
+        \Reg_n(a_\star) & \leq
+        \frac{\ln(d)}{\eta}
+        +
+        \eta\sum_{t=1}^{n} \langle a_t, \ell_t^2\rangle \\
+                        & \leq
+        \frac{\ln(d)}{\eta}
+        +
+        \eta \sum_{t=1}^{n} \|a_t\| \|\ell_t^2\|_\infty
+        \\
+                        & \leq
+        \frac{\ln(d)}{\eta}
+        +
+        \eta n
+        \leq 2 \sqrt{n\ln(d)}\,.
+    \end{align*}
+    The better bound of $\sqrt{2n\ln(d)}$ is also possible by using
+    $\exp(-x) \leq 1 - x + \frac{x^2}{2}$.
+\end{remark}
+
 \section{Bandit linear optimization(\blo)}
 Instead of $\ell_t$, the learner only observes $y_t = \langle \ell_t, a_t \rangle$.
 
