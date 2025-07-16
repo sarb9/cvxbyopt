@@ -484,9 +484,9 @@ for $t = 1$ to $n$:
     \end{minipage}
 \end{algorithm}
 
-Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
+Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $a_t = \fmd(\hl_{1:t-1})$.
 The idea is to choose the best $P_t$ and $E_t$ given $a_t$,
-hoping that the term inside the expectation in \cref{thm:SMD-biased} could
+hoping that the term inside the expectation in theorem~\ref{thm:SMD-biased} could
 then be bounded uniformly for all $t \in [n]$.
 To this end, with $A\sim P$ and
 $\hl = E(A, Y) = E(A, \langle A, \ell\rangle)$, define
@@ -514,7 +514,7 @@ so let $\nu \in \cP(\cA \times \cL)$ and
     \Lambda_{a, \eta}(P, E || \nu) \triangleq
     \frac{1}{\eta}
     \E_{(A_\star, \ell) \sim \nu}\left[
-        \langle \tA - A_\star, \ell\rangle
+        \langle A - A_\star, \ell\rangle
         - \langle a - A_\star, \hl\rangle
         + \frac{1}{\eta} D_{F^\star}(\nabla F(a) - \eta \hl, \nabla F(a))
         \right]\,,
@@ -558,51 +558,52 @@ Let
         \right]\,.
 \end{align*}
 Next, with $\hl = E(A, Y)= E(A, \langle A, \ell \rangle)$, we have
-\begin{align*}
+\begin{align}
     \eta \Lambda(P, E || \nu)
      & =
     \E\!\left[
         \langle A - A_\star, \ell \rangle
         - \langle a - A_\star, \hl \rangle
-        + \frac{1}{\eta} D_{R^\star}(R'(a) - \eta \hl, R'(a))
+        + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta \hl, F'(a))
         \right]
-    \\
+    \nonumber \\
      & =
     \Delta(\nu, P) +
     \E\!\left[
     \langle A_\star - a, \hl \rangle
     + \frac{1}{\eta}
     \left(
-    R^\star\left(R'(a) - \eta \hl\right)
-    - R^\star(R'(a))
-    - {R^\star}'(R'(a))^\top (- \eta \hl)
+    F^\star\left(F'(a) - \eta \hl\right)
+    - F^\star(F'(a))
+    - {F^\star}'(F'(a))^\top (- \eta \hl)
     \right)
     \right]
-    \\
+    \nonumber \\
      & =
     \Delta(\nu, P) +
     \E\!\left[
         \langle A_\star - a, \hl \rangle
         + \frac{1}{\eta}
         \left(
-        R^\star\left(R'(a) - \eta \hl\right)
-        - R^\star(R'(a))
+        F^\star\left(F'(a) - \eta \hl\right)
+        - F^\star(F'(a))
         + \eta a^\top \hl
         \right)
         \right]
-    \\
+    \nonumber \\
      & =
     \Delta(\nu, P) +
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(a))
+        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+        - \frac{1}{\eta} F^\star(F'(a))
         \right]\,,
-\end{align*}
+    \label{eq:Lambda-simplified}
+\end{align}
 
 \paragraph{Optimizing for $E$}
-The inf player can choose the best optimizer give the action of the
-adversary and its own sampling policy $P$.
+The inf player can choose the best optimizer given the
+$\nu$ choice of the adversary and its own sampling policy $P$.
 The following lemma shows that the \textit{optimal unrestricted estimator}
 has a closed form.
 \begin{lemma}
@@ -611,7 +612,7 @@ has a closed form.
     \begin{align*}
         G_{\nu, P}(b, y) & =
         \frac{P(A)}{\eta}\left(
-        R'(a) - R'(\E[A_\star|\langle \ell, A\rangle = y])
+        F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = y])
         \right)\,,
     \end{align*}
     then we have
@@ -638,14 +639,14 @@ has a closed form.
         \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
             \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
         \right] \\
          & =
         \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
             \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
             |A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
@@ -653,14 +654,14 @@ has a closed form.
         \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
             \langle A_\star, E(A, Y) \rangle
-            + \frac{1}{\eta} R^\star\left(R'(a) - \eta E(A, Y)\right)
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta E(A, Y)\right)
             |A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
         \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \E\!\left[
         A_\star
-        - {R^\star}'\left(R'(a) - \eta E(A, Y)\right)
+        - {F^\star}'\left(F'(a) - \eta E(A, Y)\right)
         |A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
@@ -669,7 +670,7 @@ has a closed form.
         \E\!\left[
             A_\star
             |A = b, \langle\ell, A\rangle = y\right]
-        - {R^\star}'\left(R'(a) - \eta E(a, y)\right)
+        - {F^\star}'\left(F'(a) - \eta E(a, y)\right)
         \right)\,,
     \end{align*}
     and by setting the gradient to zero, we get
@@ -677,64 +678,63 @@ has a closed form.
         \E\!\left[
             A_\star
             |A = b, \langle\ell, A\rangle = y\right]
-         & = {R^\star}'\left(R'(a) - \eta E(a, y)\right) \\
+         & = {F^\star}'\left(F'(a) - \eta E(a, y)\right) \\
         \Rightarrow
-        R'\left(\E\!\left[
+        F'\left(\E\!\left[
             A_\star
             |A = b, \langle\ell, A\rangle = y\right]\right)
-         & = R'(a) - \eta E(a, y)                        \\
+         & = F'(a) - \eta E(a, y)                        \\
         \Rightarrow
         E(a, y)
          & =
         \frac{1}{\eta}
-        R'\left(\E\!\left[
+        F'\left(\E\!\left[
             A_\star
             |A = b, \langle\ell, A\rangle = y\right]\right)
-        - R'(a)                                          \\
+        - F'(a)                                          \\
         \Rightarrow
         E(a, y)
          & =
         \frac{P(b)}{\eta}
-        R'\left(\E\!\left[
+        F'\left(\E\!\left[
             A_\star
             |\langle\ell, b\rangle = y\right]\right)
-        - R'(a)                                          \,,
+        - F'(a)                                          \,,
     \end{align*}
     where the last equation follows from the independence of $A$ and $\ell$.
 \end{proof}
 
 \paragraph{Restricted $E$---multiplicative in $Y$:}
 The player (even in the primal problem), has the knowledge of
-$\eta$ and $a$, and also has the control over $P$,
+$\eta$ and $a_t = \fmd(\hl_{1:t-1})$, and also has the control over $P_t$,
 so given these three variables, it can limit its search for the
 optimal estimator.
-However, the space $(\Rd)^{(\cA \times \R)}$ is huge,
-and this is a problem for solving the primal problem.
+However, the space $(\Rd)^{(\cA \times \R)}$ is huge.
 The learner can further restrict its search to be only over
 estimators $E(x,y)$ of the form
 \begin{align*}
-    E(b,y) & = \frac{y}{P(b)} T(b) \quad \text{or} \quad \left( = \frac{y}{P(b)}T(b|\cdot) \right)\,,
+    E(b,y) & = \frac{y}{P(b)} T(b)
 \end{align*}
 and then only optimizes for $T \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
-So, we are interested in the $T$ that minimizes
+So, starting from eq~\ref{eq:Lambda-simplified}, we are interested in the $T$ that minimizes
 \begin{align*}
     \eta \Lambda(P, E || \nu)
      & =
     \Delta(\nu, P) +
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(a))
+        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+        - \frac{1}{\eta} F^\star(F'(a))
         \right]\,,
 \end{align*}
 but note that the first term $\Delta(\nu, P)$
-and the last term $R^\star(R'(A))$ can be dropped
+and the last term $F^\star(F'(A))$ can be dropped
 from the optimization since they don't depend on the estimator choice
 $E$ (no $\hl$ present).
 
 Define the shorthand $T_b = T(b) \in \R^{|\cC|}$,
 and solve for the best $T_b$ through differentiation
-(dropping $\Delta(\nu, P)$ and $R^\star(R'(a))$)
+(dropping $\Delta(\nu, P)$ and $F^\star(F'(a))$)
 \begin{align*}
     \tfrac{\partial}{\partial T_b} \Lambda(P, E||\nu)
      & =
@@ -742,7 +742,7 @@ and solve for the best $T_b$ through differentiation
     \eta^{-1}
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
+        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
         \right]
     \\
      & =
@@ -750,7 +750,7 @@ and solve for the best $T_b$ through differentiation
     \tfrac{\partial}{\partial T_b}
     \E\!\left[
         \langle A_\star, \tfrac{Y}{P(b)}T_a \rangle
-        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
         | A = b
         \right]
     \\
@@ -758,7 +758,7 @@ and solve for the best $T_b$ through differentiation
     \tfrac{P(b)}{\eta} \cdot
     \E\!\left[
         \tfrac{Y}{P(b)} A_\star
-        - \tfrac{Y}{P(b)} {R^\star}'\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        - \tfrac{Y}{P(b)} {F^\star}'\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
         | A = b
         \right]
     \\
@@ -766,11 +766,11 @@ and solve for the best $T_b$ through differentiation
     \tfrac{1}{\eta} \cdot
     \E\!\left[
         Y A_\star
-        - Y {R^\star}'\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        - Y {F^\star}'\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
         | A = b
         \right]\,,
 \end{align*}
-whereby by setting the derivative to zero, we have
+and by setting the derivative to zero, we have
 \begin{align}
     \E\!\left[
         Y A_\star
@@ -778,7 +778,7 @@ whereby by setting the derivative to zero, we have
         \right]
      & =
     \E\!\left[
-        Y {R^\star}'\left(R'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
+        Y {F^\star}'\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
         | A = b
     \right] \nonumber \\
     \abovelabel{$\odot \tfrac{T_b}{P(b)}$}
@@ -789,23 +789,22 @@ whereby by setting the derivative to zero, we have
         \right]
      & =
     \E\!\left[
-        \hl \odot {R^\star}'\left(R'(a) - \eta \hl\right)
+        \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
         | A = b
         \right]\,, \label{eq:mul-E-opt}
 \end{align}
 for all $b \in \cA$.
 It can be seen that $T_b$ doesn't have a closed form,
 but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
-Starting from the definition of $\Lambda(P, E || \nu)$,
-we have
+Again, starting from eq~\ref{eq:Lambda-simplified}, we have
 \begin{align*}
     \eta \Lambda(P, E || \nu)
      & =
     \Delta(\nu, P) +
     \E\!\left[
         \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-        - \frac{1}{\eta} R^\star(R'(a))
+        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+        - \frac{1}{\eta} F^\star(F'(a))
         \right]
     \\
      & =
@@ -813,8 +812,8 @@ we have
     \E\!\left[
         \E\!\left[
             \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-            - \frac{1}{\eta} R^\star(R'(a))
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            - \frac{1}{\eta} F^\star(F'(a))
             \bigg|
             A
             \right]
@@ -826,9 +825,9 @@ we have
     \Delta(\nu, P) +
     \E\!\left[
         \E\!\left[
-            \langle {R^\star}'\left(R'(a) - \eta \hl\right), \hl \rangle
-            + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-            - \frac{1}{\eta} R^\star(R'(a))
+            \langle {F^\star}'\left(F'(a) - \eta \hl\right), \hl \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            - \frac{1}{\eta} F^\star(F'(a))
             \bigg|
             A
             \right]
@@ -838,12 +837,11 @@ we have
     \Delta(\nu, P) +
     \frac{1}{\eta}
     \E\!\left[
-        D_{R^\star}\left(R'(a) - \eta \hl, R'(a)\right)
+        D_{F^\star}\left(F'(a) - \eta \hl, F'(a)\right)
         \right]
 \end{align*}
 ... and we reach at a familiar term.
-Putting this back into the original definition of
-$\Lambda(P, E || \nu)$ gives
+Finally, we get
 \begin{align*}
     \Lambda(P, E || \nu)
      & =
@@ -851,13 +849,13 @@ $\Lambda(P, E || \nu)$ gives
     \Delta(\nu, P) +
     \frac{1}{\eta^2}
     \E\!\left[
-        D_{R^\star}\left(R'(a) - \eta \hl, R'(a)\right)
+        D_{F^\star}\left(F'(a) - \eta \hl, F'(a)\right)
         \right]\,,
 \end{align*}
-and with this $E$ is out of the picture---the learner only needs to choose a good $P$.
+and $E$ is out of the picture---the learner only needs to choose a good $P$.
 \begin{remark}[A curious reappearence]
     Although we're in the dual world, it's tempting to think of
-    $R'(a) - \eta \hl$ as $R'(\tilde{a}_+)$, where $\tilde{a}_+$
+    $F'(a) - \eta \hl$ as $F'(\tilde{a}_+)$, where $\tilde{a}_+$
     is the \textit{next round's unrestricted optimal action} in \mdalg analysis.
     With that, we have
     \begin{align*}
