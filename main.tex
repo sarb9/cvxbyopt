@@ -25,6 +25,7 @@
 \usepackage{graphicx}
 \usepackage{natbib}
 \usepackage{xspace}
+\usepackage{mathabx}
 
 \definecolor{dkblue}{cmyk}{1,.54,.04,.19} 
 \theoremstyle{plain}
@@ -81,6 +82,7 @@
 \newcommand{\tP}{P'}
 \newcommand{\tA}{A'}
 \newcommand{\fmd}{\texttt{MD}}
+\newcommand{\tfmd}{\widetilde{\texttt{MD}}}
 
 \newcommand{\mdalg}{\textsf{MD}\xspace}
 \newcommand{\smdalg}{\textsf{SMD}\xspace}
@@ -122,6 +124,11 @@ The regret w.r.t to an action $a_\star \in \cA$ is
 \end{align*}
 
 \subsection{Mirror decent(\mdalg)}
+For a sequence of losses $\ell_{1:t-1}$, we define the functions $\fmd(\ell_{1:t-1})$
+and $\tfmd(\ell_{1:t-1})$ to be the actions $a_t$ and $\ta_t$
+in \mdalg, when the \mdalg algorithm is used against the loss sequence $\ell_{1:t-1}$.
+We also overload this notation as $\fmd(\ell; a) = \argmin_{b \in \cA} \eta\langle b, \ell \rangle + D_F(b, a)$,
+and $\tfmd(\ell; a) = \argmin_{b \in \Rd} \eta\langle b, \ell \rangle + D_F(b, a)$.
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
@@ -131,8 +138,8 @@ $a_1 = \argmin_{a \in \cA} F(a)$
 $\ta_1 = \argmin_{a \in \Rd} F(a)$
 for $t = 1$ to $n$:
     Play $a_t$ and observe $\ell_t$
-    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \ell_t\rangle + F(a)$
-    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \ell_t\rangle + F(a)$
+    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \ell_t\rangle + D_F(a, a_{t+1})$
+    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \ell_t\rangle + D_F(a, a_{t+1})$
 \end{lstlisting}
             \caption{\mdalg}\label{alg:MD}
         \end{mdframed}
@@ -166,8 +173,8 @@ for $t = 1$ to $n$:
     We have
     \begin{align*}
         \Reg_n(a_\star)
-         & = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle                                                                                                                                                                          \\
-         & = \sum_{t=1}^{n} \underbrace{\langle \ell_t, a_t - a_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stableness}} + \underbrace{\langle \ell_t, a_{t+1} - a_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
+         & = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle                                                                                                                                                                         \\
+         & = \sum_{t=1}^{n} \underbrace{\langle \ell_t, a_t - a_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stability}} + \underbrace{\langle \ell_t, a_{t+1} - a_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
     \end{align*}
     What do we know about $a_{t+1}$?
     \begin{align*}
@@ -191,7 +198,8 @@ for $t = 1$ to $n$:
          & = D_F(a_\star, a_1) - \underbrace{D_F(a_\star, a_{n+1})}_{\geq 0} - \sum_{t=1}^{n} D_F(a_{t+1}, a_t) \\
          & = D_F(a_\star, a_1) - \sum_{t=1}^{n} D_F(a_{t+1}, a_t)\,.
     \end{align*}
-    Without touching the \textit{stableness} term, we have the first part as
+    Note that the tracking term scales inversely with $\eta$ as expected.
+    Without touching the stability term, we have proved the first inequality,
     \begin{align*}
         \Reg_n(a_\star)
          & \leq
@@ -202,7 +210,8 @@ for $t = 1$ to $n$:
         \sum_{t=1}^{n} D_F(a_{t+1}, a_t)
         \right)\,.
     \end{align*}
-    Moreover, $\textsf{MD}$ stores losses in the gradient of $\tilde{a}$,
+    Next, we move onto the stability term.
+    $\textsf{MD}$ stores the latest loss in the gradient of $\tilde{a}_{t+1}$,
     \begin{align*}
          & \tilde{a}_{t+1}  = \argmin_{a \in \R^d} \eta \langle \ell_t, a \rangle + D_F(a, a_t) \\
         \Rightarrow
@@ -211,14 +220,14 @@ for $t = 1$ to $n$:
         \nabla F(a_t) - \nabla F(\tilde{a}_{t+1})
         \right)
     \end{align*}
-    which mixes the \textit{stableness} term nicely with $D_F(a_{t+1}, a_t)$, as
+    which results in another nice equality:
     \begin{align*}
         \texttt{st}_t
          & = \langle \ell_t, a_{t} - a_{t+1} \rangle                                                 \\
          & = \frac{1}{\eta} \langle \nabla F(a_t) - \nabla F(\tilde{a}_{t+1}), a_t - a_{t+1} \rangle \\
          & = \frac{1}{\eta} \left(D_F(a_{t+1}, a_t) + D_F(a_t, \tilde{a}_{t+1})\right)
     \end{align*}
-    and gives the second part,
+    and proves the second inequality,
     \begin{align*}
         \Reg_n(a_\star)
          & \leq
@@ -230,13 +239,15 @@ for $t = 1$ to $n$:
     To see the third part, note that
     \begin{align*}
         D_F(a_{t}, \tilde{a}_{t+1})
-         & =D_{F^\star}\left(\nabla F(\tilde{a}_{t+1}), \nabla F(a_t)\right)    \\
-         & = D_{F^\star}\left(\nabla F(a_t) - \eta \ell_t, \nabla F(a_t)\right)
+         & =D_{F^\star}\left(\nabla F(\tilde{a}_{t+1}), \nabla F(a_t)\right)       \\
+         & = D_{F^\star}\left(\nabla F(a_t) - \eta \ell_t, \nabla F(a_t)\right)\,.
     \end{align*}
 \end{proof}
 \begin{remark}
     \label{rem:ellt-adapted}
-    The analysis works even if $\ell_t$ that is adapted to $\ell_1, a_1, \cdots, a_{t-1}$.
+    The analysis is remarkably amenable to different modifications.
+    For instance, the result continues to work even if $\ell_t$ that is adapted to $\ell_1, a_1, \cdots, a_{t-1}$.
+    Much of comes after hinges on the generality of the proof of this theorem---analysis of \mdalg.
 \end{remark}
 
 \section{Bandit linear optimization(\blo)}
@@ -269,38 +280,36 @@ Next, \smdalg pretends that $\hl$ which is an \textit{estimate} of $\ell_t$ is t
 \textbf{In the most general form}, this estimate can be made through a function
 $E_t: \cA \times \R \to \Rd$ in each round $t \in [n]$
 such that $\hl_t = E_t(A_t, Y_t)$.
-Since losses are linear in \blo, there is
+Since losses are linear in {\blo}, we have that
 \begin{align*}
-    \texttt{reg}_t : \E_t[\langle A_t, \ell \rangle| a_t] = \langle a_t, \ell\rangle\,,
+    \texttt{reg}_t \triangleq \E_t[\langle A_t, \ell \rangle| a_t] = \langle a_t, \ell\rangle\,,
 \end{align*}
 which means \smdalg and \mdalg have the \textbf{same expected loss} given
 the \mdalg action $a_t$, and they only differ through the losses they use:
 \mdalg uses $\ell_t$, but \smdalg uses $\hl_t$.
 
-Since $a_t$ depends on the random estimates $\hl_{1:t-1}$,
-we use $\bar{A}_t$ as in the following theorem.
 \begin{theorem}[Unbiased-\smdalg]\label{thm:SMD-unbiased}
-    Suppose $\E[\hl_t|\bar{A}_t] = \ell_t$ (unbiased estimator).
-    The following results continue to hold
+    Suppose $\E[\hl_t|\fmd(\hl_{1:t-1})] = \ell_t$ (unbiased estimator).
+    The regret of $\smdalg$ is bounded as
     \begin{align*}
         \Reg_n(a_\star)
          & \leq
-        \frac{D_F(a_\star, \bar{A}_1)}{\eta}
+        \frac{D_F(a_\star, a_1)}{\eta}
         +
         \E\left[
             \sum_{t=1}^{n}
             \left(
-            \langle \hl_t, \bar{A}_t - \bar{A}_{t+1} \rangle
+            \langle \hl_t, \fmd(\hl_{1:t-1}) - \fmd(\hl_{1:t}) \rangle
             - \frac{1}{\eta}
-            D_F(\bar{A}_{t+1}, \bar{A}_t)
+            D_F(\fmd(\hl_{1:t-1}), \fmd(\hl_{1:t}))
             \right)
         \right] \\
          & \leq
         \frac{1}{\eta}\left(
-        D_F(a_\star, \bar{A}_1)
+        D_F(a_\star, a_1)
         +
         \E\left[
-            \sum_{t=1}^{n} D_F(\bar{A}_{t}, \tilde{A}_{t+1})
+            \sum_{t=1}^{n} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
             \right]
         \right)\,.
     \end{align*}
@@ -315,24 +324,25 @@ we use $\bar{A}_t$ as in the following theorem.
             \right]
         =
         \E\left[
-            \sum_{t=1}^{n} \langle \bar{A}_t - a_\star, \hl_t\rangle
+            \sum_{t=1}^{n} \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
             \right]\,,
     \end{align*}
-    and doing the same steps for the random game in the expectation and Remark~\ref{rem:ellt-adapted}.
+    and applying theorem~\ref{thm:MD} to the random game inside
+    the random game inside the expectation.
 \end{proof}
 
 \subsubsection{Biased \smdalg}
 \begin{algorithm}[h!]
-    \begin{minipage}{12cm}
+    \begin{minipage}{13cm}
         \begin{mdframed}
             \begin{lstlisting}
 args: $\eta \in \R$, $F$
 $a_1 = \argmin_{a \in \cA} F(a)$
 $\ta_1 = \argmin_{a \in \Rd} F(a)$
 for $t = 1$ to $n$:
-    Choose $\tP_t \in \Delta(\cA)$, perhaps as a function of $a_t$
-    Play $\tA_t \sim \tP_t$ and observe $Y_t = \langle \tA_t, \ell_t\rangle$
-    Compute $\hl_t = E_t(\tA_t, Y_t)$
+    Choose $P_t \in \Delta(\cA)$ and $E_t \in (\Rd)^{(\cA \times \R)}$, as functions of $a_t$.
+    Play $A_t \sim P_t$ and observe $Y_t = \langle A_t, \ell_t\rangle$
+    Compute $\hl_t = E_t(A_t, Y_t)$
     $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hl_t\rangle + F(a)$
 \end{lstlisting}
             \caption{Biased \smdalg}\label{alg:biased-SMD}
@@ -340,24 +350,27 @@ for $t = 1$ to $n$:
     \end{minipage}
 \end{algorithm}
 
-Suppose there are two sampling rules $P_t$ and $P_t'$ where
-$\E_{A \sim P_t}[A] = \E_{A \sim P_t'}[A]$, and \smdalg can choose
-from them for sampling $A_t$ at round $t$.
+Suppose there are two sampling rules $P_t, P_t' \in \cP(\cA)$ where
+$\E_{A \sim P_t}[A] = \E_{A \sim P_t'}[A]$, and \smdalg should choose
+one of them for sampling $A_t$ at round $t$.
 In \blo, these two \textit{result in the exact same loss} in round $t$,
 and the reason for prefering one over the other is \textit{better exploration}.
 The situation is different for \bco later.
 
-This observation hints us that $P_t$ can (should?) be chosen as a function of $\bar{A}_t$:
-amongst all distributions $P$ that have the mean $\bar{A}_t$ choose the one that
-explores the best.
-Better exploration means having better $\hl_{t}$, and $\hl_t$ is a
-random vector that depends on both $P_t$ and $E_t$;
-in this sense the best sampling (exploration) rule depends on the current
-estimation scheme $E_t$, and vice-versa.
+This observation hints us that $P_t$ can (should?) be
+chosen as a function of $\fmd(\ell_{1:t-1})$:
+the best action to choose is $\fmd(\ell_{1:t-1})$,
+and amongst all distributions $P$ that have the mean $\fmd(\ell_{1:t-1})$
+(and so are effectively taking $\fmd(\ell_{1:t-1})$ in \blo), choose the one that
+explores the best---results in \textit{better} $\hl_{1:n}$ sequence.
+
+However, $\hl_t$ is a random vector that depends on both $P_t$ and $E_t$;
+in this sense the best sampling (exploration) rule depends on the
+estimation scheme in use ($E_t$), and vice-versa.
 
 \paragraph{Bias:}
-Maintaining {\smdalg}'s two degree of freedoms $E_t$ and $P_t$ in
-a way that $\E[\hl_t] = \ell_t$ can be costly in terms of the bound on
+Maintaining {\smdalg}'s two degrees of freedoms $E_t$ and $P_t$ in
+a way that $\E[\hl_t|\fmd(\hl_{1:t-1})] = \ell_t$ can be costly in terms of the bound on
 \begin{align*}
     \E\left[
         \sum_{t=1}^{n} D_F(\bar{A}_{t}, \tilde{A}_{t+1})
@@ -365,83 +378,77 @@ a way that $\E[\hl_t] = \ell_t$ can be costly in terms of the bound on
 \end{align*}
 and its look-alikes. We have access to two sources of bias to control this quantity:
 \begin{enumerate}
-    \item $\E_{A \sim P_t}[A] \neq a_t$, where $a_t$ is the \mdalg action based on $\hl_1, \cdots \hl_{t-1}$,
+    \item $\E_{A \sim P_t}[A] \neq a_t$, where $a_t = \fmd(\hl_{1:t-1})$,
     \item $\E_{A \sim P_t}[\hl_t] \neq \ell_t$. Recall that $\hl_t = E_t(A_t, \langle A_t, \ell \rangle)$, so randomness is only by $A_t$.
 \end{enumerate}
-Note that even if $P_t$ is biased, the learner
-\textbf{has a chance to make $\hl_t$ unbiased}
-by choosing appropriate $E_t$.
+\begin{remark}[Is this an \mdalg-type of algorithm anymore?]
+    At this point, it is fair to ask in what sense this is related
+    to \mdalg? The key that distinguish Biased-\smdalg from
+    \textit{all possible algorithms} is that $a_t = \fmd(\hl_{1:t-1})$
+    is a sufficient statistics for choosing $P_t$ and $E_t$
+    in Biased-\smdalg.
+\end{remark}
 
 \begin{theorem}[Biased-\smdalg, (\cite{lattimore2024bandit}, Theorem 8.14)]\label{thm:SMD-biased}
-    Suppose that $\E_{\tA \sim \tP_t}[\tA] = \bar{\tA}_t$.
     The expected regret of Biased-\smdalg is bounded by
     \begin{align*}
+        \Reg_n(a_\star) \leq
         \frac{D_F(a_\star, a_1)}{\eta} +
         \sum_{t=1}^{n}
         \E\left[
-            \langle \tA_t - a_\star, \ell_t\rangle
-            - \langle a_t - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_{F^\star}(\nabla F(a_{t}) - \eta \hl_t, \nabla F(a_{t}))
-            \right]\,,
+            \langle A_t - a_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            \right]\,.
     \end{align*}
-    where $a_t$ is the mirror decent action $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
 \end{theorem}
 \begin{proof}
-    Note that $a_t$ is random here since $\hl_1, \cdots, \hl_{t-1}$ are random.
-    We have
+    Let $\hat{a}_t = \fmd(\hl_{1:t-1})$, we have
     \begin{align*}
         \Reg_n(a_\star)
          & =
         \E\left[
             \sum_{t=1}^{n}
-            \langle \tA_t - a_\star, \ell_t\rangle
+            \langle A_t - a_\star, \ell_t\rangle
         \right] \\
          & =
         \E\left[
             \sum_{t=1}^{n}
-            \langle \tA_t - a_\star, \ell_t\rangle
-            - \langle a_t - a_\star, \hl_t\rangle
-            + \langle a_t - a_\star, \hl_t\rangle
-            \right],
-    \end{align*}
-    where $P_t$ is any distribution that has mean $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
-    \begin{align*}
-        \Reg_n(a_\star)
-         & =
-        \E\left[
-            \sum_{t=1}^{n}
-            \langle \tA_t - a_\star, \ell_t\rangle
-            - \langle a_t - a_\star, \hl_t\rangle
-            + \langle a_t - a_\star, \hl_t\rangle
-        \right] \\
+            \langle A_t - a_\star, \ell_t\rangle
+            - \langle \hat{a}_t - a_\star, \hl_t\rangle
+            + \langle \hat{a}_t - a_\star, \hl_t\rangle
+            \right]
+        \\
          & \leq
         \frac{D_F(a_\star, a_1)}{\eta} +
         \E\left[
             \sum_{t=1}^{n}
-            \langle \tA_t - a_\star, \ell_t\rangle
-            - \langle a_t - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_{F^\star}(\nabla{F}(a_t) - \eta \hl_t, \nabla{F}(a_t))
+            \langle A_t - a_\star, \ell_t\rangle
+            - \langle \hat{a}_t - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
             \right]\,,
     \end{align*}
     where the inequality is by theorem~\ref{thm:MD}.
 \end{proof}
-\begin{remark}[No-randomness in the virtual game]
-    Note that $\hl_t$ is adapted to $A'_t$ since the algorithm actually plays
-    $A'_t \sim P_t'$. So you can think that $P'_t$ is the exploration policy that
-    is actually played which is not \smdalg as $\E_{A'_t}[A] \neq a_t$.
-    However, in the analysis the algorithm assumes that $a_t$ is played
-    \textbf{without any randomization} (so technically \mdalg) and
-    $\hl_1, \cdots, \hl_n$ is the actual loss sequence.
+\begin{remark}[\fmd in a virtual game]
+    Note that $\hl_t$ is adapted to $A_t$ since the algorithm actually plays
+    $A_t \sim P_t$.
+    So you can think that $P_t$ is the exploration policy that
+    is actually played which is not \smdalg as
+    $\E[A_t|\fmd(\hl_{1:t-1})] \neq \fmd(\hl_{1:t-1})$.
+    However, in the analysis we suppose that $\fmd(\hl_{1:t-1})$ is played
+    \textbf{without any randomization} (so technically \mdalg) on
+    $\hl_1, \cdots, \hl_n$.
 \end{remark}
 
 \begin{remark}[Closer look at theorem~\ref{thm:SMD-biased}---dummy bound]
     \label{rem:dummy-bound}
     If we look closer at theorem~\ref{alg:biased-SMD}, we can see that
-    $\sum_{t=1}^{n} \E[\langle \hat{A}_t - a_\star, \ell_t\rangle]$ term
+    $\sum_{t=1}^{n} \E[\langle A_t - a_\star, \ell_t\rangle]$ term
     that appears on the RHS of the claim is exactly $\Reg_n(a_\star)$,
     so we did bound $\Reg_n(a_\star)$ by $\Reg_n(a_\star) + \square$ and
     for this theorem to be useful this $\square$ better be negative.
-    Precisely, we did nothing other than adding and subtracting the value of the game
+    More precisely, we did nothing other than adding and subtracting the value of the game
     that is played on $\hl_{1:n}$: the algorithm is \mdalg (not {\smdalg})
     and the loss sequence is $\hl_{1:n}$.
     So if we show the value of this game by $\hat{G}_n$, all we did is
