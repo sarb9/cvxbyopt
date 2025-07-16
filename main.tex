@@ -110,7 +110,8 @@ $\star$ Duality with the Bayesian world is curious and helps with the analysis.
 \subsection{Notation}
 Let $[n] = \{1,2, \cdots, n\}$.
 Let $D_F(a, b) = F(a) - F(b) - \nabla F(b)^\top (a - b)$ be the Bregman divergence.
-Also let $\cP(A)$ be the set of all probability measures over the set $A$.
+Also let $\cP(A)$ be the set of all probability measures over the set $A$,
+equipped with appropriate $\sigma$-algebra.
 
 \section{Online linear optimization(\texttt{OLO})}
 The adversary chooses a sequence of losses $\ell_1, \cdots, \ell_n \in \cL \subseteq \Rd$.
@@ -380,7 +381,7 @@ by choosing appropriate $E_t$.
         \E\left[
             \langle \tA_t - a_\star, \ell_t\rangle
             - \langle a_t - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_{F^\star}(\nabla F(\tA_{t}) - \eta \hl_t, \nabla F(\tA_{t}))
+            + \frac{1}{\eta} D_{F^\star}(\nabla F(a_{t}) - \eta \hl_t, \nabla F(a_{t}))
             \right]\,,
     \end{align*}
     where $a_t$ is the mirror decent action $a_t = \fmd(\hl_1, \cdots, \hl_{t-1})$.
