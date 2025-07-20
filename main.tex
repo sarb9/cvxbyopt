@@ -249,7 +249,7 @@ for $t = 1$ to $n$:
     Much of comes after hinges on the generality of the proof of this theorem---analysis of \mdalg.
 \end{remark}
 
-\subsection{When $\cA=\Delta(d)$ and $F$ is the negentropy}
+\subsubsection{When $\cA=\Delta(d)$ and $F$ is the negentropy}\label{sec:md-negentropy}
 The case that $\cA = \Delta(d)$ is the simplex and the potential
 is negentropy,
 \begin{align*}
@@ -323,7 +323,7 @@ and $R'(p) = \ln(p)$.
         \right)\,.
     \end{align*}
 \end{proof}
-\begin{remark}[An explicit bound]
+\begin{remark}[An explicit bound]\label{rem:md-simplex-explicit}
     In order to get a bound in terms of $d$ and $n$,
     we can further suppose that $\ell_t \in [0,1]^d$
     and then from theorem~\ref{thm:md-simplex} we have
@@ -970,230 +970,8 @@ and $E$ is out of the picture---the learner only needs to choose a good $P$.
     appears inside the expectation.
 \end{remark}
 
-
-
-
-\clearpage
-empty
-\newpage
-\begin{align*}
-    \tfrac{\partial}{\partial T_x} \Lambda(P, E||\nu)
-     & = \tfrac{p(x)}{\eta}\nabla_{T_x} \E\!\left[
-        \langle p_\star, \tfrac{T_x Y}{p(X)} \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T_x Y}{p(X)})\rangle
-        | X = x
-        \right]
-    \\
-     & = \tfrac{p(x)}{\eta} \E\!\left[
-        \tfrac{Y}{p(X)} p_\star
-        - \tfrac{Y}{p(X)} q \odot \exp(- \tfrac{\eta Y}{p(X)} T_X)
-        | X = x
-        \right]
-    \\
-     & = \tfrac{1}{\eta} \E\!\left[
-        Y \left(
-        p_\star
-        - q \odot \exp(- \tfrac{\eta Y}{p(X)} T_X)
-        \right)
-        | X = x
-        \right]\,,
-\end{align*}
-where the expectation is over $(p_\star, f) \sim \nu$.
-We want to solve for $T_x$ such that the gradient is zero, so for coordinate $z \in \cC$ we have
-\begin{align}
-    q(z) \E\!\left[
-        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X)_z)
-        | X = x
-        \right]
-     & =
-    \E\!\left[
-        f(X) p_\star(z)
-        | X = x
-        \right]
-    \label{eq:zero-grad-element-wise}
-    \\
-    \Rightarrow
-    q \odot \E\!\left[
-        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X))
-        | X = x
-        \right]
-     & =
-    \E\!\left[
-        f(X) p_\star
-        | X = x
-        \right]
-    \label{eq:zero-grad-vector}
-\end{align}
-\begin{remark}[Negative $T(x)_z$]
-    If $p_\star$ is a Dirac on $z$ almost surely, then the RHS in \cref{eq:zero-grad} is $\E[f(X)|X=x]$,
-    while if $T(x)_z \geq 0$ then the LHS is bounded by
-    \begin{align*}
-        q(z)
-        \E\!\left[
-            f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X)_z)
-            | X = x
-            \right]
-        \leq
-        q(z)
-        \E\!\left[f(X)| X = x\right]\,.
-    \end{align*}
-    So, if $T(x) \geq 0$, the gradient can't be zero when $q(z)< 1$.
-\end{remark}
-\begin{remark}
-    The LHS is the first derivative of the moment generating function of $f(X)|X=x$ evaluated at $-\frac{\eta}{p(X)} T(x)_z$.
-\end{remark}
-\paragraph{$\bullet$ Closed form for $T(x)_z$?}
-It's unlikely that $T(x)_z$ has a closed form.
-However, it might be possible to use \cref{eq:zero-grad-vector} to simplify $\bar{\Lambda}(T)$:
-\begin{align}
-    \eta\bar{\Lambda}(T)
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle p_\star, E(X, Y) \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta E(X, Y))\rangle
-        \right]
-    - \frac{1}{\eta}
-    \nonumber
-    \\
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle p_\star, \tfrac{T(X) Y}{p(X)} \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
-        \right]
-    - \frac{1}{\eta}
-    \nonumber
-    \\
-     & =
-    \Delta(\nu, p) +
-    \E\!\left[
-        \langle f(X) p_\star, \tfrac{T(X)}{p(X)} \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
-        \right]
-    - \frac{1}{\eta}\,,
-    \label{eq:checkpiont1}
-\end{align}
-For the first term, we can use \cref{eq:zero-grad-vector} to get
-\begin{align*}
-    \E\!\left[
-        \langle f(X) p_\star, \tfrac{T(X)}{p(X)} \rangle
-        | X =x
-        \right]
-     & =
-    \left\langle
-    \E\!\left[
-        f(X) p_\star
-        | X =x
-        \right]
-    , \tfrac{T(x)}{p(x)}
-    \right\rangle
-    \\
-     & =
-    \left\langle
-    q \odot
-    \E\!\left[
-        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X))
-        | X =x
-        \right]
-    , \tfrac{T(x)}{p(x)}
-    \right\rangle
-    \\
-     & =
-    \E\!\left[
-        \left\langle
-        q \odot
-        f(X)\exp(- \tfrac{\eta f(X)}{p(X)} T(X))
-        , \tfrac{T(x)}{p(x)}
-        \right\rangle
-        | X =x\right]
-    \\
-     & =
-    \E\!\left[
-        \left\langle
-        q \odot
-        \exp(- \tfrac{\eta f(X)}{p(X)} T(X))
-        , \tfrac{T(x)}{p(x)} f(X)
-        \right\rangle
-        | X =x\right]
-\end{align*}
-putting this back into the expectation in \cref{eq:checkpiont1} gives
-\begin{align*}
-      & \E\!\left[
-        \langle f(X) p_\star, \tfrac{T(X)}{p(X)} \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)})\rangle
-        \right]
-    \\
-    = &
-    \E\!\left[
-        \left\langle
-        q \odot
-        \exp(- \tfrac{\eta f(X)}{p(X)} T(X))
-        , \tfrac{T(X)}{p(X)} f(X)
-        \right\rangle
-        +
-        \langle q \odot \exp(- \tfrac{\eta T(X) Y}{p(X)}),  \tfrac{1}{\eta} 1_\cC\rangle
-        \right]
-    \\
-    = & \E\!\left[
-        \left\langle
-        q
-        \odot
-        \exp(- \tfrac{\eta T(X) Y}{p(X)})
-        , Y \tfrac{T(X)}{p(X)} + \tfrac{1}{\eta} 1_\cC
-        \right\rangle
-        \right]\,,
-\end{align*}
-Let $\hat{\ell} = \tfrac{\eta T(X) Y}{p(X)}$, then
-\begin{align*}
-    \left\langle
-    q
-    \odot
-    \exp(- \tfrac{\eta T(X) Y}{p(X)})
-    , Y \tfrac{T(X)}{p(X)} + \tfrac{1}{\eta} 1_\cC
-    \right\rangle
-    - 1
-     & =
-    \left\langle
-    q \odot \exp(-\hl)
-    , \hl + \tfrac{1}{\eta} 1_\cC
-    \right\rangle
-    - 1
-    \\
-     & =
-    \left\langle
-    q,\hl \odot \exp(-\hl)
-    + \tfrac{1}{\eta} \exp(-\hl)
-    \right\rangle
-    - 1
-\end{align*}
-which makes the whole thing equal to
-\begin{align*}
-    \bar{\Lambda}(T)
-     & =
-    \eta^{-1}
-    \Delta(\nu, p) +
-    \eta^{-2}
-    \left(
-    \E\!\left[
-            \left\langle
-            q
-            \odot
-            \exp(- \tfrac{\eta T(X) Y}{p(X)})
-            , \tfrac{\eta T(X)Y}{p(X)} +  1_\cC
-            \right\rangle
-            \right]
-    -1
-    \right)\,.
-\end{align*}
-Recall that $q$ was fixed through the minimax step, so we still have
 \subsection{Bayesian setting, TS \& OSMD}
-\textcolor{red}{TODO: clean up this section to match the notation of \smdalg.}
+\textcolor{red}{TODO: rewrite  this section.}
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
@@ -1318,274 +1096,171 @@ which means bounding the $\texttt{stab}_t(a, \eta)$ gives a regret bound for the
 since the sum of divergences is bounded by \citet{lattimore2019information}[Thm 3].
 
 \section{Bandit convex optimization(\bco)}
+The losses sequence is a sequence of convex functions
+$f_1, f_2, \cdots, f_n: \cA \to \R$.
+In each round $t$, the learner chooses an action $A_t \in \cA$,
+and observes $Y_t = f_t(A_t) \in \R$.
 \subsection{\bco in one dimension}
+Suppose that $\cA = [-1, 1]$.
+We use the idea of covering + \mdalg on simplex as discussed in
+section~\ref{sec:md-negentropy} to solve this setting.
+
+Let $\cC_\epsilon = \{ \alpha\epsilon: \alpha \in \mathbb{Z}, \alpha\epsilon \in [-1, 1]\}$ be an $\epsilon$-covering of $\cA$.
+Let
+\begin{align*}
+    \ell_t =
+    \begin{bmatrix}
+        f_t(c_1) \\
+        f_t(c_2) \\
+        \vdots   \\
+        f_t(c_n)
+    \end{bmatrix}\,, \quad \text{where } c_i \in \cC_\epsilon\,,
+\end{align*}
+and with that the 1D \bco problem is reduced (with $n\epsilon$ looseness
+due to covering) to a \blo problem in $d=\ceil{2/\epsilon}$ dimensions,
+with the action space $\cA_\blo = \Delta(\ceil{2/\epsilon})$.
+
+\begin{remark}[\textcolor{red}{$n^{3/4}$} upper-bound for \textit{Lip}-Bandits]
+    Naively applying the bound on \mdalg with $\epsilon=\frac{1}{\sqrt{n}}$
+    from remark~\ref{rem:md-simplex-explicit} gives an upper-bound of
+    $\sqrt{2 n \cdot d} = \sqrt{2 n \cdot \ceil{2/\epsilon}}= n^{3/4}$
+    on the \blo reduction, which together with the covering
+    error of $\sqrt{n}$ results in a bound of $\tilde{O}(n^{3/4})$.
+    This applies to all Lipschitz bandits.
+\end{remark}
+
+The main idea to get $\widetilde{O}(\sqrt{n})$ bound is to exploit
+the fact that not all $\ell \in [0,1]^d$ are possible in the
+\blo-reduction: $\ell_t$ is a discretization of a
+convex function.
+The result should be a better bound on the sum in
+theorem~\ref{thm:md-simplex}.
+
+\begin{remark}[Actions are distributions when $\cA=\Delta(d)$]\label{rem:actions-are-dists}
+    The very nice (and weird) thing about running any algorithm
+    on the simplex with linear losses is that if it plays $A_t \in \Delta(\cA)$,
+    which could be random itself, it can be further
+    restricted to play $e_{\omega}$ with $\omega \sim A_t$, without
+    changing the \textit{conditional expected per step loss}.
+    With that in mind, \mdalg does come with a default randomization
+    in the simplex: instead of playing $\fmd(\ell_{1:t-1})$
+    play $e_\omega$ with $\omega \sim \fmd(\ell_{1:t-1})$.
+\end{remark}
+
+\paragraph{Randomness in the virtual game}
+The algorithm knows the estimates $\hl_{1:t-1}$,
+so it's technically in the \olo setting in the virtual game,
+where it can simply run \mdalg \textbf{with no randomness}---just
+take $\hat{a}_t = \fmd(\hl_{1:t-1})$.
+However, everything is unchanged if the algorithm
+decides to randomize in the \textit{virtual game}.
+The algorithm can play a distribution $Q_t \in \Delta(\cC)$
+with $\E_{A \sim Q_t}[A] = \hat{a}_t$.
+The benefit of this will be clear in a moment.
+
+To emphasize the fact that $\hat{a}_t$ is a distribution
+we use $Q_t\triangleq \hat{a}_t$ to be the \textit{virtual policy}:
+\begin{align*}
+    Q_t(\omega) & = \hat{a}_t^\top e_\omega\,, \forall \omega \in \cC\,,
+\end{align*}
+and let $K \in \R^{|\cC| \times |\cC|}$ be a probability kernel,
+meaning that $K Q_t \in \Delta(\cC)$.
+Then we choose $P_t \in \Delta(\cC)$ to be
+\begin{align*}
+    P_t & = K Q_t\,,
+\end{align*}
+and note that $A_t \sim P_t$ can be written as
+\begin{align*}
+    A_t = e_{\alpha_t}\,, \qquad \text{where } \alpha_t \sim P_t\,.
+\end{align*}
+
+
+\paragraph{A chance to make Biased-\smdalg somewhat unbiased:}
+So far $\E_t[A_t] \neq \fmd(\hl_{1:t-1})$
+necessarily, but we can choose $P_t$
+such that they are \textit{jointly} unbiased:
+\begin{align*}
+    \langle \ell_t, P_t \rangle
+     & =
+    \E_t\left[\langle \hl_t, e_{\beta_t}\rangle\right]
+    =
+    \langle \E[\hl_t], Q_t \rangle\,,
+\end{align*}
+where $\beta_t \sim Q_t$ is the virtual action.
+This can be done by setting
+\begin{align*}
+    \hl_t & = E(e_{\alpha_t}, Y_t)
+    = E(e_{\beta_t}, \langle \alpha_t, \ell_t\rangle)
+    = \frac{K^\top e_{\alpha_t} \cdot \langle e_{\alpha_t}, \ell_t\rangle}{
+        P_t^\top e_{\alpha_t}
+    }\,,
+\end{align*}
+since then
+\begin{align*}
+    \E_t\left[\hl_t\right]
+     & =
+    \E_t\left[
+        \frac{K^\top e_{\alpha_t} \cdot \langle e_{\alpha_t}, \ell_t\rangle}{
+            P_t^\top e_{\alpha_t}}
+    \right] \\
+     & =
+    \sum_{\alpha \in \cC}
+    \frac{K^\top e_{\alpha}
+        \cdot \langle e_{\alpha}, \ell_t\rangle}{
+        P_t^\top e_{\alpha}}
+    P_t^\top e_{\alpha}
+    \\
+     & =
+    \sum_{\alpha \in \cC}
+    K^\top e_{\alpha}
+    \cdot \langle e_{\alpha}, \ell_t\rangle
+    \\
+     & =
+    K^\top \ell_t\,,
+\end{align*}
+and finally
+\begin{align*}
+    \langle \ell_t, P_t \rangle
+    = \langle \ell_t, K Q_t \rangle
+    = \langle K^\top \ell_t, Q_t \rangle
+    = \langle \E_t[\hl_t], Q_t \rangle\,.
+\end{align*}
+
+\paragraph{A specific choice of $K$---exploiting 1d geometry:}
+Let $\bar{A}$ be
+\begin{align*}
+    \bar{A}_t = \langle P_t, \cC \rangle,
+\end{align*}
+which should be thought of as the expected action in round $t$.
+Let $\Pi_\cC(x) = \argmin_{y \in \cC, |y| \leq |x|} |x - y|$,
+Given $I(x,y) = \{z \in \cC: \min(x,y) \leq z \leq \max(x,y)\}$,
+let
+\begin{align*}
+    K_{x,y} & =
+    \begin{cases}
+        \frac{1}{|I(x,y)|} & \text{if } x\in I(\bar{A}_t, y) \\
+        0                  & \text{otherwise}
+    \end{cases}\,,
+\end{align*}
+
+\begin{lemma}[\cite{lattimore2024bandit}[Lemma 8.3]]
+    We have
+    \begin{align*}
+        \langle \ell_t, P_t - e_{b} \rangle
+        \leq 2 \cdot \langle \E_t[\hl_t], Q_t - e_{b} \rangle\,,
+    \end{align*}
+    and
+    \begin{align*}
+        \E_t[(e_{\beta_t}^\top \hl_t)^2]
+        \leq 2 + \ln(n)
+    \end{align*}
+\end{lemma}
+
+
 
 
 
 \clearpage
-\section{Archive(useless for now)}
-\paragraph{$\bullet$ The other way around?}
-Continuing from \cref{eq:zero-grad} we have
-\begin{align*}
-    q(z)
-    \E\!\left[
-        f(X)
-        \exp(- \tfrac{\eta f(X)}{p(X)} T(X|z))
-        | X = x
-        \right]
-     & =
-    \E\!\left[
-        f(X) p_{\star, z}
-        | X = x
-        \right]
-    \\
-    \Rightarrow
-    \sum_{z \in \cC}
-    q(z)
-    \E\!\left[
-        f(X)
-        \exp(- \tfrac{\eta f(X)}{p(X)} T(X|z))
-        | X = x
-        \right]
-     & =
-    \sum_{z \in \cC}
-    \E\!\left[
-        f(X) p_{\star, z}
-        | X = x
-        \right]
-    \\
-    \Rightarrow
-    \left\langle
-    q,
-    \E\!\left[
-        f(X)
-        \exp(- \tfrac{\eta f(X)}{p(X)} T(X|\cdot))
-        | X = x
-        \right]
-    \right\rangle
-     & =
-    \E\!\left[
-        f(X)
-        | X = x
-        \right]
-    \\
-    \Rightarrow
-    \E\!\left[
-        f(x)
-        \left\langle
-        q,
-        \exp(- \tfrac{\eta f(x)}{p(x)} T(x|\cdot))
-        \right\rangle
-        \right]
-     & =
-    \E\!\left[
-        f(x)
-        \right]
-\end{align*}
-Evaluating the expectation in \cref{eq:checkpiont1} gives
-\begin{align*}
-    \E\!\left[
-        \langle p_\star, \tfrac{T(X|\cdot) f(X)}{p(X)} \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T(X|\cdot) f(X)}{p(X)})\rangle
-        \right]
-    = & \E\!\left[
-        \langle p_\star, \tfrac{T(X|\cdot) f(X)}{p(X)} \rangle
-        + \frac{1}{Y\eta}
-        Y
-        \langle q, \exp(- \eta \tfrac{T(X|\cdot) f(X)}{p(X)})\rangle
-        \right]
-\end{align*}
-
-\subsection{IS estimator--linear in $y$}
-Restrict $E(x,y)$ to be of the form
-\begin{align*}
-    E(x,y) & = \frac{y}{p(x)} T(x) + b(x)\,,
-\end{align*}
-which includes all importance sampling estimators that are \textbf{linear} in $y$.
-We are interested in the $T$ that minimizes
-\begin{align*}
-    \eta \bar \Lambda(T, b) & :=
-    \Delta(\nu, p) +
-    \E\!\left[
-        \E\left[
-            \langle p_\star, \tfrac{T(X) Y}{p(X)} + b(X)\rangle
-            + \frac{1}{\eta}
-            \langle q, \exp(- \eta \tfrac{T(X) Y}{p(X)} + b(X))\rangle
-            \bigg| X
-            \right]
-        \right]
-    - \frac{1}{\eta}\,.
-\end{align*}
-Then through differentiation we have
-\begin{align*}
-    \nabla_{T_x} \eta \bar{\Lambda}(T)
-     & = \nabla_{T_x} \E\!\left[
-        \langle p_\star, \tfrac{T_x Y}{p(X)} + b_x \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T_x Y}{p(X)} + b_x)\rangle
-        \right]
-    \\
-     & = \E\!\left[
-        \tfrac{Y}{p(x)} p_\star
-        - \tfrac{Y}{p(x)} q \odot \exp(- \tfrac{\eta Y}{p(x)} T_x + b_x)
-        \right]\,,
-\end{align*}
-and
-\begin{align*}
-    \nabla_{b_x} \eta \bar{\Lambda}(T)
-     & = \nabla_{b_x} \E\!\left[
-        \langle p_\star, \tfrac{T_x Y}{p(X)} + b_x \rangle
-        + \frac{1}{\eta}
-        \langle q, \exp(- \eta \tfrac{T_x Y}{p(X)} + b_x)\rangle
-        \right]
-    \\
-     & = \E\!\left[
-        p_\star
-        - \tfrac{1}{\eta} q \odot \exp(- \tfrac{\eta Y}{p(x)} T_x + b_x)
-        \right]\,,
-\end{align*}
-where the expectation is over $(p_\star, f) \sim \nu$.
-We want to find $T_x$ such that the gradient is zero, so for coordinate $z \in \cC$ we have
-\begin{align*}
-    q(z) \E\!\left[
-        f(x)\exp(- \tfrac{\eta f(x)}{p(x)} T_{x,z} + b_{x,z})
-        \right]
-     & =
-    \E\!\left[
-        f(x) p_{\star, z}
-        \right]
-    =
-    \PP(x_\star = z)
-    \E\!\left[
-        f(x)
-        | x_\star = z
-        \right]\,.
-\end{align*}
-
-
-
-
-\begin{align*}
-     & \nabla_{T_x}
-    \Lambda(T)      \\
-     & =
-    \nabla_{T_x}
-    \E\left[
-        \langle p - p_\star, f \
-        \rangle
-        + \langle p_\star - q, \tfrac{T(X|\cdot) Y}{p(X)} \rangle
-        + \frac{1}{\eta} \cS_q\left(\eta \tfrac{T(X|\cdot) Y}{p(X)}\right)
-        \bigg| X = x
-        \right]
-    \\
-     & =
-    \nabla_{T_x}
-    \E\left[
-        \langle p_\star - q, \tfrac{T_x Y}{p(X)} \rangle
-        + \frac{1}{\eta} \left(
-        R^\star\left(R'(q) - \eta \tfrac{T_x Y}{p(X)}\right)
-        - R^\star(R'(q))
-        - \nabla R^\star(R'(q))^\top (- \eta \tfrac{T_x Y}{p(X)})
-        \right)
-        \bigg| X = x
-        \right]
-    \\
-     & =
-    \nabla_{T_x}
-    \E\left[
-        \langle p_\star, \tfrac{T_x Y}{p(X)} \rangle
-        -
-        \tfrac{Y}{p(X)} q^\top T_x
-        + \frac{1}{\eta} \left(
-        R^\star\left(R'(q) - \eta \tfrac{T_x Y}{p(X)}\right)
-        + \tfrac{\eta Y}{p(X)} q^\top T_x
-        \right)
-        \bigg| X = x
-        \right]
-    \\
-     & =
-    \nabla_{T_x}
-    \E\left[
-        \langle p_\star, \tfrac{T_x Y}{p(X)} \rangle
-        + \frac{1}{\eta}
-        R^\star\left(R'(q) - \eta \tfrac{T_x Y}{p(X)}\right)
-        \bigg| X = x
-        \right]
-    \\
-     & =
-    \E\left[
-        \frac{Y}{p(x)}
-        \Bigl(
-        p_\star - \nabla R^\star\Bigl(R'(q)-\eta\,\tfrac{T_x\,Y}{p(x)}\Bigr)
-        \Bigr)
-        \,\Big|\, X = x
-        \right]
-    \\
-     & =
-    \frac{1}{p(x)}
-    \E\left[
-        f(x) \Bigl(
-        p_\star - \exp\Bigl(R'(q)-\eta\,\tfrac{T_x\,f(x)}{p(x)}\Bigr)
-        \Bigr)
-        \right]
-    \\
-     & =
-    \frac{1}{p(x)}
-    \left(
-    \E[f(x) p_\star] -
-    \E\left[
-            f(x)
-            \exp(R'(q)- \tfrac{\eta}{p(x)} f(x) T_x)
-            \right]
-    \right)
-    \\
-     & =
-    \frac{1}{p(x)}
-    \left(
-    \E[f(x) p_\star] -
-    \E\left[
-            f(x)q
-            \exp(- \tfrac{\eta}{p(x)} f(x) T_x)
-            \right]
-    \right)
-\end{align*}
-we want to solve for $T_x$ such that the gradient is zero.
-Therefore, for coordinate $z \in \cC$ we have
-\begin{align*}
-    \E\left[
-        f(x) q_z
-        \exp\Bigl(- \tfrac{\eta}{p(x)} f(x) T_{x,z}\Bigr)
-        \right]
-     & =
-    \E[f(x) p_{\star, z}]
-    = \PP(x_\star = z) \E[f(x)| x_\star = z]\,,
-\end{align*}
-which means we need to set $T_{x,z}$ such that the following equation holds
-\begin{align*}
-    \E\left[
-        f(x)
-        \exp\Bigl(- \tfrac{\eta}{p(x)} f(x) T_{x,z}\Bigr)
-        \right]
-     & =
-    \tfrac{\PP(x_\star = z)}{q_z} \E[f(x)| x_\star = z]\,
-\end{align*}
-while
-\begin{align*}
-    T_{x,z} = 0 \quad \text{then } \E\left[
-        f(x)
-        \exp\Bigl(- \tfrac{\eta}{p(x)} f(x) T_{x,z}\Bigr)
-        \right]
-     & = \E[f(x)]\, \\
-    \text{and }\quad T_{x,z} \to \infty \quad \text{then } \E\left[
-        f(x)
-        \exp\Bigl(- \tfrac{\eta}{p(x)} f(x) T_{x,z}\Bigr)
-        \right]
-     & \to 0\,.
-\end{align*}
-
-
-
 \bibliographystyle{plainnat}
 \bibliography{all}
 
