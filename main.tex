@@ -932,24 +932,25 @@ Again, starting from eq~\ref{eq:Lambda-simplified}, we have
         \right]
     \\
      & =
-    \Delta(\nu, P) +
+    \Delta(\nu, P) -
     \frac{1}{\eta}
     \E\!\left[
-        D_{F^\star}\left(F'(a) - \eta \hl, F'(a)\right)
+        D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
         \right]
 \end{align*}
 ... and we reach at a familiar term.
 Finally, we get
-\begin{align*}
+\begin{align}
     \Lambda(P, E || \nu)
      & =
     \frac{1}{\eta}
-    \Delta(\nu, P) +
+    \Delta(\nu, P) -
     \frac{1}{\eta^2}
     \E\!\left[
-        D_{F^\star}\left(F'(a) - \eta \hl, F'(a)\right)
+        D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
         \right]\,,
-\end{align*}
+    \label{eq:E-optimized-Lambda}
+\end{align}
 and $E$ is out of the picture---the learner only needs to choose a good $P$.
 \begin{remark}[A curious reappearence]
     Although we're in the dual world, it's tempting to think of
@@ -960,16 +961,223 @@ and $E$ is out of the picture---the learner only needs to choose a good $P$.
         \Lambda(P, E || \nu)
          & =
         \frac{1}{\eta}
-        \Delta(\nu, P) +
+        \Delta(\nu, P) -
         \frac{1}{\eta^2}
         \E\!\left[
-            D_R\left(a, \tilde{a}_+\right)
+            D_R\left(\tilde{a}_+, a\right)
             \right]\,,
     \end{align*}
     and the term that is inside the sum in theorem~\ref{alg:MD}
     appears inside the expectation.
 \end{remark}
 
+\begin{remark}
+    Recall the original form of $\Lambda(P, E || \nu)$
+    \begin{align*}
+        \Lambda(P, E || \nu)
+         & =
+        \frac{1}{\eta}
+        \Delta(\nu, P)
+        +
+        \frac{1}{\eta}
+        \E\!\left[
+            \langle A_\star - a, \hl \rangle
+            + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta \hl, F'(a))
+            \right]
+        \\
+         & =
+        \frac{1}{\eta}
+        \Delta(\nu, P)
+        +
+        \frac{1}{\eta}
+        \E\!\left[
+            \langle A_\star - a, \hl \rangle
+            \right]
+        +
+        \frac{1}{\eta^2}
+        \E\!\left[
+            D_{F^\star}(F'(a) - \eta \hl, F'(a))
+            \right]
+    \end{align*}
+    and compare it to eq~\ref{eq:E-optimized-Lambda}.
+    We have
+    \begin{align*}
+        \E\!\left[
+            \langle A_\star - a, \hl \rangle
+            \right]
+         & =
+        - \frac{1}{\eta}
+        \left(
+        \E\!\left[
+                D_{F^\star}(F'(a), F'(a) - \eta \hl, )
+                \right]
+        +
+        \E\!\left[
+                D_{F^\star}(F'(a) - \eta \hl, F'(a))
+                \right]
+        \right)\,.
+    \end{align*}
+\end{remark}
+
+\paragraph{Uniform Bound on $\Lambda(P, E || \nu)$:}
+We have
+\begin{align*}
+    \Lambda(P, E || \nu)
+     & =
+    \frac{1}{\eta}
+    \Delta(\nu, P) -
+    \frac{1}{\eta^2}
+    \E\!\left[
+        D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
+        \right]
+    \\
+     & =
+    \E\!\left[
+        \frac{1}{\eta}
+        \langle A - A_\star, \ell\rangle
+        -
+        \frac{1}{\eta^2}
+        D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
+        \right]\,,
+\end{align*}
+which through the second order Taylor expansion of $F^\star$ at $F'(a) - \eta \hl$
+(\cite{LS2020}[Theorem 26.12]) gives
+\begin{align*}
+    D_{F^\star}\left(F'(a) - \eta \hl, F'(a)\right)
+     & =
+    \frac{\eta^2}{2} \|\hl\|^2_{\nabla^2 F^\star(\zeta)}\,,
+\end{align*}
+for some $\zeta \in [F'(a) - \eta \hl, F'(a)]$.
+Finally, we have
+\begin{align*}
+    \Lambda(P, E || \nu)
+     & =
+    \E\!\left[
+    \frac{1}{\eta}
+    \langle A - A_\star, \ell\rangle
+    -
+    \frac12
+    \|\hl\|^2_{\nabla^2 F^\star(\zeta)}
+    \right]
+    \\
+\end{align*}
+
+
+\paragraph{A Heavier Bayesian Approach}
+Recall the original regret bound from theorem~\ref{thm:SMD-biased}
+The expected regret of Biased-\smdalg is bounded by
+\begin{align*}
+    \Reg_n(a_\star) \leq
+    \frac{D_F(a_\star, a_1)}{\eta} +
+    \sum_{t=1}^{n}
+    \E\left[
+        \langle A_t - a_\star, \ell_t\rangle
+        - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
+        + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+        \right]\,,
+\end{align*}
+and let's focus on the sum term.
+The {\expbyopt}'s regret w.r.t. some $(a_\star, \ell_{1:n})$ is
+\begin{align*}
+     & \E\left[
+        \sum_{t=1}^{n}
+        \langle A_t - a_\star, \ell_t\rangle
+        - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
+        + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+        \right]
+    \\
+     & =
+    \E\left[
+        \sum_{t=1}^{n}
+        \min_{P_t, E_t}
+        \E\left[
+            \langle A_t - a_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            | \fmd(\hl_{1:t-1})
+            \right]
+        \right]
+    \\
+     & =
+    \min_{P_{1:n}, E_{1:n}}
+    \E\left[
+        \sum_{t=1}^{n}
+        \E\left[
+            \langle A_t - a_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            | \fmd(\hl_{1:t-1})
+            \right]
+        \right]\,,
+\end{align*}
+so its minimax regret is bounded by
+\begin{align*}
+     & \min_{P_{1:n}, E_{1:n}}
+    \sup_{(a_\star, \ell_{1:n}) \in \cA \times \cL^n}
+    \E\left[
+        \sum_{t=1}^{n}
+        \E\left[
+            \langle A_t - a_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            | \fmd(\hl_{1:t-1})
+            \right]
+    \right]                    \\
+     & \abovelabel{??} =
+    \sup_{\nu \in \cP(\cA \times \cL^n)}
+    \min_{P_{1:n}, E_{1:n}}
+    \E\left[
+        \sum_{t=1}^{n}
+        \E\left[
+            \langle A_t - A_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - A_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            | \fmd(\hl_{1:t-1})
+            \right]
+    \right]                    \\
+     & =
+    \sup_{\nu \in \cP(\cA \times \cL^n)}
+    \E\left[
+        \sum_{t=1}^{n}
+        \min_{P_t, E_t}
+        \E\left[
+            \langle A_t - A_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - A_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            | \fmd(\hl_{1:t-1})
+            \right]
+    \right]                    \\
+     & =
+    \sup_{\nu \in \cP(\cA \times \cL^n)}
+    \E\left[
+        \sum_{t=1}^{n}
+        \min_{P_t, E_t}
+        \E\left[
+            \langle A_t - A_\star, \ell_t\rangle
+            - \langle \fmd(\hl_{1:t-1}) - A_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            | A_{1:t-1}, Y_{1:t-1}
+            \right]
+    \right]                    \\
+     & =
+    \sup_{\nu \in \cP(\cA \times \cL^n)}
+    \E\left[
+        \sum_{t=1}^{n}
+        \min_{P_t}
+        \E\left[
+            \langle A_t - A_\star, \ell_t\rangle
+            -
+            \frac{1}{\eta} D_F(\tfmd(\hl_{1:t}), \fmd(\hl_{1:t-1}))
+            | A_{1:t-1}, Y_{1:t-1}
+            \right]
+    \right]                    \\
+\end{align*}
+
+
+
+
+
+\clearpage
 \subsection{Bayesian setting, TS \& OSMD}
 \textcolor{red}{TODO: rewrite  this section.}
 \begin{algorithm}[h!]
