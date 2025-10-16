@@ -6,9 +6,13 @@
 
 
 \title{\textsc{ExpByOpt for Convex Bandits}}
+\usepackage{marginnote}
+\reversemarginpar % switch default margin to the left
+\usepackage{framed}
 \usepackage{xcolor}
 \usepackage{hyperref} % add backlinks to the end of bibliography items
 \usepackage{nicefrac}
+\usepackage{pgfplots}
 \usepackage{floatrow}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -38,6 +42,7 @@
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{example}[theorem]{Example}
 \newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
 \newtheorem{fact}[theorem]{Fact}
 \newtheorem{assumption}[theorem]{Assumption}
 
@@ -98,7 +103,7 @@
 
 \section{Overview}
 \begin{enumerate}
-    \item \texttt{OLO} algs solve \texttt{OCO}: $f(x) - f(x_\star) \leq \langle \nabla f(x), x - x_\star \rangle$.
+    \item \oco reduces to \olo: $f(x) - f(x_\star) \leq \langle \nabla f(x), x - x_\star \rangle$.
     \item \textbf{Random} algs are \textit{suboptimal} for \texttt{OCO} and \textit{pointless} for \texttt{OLO}.
     \item First order information $\nabla f(x)$ makes \texttt{BCO} as hard as \texttt{OLO}.
     \item \textbf{Random} algs are \textit{necessary} for \texttt{BCO} and \texttt{BLO}.
@@ -125,7 +130,8 @@ The regret w.r.t to an action $a_\star \in \cA$ is
 \subsection{Mirror decent(\mdalg)}
 For a sequence of losses $\ell_{1:t-1}$, we define the functions $\fmd(\ell_{1:t-1})$
 and $\tfmd(\ell_{1:t-1})$ to be the actions $a_t$ and $\ta_t$
-in \mdalg, when the \mdalg algorithm is used against the loss sequence $\ell_{1:t-1}$.
+in \cref{alg:MD}, when the loss sequence $\ell_{1:t-1}$ is fed to the algorithm.
+
 We also overload this notation as $\fmd(\ell; a) = \argmin_{b \in \cA} \eta\langle b, \ell \rangle + D_F(b, a)$,
 and $\tfmd(\ell; a) = \argmin_{b \in \Rd} \eta\langle b, \ell \rangle + D_F(b, a)$.
 \begin{algorithm}[h!]
@@ -193,7 +199,6 @@ for $t = 1$ to $n$:
     \begin{align*}
         \eta \sum_{t=1}^{n} \langle \ell_t, a_{t+1} - a_\star \rangle
          & \leq \sum_{t=1}^{n} D_F(a_\star, a_t)  - D_F(a_\star, a_{t+1}) - D_F(a_{t+1}, a_t)                   \\
-         & = \sum_{t=1}^{n} D_F(a_\star, a_t)  - D_F(a_\star, a_{t+1}) - D_F(a_{t+1}, a_t)                      \\
          & = D_F(a_\star, a_1) - \underbrace{D_F(a_\star, a_{n+1})}_{\geq 0} - \sum_{t=1}^{n} D_F(a_{t+1}, a_t) \\
          & = D_F(a_\star, a_1) - \sum_{t=1}^{n} D_F(a_{t+1}, a_t)\,.
     \end{align*}
@@ -245,8 +250,8 @@ for $t = 1$ to $n$:
 \begin{remark}
     \label{rem:ellt-adapted}
     The analysis is remarkably amenable to different modifications.
-    For instance, the result continues to work even if $\ell_t$ that is adapted to $\ell_1, a_1, \cdots, a_{t-1}$.
-    Much of comes after hinges on the generality of the proof of this theorem---analysis of \mdalg.
+    For instance, the result continues to work even if $\ell_t$ is adapted to $a_1, \cdots, a_{t-1}$---equivalently, $\ell_t$ is chosen adaptively by an adversary.
+    Much of what comes after hinges on the generality of the proof of this theorem.
 \end{remark}
 
 \subsubsection{When $\cA=\Delta(d)$ and $F$ is the negentropy}\label{sec:md-negentropy}
@@ -264,10 +269,9 @@ can come up with the cover $\cA$ and randomize over that.
 That being said, while being theoretically interesting, such an algorithm
 would be computationally expensive as the size of the cover grows.
 
-Since $\cA = \Delta(d)$ in this section, instead of showing actions with
-$a$ we use $p$ as probability measures over $d$ atoms.
+Since $\cA = \Delta(d)$ in this section, instead of denoting actions by `$a$' we use `$p$' to denote a probability measures over $d$ atoms.
 Note that $D_R = D_{KL}$, $R^\star(q) = \langle \exp(q), 1\rangle$,
-and $R'(p) = \ln(p)$.
+$R'(p) = \ln(p)$, and ${R^\star}'(q) = \exp(q)$.
 \begin{theorem}[\mdalg on simplex]\label{thm:md-simplex}
     Suppose that $\eta \|\ell_t\|_\infty \leq 1$ for all $t \in [n]$,
     then the regret of \mdalg with $R$ as the potential,
@@ -348,7 +352,17 @@ and $R'(p) = \ln(p)$.
 \end{remark}
 
 \section{Bandit linear optimization(\blo)}
-Instead of $\ell_t$, the learner only observes $y_t = \langle \ell_t, a_t \rangle$.
+In the bandit setting, the learner only observes $y_t = \langle \ell_t, a_t \rangle$, instead of $\ell_t$.
+
+\paragraph{The need for randomization:}
+In \blo, if the learner plays a deterministic action $a_t$ in round $t$,
+then an adversary can choose $\ell_t \perp a_t$ such that
+\begin{align*}
+    \langle \ell_t, a_t \rangle = 0\,,
+\end{align*}
+while $\langle \ell_t, a_\star \rangle$ can be large for some $a_\star \in \cA$.
+
+\textcolor{red}{TODO: add the lower bound.}
 
 \subsection{Stochastic mirror decent(\smdalg)}
 \begin{algorithm}[h!]
@@ -370,21 +384,22 @@ for $t = 1$ to $n$:
     \end{minipage}
 \end{algorithm}
 
+\marginnote{\textit{Exploration is free in \blo}}
 Instead of choosing an action $a_t \in \cA$, \smdalg chooses an
 \textit{exploration} distribution $P_t \in \cP(\cA)$
 \textbf{with mean} $a_t$ in round $t \in [n]$.
-Next, \smdalg pretends that $\hl$ which is an \textit{estimate} of $\ell_t$ is the actual loss.
-\textbf{In the most general form}, this estimate can be made through a function
-$E_t: \cA \times \R \to \Rd$ in each round $t \in [n]$
-such that $\hl_t = E_t(A_t, Y_t)$.
 Since losses are linear in {\blo}, we have that
 \begin{align*}
-    \texttt{reg}_t \triangleq \E_t[\langle A_t, \ell \rangle| a_t] = \langle a_t, \ell\rangle\,,
+    \E_t[\langle A_t, \ell \rangle] = \langle a_t, \ell\rangle\,,
 \end{align*}
 which means \smdalg and \mdalg have the \textbf{same expected loss} given
-the \mdalg action $a_t$, and they only differ through the losses they use:
-\mdalg uses $\ell_t$, but \smdalg uses $\hl_t$.
+the \mdalg action $a_t$.
 
+\marginnote{\textit{$\hl$ vs $\ell$}}
+The issue is that \smdalg does not observe $\ell_t$.
+Instead, \smdalg pretends that $\hl_t$ which is an \textit{estimate} of $\ell_t$ is the actual loss.
+\textbf{In the most general form}, this estimation can be made through a function
+$E_t: \cA \times \R \to \Rd$ in each round $t \in [n]$ such that $\hl_t = E_t(A_t, Y_t)$.
 \begin{theorem}[Unbiased-\smdalg]\label{thm:SMD-unbiased}
     Suppose $\E[\hl_t|\fmd(\hl_{1:t-1})] = \ell_t$ (unbiased estimator).
     The regret of $\smdalg$ is bounded as
@@ -424,9 +439,117 @@ the \mdalg action $a_t$, and they only differ through the losses they use:
             \sum_{t=1}^{n} \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
             \right]\,,
     \end{align*}
-    and applying theorem~\ref{thm:MD} to the random game inside
-    the random game inside the expectation.
+    and applying theorem~\ref{thm:MD} to the random game inside the expectation.
+
+    Note that $\hl_t$ is adapted to $a_1, \cdots, a_{t-1}$, but as stated in
+    remark~\ref{rem:ellt-adapted}, the analysis of theorem~\ref{thm:MD}
+    continues to hold in this case.
 \end{proof}
+
+
+\subsubsection{Unbiased estimation with one sample}
+In \cref{thm:SMD-unbiased}, we assumed that $\hl_t$ is an unbiased estimator of $\ell_t$.
+However, it is not clear if it is possible to construct such an estimator
+with one sample $Y_t = \langle A_t, \ell_t \rangle$.
+However, the next lemma not only shows that such a task is possible,
+but also shows that it is possible for whole classes of distributions
+$P_t$ with invertible covariance matrix.
+\begin{lemma}[Unbiased 1-sample estimator]
+    \label{lem:1-sample-estimator}
+    Let $v \in \R^d$ be a vector,
+    and $P \in \cP(\Rd)$ be a distribution.
+    There exists a function $E: \Rd \times \R \to \Rd$ such that
+    \begin{align*}
+        \E_{A \sim P}[E(A, \langle A, v \rangle)] = v\,,
+    \end{align*}
+    if $\E_{A \sim P}[A A^\top]$ is invertible.
+\end{lemma}
+\begin{proof}
+    Let $Y = \langle A, v \rangle$.
+    It suffices to use
+    \begin{align*}
+        E(a, y) = \E_{A \sim P}[A A^\top]^{-1} a  y\,.
+    \end{align*}
+    This ensures that
+    \begin{align*}
+        \E_{A \sim P}[E(A, \langle A, v \rangle)]
+         & = \E_{A \sim P}[\E_{A \sim P}[A A^\top]^{-1} A  \langle A, v \rangle] \\
+         & = \E_{A \sim P}[A A^\top]^{-1} \E_{A \sim P}[A  A^\top v]             \\
+         & = \E_{A \sim P}[A A^\top]^{-1} \E_{A \sim P}[A A^\top]  v             \\
+         & = v\,.
+    \end{align*}
+\end{proof}
+This shows that as long as the covariance matrix of $P_t$ is invertible,
+it is possible to construct a sequence of unbiased estimators $\hl_t$,
+such that $\E_t[\hl_t] = \ell_t$.
+\begin{question}[Other estimators]
+    Is there any other way to construct such an estimator? Possibly with other requirements on $P$?
+\end{question}
+
+
+\subsection{Imitated \mdalg for \blo}
+Lemma~\ref{lem:1-sample-estimator} shows that it is possible to construct
+a sequence
+\begin{align*}
+    \hl_1, \hl_2, \cdots, \hl_n\,,
+\end{align*}
+such that $\E[\hl_t] = \ell_t$.
+A natural question is whether it is possible to construct a sequence
+\begin{align*}
+    \hat{a}_1, \hat{a}_2, \cdots, \hat{a}_n\,,
+\end{align*}
+such that $\E[\hat{a}_t] = a_t$, where $a_t = \fmd(\ell_{1:t-1})$.
+If this is possible, then the \textbf{expected} regret of \smdalg is exactly the same as the regret of \mdalg.
+This boils down to the following requirement on $P_t$:
+\begin{framed}
+    Choose a policy $P_t \in \cP(\cA)$ given $Y_{1:t-1}$ and $A_{1:t-1}$ such that
+    $\E[A_t] = \fmd(\ell_{1:t-1})$.
+\end{framed}
+Couple of remarks:
+\begin{itemize}
+    \item The requirement $\E[A_t] = \fmd(\ell_{1:t-1})$ is \textbf{less demanding} than $\E_t[A_t] = \fmd(\hl_{1:t-1})$.
+    \item The support of $P_t$ needs to be in $\cA$.
+    \item Policy $P_t$ needs to be exploratory enough to ensure that $Y_t$ contains enough information so that $P_{t+1}$ can be chosen to satisfy the requirement in the next round.
+    \item Policy $P_t$ needs to be chosen in a way such that $\E[\E_{A_t \sim P_t}(A_t)] = a_t = \fmd(\ell_{1:t-1})$.
+\end{itemize}
+
+\subsubsection{If \mdalg is linear}
+Consider the case that $\fmd$ is linear, i.e.
+\begin{align*}
+    \fmd(\alpha_1 \ell_{1:t-1} + \alpha_2 \ell_{1:t-1}') = \alpha_1 \fmd(\ell_{1:t-1}) + \alpha_2 \fmd(\ell_{1:t-1}')\,.
+\end{align*}
+This is never the case because of the non-linearity of the function $F$ and the projection into $\cA$, but is almost true when $F$ is quadratic.
+Suppose that we choose $P_t$ such that $\E[\hl_t] = \ell_t$, as ensured by lemma~\ref{lem:1-sample-estimator},
+and use $P_t = \delta_{\fmd(\hl_{1:t-1})}$, i.e. a Dirac delta at $\fmd(\hl_{1:t-1})$.
+Then we have
+\begin{align*}
+    \E_t[A_t] & = \E_t[\fmd(\hl_{1:t-1})]                                      \\
+              & = \fmd(\E_t[\hl_{1:t-1}]) \quad (\text{by linearity of } \fmd) \\
+              & = \fmd(\ell_{1:t-1})\,,
+\end{align*}
+which is the stronger version of the requirement since $\E_t$-unbiasedness implies $\E$-unbiasedness.
+
+\subsubsection{The possibility of playing $a_2$ in expectation}
+Here, we are interested in the case of $\cA = \Delta(d)$ and $F$ being the negentropy.
+One should ask if the requirement $\E[A_2] = \fmd(\ell_{1}; \eta)$ is possible to satisfy,
+before worrying about the general case.
+
+Note that $P_1$ is the uniform distribution over $[d]$.
+So the task of the learner is to choose a distribution $P_2$ over $[d]$ such that
+\begin{align*}
+    \E[A_2] = \fmd(\ell_1; \eta) = \frac{\exp(-\eta \ell_{1,i})_{i=1}^{d}}{\sum_{j=1}^{d} \exp(-\eta \ell_{1,j})}\,.
+\end{align*}
+Note that $P_2$ is itself random, and is chosen based on $A_1$ and $Y_1 = \ell_{1, A_1}$.
+Therefore, $P_2$ can be seen as the output of a function $D: [d] \times \R \to \Delta(d)$.
+We have
+\begin{align*}
+    \E[A_2] = \E[\E_{A_2 \sim P_2}[A_2]] = \E[D(A_1, Y_1)] = \frac{1}{d} \sum_{i=1}^{d} D(i, \ell_{1,i})\,,
+\end{align*}
+and one can check that no such function $D$ exists.
+For instance,
+
+
+
 
 \subsubsection{Biased \smdalg}
 \begin{algorithm}[h!]
@@ -645,72 +768,84 @@ which results in the following minimax theorem.
     See remark~\ref{rem:dummy-bound}.
 \end{remark}
 
-\paragraph{Simplifying $\Lambda(P, E || \nu)$:}
-Now on, we study $\Lambda(P, E || \nu)$ for some fixed
-$a \in \cA$ and $\eta \geq 0$ and drop them from the notation.
-Let
-\begin{align*}
-    \Delta(\nu, P) & =
-    \E_{A \sim P, (A_\star \times \ell) \sim \nu}\!\left[
-        \langle A - A_\star, \ell \rangle
-        \right]\,.
-\end{align*}
-Next, with $\hl = E(A, Y)= E(A, \langle A, \ell \rangle)$, we have
-\begin{align}
-    \eta \Lambda(P, E || \nu)
-     & =
-    \E\!\left[
-        \langle A - A_\star, \ell \rangle
-        - \langle a - A_\star, \hl \rangle
-        + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta \hl, F'(a))
-        \right]
-    \nonumber \\
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
-    \langle A_\star - a, \hl \rangle
-    + \frac{1}{\eta}
-    \left(
-    F^\star\left(F'(a) - \eta \hl\right)
-    - F^\star(F'(a))
-    - {F^\star}'(F'(a))^\top (- \eta \hl)
-    \right)
-    \right]
-    \nonumber \\
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
+Let $\Delta(\nu, P) = \E_{A \sim P, (A_\star \times \ell) \sim \nu}\!\left[\langle A - A_\star, \ell \rangle\right]$.
+\begin{lemma}[Simplified $\Lambda(P, E || \nu)$]
+    We have
+    \begin{align}
+        \Lambda(P, E || \nu)
+        =
+        \frac{1}{\eta}
+        \left[
+            \Delta(\nu, P) +
+            \E\!\left[
+                \langle A_\star, \hl \rangle
+                + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+                - \frac{1}{\eta} F^\star(F'(a))
+                \right]
+            \right]
+        \,.
+        \label{eq:Lambda-simplified}
+    \end{align}
+\end{lemma}
+\begin{proof}
+    With $\hl = E(A, Y)= E(A, \langle A, \ell \rangle)$, we have
+    \begin{align}
+        \eta \Lambda(P, E || \nu)
+         & =
+        \E\!\left[
+            \langle A - A_\star, \ell \rangle
+            - \langle a - A_\star, \hl \rangle
+            + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta \hl, F'(a))
+            \right]
+        \nonumber \\
+         & =
+        \Delta(\nu, P) +
+        \E\!\left[
         \langle A_\star - a, \hl \rangle
         + \frac{1}{\eta}
         \left(
         F^\star\left(F'(a) - \eta \hl\right)
         - F^\star(F'(a))
-        + \eta a^\top \hl
+        - {F^\star}'(F'(a))^\top (- \eta \hl)
         \right)
         \right]
-    \nonumber \\
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
-        \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
-        - \frac{1}{\eta} F^\star(F'(a))
-        \right]\,,
-    \label{eq:Lambda-simplified}
-\end{align}
+        \nonumber \\
+         & =
+        \Delta(\nu, P) +
+        \E\!\left[
+            \langle A_\star - a, \hl \rangle
+            + \frac{1}{\eta}
+            \left(
+            F^\star\left(F'(a) - \eta \hl\right)
+            - F^\star(F'(a))
+            + \eta a^\top \hl
+            \right)
+            \right]
+        \nonumber \\
+         & =
+        \Delta(\nu, P) +
+        \E\!\left[
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            - \frac{1}{\eta} F^\star(F'(a))
+            \right]\,.
+        \nonumber
+    \end{align}
+\end{proof}
 
-\paragraph{Optimizing for $E$}
+\subsubsection{Optimizing for $E$}
 The inf player can choose the best optimizer given the
 $\nu$ choice of the adversary and its own sampling policy $P$.
 The following lemma shows that the \textit{optimal unrestricted estimator}
 has a closed form.
 \begin{lemma}
+    \label{lem:optimal-E}
     Given $\nu \in \Delta(\cA \times \cL)$, and $P \in \Delta(d)$
     define $G_{\nu, p} \in (\Rd)^{(\cA \times \R)}$ as
     \begin{align*}
         G_{\nu, P}(b, y) & =
-        \frac{P(A)}{\eta}\left(
-        F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = y])
+        \frac{1}{\eta}\left(
+        F'(a) - F'(\E[A_\star|\langle \ell, b\rangle = y])
         \right)\,,
     \end{align*}
     then we have
@@ -723,86 +858,422 @@ has a closed form.
 \end{lemma}
 \begin{proof}
     By taking the derivative of $\Lambda(p, E || \nu)$ with respect to $E(b,y)$
-    for a \textit{non-random} $(b,y) \in \cA \times \R$ we have
+    for any pair $(b,y) \in \cA \times \R$ we have
     \begin{align*}
         \tfrac{\partial}{\partial E(b,y)} \Lambda_\eta(P, E || \nu)
-        %  & =
-        % \tfrac{\partial}{\partial E(b,y)}
-        % \E\!\left[
-        %     \langle A_\star, \hl \rangle
-        %     + \frac{1}{\eta} R^\star\left(R'(a) - \eta \hl\right)
-        %     - \frac{1}{\eta} R^\star(R'(a))
-        % \right] \\
          & =
         \tfrac{\partial}{\partial E(b,y)}
+        \left(
+        \frac{1}{\eta}
+        \left(
+            \Delta(\nu, P) +
+            \E\!\left[
+                    \langle A_\star, \hl \rangle
+                    + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+                    - \frac{1}{\eta} F^\star(F'(a))
+                    \right]
+            \right)
+        \right)
+        \\
+         & =
+        \tfrac{\partial}{\partial E(b,y)}
+        \left(
+        \frac{1}{\eta}
+        \E\!\left[
+                \langle A_\star, \hl \rangle
+                + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+                \right]
+        \right) \\
+         & =
+        \tfrac{\partial}{\partial E(b,y)}
+        \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \E\!\left[
             \langle A_\star, \hl \rangle
             + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            \bigg| A = b, \langle\ell, A\rangle = y
         \right] \\
          & =
-        \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \tfrac{\partial}{\partial E(b,y)}
-        \E\!\left[
-            \langle A_\star, \hl \rangle
-            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
-            |A = b, \langle\ell, A\rangle = y
-        \right] \\
-         & =
         \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
-        \tfrac{\partial}{\partial E(b,y)}
         \E\!\left[
-            \langle A_\star, E(A, Y) \rangle
-            + \frac{1}{\eta} F^\star\left(F'(a) - \eta E(A, Y)\right)
-            |A = b, \langle\ell, A\rangle = y
+            \langle A_\star, E(b, y) \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta E(b, y)\right)
+            \bigg|\langle\ell, b\rangle = y
         \right] \\
          & =
         \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \E\!\left[
         A_\star
-        - {F^\star}'\left(F'(a) - \eta E(A, Y)\right)
-        |A = b, \langle\ell, A\rangle = y
+        - {F^\star}'\left(F'(a) - \eta E(b, y)\right)
+        \bigg| \langle\ell, b\rangle = y
         \right] \\
          & =
         \tfrac{\PP(\langle \ell, A\rangle=y, A=b)}{\eta}
         \left(
         \E\!\left[
             A_\star
-            |A = b, \langle\ell, A\rangle = y\right]
-        - {F^\star}'\left(F'(a) - \eta E(a, y)\right)
+            |\langle\ell, b\rangle = y\right]
+        - {F^\star}'\left(F'(a) - \eta E(b, y)\right)
         \right)\,,
     \end{align*}
     and by setting the gradient to zero, we get
     \begin{align*}
         \E\!\left[
             A_\star
-            |A = b, \langle\ell, A\rangle = y\right]
-         & = {F^\star}'\left(F'(a) - \eta E(a, y)\right) \\
+            | \langle\ell, b\rangle = y\right]
+         & = {F^\star}'\left(F'(a) - \eta E(b, y)\right) \\
         \Rightarrow
         F'\left(\E\!\left[
             A_\star
-            |A = b, \langle\ell, A\rangle = y\right]\right)
-         & = F'(a) - \eta E(a, y)                        \\
+            | \langle\ell, b\rangle = y\right]\right)
+         & = F'(a) - \eta E(b, y)                        \\
         \Rightarrow
-        E(a, y)
+        E(b, y)
          & =
         \frac{1}{\eta}
+        \left(
+        F'(a)
+        -
         F'\left(\E\!\left[
             A_\star
-            |A = b, \langle\ell, A\rangle = y\right]\right)
-        - F'(a)                                          \\
-        \Rightarrow
-        E(a, y)
-         & =
-        \frac{P(b)}{\eta}
-        F'\left(\E\!\left[
-            A_\star
-            |\langle\ell, b\rangle = y\right]\right)
-        - F'(a)                                          \,,
+            | \langle\ell, b\rangle = y\right]\right)
+        \right)\,. \qedhere
     \end{align*}
-    where the last equation follows from the independence of $A$ and $\ell$.
 \end{proof}
 
-\paragraph{Restricted $E$---multiplicative in $Y$:}
+The next theorem shows the connection between this optimal estimator and the information ratio.
+For reasons that will be clear later, let
+$\texttt{pr} = \E[A_\star]$ ("pr" for prior) and
+$\texttt{po} = \E[A_\star|A, Y]$ ("po" for posterior).
+\begin{lemma}
+    \label{lem:optimal-Lambda-wrong-turn}
+    When using the optimal estimator $G_{\nu, P}$, we have
+    \begin{align*}
+        \Lambda(P, G_{\nu, P}|| \nu)
+         & = \frac{1}{\eta} \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left(\texttt{po}, a\right)
+            \right]\,.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    From lemma~\ref{lem:optimal-E}, the optimal estimator is
+    $
+        G_{\nu, P}(b, y)  =
+        \frac{1}{\eta}\left(
+        F'(a) - F'(\E[A_\star|\langle \ell, b\rangle = y])
+        \right)$.
+    By plugging in $G_{\nu, P}$ into eq~\ref{eq:Lambda-simplified}, we have
+    \begin{align*}
+         & \eta \Lambda(P, G_{\nu, P}|| \nu)  - \Delta(\nu, P)
+        \\
+         & =
+        \E\!\left[
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            - \frac{1}{\eta} F^\star(F'(a))
+            \right]
+        \\
+         & =
+        \E\!\left[
+            \langle A_\star, G_{\nu, P}(A, Y) \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta G_{\nu, P}(A, Y)\right)
+            - \frac{1}{\eta} F^\star(F'(a))
+            \right]
+        \\
+         & =
+        \E\!\left[
+            \eta^{-1}\langle A_\star,
+            F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = Y])
+            \rangle
+            + \frac{1}{\eta} F^\star\left(
+            F'(\E[A_\star|\langle \ell, A\rangle = Y])
+            \right)
+            - \frac{1}{\eta} F^\star(F'(a))
+            \right]
+        \\
+         & =\eta^{-1}
+        \E\!\bigg[
+            \big\langle
+            \E[A_\star|\langle \ell, A\rangle = Y],
+            F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = Y])
+            \big\rangle
+            + F^\star\left(
+            F'(\E[A_\star|\langle \ell, A\rangle = Y])
+            \right)
+            - F^\star(F'(a))
+            \bigg]
+        \\
+         & =
+        -\eta^{-1}
+        \E\!\bigg[
+            D_{F^\star}\left(F'(a), F'(\E[A_\star|\langle \ell, A\rangle = Y])\right)
+            \bigg]
+        \\
+         & =
+        -\eta^{-1}
+        \E\!\bigg[
+            D_F\left(
+            \E[A_\star|\langle \ell, A\rangle = Y], a
+            \right)
+            \bigg]\,. \qedhere
+    \end{align*}
+\end{proof}
+Although the result of lemma~\ref{lem:optimal-Lambda-wrong-turn} is
+elegant, it is not useful for proving the connection to the information ratio.
+
+\begin{lemma}
+    \label{lem:the-right-turn}
+    When using the optimal estimator $G_{\nu, P}$, we have
+    \begin{align*}
+        \E\left[D_F\left(\texttt{po}, a\right)\right]
+         & =
+        \E\left[
+            D_F\left( \texttt{po}, \texttt{pr}\right)
+            \right]
+        +
+        D_F\left( \texttt{pr}, a\right)\,.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    We have
+    \begin{align*}
+         & \E\left[D_F\left(\texttt{po}, a\right)\right] \\
+         & =
+        \E\left[D_{F^\star}\left(F'(a), F'(\texttt{po})\right)\right]
+        \\
+         & =
+        \E\left[
+        F^\star(F'(a)) -  F^\star(F'(\texttt{po}))
+        - {F^\star}'(F'(\texttt{po}))^\top (F'(a) - F'(\texttt{po}))
+        \right]
+        \\
+         & =
+        \E\left[
+            F^\star(F'(a)) -  F^\star(F'(\texttt{po}))
+            - \texttt{po}^\top (F'(a) - F'(\texttt{po}))
+            \right]
+        \\
+         & =
+        \E\left[
+            F^\star(F'(a)) -  F^\star(F'(\texttt{po}))
+            - \texttt{po}^\top F'(a) + \texttt{po}^\top F'(\texttt{po})
+            \right]
+        \\
+         & =
+        \E\left[
+            F^\star(F'(a)) -  F^\star(F'(\texttt{po})) - F^\star(F'(\texttt{pr})) + F^\star(F'(\texttt{pr}))
+            - \texttt{po}^\top F'(a) + \texttt{po}^\top F'(\texttt{po})
+            \right]
+        \\
+         & =
+        \E\bigg[
+            \left( F^\star(F'(a)) -  F^\star(F'(\texttt{pr})) - \texttt{pr}^\top F'(a) \right)
+            +
+            \left( F^\star(F'(\texttt{pr})) - F^\star(F'(\texttt{po})) + \texttt{po}^\top F'(\texttt{po})\right)
+            \bigg]
+        \\
+         & =
+        \E\bigg[
+            \left( F^\star(F'(a)) -  F^\star(F'(\texttt{pr})) - \texttt{pr}^\top (F'(a) - F'(\texttt{pr})) \right)
+            - \texttt{pr}^\top F'(\texttt{pr})
+        \\
+         & \quad +
+            \left( F^\star(F'(\texttt{pr})) - F^\star(F'(\texttt{po})) - \texttt{po}^\top(F'(\texttt{pr}) - F'(\texttt{po}))\right)
+            + \texttt{po}^\top F'(\texttt{pr})
+            \bigg]
+        \\
+         & =
+        \E\bigg[
+            D_{F^\star}\left( F'(a), F'(\texttt{pr})\right)
+            + D_{F^\star}\left( F'(\texttt{pr}), F'(\texttt{po})\right)
+            - \texttt{pr}^\top F'(\texttt{pr})
+            + \texttt{po}^\top F'(\texttt{pr})
+            \bigg]
+        \\
+         & =
+        \E\bigg[
+            D_{F^\star}\left( F'(a), F'(\texttt{pr})\right)
+            + D_{F^\star}\left( F'(\texttt{pr}), F'(\texttt{po})\right)
+            \bigg]\,
+    \end{align*}
+    and the result follows by noting that the randomness is only by $\texttt{po}$.
+\end{proof}
+\begin{remark}
+    Note how the result of lemma~\ref{lem:the-right-turn} is similar to the
+    Pythagorean theorem for Bregman divergences
+    \begin{align*}
+        D_R(z, x) \geq D_R(z, \Pi(x)) + D_R(\Pi(x), x)\,.
+    \end{align*}
+\end{remark}
+\begin{theorem}
+    When using the optimal estimator $G_{\nu, P}$, we have
+    \begin{align*}
+        \Lambda(P, G_{\nu, P}|| \nu)
+         & \leq \frac{
+            \Delta(\nu, P)^2
+        }{
+            4 \E\left[D_F\left( \E[A^\star|A,Y], \E[A^\star]\right)\right]
+        }\,.
+    \end{align*}
+\end{theorem}
+\begin{proof}
+    From lemma~\ref{lem:optimal-Lambda-wrong-turn} and lemma~\ref{lem:the-right-turn}, we have
+    \begin{align*}
+        \Lambda(P, G_{\nu, P}|| \nu)
+         & = \frac{1}{\eta} \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left(\texttt{po}, a\right)
+        \right]                            \\
+         & = \frac{1}{\eta} \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \left(
+        \E\left[
+            D_F\left( \texttt{po}, \texttt{pr}\right)
+            \right]
+        +
+        D_F\left( \texttt{pr}, a\right)
+        \right)                            \\
+         & = \frac{1}{\eta} \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\left[
+            D_F\left( \E[A^\star|A,Y], \E[A^\star]\right)
+        \right]                            \\
+         & \leq \frac{
+            \Delta(\nu, P)^2
+        }{
+            4 \E\left[D_F\left( \E[A^\star|A,Y], \E[A^\star]\right)\right]
+        }\,,
+    \end{align*}
+    where the first inequality is by dropping the non-negative term $D_F( \texttt{pr}, a)$,
+    and the second inequality is by maximizing over $\eta$.
+\end{proof}
+% \begin{theorem}[\textcolor{red}{Wrong}]
+%     \label{thm:optimal-Lambda-right-turn}
+%     When using the optimal estimator $G_{\nu, P}$, we have
+%     \begin{align*}
+%         \Lambda(P, G_{\nu, P}|| \nu)
+%          & = \frac{1}{\eta} \Delta(\nu, P)
+%         + \frac{1}{\eta^2}
+%         \E\!\left[D_F(\texttt{pr}, \texttt{po}) - D_F(\texttt{pr}, a)\right]\,.
+%     \end{align*}
+% \end{theorem}
+% \begin{proof}
+%     Taking the optimal estimator $G_{\nu, P}$ from lemma~\ref{lem:optimal-E},
+%     we have
+%     \begin{align*}
+%          & \eta \Lambda(P, G_{\nu, P}|| \nu)  - \Delta(\nu, P)
+%         \\
+%          & =
+%         \E\!\left[
+%             \langle A_\star, \hl \rangle
+%             + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+%             - \frac{1}{\eta} F^\star(F'(a))
+%             \right]
+%         \\
+%          & =
+%         \E\!\left[
+%             \langle A_\star, G_{\nu, P}(A, Y) \rangle
+%             + \frac{1}{\eta} F^\star\left(F'(a) - \eta G_{\nu, P}(A, Y)\right)
+%             - \frac{1}{\eta} F^\star(F'(a))
+%             \right]
+%         \\
+%          & =
+%         \E\!\left[
+%             \eta^{-1}\langle A_\star,
+%             F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = Y])
+%             \rangle
+%             + \frac{1}{\eta} F^\star\left(
+%             F'(\E[A_\star|\langle \ell, A\rangle = Y])
+%             \right)
+%             - \frac{1}{\eta} F^\star(F'(a))
+%             \right]
+%         \\
+%          & =
+%         \eta^{-1}
+%         \E\!\bigg[
+%             \big\langle
+%             \E[A_\star],
+%             F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = Y])
+%             \big\rangle
+%             + F^\star\left(
+%             F'(\E[A_\star|\langle \ell, A\rangle = Y])
+%             \right)
+%             - F^\star(F'(a))
+%             \bigg]\,.
+%     \end{align*}
+%     Note that the very last equality is wrong since $\E[\langle A_\star, F'(\E[A_\star|\langle \ell, A\rangle = Y])\rangle] \neq \E[\langle \E[A_\star], F'(\E[A_\star|\langle \ell, A\rangle = Y])\rangle]$ in general.
+%     If we ignore this mistake for a moment, we can continue as follows:
+%     \begin{align*}
+%          & \E\!\bigg[
+%             \big\langle
+%             \E[A_\star],
+%             F'(a) - F'(\E[A_\star|\langle \ell, A\rangle = Y])
+%             \big\rangle
+%             + F^\star\left(
+%             F'(\E[A_\star|\langle \ell, A\rangle = Y])
+%             \right)
+%             - F^\star(F'(a))
+%             \bigg]
+%         \\
+%          & =
+%         \E\!\bigg[
+%             \langle \texttt{pr},
+%             F'(a) - F'(\texttt{po})
+%             \rangle
+%             + F^\star\left(
+%             F'(\texttt{po})
+%             \right)
+%             - F^\star(F'(a))
+%             \bigg]
+%         \\
+%          & =
+%         \E\!\bigg[
+%             \langle \texttt{pr},
+%             F'(a) - F'(\texttt{pr}) + F'(\texttt{pr}) - F'(\texttt{po})
+%             \rangle
+%             + F^\star\left(F'(\texttt{po})\right)
+%             - F^\star(F'(\texttt{pr}))
+%             + F^\star(F'(\texttt{pr}))
+%             - F^\star(F'(a))
+%             \bigg]
+%         \\
+%          & =
+%         \E\!\bigg[
+%         \underbrace{
+%             F^\star(F'(\texttt{pr}))
+%             - F^\star(F'(a))
+%             +
+%             \langle \texttt{pr},
+%             F'(a) - F'(\texttt{pr})
+%             \rangle
+%         }_{- D_{F^\star}(F'(a), F'(\texttt{pr}))}
+%         +
+%         \underbrace{
+%             F^\star\left(F'(\texttt{po})\right)
+%             - F^\star(F'(\texttt{pr}))
+%             +
+%             \langle \texttt{pr},
+%             F'(\texttt{pr}) - F'(\texttt{po})
+%             \rangle
+%         }_{D_{F^\star}(F'(\texttt{po}), F'(\texttt{pr}))}
+%         \bigg]
+%         \\
+%          & =
+%         \E\!\left[
+%             D_{F^\star}(F'(\texttt{po}), F'(\texttt{pr}))
+%             - D_{F^\star}(F'(a), F'(\texttt{pr}))
+%             \right]
+%         \\
+%          & =
+%         \E\!\left[D_F(\texttt{pr}, \texttt{po}) - D_F(\texttt{pr}, a)\right]\,.\qedhere
+%     \end{align*}
+% \end{proof}
+
+
+\subsubsection{Optimizing for $E$---multiplicative in $Y$}
 The player (even in the primal problem), has the knowledge of
 $\eta$ and $a_t = \fmd(\hl_{1:t-1})$, and also has the control over $P_t$,
 so given these three variables, it can limit its search for the
@@ -811,180 +1282,195 @@ However, the space $(\Rd)^{(\cA \times \R)}$ is huge.
 The learner can further restrict its search to be only over
 estimators $E(x,y)$ of the form
 \begin{align*}
-    E(b,y) & = \frac{y}{P(b)} T(b)
+    E(b,y) & = \frac{y}{\eta P(b)} T(b)
 \end{align*}
 and then only optimizes for $T \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
-So, starting from eq~\ref{eq:Lambda-simplified}, we are interested in the $T$ that minimizes
-\begin{align*}
-    \eta \Lambda(P, E || \nu)
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
-        \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
-        - \frac{1}{\eta} F^\star(F'(a))
-        \right]\,,
-\end{align*}
-but note that the first term $\Delta(\nu, P)$
-and the last term $F^\star(F'(A))$ can be dropped
-from the optimization since they don't depend on the estimator choice
-$E$ (no $\hl$ present).
-
-Define the shorthand $T_b = T(b) \in \R^{|\cC|}$,
-and solve for the best $T_b$ through differentiation
-(dropping $\Delta(\nu, P)$ and $F^\star(F'(a))$)
-\begin{align*}
-    \tfrac{\partial}{\partial T_b} \Lambda(P, E||\nu)
-     & =
-    \tfrac{\partial}{\partial T_b}
-    \eta^{-1}
-    \E\!\left[
-        \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
-        \right]
-    \\
-     & =
-    \tfrac{P(b)}{\eta} \cdot
-    \tfrac{\partial}{\partial T_b}
-    \E\!\left[
-        \langle A_\star, \tfrac{Y}{P(b)}T_a \rangle
-        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
-        | A = b
-        \right]
-    \\
-     & =
-    \tfrac{P(b)}{\eta} \cdot
-    \E\!\left[
-        \tfrac{Y}{P(b)} A_\star
-        - \tfrac{Y}{P(b)} {F^\star}'\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
-        | A = b
-        \right]
-    \\
-     & =
-    \tfrac{1}{\eta} \cdot
-    \E\!\left[
-        Y A_\star
-        - Y {F^\star}'\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
-        | A = b
-        \right]\,,
-\end{align*}
-and by setting the derivative to zero, we have
-\begin{align}
-    \E\!\left[
-        Y A_\star
-        | A = b
-        \right]
-     & =
-    \E\!\left[
-        Y {F^\star}'\left(F'(a) - \eta \tfrac{Y}{P(b)}T_b\right)
-        | A = b
-    \right] \nonumber \\
-    \abovelabel{$\odot \tfrac{T_b}{P(b)}$}
-    \Rightarrow
-    \E\!\left[
-        \hl \odot A_\star
-        | A = b
-        \right]
-     & =
-    \E\!\left[
-        \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
-        | A = b
-        \right]\,, \label{eq:mul-E-opt}
-\end{align}
-for all $b \in \cA$.
-It can be seen that $T_b$ doesn't have a closed form,
-but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
-Again, starting from eq~\ref{eq:Lambda-simplified}, we have
-\begin{align*}
-    \eta \Lambda(P, E || \nu)
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
-        \langle A_\star, \hl \rangle
-        + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
-        - \frac{1}{\eta} F^\star(F'(a))
-        \right]
-    \\
-     & =
-    \Delta(\nu, P) +
-    \E\!\left[
+\begin{theorem}[Multiplicative-$Y$ estimators]
+    \label{thm:optimal-mult-y}
+    Given $\nu \in \Delta(\cA \times \cL)$,
+    and $P \in \Delta(d)$, for a matrix $T \in \R^{|\cA| \times d}$,
+    define the estimator $E_T:\cA \times \R \to \Rd$ as
+    \begin{align*}
+        E_T(a, y) = \frac{y}{\eta P_a} T_a\,.
+    \end{align*}
+    Then, for $T^\star \in \R^{|\cA| \times d}$ such that
+    \begin{align*}
+        \inf_{T \in \R^{|\cA| \times d}}
+        \Lambda(P, E_T|| \nu)
+        =
+        \Lambda(P, E_{T^\star}|| \nu)\,,
+    \end{align*}
+    it holds that
+    \begin{align*}
+        \E\!\left[
+            \hl \odot A_\star
+            | A
+            \right]
+         & =
+        \E\!\left[
+            \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
+            | A
+            \right]\,
+        \label{eq:mul-E-opt}
+    \end{align*}
+    almost surely, where $\hl = E_{T^\star}(A, Y)$.
+\end{theorem}
+\begin{proof}
+    Starting from eq~\ref{eq:Lambda-simplified}, we are interested in the $T$ that minimizes
+    \begin{align*}
+        \eta \Lambda(P, T || \nu)
+         & =
+        \Delta(\nu, P) +
         \E\!\left[
             \langle A_\star, \hl \rangle
             + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
             - \frac{1}{\eta} F^\star(F'(a))
-            \bigg|
-            A
-            \right]
-        \right]
-    \\
-     &
-    \abovelabel{by eq~\ref{eq:mul-E-opt}}
-    =
-    \Delta(\nu, P) +
-    \E\!\left[
-        \E\!\left[
-            \langle {F^\star}'\left(F'(a) - \eta \hl\right), \hl \rangle
-            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
-            - \frac{1}{\eta} F^\star(F'(a))
-            \bigg|
-            A
-            \right]
-        \right]
-    \\
-     & =
-    \Delta(\nu, P) -
-    \frac{1}{\eta}
-    \E\!\left[
-        D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
-        \right]
-\end{align*}
-... and we reach at a familiar term.
-Finally, we get
-\begin{align}
-    \Lambda(P, E || \nu)
-     & =
-    \frac{1}{\eta}
-    \Delta(\nu, P) -
-    \frac{1}{\eta^2}
-    \E\!\left[
-        D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
-        \right]\,,
-    \label{eq:E-optimized-Lambda}
-\end{align}
-and $E$ is out of the picture---the learner only needs to choose a good $P$.
-\begin{remark}[A curious reappearence]
-    Although we're in the dual world, it's tempting to think of
-    $F'(a) - \eta \hl$ as $F'(\tilde{a}_+)$, where $\tilde{a}_+$
-    is the \textit{next round's unrestricted optimal action} in \mdalg analysis.
-    With that, we have
+            \right]\,,
+    \end{align*}
+    but note that the first term $\Delta(\nu, P)$
+    and the last term $F^\star(F'(a))$ can be dropped
+    from the optimization since they don't depend on the estimator choice
+    $T$ (no $\hl$ present).
+
+    For $b \in \cA$, we solve for $T^\star_b$ through differentiation:
+    (dropping $\Delta(\nu, P)$ and $F^\star(F'(a))$)
     \begin{align*}
-        \Lambda(P, E || \nu)
+        \tfrac{\partial}{\partial T_b} \Lambda(P, T||\nu)
          & =
-        \frac{1}{\eta}
+        \tfrac{\partial}{\partial T_b}
+        \eta^{-1}
+        \E\!\left[
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            \right]
+        \\
+         & =
+        \tfrac{P_b}{\eta} \cdot
+        \tfrac{\partial}{\partial T_b}
+        \E\!\left[
+            \langle A_\star, \tfrac{Y}{\eta P_b}T_b \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \tfrac{Y}{\eta P_b}T_b\right)
+            | A = b
+            \right]
+        \\
+         & =
+        \tfrac{P_b}{\eta^2} \cdot
+        \tfrac{\partial}{\partial T_b}
+        \E\!\left[
+            \langle A_\star, \tfrac{Y}{P_b}T_b \rangle
+            + F^\star\left(F'(a) - \tfrac{Y}{P_b}T_b\right)
+            | A = b
+            \right]
+        \\
+         & =
+        \tfrac{P_b}{\eta^2} \cdot
+        \E\!\left[
+            \tfrac{Y}{P_b} A_\star
+            - \tfrac{Y}{P_b} {F^\star}'\left(F'(a) - \tfrac{Y}{P_b}T_b\right)
+            | A = b
+            \right]
+        \\
+         & =
+        \tfrac{1}{\eta^2} \cdot
+        \E\!\left[
+            Y A_\star
+            - Y {F^\star}'\left(F'(a) - \tfrac{Y}{P_b}T_b\right)
+            | A = b
+            \right]\,,
+    \end{align*}
+    and by setting the derivative to zero, we have
+    \begin{align}
+        \E\!\left[
+            Y A_\star
+            | A = b
+            \right]
+         & =
+        \E\!\left[
+            Y {F^\star}'\left(F'(a) - \tfrac{Y}{P_b}T_b\right)
+            | A = b
+        \right] \nonumber \\
+        \abovelabel{$\odot \tfrac{T_b}{\eta P_b}$}
+        \Rightarrow
+        \E\!\left[
+            \hl \odot A_\star
+            | A = b
+            \right]
+         & =
+        \E\!\left[
+            \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
+            | A = b
+            \right]\,,
+    \end{align}
+    for all $b \in \cA$.
+\end{proof}
+It can be seen that $T_A$ doesn't have a closed form,
+but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
+\begin{lemma}
+    \label{lem:E-optimized-Lambda}
+    For $T^\star$ defined in Thm~\ref{thm:optimal-mult-y}, we have
+    \begin{align}
+        \Lambda(P, E_{T^\star} || \nu)
+         & = \frac{1}{\eta}
         \Delta(\nu, P) -
         \frac{1}{\eta^2}
         \E\!\left[
-            D_R\left(\tilde{a}_+, a\right)
-            \right]\,,
-    \end{align*}
-    and the term that is inside the sum in theorem~\ref{alg:MD}
-    appears inside the expectation.
-\end{remark}
-
-\begin{remark}
-    Recall the original form of $\Lambda(P, E || \nu)$
+            D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
+            \right]\,.
+        \label{eq:E-optimized-Lambda}
+    \end{align}
+\end{lemma}
+\begin{proof}
+    Again, starting from eq~\ref{eq:Lambda-simplified}, we have
     \begin{align*}
-        \Lambda(P, E || \nu)
+        \eta \Lambda(P, E_{T^\star} || \nu)
          & =
-        \frac{1}{\eta}
-        \Delta(\nu, P)
-        +
-        \frac{1}{\eta}
+        \Delta(\nu, P) +
         \E\!\left[
-            \langle A_\star - a, \hl \rangle
-            + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta \hl, F'(a))
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            - \frac{1}{\eta} F^\star(F'(a))
             \right]
         \\
+         & =
+        \Delta(\nu, P) +
+        \E\!\left[
+            \E\!\left[
+                \langle A_\star, \hl \rangle
+                + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+                - \frac{1}{\eta} F^\star(F'(a))
+                \bigg|
+                A
+                \right]
+            \right]
+        \\
+         &
+        \abovelabel{by eq~\ref{eq:mul-E-opt}}
+        =
+        \Delta(\nu, P) +
+        \E\!\left[
+            \E\!\left[
+                \langle {F^\star}'\left(F'(a) - \eta \hl\right), \hl \rangle
+                + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+                - \frac{1}{\eta} F^\star(F'(a))
+                \bigg|
+                A
+                \right]
+            \right]
+        \\
+         & =
+        \Delta(\nu, P) -
+        \frac{1}{\eta}
+        \E\!\left[
+            D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
+            \right]\,.
+    \end{align*}
+\end{proof}
+With this, $E$ is out of the picture---the learner only needs to choose a good $P$.
+
+\begin{remark}
+    Recall the original form of $\Lambda(P, E || \nu)$, we have
+    \begin{align*}
+        \Lambda(P, E_{T^\star} || \nu)
          & =
         \frac{1}{\eta}
         \Delta(\nu, P)
@@ -999,8 +1485,7 @@ and $E$ is out of the picture---the learner only needs to choose a good $P$.
             D_{F^\star}(F'(a) - \eta \hl, F'(a))
             \right]
     \end{align*}
-    and compare it to eq~\ref{eq:E-optimized-Lambda}.
-    We have
+    and compare it to eq~\ref{eq:E-optimized-Lambda}, we have
     \begin{align*}
         \E\!\left[
             \langle A_\star - a, \hl \rangle
@@ -1019,18 +1504,119 @@ and $E$ is out of the picture---the learner only needs to choose a good $P$.
     \end{align*}
 \end{remark}
 
-\paragraph{Uniform Bound on $\Lambda(P, E || \nu)$:}
-We have
+\begin{remark}[The connection to $\texttt{po}$sterior]
+    From Lemmas~\ref{lem:optimal-Lambda-wrong-turn}
+    % and ~\ref{lem:the-right-turn},
+    we have
+    \begin{align}
+        \Lambda(P, G_{\nu, P}|| \nu)
+         & =
+        \frac{1}{\eta} \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\!\left[D_{F^\star}(F'(a), F'(\texttt{po}))\right]\,,
+        % \\
+        %  & = \frac{1}{\eta} \Delta(\nu, P)
+        % - \frac{1}{\eta^2}
+        % \E\!\left[D_F(\texttt{pr}, \texttt{a}) + D_F(\texttt{po}, \texttt{pr})\right]\,.
+        \tag{unrestricted}
+        \label{eq:Lambda-unrestricted}
+    \end{align}
+    And compare this to eq~\ref{eq:E-optimized-Lambda}, which is
+    \begin{align}
+        \Lambda(P, E_{T^\star} || \nu)
+         & = \frac{1}{\eta} \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
+            \right]\,.
+        \tag{mul-$Y$}
+        \label{eq:Lambda-mul-Y}
+    \end{align}
+    We know that the value of eq.~\ref{eq:Lambda-unrestricted} is well behaved,
+    but not sure about eq.~\ref{eq:Lambda-mul-Y}.
+
+    A sufficient condition for the two estimators to have equal value of the game is if the following holds:
+    \begin{align}
+        F'(a) - \eta \hl = F'(a) - \tfrac{Y}{P_A} T^\star_A = F'(\texttt{po}) & = F'(\E[A_\star|A, \langle \ell, A\rangle])        \label{eq:Tstar-po}\,.
+        \tag{equality condition}
+    \end{align}
+    However, note that an implication of eq.~\ref{eq:Tstar-po} is
+    \begin{align*}
+        T^\star_A & = P_A \frac{F'(a) - F'(\E[A_\star | A, \langle \ell, A\rangle])}{\langle \ell, A\rangle}\,,
+    \end{align*}
+    which can only be true if $A_\star$ and $\ell$ is distributed such that the RHS is a constant.
+\end{remark}
+
+\vspace{0.5em}
+\hrule
+\vspace{0.5em}
+1)
 \begin{align*}
-    \Lambda(P, E || \nu)
+    G_{\nu, P}(b, y) & =
+    \frac{1}{\eta}\left(
+    F'(a) - F'(\E[A_\star|\langle \ell, b\rangle = y])
+    \right)\,,
+\end{align*}
+2)
+\begin{align*}
+    \Lambda(P, G_{\nu, P}|| \nu)
+     & = \frac{1}{\eta} \Delta(\nu, P)
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        D_F\left(\texttt{po}, a\right)
+        \right]\,.
+\end{align*}
+3)
+\begin{align*}
+    \E\left[D_F\left(\texttt{po}, a\right)\right]
      & =
-    \frac{1}{\eta}
+    \E\left[
+        D_F\left( \texttt{po}, \texttt{pr}\right)
+        \right]
+    +
+    D_F\left( \texttt{pr}, a\right)\,.
+\end{align*}
+4)
+if
+\begin{align*}
+    E_T(a, y) = \frac{y}{\eta P_a} T_a\,.
+\end{align*}
+then
+\begin{align*}
+    \E\!\left[
+        \hl \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
+        | A
+        \right]\,
+    \label{eq:mul-E-opt}
+\end{align*}
+and
+\begin{align}
+    \Lambda(P, E_{T^\star} || \nu)
+     & = \frac{1}{\eta}
     \Delta(\nu, P) -
     \frac{1}{\eta^2}
     \E\!\left[
         D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
-        \right]
-    \\
+        \right]\,.
+\end{align}
+
+
+
+
+\clearpage
+% horizontal line
+\hrulefill
+\section{Negentropy potential}
+
+\section{Closed form for $\cA = [d]$?}
+Let's look back at the result of Lemma~\ref{lem:E-optimized-Lambda}:
+\begin{align*}
+    \Lambda(P, E_{T^\star} || \nu)
      & =
     \E\!\left[
         \frac{1}{\eta}
@@ -1038,31 +1624,473 @@ We have
         -
         \frac{1}{\eta^2}
         D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
-        \right]\,,
+        \right]\,.
 \end{align*}
-which through the second order Taylor expansion of $F^\star$ at $F'(a) - \eta \hl$
-(\cite{LS2020}[Theorem 26.12]) gives
+Two questions arise for $\cA = [d]$, and $F$ being the negentropy:
+\begin{itemize}
+    \item What does $\Lambda(P, E_{T^\star} || \nu)$ look like?
+    \item Can we have a closed form for $T^\star$?
+\end{itemize}
+Note that an action $A \sim P$ is simply $A = e_a$ with probability $P_a$.
+Therefore, there is no policy optimization, since for a given $P \in \Delta(d)$,
+there is only one set of weights $P_a$ such that
 \begin{align*}
-    D_{F^\star}\left(F'(a) - \eta \hl, F'(a)\right)
+    P = \sum_{a=1}^d P_a e_a\,,
+\end{align*}
+which means that once the learner chooses $E_{T^\star}$, the value of the game is determined.
+
+For the first question, we have
+\begin{align}
+    D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
      & =
-    \frac{\eta^2}{2} \|\hl\|^2_{\nabla^2 F^\star(\zeta)}\,,
-\end{align*}
-for some $\zeta \in [F'(a) - \eta \hl, F'(a)]$.
-Finally, we have
+    F^\star(F'(a)) - F^\star(F'(a) - \eta \hl)
+    - \eta {F^\star}'(F'(a) - \eta \hl) \hl
+    \nonumber
+    \\
+     & =
+    \langle 1, a\rangle -
+    \langle 1, a \odot \exp(-\eta \hl)\rangle
+    -
+    \langle 1, a \odot \exp(-\eta \hl) \odot \eta \hl\rangle
+    \nonumber
+    \\
+     & =
+    \langle a,
+    1
+    - \exp(-\eta \hl)
+    - \eta \hl \odot \exp(-\eta \hl)
+    \rangle
+    \label{eq:linearized-D_F}
+    \\
+     & =
+    \langle a,
+    1
+    - \exp(-Y \tfrac{T_A}{\eta P_A})
+    - Y \tfrac{T_A}{\eta P_A} \odot \exp(-Y \tfrac{T_A}{\eta P_A})
+    \rangle\,.\nonumber
+\end{align}
+For the second question, we should look at \cref{thm:optimal-mult-y} and
+see if we can solve for $T^\star$ in closed form.
+Starting from the result of \cref{thm:optimal-mult-y} we have
 \begin{align*}
-    \Lambda(P, E || \nu)
+    \E\!\left[
+        Y A_\star
+        | A = b
+        \right]
      & =
     \E\!\left[
-    \frac{1}{\eta}
-    \langle A - A_\star, \ell\rangle
-    -
-    \frac12
-    \|\hl\|^2_{\nabla^2 F^\star(\zeta)}
-    \right]
+        Y {F^\star}'\left(F'(a) - \tfrac{Y}{P_b}T_b\right)
+        | A = b
+    \right] \nonumber \\
+    \abovelabel{F negentropy}
+    \Rightarrow
+    \E\!\left[
+        Y A_\star
+        | A = b
+        \right]
+     & =
+    \E\!\left[
+        Y \exp\left(\ln(a) - \tfrac{Y}{\eta P_b}T_b\right)
+        | A = b
+    \right] \nonumber \\
+     & =
+    a \odot
+    \E\!\left[
+        Y \exp\left(- \tfrac{Y}{\eta P_b}T_b\right)
+        | A = b
+    \right] \nonumber \\
+    \abovelabel{$Y = \langle \ell, b\rangle$, and $A \perp \ell, A_\star$}
+    \Rightarrow
+    \E\!\left[
+        \ip{\ell, b} A_\star
+        \right]
+     & =
+    a \odot
+    \E\!\left[
+        \ip{\ell, b} \exp\left(- \tfrac{\ip{\ell, b}}{\eta P_b}T_b\right)
+        \right]
     \\
+    \abovelabel{$b$ is one-hot}
+    \Rightarrow
+    \E\!\left[
+        \ell_b A_\star
+        \right]
+     & =
+    a \odot
+    \E\!\left[
+        \ell_b \exp\left(- \tfrac{\ell_b}{\eta P_b}T_b\right)
+        \right]
+    \\
+    \abovelabel{$z$-th coord}
+    \Rightarrow
+    \E\!\left[
+        \ell_b A_{\star, z}
+        \right]
+     & =
+    a_z \cdot
+    \E\!\left[
+        \ell_b \exp\left(- \tfrac{\ell_b}{\eta P_b}T_{b, z}\right)
+        \right]
+    \\
+     & =
+    a_z \cdot
+    \E\!\left[
+        \ell_b
+        \exp\left(- \tfrac{T_{b, z}}{\eta P_b}\ell_b\right)
+        \right]
+    \\
+     & =
+    a_z \cdot
+    M_{\ell_{b}}'\left(- \tfrac{T_{b, z}}{\eta P_b}\right)
+\end{align*}
+Therefore, since the inverse of $M_{\ell_b}'$ is well-defined,
+and is bijective from $(-\infty, \infty)$ to $(0, \infty)$,
+we have
+\begin{align*}
+    T_{b, z}
+     & =
+    - \eta P_b
+    {M_{\ell_b}'}^{-1}\left(
+    \frac{\E\!\left[
+        \ell_b A_{\star, z}
+        \right]}{a_z}
+    \right)\,.
 \end{align*}
 
 
+
+
+
+
+
+
+
+\clearpage
+\paragraph{The problem with linear loss class}
+Consider the \olo problem over $\cK = [-1, 1]$.
+For a discretization dimension $d$
+and a real number $m_\ell$, define the loss
+\begin{align*}
+    \ell = (-m_\ell, -\tfrac{d-1}{d}m_\ell, \cdots,
+    -\tfrac{1}{d}m_\ell, 0, \tfrac{1}{d}m_\ell,
+    \tfrac{2}{d}m_\ell, \cdots, \tfrac{d-1}{d} m_\ell, m_\ell),
+\end{align*}
+and the action set is the simplex $\Delta(2d + 1)$.
+
+Then for an action $p \in \Delta(2d + 1)$ we have
+\begin{align*}
+    \langle \ell, p\rangle = m_\ell
+    \langle
+    (-1, -\tfrac{d-1}{d}, \cdots, -\tfrac{1}{d},
+    0, \tfrac{1}{d}, \cdots, \tfrac{d-1}{d}, 1)
+    , p
+    \rangle\,,
+\end{align*}
+which means the \textit{effective action} is
+$
+    A \triangleq
+    \langle
+    (-1, -\tfrac{d-1}{d}, \cdots, -\tfrac{1}{d},
+    0, \tfrac{1}{d}, \cdots, \tfrac{d-1}{d}, 1)
+    , p
+    \rangle
+    \in [-1, 1]
+$ and
+\begin{align*}
+    Y = \langle p, \ell \rangle = m_\ell A,\,\,
+    \text{and}
+    \qquad
+    \hl = Y \tfrac{T_A}{P_A} = m_\ell A \tfrac{T_A}{P_A}\,.
+\end{align*}
+Then Thm~\ref{thm:optimal-mult-y} translates to
+\begin{align*}
+    \E\!\left[
+        \hl \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
+        | A
+        \right]
+    \\
+    \Rightarrow
+    \E\!\left[
+        m_\ell A \tfrac{T_A}{P_A} \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        m_\ell A \tfrac{T_A}{P_A} \odot {F^\star}'\left(F'(a) - \eta m_\ell A \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \abovelabel{$A,T_A \neq 0$}
+    \Rightarrow
+    \E\!\left[
+        m_\ell \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        m_\ell \odot {F^\star}'\left(F'(a) - \eta m_\ell A \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \abovelabel{$F$ negentropy}
+    \Rightarrow
+    \E\!\left[
+        m_\ell \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        m_\ell \odot \exp\left(\ln(a) - \eta m_\ell A \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \Rightarrow
+    \E\!\left[
+        m_\ell \odot A_\star
+        | A
+        \right]
+     & =
+    a \odot
+    \E\!\left[
+        m_\ell \odot \exp\left(- \eta m_\ell A \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \abovelabel{For each coord $z$}
+    \Rightarrow
+    \E\!\left[
+        m_\ell \odot A_\star
+        | A
+        \right]
+     & =
+    a_z
+    \E\!\left[
+        m_\ell \odot \exp\left(- \eta m_\ell A \tfrac{T_{A,z}}{P_A}\right)
+        | A
+        \right]\,,
+\end{align*}
+Now if the LHS is negative, there's no solution for $T_{A,z}$.
+
+\paragraph{The linear \& positive loss class}
+Consider the \olo problem over $\cK = [0, 1]$.
+For a discretization dimension $d$
+and real numbers $m_\ell, b_\ell$, define the loss
+\begin{align*}
+    \ell = (-m_\ell, -\tfrac{d-1}{d}m_\ell, \cdots,
+    -\tfrac{1}{d}m_\ell, 0, \tfrac{1}{d}m_\ell, \cdots,
+    \tfrac{d-1}{d} m_\ell, m_\ell) + b_\ell,
+\end{align*}
+and the action set is the simplex $\Delta(2d + 1)$.
+
+Then for an action $p \in \Delta(2d + 1)$ we have
+\begin{align*}
+    \langle \ell, p\rangle = m_\ell
+    \langle
+    (-1, -\tfrac{d-1}{d}, \cdots, -\tfrac{1}{d},
+    0, \tfrac{1}{d}, \cdots, \tfrac{d-1}{d}, 1)
+    , p
+    \rangle + b_\ell\,,
+\end{align*}
+which means the \textit{effective action} is
+$
+    A \triangleq
+    \langle
+    (-1, -\tfrac{d-1}{d}, \cdots, -\tfrac{1}{d},
+    0, \tfrac{1}{d}, \cdots, \tfrac{d-1}{d}, 1)
+    , p
+    \rangle
+    \in [-1, 1]
+$ and
+\begin{align*}
+    Y = \langle p, \ell \rangle = m_\ell A + b_\ell,\,\,
+    \text{and}
+    \qquad
+    \hl = Y \tfrac{T_A}{P_A} = (m_\ell A + b_\ell) \tfrac{T_A}{P_A}\,,
+\end{align*}
+\textbf{and it's guaranteed that $Y=m_\ell A + b_\ell \geq 0$}.
+Then Thm~\ref{thm:optimal-mult-y} translates to
+\begin{align*}
+    \E\!\left[
+        \hl \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
+        | A
+        \right]
+    \\
+    \Rightarrow
+    \E\!\left[
+        (m_\ell A + b_\ell) \tfrac{T_A}{P_A} \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        (m_\ell A + b_\ell) \tfrac{T_A}{P_A} \odot {F^\star}'\left(F'(a) - \eta (m_\ell A + b_\ell) \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \abovelabel{$A,T_A \neq 0$}
+    \Rightarrow
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot {F^\star}'\left(F'(a) - \eta (m_\ell A + b_\ell) \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \abovelabel{$F$ negentropy}
+    \Rightarrow
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot A_\star
+        | A
+        \right]
+     & =
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot \exp\left(\ln(a) - \eta (m_\ell A + b_\ell) \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \Rightarrow
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot A_\star
+        | A
+        \right]
+     & =
+    a \odot
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot \exp\left(- \eta m_\ell A \tfrac{T_A}{P_A}\right)
+        | A
+        \right]
+    \\
+    \abovelabel{For each coord $z$}
+    \Rightarrow
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot A_\star
+        | A
+        \right]
+     & =
+    a_z
+    \E\!\left[
+        (m_\ell A + b_\ell) \odot \exp\left(- \eta (m_\ell A + b_\ell) \tfrac{T_{A,z}}{P_A}\right)
+        | A
+        \right]\,,
+\end{align*}
+Now, there's always a solution for $T_{A,z}$.
+
+
+\subsection{leftover}
+what we would like to have is
+\begin{align*}
+    \E\left[D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)\right]
+                        & \simeq
+    \E\left[\left(
+        \langle A, \ell \rangle
+        -
+        \E[
+            \langle A, \ell \rangle | A
+        ]
+    \right)^2\right]\,. & (\text{what about }a?)
+\end{align*}
+\begin{center}
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=10cm,
+                height=6cm,
+                axis lines=middle,
+                xlabel={$x$},
+                ylabel={$f(x)$},
+                grid=both,
+                domain=-1.5:6,
+                samples=300,
+                legend pos=north east,
+            ]
+            \addplot[thick] {1 - exp(-x) - x*exp(-x)};
+            \addlegendentry{$f(x)=1-e^{-x}-x e^{-x}$};
+        \end{axis}
+    \end{tikzpicture}
+\end{center}
+\paragraph{The function $f(x) = 1 - \exp(-x) - x \exp(-x)$ and $X \geq 0$ a.s.}
+Can we show that
+\begin{align*}
+    \E[f(X)] \simeq \E[X^2]\,?
+\end{align*}
+
+First, we have
+\begin{align*}
+    \E[X^2] = 2 \int_{0}^{\infty} t \PP(X \geq t) dt\,.
+\end{align*}
+Secondly, note that $f'(x) = x \exp(-x)$, and $f(0) = 0$. Hence,
+$f(x) = \int_{0}^x t \exp(-t) dt$, so
+\begin{align*}
+    \E[f(X)]
+    = \E\left[
+        \int_0^X t \exp(-t) dt
+        \right]
+    = \int_0^\infty t \exp(-t) \PP(X \geq t) dt\,.
+\end{align*}
+Now, since $\exp(-t) \leq 1$ for $t \geq 0$, we have
+\begin{align*}
+    \E[f(X)] \leq \frac{\E[X^2]}{2}\,,
+\end{align*}
+
+However, if $X \in [0, B]$ a.s., then
+\begin{align*}
+    \E[f(X)]
+     & = \int_0^\infty t \exp(-t) \PP(X \geq t) dt                                  \\
+     & \geq \int_0^\infty t \exp(-B) \PP(X \geq t) dt                               \\
+     & = \exp(-B)  \int_0^\infty t \PP(X \geq t) dt = \exp(-B) \frac{\E[X^2]}{2}\,.
+\end{align*}
+
+Given that $\E[f(X)] \geq \Var[X]$, (dropping $\exp(-B)$ for now) we have
+\begin{align*}
+    \E[f(-\eta \hl)|A]
+     & \simeq \E[(-\eta \hl - \E[-\eta \hl|A])^2|A]                                             \\
+     & =\E[(\eta Y \tfrac{T_A}{\eta P_A} - \E[\eta Y \tfrac{T_A}{\eta P_A}|A])^2|A]             \\
+     & =( \tfrac{T_A}{ P_A})^2 \E[(Y - \E[Y|A])^2|A]                                            \\
+     & =(\tfrac{T_A}{P_A})^2 \E[(\langle A, \ell\rangle - \E[\langle A, \ell\rangle|A])^2|A]\,,
+\end{align*}
+and putting back into eq~\ref{eq:linearized-D_F} gives
+\begin{align*}
+    D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)
+     & =
+    \langle a,
+    1
+    - \exp(-\eta \hl)
+    - \eta \hl \odot \exp(-\eta \hl)
+    \rangle
+    \\
+     & =
+    (\tfrac{T_A}{P_A})^2 \langle a, \E[(\langle A, \ell\rangle - \E[\langle A, \ell\rangle|A])^2|A]
+    \rangle\,,
+\end{align*}
+and further
+\begin{align*}
+    \E\left[D_{F^\star}\left(F'(a), F'(a) - \eta \hl\right)\right]
+     & =
+    \E\left[
+        (\tfrac{T_A}{P_A})^2 \langle a, \E[(\langle A, \ell\rangle - \E[\langle A, \ell\rangle|A])^2|A]\rangle
+    \right] \\
+     & =
+    \E\left[
+        (\tfrac{T_A}{P_A})^2 \langle a, (\langle A, \ell\rangle - \E[\langle A, \ell\rangle|A])^2\rangle
+        \right]
+    \,,
+\end{align*}
+
+
+
+
+\clearpage
 \paragraph{A Heavier Bayesian Approach}
 Recall the original regret bound from theorem~\ref{thm:SMD-biased}
 The expected regret of Biased-\smdalg is bounded by
