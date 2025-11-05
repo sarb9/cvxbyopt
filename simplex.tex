@@ -172,6 +172,66 @@ Using this, we can show that Exp3 is Hedge in expectation:
 \end{align*}
 However, note that this is not $\E[\fmd(\hl_{1:t}; \eta)] = \fmd(\ell_{1:t}; \eta)$.
 
+\clearpage
+\subsection{Imitated \mdalg for \blo}
+Lemma~\ref{lem:1-sample-estimator} shows that it is possible to construct
+a sequence
+\begin{align*}
+    \hl_1, \hl_2, \cdots, \hl_n\,,
+\end{align*}
+such that $\E[\hl_t] = \ell_t$.
+A natural question is whether it is possible to construct a sequence
+\begin{align*}
+    \hat{a}_1, \hat{a}_2, \cdots, \hat{a}_n\,,
+\end{align*}
+such that $\E[\hat{a}_t] = a_t$, where $a_t = \fmd(\ell_{1:t-1})$.
+If this is possible, then the \textbf{expected} regret of \smdalg is exactly the same as the regret of \mdalg.
+This boils down to the following requirement on $P_t$:
+\begin{framed}
+    Choose a policy $P_t \in \cP(\cA)$ given $Y_{1:t-1}$ and $A_{1:t-1}$ such that
+    $\E[A_t] = \fmd(\ell_{1:t-1})$.
+\end{framed}
+Couple of remarks:
+\begin{itemize}
+    \item The requirement $\E[A_t] = \fmd(\ell_{1:t-1})$ is \textbf{less demanding} than $\E_t[A_t] = \fmd(\hl_{1:t-1})$.
+    \item The support of $P_t$ needs to be in $\cA$.
+    \item Policy $P_t$ needs to be exploratory enough to ensure that $Y_t$ contains enough information so that $P_{t+1}$ can be chosen to satisfy the requirement in the next round.
+    \item Policy $P_t$ needs to be chosen in a way such that $\E[\E_{A_t \sim P_t}(A_t)] = a_t = \fmd(\ell_{1:t-1})$.
+\end{itemize}
+
+\subsubsection{If \mdalg is linear}
+Consider the case that $\fmd$ is linear, i.e.
+\begin{align*}
+    \fmd(\alpha_1 \ell_{1:t-1} + \alpha_2 \ell_{1:t-1}') = \alpha_1 \fmd(\ell_{1:t-1}) + \alpha_2 \fmd(\ell_{1:t-1}')\,.
+\end{align*}
+This is never the case because of the non-linearity of the function $F$ and the projection into $\cA$, but is almost true when $F$ is quadratic.
+Suppose that we choose $P_t$ such that $\E[\hl_t] = \ell_t$, as ensured by lemma~\ref{lem:1-sample-estimator},
+and use $P_t = \delta_{\fmd(\hl_{1:t-1})}$, i.e. a Dirac delta at $\fmd(\hl_{1:t-1})$.
+Then we have
+\begin{align*}
+    \E_t[A_t] & = \E_t[\fmd(\hl_{1:t-1})]                                      \\
+              & = \fmd(\E_t[\hl_{1:t-1}]) \quad (\text{by linearity of } \fmd) \\
+              & = \fmd(\ell_{1:t-1})\,,
+\end{align*}
+which is the stronger version of the requirement since $\E_t$-unbiasedness implies $\E$-unbiasedness.
+
+\subsubsection{The possibility of playing $a_2$ in expectation}
+Here, we are interested in the case of $\cA = \Delta(d)$ and $F$ being the negentropy.
+One should ask if the requirement $\E[A_2] = \fmd(\ell_{1}; \eta)$ is possible to satisfy,
+before worrying about the general case.
+
+Note that $P_1$ is the uniform distribution over $[d]$.
+So the task of the learner is to choose a distribution $P_2$ over $[d]$ such that
+\begin{align*}
+    \E[A_2] = \fmd(\ell_1; \eta) = \frac{\exp(-\eta \ell_{1,i})_{i=1}^{d}}{\sum_{j=1}^{d} \exp(-\eta \ell_{1,j})}\,.
+\end{align*}
+Note that $P_2$ is itself random, and is chosen based on $A_1$ and $Y_1 = \ell_{1, A_1}$.
+Therefore, $P_2$ can be seen as the output of a function $D: [d] \times \R \to \Delta(d)$.
+We have
+\begin{align*}
+    \E[A_2] = \E[\E_{A_2 \sim P_2}[A_2]] = \E[D(A_1, Y_1)] = \frac{1}{d} \sum_{i=1}^{d} D(i, \ell_{1,i})\,,
+\end{align*}
+and one can check that no such function $D$ exists.
 
 \clearpage
 \bibliographystyle{plainnat}

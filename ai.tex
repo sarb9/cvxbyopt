@@ -1,0 +1,322 @@
+\section{gpt pro}
+\subsection*{When does $\dA=\po$ almost surely?}
+
+Recall the definition
+\[
+    \dA \;\triangleq\; {F^\star}'\!\left(F'(a)-\eta\,\hl\right),
+    \qquad
+    \po \;\triangleq\; \E\!\left[A_\star \,\middle|\, A, Y\right],
+\]
+and (in the multiplicative-$Y$ class) $\hl=\frac{Y}{\eta P_A}T_A$ with $T\in(\R^d)^{\cA}$.
+
+\begin{corollary}[Quadratic potential $\Rightarrow$ linear regression in $Y$]
+    \label{cor:quad-linear}
+    Let $F(x)=\tfrac12\|x\|^2$. Then $\dA=\po$ a.s.\ iff, for $\PP$-a.e.\ $b$,
+    \begin{equation}
+        \label{eq:lin-reg}
+        \E[A_\star\mid A=b,Y=y] \;=\; a - \gamma_b\,y
+        \quad\text{for $Y$-a.e.\ $y$,}
+    \end{equation}
+    with some $\gamma_b\in\R^{d}$, in which case choosing $T_b=P_b\,\gamma_b$ yields $\dA=\po$ a.s.
+    A canonical sufficient condition for \eqref{eq:lin-reg} is joint conditional Gaussianity:
+    if $(A_\star,Y)\mid(A=b)$ is jointly Gaussian with
+    \(
+    \E[A_\star\mid A=b]=\pr,\;
+    \E[Y\mid A=b]=\mu_b,
+    \)
+    and
+    \(
+    \Gamma_b=\Cov(A_\star,Y\mid A=b),\;
+    \sigma_b^2=\Var(Y\mid A=b)>0,
+    \)
+    then
+    \[
+        \po \;=\; \pr + \Gamma_b\,\sigma_b^{-2}\,(Y-\mu_b).
+    \]
+    Setting
+    \(
+    T_b \;=\; -P_b\,\Gamma_b\,\sigma_b^{-2}
+    \)
+    and
+    \(
+    a \;=\; \pr - \Gamma_b\,\sigma_b^{-2}\,\mu_b
+    \)
+    forces \eqref{eq:lin-reg} and hence $\dA=\po$ a.s.
+    In particular, if $\E[Y\mid A=b]=0$ (e.g.\ $\E[\ell]=0$ under $\nu$), it suffices to take $a=\pr$ and $T_b=-P_b\,\Gamma_b\,\sigma_b^{-2}$.
+\end{corollary}
+
+\begin{corollary}[Mirror–exponential-family conjugacy]
+    \label{cor:mirror-conjugacy}
+    Assume $F$ is Legendre and consider the exponential family on $\cA$ with log-partition $F^\star$:
+    \(
+    \pi_\theta(\d x)\propto h(x)\,\exp\{\langle\theta,x\rangle - F^\star(\theta)\}\,\d x.
+    \)
+    Suppose $A_\star\sim \pi_{\theta_0}$ with $\theta_0=F'(a)$, and, for each $b$,
+    the conditional law of $Y$ given $(A_\star=x,A=b)$ has density
+    \[
+        q_b(y\mid x) \;\propto\; r_b(y)\,\exp\!\left\{-\tfrac{y}{P_b}\,\langle T_b, x\rangle\right\},
+    \]
+    for some measurable $r_b$ and fixed $T_b\in\R^d$.
+    Then Bayes' rule gives the posterior
+    \(
+    A_\star\mid (A=b,Y=y)\sim \pi_{\theta_0-(y/P_b)T_b},
+    \)
+    hence
+    \(
+    \po={F^\star}'\!\big(\theta_0-(y/P_b)T_b\big)
+    ={F^\star}'\!\left(F'(a)-\tfrac{y}{P_b}T_b\right)=\dA
+    \)
+    a.s.
+\end{corollary}
+
+\begin{corollary}[Degenerate $Y$]
+    \label{cor:degenerate}
+    If $Y$ is (conditionally) degenerate given $A=b$ (i.e.\ $\PP(Y=y_b\mid A=b)=1$), then there exists $T_b$ with
+    \(
+    F'\!\big(\po\big)=F'(a)-\tfrac{y_b}{P_b}T_b
+    \)
+    and consequently $\dA=\po$ a.s.\ (this is vacuous for learning, but it shows attainability in degenerate cases).
+\end{corollary}
+
+\paragraph{A necessary condition (no hidden curvature in $y$).}
+\begin{lemma}[Affine-dual necessity]
+    \label{lem:affine-necessary}
+    Suppose $E_T$ is multiplicative-$Y$ and $\dA=\po$ a.s.
+    Fix $b$ with $\PP(A=b)>0$ and assume $y\mapsto \po(b,y)$ is a.s.\ differentiable.
+    Then the \emph{dual} posterior mean must be affine in $y$:
+    \[
+        \frac{\partial^2}{\partial y^2}\,F'\!\big(\po(b,y)\big) \;=\; 0
+        \quad\text{for $Y$-a.e.\ $y$.}
+    \]
+    For $F(x)=\tfrac12\|x\|^2$, this reduces to the linear-regression property
+    $\frac{\partial^2}{\partial y^2}\E[A_\star\mid A=b,Y=y]=0$ a.s.
+\end{lemma}
+
+\paragraph{Why the condition is restrictive.}
+In general, the map $y\mapsto \po$ need \emph{not} be affine (in primal or dual coordinates).%
+\footnote{See the counterexample constructed at the end of the document, where the posterior mean contains a quadratic term in the latent $Z$; there the ratio $\E[D_F(\dA,\pr)]/\E[D_F(\po,\pr)]$ can be driven to $0$, showing that even a uniform multiplicative bound fails in general.}
+This explains why the equality $\dA=\po$ cannot be enforced by multiplicative-$Y$ estimators unless one of the structural scenarios above holds.
+
+\paragraph{Summary.}
+\begin{itemize}
+    \item With the \emph{unrestricted} optimal estimator $G_{\nu,P}$, one always has $\dA=\po$ a.s.
+    \item Within the \emph{multiplicative-$Y$} class, $\dA=\po$ a.s.\ \emph{iff} the conditional posterior mean evolves along a straight line in \emph{dual} space as $y$ varies (Prop.~\ref{prop:multY-iff}). This is guaranteed by (i) quadratic $F$ $+$ linear conditional regression (e.g.\ conditional Gaussianity) or (ii) mirror–exponential-family conjugacy where observing $Y$ induces an additive shift of the natural parameter.
+    \item Absent such structure, $\dA=\po$ a.s.\ typically fails.
+\end{itemize}
+
+
+\hrule
+
+\subsubsection{Optimizing for $E$---linear (affine) in $Y$}
+Motivated by the multiplicative class, we now allow an intercept (bias).  For
+matrices $T,S \in \R^{|\cA| \times d}$ define the (affine) estimator
+\[
+    E_{T,S}(a,y)
+    \;=\;
+    \frac{y}{\eta P_a}\,T_a \;+\; S_a,
+    \qquad
+    \hl \;=\; E_{T,S}(A,Y),
+\]
+so $\eta \hl = \frac{Y}{P_A}T_A + \eta S_A$.  We still write
+$\tilde{A} \triangleq {F^\star}'\!\big(F'(a)-\eta \hl\big)$ and use
+$\Lambda(P,E\Vert \nu)$ from \eqref{eq:Lambda-simplified}.
+
+\paragraph{First-order optimality with slope \& intercept.}
+For fixed $a,\eta,P,\nu$, consider
+\(
+\inf_{T,S} \Lambda(P, E_{T,S}\Vert \nu)
+\).
+The next theorem gives the optimality conditions.
+
+\begin{theorem}[Linear-$Y$ optimality conditions]
+    \label{thm:optimal-linY}
+    Let $(T^\star,S^\star)$ minimize $\Lambda(P,E_{T,S}\Vert \nu)$ over the affine
+    class and set $\hl=E_{T^\star,S^\star}(A,Y)$ and
+    $\tilde{A}={F^\star}'(F'(a)-\eta \hl)$. Then for every $b\in\cA$,
+    \begin{align}
+        \E\!\left[\, Y\,(A_\star-\tilde{A}) \,\big|\, A=b \right] & = 0,
+        \label{eq:linY-FOC-slope}
+        \\
+        \E\!\left[\, A_\star-\tilde{A} \,\big|\, A=b \right]      & = 0.
+        \label{eq:linY-FOC-intercept}
+    \end{align}
+    Equivalently, conditional on $A=b$, the residual $A_\star-\tilde{A}$ is
+    orthogonal to both the constant function $1$ and to the scalar $Y$.
+\end{theorem}
+
+\begin{proof}
+    Starting from \eqref{eq:Lambda-simplified} and conditioning on $A=b$,
+    minimize
+    \[
+        \Phi_b(T_b,S_b)
+        =
+        \E\!\left[
+            \left\langle A_\star, \tfrac{Y}{\eta P_b}T_b + S_b \right\rangle
+            + \tfrac{1}{\eta} F^\star\!\left(F'(a)-\tfrac{Y}{P_b}T_b-\eta S_b\right)
+            \,\Big|\, A=b
+            \right].
+    \]
+    Differentiating and setting the gradients to zero yields
+    \[
+        0=\tfrac{\partial \Phi_b}{\partial T_b}
+        \;\Rightarrow\;
+        \E\!\left[ Y A_\star - Y\,{F^\star}'\!\left(F'(a)-\tfrac{Y}{P_b}T_b-\eta S_b\right)\Big|A=b\right]=0,
+    \]
+    and
+    \[
+        0=\tfrac{\partial \Phi_b}{\partial S_b}
+        \;\Rightarrow\;
+        \E\!\left[ A_\star - {F^\star}'\!\left(F'(a)-\tfrac{Y}{P_b}T_b-\eta S_b\right)\Big|A=b\right]=0.
+    \]
+    With $\hl=\frac{Y}{\eta P_b}T_b+S_b$ these are exactly
+    \eqref{eq:linY-FOC-slope}--\eqref{eq:linY-FOC-intercept}.
+\end{proof}
+
+\paragraph{Two immediate consequences.}
+\begin{lemma}[Calibration and replacement identity]
+    \label{lem:linY-calibration-replace}
+    Under the conditions of Theorem~\ref{thm:optimal-linY}:
+    \begin{enumerate}
+        \item (\emph{Calibration}) Since $A$ is independent of $(A_\star,\ell)$ under $\nu$,
+              \eqref{eq:linY-FOC-intercept} implies
+              \[
+                  \E[\tilde{A}\mid A=b] \;=\; \E[A_\star\mid A=b] \;=\; \pr,\qquad\forall b\in\cA.
+              \]
+        \item (\emph{Replacing $A_\star$ by $\tilde{A}$ inside $\langle\cdot,\hl\rangle$})
+              Writing $\hl=\frac{Y}{\eta P_A}T_A + S_A$ and taking conditional expectations,
+              \eqref{eq:linY-FOC-slope}--\eqref{eq:linY-FOC-intercept} give
+              \[
+                  \E\!\left[\langle A_\star,\hl\rangle\mid A\right]
+                  \;=\;
+                  \E\!\left[\langle \tilde{A},\hl\rangle\mid A\right].
+              \]
+    \end{enumerate}
+\end{lemma}
+
+\begin{lemma}[E-optimized $\Lambda$ (linear-$Y$)]
+    \label{lem:linY-optimized-Lambda}
+    Let $(T^\star,S^\star)$ be optimal and $\hl=E_{T^\star,S^\star}(A,Y)$. Then
+    \begin{equation}
+        \Lambda(P,E_{T^\star,S^\star}\Vert \nu)
+        \;=\;
+        \frac{1}{\eta}\,\Delta(\nu,P)
+        \;-\;
+        \frac{1}{\eta^2}\,
+        \E\!\left[
+            D_{F^\star}\!\left(F'(a),\,F'(a)-\eta \hl\right)
+            \right].
+        \label{eq:linY-optimized-Lambda}
+    \end{equation}
+\end{lemma}
+
+\begin{proof}
+    Start from \eqref{eq:Lambda-simplified}. By
+    Lemma~\ref{lem:linY-calibration-replace}(ii) we can replace
+    $\langle A_\star,\hl\rangle$ by $\langle \tilde{A},\hl\rangle$ inside the
+    expectation. The same algebra as in Lemma~\ref{lem:E-optimized-Lambda} then
+    yields \eqref{eq:linY-optimized-Lambda}.
+\end{proof}
+
+\paragraph{Orthogonality and an expected-Bregman identity (unchanged).}
+Using $F'(a)-F'(\tilde{A})=\eta \hl$ and
+Lemma~\ref{lem:linY-calibration-replace}, we get
+\[
+    \E\!\left[
+        \big\langle F'(a)-F'(\tilde{A}),\, \po-\tilde{A}\big\rangle
+        \,\Big|\, A
+        \right]
+    = \eta\,\E\!\left[\langle \hl,\, \po-\tilde{A}\rangle \big| A\right]
+    = 0.
+\]
+Applying the three-point identity for Bregman divergences and averaging over $A$
+gives exactly the same decomposition as in
+\eqref{eq:expected-bregman-identity}:
+\begin{equation}
+    \E\!\left[D_F(\po,\tilde{A}) + D_F(\tilde{A},a)\right]
+    \;=\;
+    \E\!\left[D_F(\po,\pr)\right] + D_F(\pr,a).
+    \label{eq:expected-bregman-identity-linY}
+\end{equation}
+In particular, conditioning on $A$ and using the calibration
+$\E[\tilde{A}\mid A]=\pr$ yields
+\begin{equation}
+    \E\!\left[D_F(\tilde{A},a)\right]
+    \;=\;
+    \E\!\left[D_F(\tilde{A},\pr)\right] + D_F(\pr,a),
+    \qquad
+    \E\!\left[D_F(\po,\tilde{A})\right] + \E\!\left[D_F(\tilde{A},\pr)\right]
+    \;=\;
+    \E\!\left[D_F(\po,\pr)\right].
+    \label{eq:linY-two-way}
+\end{equation}
+
+\paragraph{Implications for information-ratio style bounds.}
+The optimized value \eqref{eq:linY-optimized-Lambda} has the \emph{same form}
+as in the multiplicative-only class. To relate it to the information ratio as in
+Theorem~\ref{thm:optimal-Lambda-info-ratio}, one would want
+$\E[D_F(\tilde{A},a)]$ to be comparable to $\E[D_F(\po,\pr)]$.  From
+\eqref{eq:expected-bregman-identity-linY}--\eqref{eq:linY-two-way},
+\[
+    \E[D_F(\tilde{A},a)]
+    \;=\;
+    \E[D_F(\po,\pr)] - \E[D_F(\po,\tilde{A})] + D_F(\pr,a),
+\]
+so any universal lower bound of the form
+\(
+\E[D_F(\tilde{A},a)] \ge \alpha\,\E[D_F(\po,\pr)]
+\)
+would require $\E[D_F(\po,\tilde{A})]\le (1-\alpha)\,\E[D_F(\po,\pr)]$.
+This fails in general, even with the bias term, as the next corollary notes.
+
+\begin{corollary}[No universal multiplicative factor, even with bias]
+    \label{cor:no-alpha-linY}
+    The negative example given under \emph{Multiplicative factor?} continues to
+    apply to the linear-$Y$ class.  In that construction with quadratic $F$,
+    $\E[Y\mid A]=0$, so the intercept condition \eqref{eq:linY-FOC-intercept}
+    imposes no constraint on $S$, while the slope condition
+    \eqref{eq:linY-FOC-slope} uniquely determines $T$ exactly as in the
+    multiplicative case (and $S$ cancels from \eqref{eq:linY-FOC-slope}).  Hence
+    $\E[D_F(\tilde{A},\pr)]/\E[D_F(\po,\pr)]$ can still be driven arbitrarily close
+    to $0$ by taking $\omega\to\infty$, and there is no universal
+    $\alpha>0$ valid for all instances.
+\end{corollary}
+
+\paragraph{When can we achieve $\tilde{A}=\po$ a.s.?}
+Allowing a bias relaxes the intercept but does not remove the fundamental
+nonlinearity barrier.
+
+\begin{proposition}[Characterization in the linear-$Y$ class]
+    \label{prop:linY-iff}
+    Consider $E_{T,S}$ with $\hl=\frac{Y}{\eta P_A}T_A + S_A$ and
+    $\tilde{A}={F^\star}'(F'(a)-\eta \hl)$. Then $\tilde{A}=\po$ a.s.\ if and only if
+    \begin{equation}
+        \label{eq:affine-dual-linY}
+        F'\!\big(\po\big)
+        \;=\;
+        F'(a) \;-\; \frac{Y}{P_A}\,T_A \;-\; \eta\,S_A
+        \qquad\text{almost surely.}
+    \end{equation}
+    Equivalently, conditional on $A=b$, the map
+    $y\mapsto F'\!\big(\E[A_\star\mid A=b,Y=y]\big)$ must be \emph{affine in $y$},
+    with slope $-T_b/P_b$ and intercept $F'(a)-\eta S_b$.
+\end{proposition}
+
+\begin{proof}
+    By definition $\tilde{A}=\po$ a.s.\ $\iff$
+    \(
+    \po={F^\star}'\!\big(F'(a)-\eta \hl\big)
+    \)
+    a.s.\ Applying $F'$ (injective for Legendre $F$) and substituting
+    $\eta \hl=\frac{Y}{P_A}T_A+\eta S_A$ gives \eqref{eq:affine-dual-linY}.
+\end{proof}
+
+\begin{remark}[What changed with the bias?]
+    Compared to the multiplicative class (Prop.~\ref{prop:mult-Y-iff}), the bias
+    frees the \emph{intercept} in \eqref{eq:affine-dual-linY} (from $F'(a)$ to
+    $F'(a)-\eta S_A$) and enforces the calibration
+    $\E[\tilde{A}\mid A]=\pr$.  However, unless $y\mapsto F'(\po)$ is already affine
+    (in which case we can pick $T,S$ to match it), we still cannot force
+    $\tilde{A}=\po$ a.s., and the value \eqref{eq:linY-optimized-Lambda} (hence the
+    regret bound driven by it) remains of the same form as in the multiplicative
+    case.
+\end{remark}
