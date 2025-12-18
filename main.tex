@@ -9,6 +9,7 @@
 \usepackage{cancel}
 \usepackage{marginnote}
 \reversemarginpar % switch default margin to the left
+\usepackage{bbm}
 \usepackage{framed}
 \usepackage{xcolor}
 \usepackage{hyperref} % add backlinks to the end of bibliography items
@@ -47,14 +48,17 @@
 \newtheorem{fact}[theorem]{Fact}
 \newtheorem{assumption}[theorem]{Assumption}
 
-
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\ind}[1]{^{{\scriptscriptstyle(#1)}}}
 \newcommand{\reason}[1]{\texttt{(#1)}}
-\newcommand{\by}[2]{\stackrel{\text{(#1)}}{#2}}
+\newcommand{\by}[2]{\stackrel{\texttt{(#1)}}{#2}}
 \newcommand{\half}{\tfrac{1}{2}}
 \newcommand{\pr}{\texttt{pr}}
 \newcommand{\po}{\texttt{po}}
 \newcommand{\dA}{\tilde{A}}
 \newcommand{\cN}{\mathcal{N}}
+\newcommand{\cB}{\mathcal{B}}
 \newcommand{\Cov}{\operatorname{Cov}}
 \newcommand{\cR}{\mathcal{R}}
 \newcommand{\cV}{\mathcal{V}}
@@ -115,6 +119,10 @@
 \maketitle
 
 \section{Overview}
+In this note, we aim to improve the dimension dependence of bandit convex optimization(\bco).
+We start by reviewing online linear optimization(\olo) and bandit linear optimization(\blo).
+Then we move onto \bco in section 4.
+The current state of affairs can be summarized as follows:
 \begin{enumerate}
     \item \oco reduces to \olo: $f(x) - f(x_\star) \leq \langle \nabla f(x), x - x_\star \rangle$.
     \item \textbf{Random} algs are \textit{suboptimal} for \texttt{OCO} and \textit{pointless} for \texttt{OLO}.
@@ -122,10 +130,6 @@
     \item \textbf{Random} algs are \textit{necessary} for \texttt{BCO} and \texttt{BLO}.
     \item \textbf{Random} algs are \textit{free} for \texttt{BLO} but appear to be \textit{expensive} ($d^{1.5}$) for \texttt{BCO}.
 \end{enumerate}
-We study algs for \texttt{BCO} and \texttt{BLO} which are based on Stochastic Mirror Decent(\textsf{SMD}) which means choosing\\
-(1) randomization scheme, (2) estimation scheme, (3) potential + $\eta$.
-
-$\star$ Duality with the Bayesian world is curious and helps with the analysis.
 \subsection{Notation}
 Let $[n] = \{1,2, \cdots, n\}$.
 Let $D_F(a, b) = F(a) - F(b) - \nabla F(b)^\top (a - b)$ be the Bregman divergence.
@@ -134,7 +138,7 @@ equipped with appropriate $\sigma$-algebra.
 
 \section{Online linear optimization(\texttt{OLO})}
 The adversary chooses a sequence of losses $\ell_1, \cdots, \ell_n \in \cL \subseteq \Rd$.
-In each round $t \in [n]$, the player chooses an action $a_t \in \cA \subseteq \Rd$, and observes $y_t = \langle a_t, \ell_t \rangle$.
+In each round $t \in [n]$, the player chooses an action $a_t \in \cA \subseteq \Rd$, and observes $\ell_t$.
 The regret w.r.t to an action $a_\star \in \cA$ is
 \begin{align*}
     \Reg_n(a_\star) = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle\,.
@@ -152,14 +156,16 @@ and $\tfmd(\ell; a) = \argmin_{b \in \Rd} \eta\langle b, \ell \rangle + D_F(b, a
         \begin{mdframed}
             \begin{lstlisting}
 args: $\eta \in \R$, $F$
-$a_1 = \argmin_{a \in \cA} F(a)$
 $\ta_1 = \argmin_{a \in \Rd} F(a)$
+$a_1 = \argmin_{a \in \cA} D_F(a, \ta_1)$
 for $t = 1$ to $n$:
     Play $a_t$ and observe $\ell_t$
-    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \ell_t\rangle + D_F(a, a_{t+1})$
-    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \ell_t\rangle + D_F(a, a_{t+1})$
+    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \ell_t\rangle + D_F(a, a_t)$
+    $a_{t+1} = \argmin_{a \in \cA} D_F(a, \ta_{t+1})$
 \end{lstlisting}
-            \caption{\mdalg}\label{alg:MD}
+            \caption{\mdalg---
+                It also holds that $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \ell_t\rangle + D_F(a, a_t)$.
+            }\label{alg:MD}
         \end{mdframed}
     \end{minipage}
 \end{algorithm}
@@ -595,7 +601,7 @@ and its look-alikes. We have access to two sources of bias to control this quant
     \end{align*}
     where the inequality is by theorem~\ref{thm:MD}.
 \end{proof}
-\begin{remark}[\fmd in a virtual game]
+\begin{remark}[\fmd{} in a virtual game]
     Note that $\hl_t$ is adapted to $A_t$ since the algorithm actually plays
     $A_t \sim P_t$.
     So you can think that $P_t$ is the exploration policy that
@@ -650,8 +656,8 @@ for $t = 1$ to $n$:
     \end{minipage}
 \end{algorithm}
 
-Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $a_t = \fmd(\hl_{1:t-1})$.
-The idea is to choose the best $P_t$ and $E_t$ given $a_t$,
+Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $\hat{a}_t = \fmd(\hl_{1:t-1})$.
+The idea is to choose the best $P_t$ and $E_t$ given $\hat{a}_t$,
 hoping that the term inside the expectation in theorem~\ref{thm:SMD-biased} could
 then be bounded uniformly for all $t \in [n]$.
 To this end, with $A\sim P$ and
@@ -817,18 +823,19 @@ the value of the game, and hence the regret of \expbyopt.
 \end{theorem}
 \noindent The proof is deferred to \ref{proof:thm:optimal-Lambda-info-ratio}.
 
-\subsection{Optimizing for $E$---multiplicative in $Y$}
+\subsection{Optimizing for $E$---Affine estimators}
 The player (even in the primal problem), has the knowledge of
 $\eta$ and $a_t = \fmd(\hl_{1:t-1})$, and also has the control over $P_t$,
 so given these three variables, it can limit its search for the
 optimal estimator.
 However, the space $(\Rd)^{(\cA \times \R)}$ is huge.
+
 The learner can further restrict its search to be only over
 estimators $E_T(x,y)$ of the form
 \begin{align*}
-    E_T(x,y) & = y T(x)\,
+    E_T(x,y) & = T_1(x) \cdot y + T_0(x)\,
 \end{align*}
-and then only optimizes for $T \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
+and then only optimizes for $T_1, T_0 \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
 \subsubsection{A sanity check---\expthree algorithm}
 In this subsection we instantiate the \expbyopt\ setup with the classical
 \expthree\ choices on the $d$-armed simplex and obtain a uniform
@@ -861,7 +868,6 @@ $\cO\!\left(\sqrt{dn\ln d}\right)$ regret.
 \end{proposition}
 The proof is deferred to \ref{proof:prop:Lambda-Exp3}.
 
-\subsection{The optimal mult-y estimator}
 Let
 \begin{align*}
     \tilde{A} = {F^\star}'(F'(a) - \eta \hl)\,.
@@ -874,12 +880,12 @@ Let
     \begin{align*}
         E_T(x, y) = y T(x)\,.
     \end{align*}
-    Then, for $T_{\nu,P}$ such that
+    Then, for $T^{\nu,p}$ such that
     \begin{align*}
         \inf_{T: \cA \to \Rd}
         \Lambda(P, E_T|| \nu)
         =
-        \Lambda(P, E_{T_{\nu,P}}|| \nu)\,,
+        \Lambda(P, E_{T^{\nu,p}}|| \nu)\,,
     \end{align*}
     it holds that
     \begin{align}
@@ -894,17 +900,17 @@ Let
             \right]\,
         \label{eq:mul-E-opt}
     \end{align}
-    almost surely, where $\hl = E_{T_{\nu,P}}(A, Y) = Y T_{\nu,P}(A)$.
+    almost surely, where $\hl = E_{T^{\nu,p}}(A, Y) = Y T^{\nu,p}(A)$.
 \end{theorem}
 \noindent The proof is deferred to \ref{proof:thm:optimal-mult-y}.
 It can be seen that, unlike the unrestricted estimator $G_{\nu, P}$,
-$T_{\nu,P}$ doesn't have a closed form,
+$T^{\nu,p}$ doesn't have a closed form,
 but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
 \begin{lemma}
     \label{lem:E-optimized-Lambda}
-    For $T_{\nu,P}$ defined in Thm~\ref{thm:optimal-mult-y}, we have
+    For $T^{\nu,p}$ defined in Thm~\ref{thm:optimal-mult-y}, we have
     \begin{align}
-        \Lambda(P, E_{T_{\nu,P}} || \nu)
+        \Lambda(P, E_{T^{\nu,p}} || \nu)
          & = \frac{1}{\eta}
         \Delta(\nu, P) -
         \frac{1}{\eta^2}
@@ -942,7 +948,7 @@ but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
     From Lemmas~\ref{lem:optimal-Lambda-wrong-turn}
     and eq~\ref{eq:E-optimized-Lambda}, we have
     \begin{align}
-        \Lambda(P, E_{T_{\nu,P}} || \nu)
+        \Lambda(P, E_{T^{\nu,p}} || \nu)
          & = \frac{1}{\eta} \Delta(\nu, P)
         - \frac{1}{\eta^2}
         \E\!\left[
@@ -976,7 +982,7 @@ but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
 \end{remark}
 
 \begin{theorem}[Connection to information ratio---mul-$Y$ case]\label{thm:mul-Y-Lambda-info-ratio}
-    When using the optimal multiplicative-$Y$ estimator $E_{T_{\nu,P}}$,
+    When using the optimal multiplicative-$Y$ estimator $E_{T^{\nu,p}}$,
     suppose that for every $a \in \cA$,
     \[
         \E\!\left[D_F(\tilde{A}, a)\right] \;\ge\; \E\!\left[D_F(\po, \pr)\right].
@@ -1001,186 +1007,459 @@ but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
 \end{theorem}
 \noindent The proof is deferred to \ref{proof:thm:no-alpha}.
 
-\subsubsection{Proving that multiplicative-$Y$ estimators work for good $\nu$}
-We'd like to show that multiplicative-$Y$ estimators
-can achieve the same bound as unrestricted estimators
-in theorem~\ref{thm:optimal-Lambda-info-ratio}, precisely that
-\begin{align*}
-    \Lambda_{a, \eta}^\texttt{mult}
+\subsection{Deterministic $A_\star$}
+\begin{theorem}[Fixed action per loss]
+    \label{thm:fixed-action-per-loss}
+    For any $\nu \in \cP(\cA \times \cL)$, there exists
+    a distribution $\mu \in \cP(\cL)$
+    and a function $a_\star: \cL \to \Delta(\cA)$,
+    such that
+    \begin{align*}
+        \Lambda(P, G^{\nu'} || \nu')
+         & =
+        \Lambda(P, G^{\nu} || \nu)\,,
+    \end{align*}
+    where $\nu' \in \cP(\cA \times \cL)$ is defined as
+    \begin{align*}
+        \P_{(A_\star, \ell) \sim \nu'}(\ell \in B)              & =
+        \mu(B) \quad \text{for all measurable $B \subseteq \cL$}\,,      \\
+        \P_{(A_\star, \ell) \sim \nu'}(A_\star = a_\star(\ell)) & = 1\,,
+    \end{align*}
+\end{theorem}
+\noindent The proof is deferred to \ref{proof:thm:fixed-action-per-loss}.
+
+So from now on, we can restrict our attention to distributions
+$\nu(\mu, a_\star)$ parameterized by a marginal $\mu$ on $\cL$
+and a function $a_\star: \cL \to \cA$.
+Moreover, we can define the convex combination of such distributions as
+\begin{align}
+    \lambda \nu(\mu_1, a_{\star,1}) + (1-\lambda) \nu(\mu_2, a_{\star,2})
      & =
-    \sup_{a_\star \in \cA, \ell \in \cL}
-    \inf_{P \in \Delta(\cA)}
-    \Lambda_{a,\eta}(P, E_{T_{\nu,P}} || a_\star, \ell) \\
-     & \by{goal}{\leq}
-    \Lambda_{a, \eta}^\texttt{gnrl}
+    \nu(\lambda \mu_1 + (1-\lambda) \mu_2, \lambda a_{\star,1} + (1-\lambda) a_{\star,2})\,,
+    \label{eq:convex-combination-no-marginal}
+\end{align}
+for $\lambda \in [0,1]$.
+\textbf{The major problem is that this new parametrization does not preserve concavity
+    of $\Lambda(P, G^{\nu} || \nu)$ in $\nu$.}
+precisely, in
+\begin{align*}
+    \nu(\mu, a_\star)
+     & \mapsto
+    \Lambda(P, G^{\nu(\mu, a_\star)} || \nu(\mu, a_\star))
+\end{align*}
+the first term in $\Lambda(P, G^{\nu} || \nu)$, is
+\begin{align*}
+    \Delta(\nu(\mu, a_\star), P)
+     & =
+    \E\left[
+        \left\langle
+        A - a_\star(\ell),
+        \ell
+        \right\rangle
+        \right]
+\end{align*}
+which is bilinear in $(\mu, a_\star)$, and hence niether convex nor concave.
+
+Next, we prove that for $\nu(\mu, a_\star)$,
+such that $\mu$ is supported on $\{0,1\}^d$,
+the optimal estimator in the unrestricted case
+coincides with the optimal affine-$Y$ estimator.
+
+\begin{theorem}[Binary hypercube losses and k-armed bandit problem]
+    \label{thm:binary-hypercube-losses}
+    Suppose that $\nu = \nu(\mu, a_\star)$
+    for some $\mu$ supported on $\{0,1\}^k$.
+    Then, for every $P \in \Delta([k])$,
+    there exist some $T_1, T_0 \in (\Rd)^k$
+    \begin{align*}
+        \tilde{A} = \po \quad \text{almost surely}.
+    \end{align*}
+\end{theorem}
+\noindent The proof is deferred to \ref{proof:thm:binary-hypercube-losses}.
+
+
+\subsection{From $\{0,1\}^d$ to $[0,1]^d$}
+In this section, we fix $\cA = \{e_1, \cdots, e_d\}$.
+We would like to extend the result of theorem~\ref{thm:binary-hypercube-losses}
+to losses in $[0,1]^d$.
+We start over from the original \textbf{primal} objective
+\begin{align*}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & \;=\;
+    \frac{1}{\eta}
+    \E\left[
+        \langle A - a_\star, \ell\rangle
+        - \langle a - a_\star, E(A, Y)\rangle
+        + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta E(A, Y), F'(a))
+        \right]\,.
+\end{align*}
+Let $\cE_{\text{gen}} = (\Rd)^{(\cA \times \R)}$ be the space of
+all possible estimators, and define the space of affine estimators as
+\begin{align*}
+    \cE_{\text{aff}} & =
+    \left\{
+    (a, y) \mapsto (1-y) T_0(a) + y T_1(a)
+    \mid
+    T_0, T_1 \in (\Rd)^\cA
+    \right\}
+    \subset \cE_{\text{gen}}
+    \,.
+\end{align*}
+Fix any $E \in \cE_{\text{aff}}$ and $P \in \Delta(\cA)$.
+Let $e_I\triangleq A \sim P$; then $Y = \langle A, \ell \rangle = \ell_I$.
+Then, for any $\ell \in [0,1]^d$ and $a_\star \in \cA$, we have
+\begin{align*}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & =
+    \frac{1}{\eta}
+    \E\bigg[
+        \langle e_I - a_\star, \ell\rangle
+    - \langle a - a_\star, (1-\ell_I)T_0(I) + \ell_I T_1(I)\rangle                               \\
+     & + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta (1 - \ell_I)T_0(I) - \eta \ell_I T_1(I), F'(a))
+    \bigg]                                                                                       \\
+     & \leq
+    \frac{1}{\eta}
+    \E\bigg[
+        \langle e_I - a_\star, \ell\rangle
+        - (1-\ell_I)\langle a - a_\star, T_0(I)\rangle
+    - \ell_I \langle a - a_\star, T_1(I)\rangle                                                  \\
+     & + \frac{1}{\eta}
+        \left(
+        (1 - \ell_I) D_{F^\star}(F'(a) - \eta T_0(I), F'(a))
+        +
+        \ell_I D_{F^\star}(F'(a) - \eta T_1(I), F'(a))
+        \right)
+        \bigg]\,,
+\end{align*}
+where the inequality follows from the convexity of
+$v \mapsto D_{F^\star}(F'(a) - v, F'(a))$.
+Now, observe that the final expression is linear in $\ell \in [0,1]^d$,
+so there exists a $\bar{\ell} \in \{0,1\}^d$
+such that the above is maximized at $\bar{\ell}$,
+and since $\bar{\ell}_I \in \{0,1\}$, we have
+\begin{align*}
+    (1-\bar{\ell}_I) T_0(I) + \bar{\ell}_I T_1(I)
+     & = E(e_I, \bar{\ell}_I)\,,                         \\
+    (1 - \bar{\ell}_I) D_{F^\star}(F'(a) - \eta T_0(I), F'(a))
+     & +
+    \bar{\ell}_I D_{F^\star}(F'(a) - \eta T_1(I), F'(a)) \\
+     & =
+    D_{F^\star}(F'(a) - \eta E(e_I, \bar{\ell}_I), F'(a))\,,
+\end{align*}
+so, we can continue from the previous inequality to get
+\begin{align*}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & \leq
+    \frac{1}{\eta}
+    \E\bigg[
+        \langle e_I - a_\star, \bar{\ell}\rangle
+        - \langle a - a_\star, E(e_I, \bar{\ell}_I)\rangle
+        + \frac{1}{\eta}
+        D_{F^\star}(\nabla F(a) - \eta E(e_I, \bar{\ell}_I), \nabla F(a))
+    \bigg]                                                 \\
+     & = \Lambda_{a, \eta}(P, E || a_\star, \bar{\ell})\,,
+\end{align*}
+that is, the worst-case loss vector can be taken to be in $\{0,1\}^d$.
+Precisely, we have shown that for any $E \in \cE_{\text{aff}}$,
+and any $P \in \Delta(\cA), a_\star \in \cA$, it holds that
+\begin{align*}
+    \sup_{\ell \in [0,1]^d}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & =
+    \sup_{\bar{\ell} \in \{0,1\}^d}
+    \Lambda_{a, \eta}(P, E || a_\star, \bar{\ell})\,.
+\end{align*}
+
+From here, we can write
+\begin{align*}
+    \inf_{P, E \in \cE_{\text{aff}}}
+    \sup_{\ell \in [0,1]^d, a_\star}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     &
+    \by{1}{=}
+    \inf_{P, E \in \cE_{\text{aff}}}
+    \sup_{\bar{\ell} \in \{0,1\}^d, a_\star}
+    \Lambda_{a, \eta}(P, E || a_\star, \bar{\ell}) \\
+    %  & =
+    % \inf_{P, E \in \cE_{\text{aff}}}
+    % \sup_{\nu \in \cP(\cA \times \{0,1\}^d)}
+    % \Lambda_{a, \eta}(P, E || \nu)                 \\
+     & \by{2}{=}
+    \inf_{P, E \in \cE_{\text{gen}}}
+    \sup_{\bar{\ell} \in \{0,1\}^d, a_\star}
+    \Lambda_{a, \eta}(P, E || a_\star, \bar{\ell})\,,
+    % \\
+    %  & \by{3}{=}
+    % \sup_{\nu \in \cP(\cA \times \{0,1\}^d)}
+    % \inf_{P, E \in \cE_{\text{gen}}}
+    % \Lambda_{a, \eta}(P, E || \nu)\,,
+\end{align*}
+where \reason{1} follows from the previous discussion, and
+\reason{2} follows from the fact that when the losses are in $\{0,1\}^d$,
+the class of general estimators is equivalent to the class of affine estimators.
+
+From \reason{2} we can get the information ratio bound readily.
+Somehow, we didn't use any parts of the previous analysis.
+
+\newpage
+\subsection{A basis for convex functions}
+Let $m>0$ be an integer.
+Let $Z = \{z_0, z_1, \cdots, z_{m-1}\} \subseteq [0,1]$ be a set of
+$m$ equally spaced points in $[0,1]$, i.e.,
+$z_i = \frac{i}{m-1}$ for $i=0, \ldots, m-1$.
+Every convex functions $f:[0,1] \to [0,1]$,
+can be mapped to a vector $ v \in [0,1]^m$,
+such that $v_i = f(z_i)$ for $i=0, \ldots, m-1$.
+It's easy to see that this set of vectors is a convex subset of $[0,1]^m$.
+Let $\{\phi_1, \cdots, \phi_d\} \subseteq [0,1]^m$ be a convex basis of this set,
+i.e., every such vector $\phi$ can be written as
+a convex combination of $\{\phi_1, \cdots, \phi_d\}$.
+
+The action set is $\cA = \{e_1, \cdots, e_m\}$.
+We start over from the original \textbf{primal} objective
+\begin{align*}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & \;=\;
+    \frac{1}{\eta}
+    \E\left[
+        \langle e_I - a_\star, \ell\rangle
+        - \langle a - a_\star, E(e_I, \ell_I)\rangle
+        + \frac{1}{\eta} D_{F^\star}(F'(a) - \eta E(e_I, \ell_I), F'(a))
+        \right]\,
+\end{align*}
+where now $\ell \in \text{conv}(\{\phi_1, \cdots, \phi_d\})$, $A = e_I \sim P$, and $Y = \langle e_I, \ell \rangle = \ell_I$.
+Let $\cE_{\text{gen}} = (\Rd)^{(\cA \times \R)}$ and $\cE_{\text{aff}}$ be as before.
+Fix some $a \in \cA$ and let $S(x) = D_{F^\star}(F'(a) - \eta x, F'(a))$.
+Then, for $E \in \cE_{\text{aff}}$ we have
+\begin{align*}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & =
+    \frac{1}{\eta}
+    \E\bigg[
+        \langle e_I - a_\star, \ell\rangle
+        - \langle a - a_\star, (1-\ell_I)T\ind{0}_I + \ell_I T_I\ind{1}\rangle
+        + \frac{1}{\eta} S((1 - \ell_I)T_I\ind{0} + \ell_I T\ind{1}_I)
+        \bigg]\,,
+\end{align*}
+which is a convex function in $\ell$.
+Consequently, there exists a $\bar{\phi} \in \text{conv}(\{\phi_1, \cdots, \phi_d\})$
+such that the above is maximized at $\bar{\phi}$.
+Therefore, we have the following for affine \textbf{(or convex)} estimators
+\begin{align*}
+    \inf_{P, E \in \cE_{\text{aff}}}
+    \sup_{\ell \in \cL, a_\star}
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)
+     & =
+    \inf_{P, E \in \cE_{\text{aff}}}
+    \sup_{\bar{\phi} \in \{\phi_1, \cdots, \phi_d\}, a_\star}
+    \Lambda_{a, \eta}(P, E || a_\star, \bar{\phi})\,,
+\end{align*}
+and it would be nice if we could show that $\cE_{\text{aff}}$ (or $\cE_{\text{conv}}$)
+is as powerful as $\cE_{\text{gen}}$ when the losses are restricted to
+$\{\phi_1, \cdots, \phi_d\}$.
+We pause here to provide the exact description of the $\{\phi_1, \cdots, \phi_d\}$
+for the case of one dimensional convex functions.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                width=0.75\textwidth,
+                height=0.55\textwidth,
+                xmin=0, xmax=1,
+                ymin=0, ymax=1.05,
+                axis lines=left,
+                grid=both,
+                xtick={0,0.2,0.4,0.6,0.8,1.0},
+                xticklabels={$0$,$\tfrac{1}{5}$,$\tfrac{2}{5}$,$\tfrac{3}{5}$,$\tfrac{4}{5}$,$1$},
+                ytick={0,0.5,1.0},
+                yticklabels={$0$,$\tfrac{1}{2}$,$1$},
+                xlabel={$x$},
+                ylabel={$f(x)$},
+                legend style={legend pos=south east, font=\small},
+                legend cell align=left
+            ]
+
+            % constant 1: psi^{one} -- solid black
+            \addplot[thick, black, solid]
+            coordinates {
+                    (0,1) (0.2,1) (0.4,1) (0.6,1) (0.8,1) (1,1)
+                };
+            \addlegendentry{$\psi^{\mathrm{one}}$}
+
+            % constant 0: psi^{0,5} -- gray, densely dashed
+            \addplot[thick, gray, densely dashed]
+            coordinates {
+                    (0,0) (0.2,0) (0.4,0) (0.6,0) (0.8,0) (1,0)
+                };
+            \addlegendentry{$\psi^{0,5}$}
+
+            % left ramp: psi^{0,2} -- blue, densely dotted
+            \addplot[very thick, blue, densely dotted]
+            coordinates {
+                    (0,0)
+                    (0.2,0)
+                    (0.4,0)
+                    (0.6,1/3)
+                    (0.8,2/3)
+                    (1,1)
+                };
+            \addlegendentry{$\psi^{0,2}$}
+
+            % right ramp: psi^{2,5} -- red, dash-dotted
+            \addplot[very thick, red, dashdotted]
+            coordinates {
+                    (0,1)
+                    (0.2,1/2)
+                    (0.4,0)
+                    (0.6,0)
+                    (0.8,0)
+                    (1,0)
+                };
+            \addlegendentry{$\psi^{2,5}$}
+
+            % valley: psi^{2,3} -- greenish, dash dot dot
+            \addplot[very thick, green!50!black, dash dot dot]
+            coordinates {
+                    (0,1)
+                    (0.2,1/2)
+                    (0.4,0)
+                    (0.6,0)
+                    (0.8,1/2)
+                    (1,1)
+                };
+            \addlegendentry{$\psi^{2,3}$}
+
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Examples of one-dimensional convex basis functions on a grid of
+        $m=6$ points $z_i = i/5$. Each curve corresponds to an extreme point of
+        the discrete convexity polytope $\cC_m$.}
+    \label{fig:convex-basis-1d}
+\end{figure}
+
+\subsubsection{Basis functions of 1d convex functions}
+Recall the grid $Z=\{z_0,\dots,z_{m-1}\}$ with $z_i = i/(m-1)$ and the identification
+of a convex function $f:[0,1]\to[0,1]$ with the vector
+$v=(v_0,\dots,v_{m-1})\in[0,1]^m$ given by $v_i=f(z_i)$.
+Discrete convexity on $Z$ is equivalent to the second–difference inequalities
+\[
+    v_{i-1} - 2v_i + v_{i+1} \;\ge\; 0,
+    \qquad i=1,\dots,m-2.
+\]
+Let
+\[
+    \cC_m
+    \;=\;
+    \bigl\{
+    v\in[0,1]^m:
+    v_{i-1}-2v_i+v_{i+1}\ge 0 \text{ for all } i=1,\dots,m-2
+    \bigr\}
+\]
+be the corresponding convex polytope of discretized convex functions.
+
+\begin{definition}[Canonical convex basis vectors]
+    For integers $0\le a\le b\le m-1$, define $\psi^{a,b}\in[0,1]^m$ by
+    \begin{equation*}
+        \psi^{a,b}_i
+        \;=\;
+        \begin{cases}
+            1 - \dfrac{i}{a},       & 0\le i\le a,\ \ a>0,     \\[6pt]
+            0,                      & a\le i\le b,             \\[6pt]
+            \dfrac{i-b}{\,m-1-b\,}, & b\le i\le m-1,\ \ b<m-1,
+        \end{cases}
+    \end{equation*}
+    with the obvious conventions that the first branch is omitted when $a=0$, the
+    third branch is omitted when $b=m-1$, and when $(a,b)=(0,m-1)$ we get
+    $\psi^{0,m-1}\equiv 0$.
+
+    In other words, the function represented by $\psi^{a,b}$:
+    \begin{itemize}
+        \item is equal to $0$ on all grid points $z_i$ with $a\le i\le b$;
+        \item is linear on $\{z_0,\dots,z_a\}$ and (if $a>0$) satisfies
+              $\psi^{a,b}_0=1$, $\psi^{a,b}_a=0$;
+        \item is linear on $\{z_b,\dots,z_{m-1}\}$ and (if $b<m-1$) satisfies
+              $\psi^{a,b}_b=0$, $\psi^{a,b}_{m-1}=1$.
+    \end{itemize}
+    We also define the all–ones vector
+    \[
+        \psi^{\mathrm{one}} \;=\; (1,\dots,1) \in [0,1]^m.
+    \]
+    Finally, let
+    \[
+        \cB_m
+        \;:=\;
+        \{\psi^{\mathrm{one}}\}
+        \;\cup\;
+        \{\psi^{a,b}: 0\le a\le b\le m-1\}.
+    \]
+\end{definition}
+
+\begin{theorem}[Extreme points of $\cC_m$]\label{thm:1d-basis}
+    Every element of $\cB_m$ lies in $\cC_m$, and $\cB_m$ is exactly the set of
+    extreme points of $\cC_m$.
+    Consequently,
+    \[
+        \cC_m \;=\; \conv(\cB_m),
+    \]
+    so $\cB_m$ is a convex basis of discretized convex functions on $Z$.
+    In particular, the number of basis vectors is
+    \[
+        d \;=\; |\cB_m|
+        \;=\;
+        1 + \Bigl|\{(a,b):0\le a\le b\le m-1\}\Bigr|
+        \;=\;
+        1 + \frac{m(m+1)}{2}
+        \;=\;
+        \frac{m^2+m+2}{2}.
+    \]
+    Thus one can take $\{\phi_1,\dots,\phi_d\}$ in the discussion above to be any
+    enumeration of $\cB_m$.
+\end{theorem}
+\noindent The proof is deferred to \ref{proof:thm:1d-basis}.
+
+
+
+
+
+\subsection{continue}
+Therefore, we have that
+\begin{align*}
+     & \eta \Lambda_{a, \eta}(P, E || a_\star, \ell)
     \leq
-    \sup_{\nu \in \cP(\cA \times \cL)}
-    \inf_{P \in \Delta(\cA)}
-    \frac{
-        \Delta(\nu, P)^2
-    }{
-        4 \E\left[D_F\left( \po, \pr\right)\right]
-    }\,.
+    \E\bigg[
+        \langle e_I - a_\star, \bar{\phi}\rangle
+        - \langle a - a_\star, (1-\bar{\phi}_I)T\ind{0}_I + \bar{\phi}_I T_I\ind{1}\rangle
+        + \frac{
+            S((1 - \bar{\phi}_I)T_I\ind{0} + \bar{\phi}_I T\ind{1}_I)
+        }{\eta}
+    \bigg]                                           \\
+     & \leq
+    \E\bigg[
+        \phi_I -
+        \langle a_\star, \bar{\phi}\rangle
+        - \langle a - a_\star, (1-\bar{\phi}_I)T\ind{0}_I + \bar{\phi}_I T_I\ind{1}\rangle
+        + (1 - \bar{\phi}_I)\frac{S(T_I\ind{0})}{\eta}
+        + \bar{\phi}_I \frac{S(T\ind{1}_I)}{\eta}
+    \bigg]                                           \\
+     & =
+    \E\bigg[
+        (1 - \bar{\phi}_I)
+        \left\{
+        0 - \langle a_\star, \bar{\phi} \rangle
+        - \langle a - a_\star, T\ind{0}_I\rangle
+        + \frac{S(T_I\ind{0})}{\eta}
+        \right\}
+        +
+        \bar{\phi}_I
+        \left\{
+        1 - \langle a_\star, \bar{\phi} \rangle
+        - \langle a - a_\star, T_I\ind{1}\rangle
+        + \frac{S(T\ind{1}_I)}{\eta}
+        \right\}
+    \bigg]                                           \\
 \end{align*}
 
-\paragraph{A potential plan.}
-Suppose that there exist a set $\cN(\Theta) \subseteq \cP(\cA \times \cL)$
-parameterized by $\Theta$, such that
-\begin{align*}
-    \inf_{P \in \Delta(\cA)}
-    \sup_{\nu \in \cP(\cA \times \cL)}
-    \Lambda_{a,\eta}(P, G_{\nu,P} || \nu)
-     & =
-    \inf_{P \in \Delta(\cA)}
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \Lambda_{a,\eta}(P, G_{\nu_\theta,P} || \nu_\theta)\,,
-    \tag{$\bigstar$}
-\end{align*}
-and the set $\Theta$ is convex, and $\Lambda_{a,\eta}(P, G_{\nu_\theta,P} || \nu_\theta)$
-is concave in $\theta$ so that it holds that
-\begin{align*}
-    \inf_{P \in \Delta(\cA)}
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \Lambda_{a,\eta}(P, G_{\nu_\theta,P} || \nu_\theta)
-     & =
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \inf_{P \in \Delta(\cA)}
-    \Lambda_{a,\eta}(P, G_{\nu_\theta,P} || \nu_\theta)\,,
-    \tag{$\bigstar\bigstar$}
-\end{align*}
-and finally for every $\nu_\theta \in \cN(\Theta)$, it holds that
-\begin{align*}
-    \po = \tilde{A} \quad \text{almost surely for $A \sim P$ and $(A_\star, \ell) \sim \nu_\theta$}\,.
-    \tag{$\bigstar\bigstar\bigstar$}
-\end{align*}
-Then, we can conclude that
-\begin{align*}
-    \Lambda_{a, \eta}^\texttt{gnrl}
-     & =
-    \sup_{\nu \in \cP(\cA \times \cL)}
-    \inf_{P \in \Delta(\cA), E:\cA \times \R \to \Rd}
-    \Lambda_{a,\eta}(P, E || \nu)                       \\
-     & =
-    \inf_{P \in \Delta(\cA)}
-    \sup_{\nu \in \cP(\cA \times \cL)}
-    \Lambda_{a,\eta}(P, G_{\nu,P} || \nu)               \\
-     & \by{$\bigstar$}{=}
-    \inf_{P \in \Delta(\cA)}
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \Lambda_{a,\eta}(P, G_{\nu_\theta,P} || \nu_\theta) \\
-     & \by{$\bigstar\bigstar$}{=}
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \inf_{P \in \Delta(\cA)}
-    \Lambda_{a,\eta}(P, G_{\nu_\theta,P} || \nu_\theta) \\
-     & \by{$\bigstar\bigstar\bigstar$}{=}
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \inf_{P \in \Delta(\cA)}
-    \Lambda_{a,\eta}(P, T_{\nu_\theta,P} || \nu_\theta) \\
-     & =
-    \sup_{\nu_\theta \in \cN(\Theta)}
-    \inf_{P \in \Delta(\cA), T: \cA \to \Rd}
-    \Lambda_{a,\eta}(P, T || \nu_\theta)                \\
-     & \geq
-    \inf_{P \in \Delta(\cA), T: \cA \to \Rd}
-    \sup_{a_\star \in \cA, \ell \in \cL}
-    \Lambda_{a,\eta}(P, T || a_\star, \ell)
-    =
-    \Lambda_{a,\eta}^\texttt{mult}(P, T || a_\star, \ell)\,,
-\end{align*}
-
-% \hrule
-% \subsubsection{The problem and a possible solution}
-% Remark~\ref{rem:feasibility-caveat} and theorem~\ref{thm:no-alpha}
-% indicate that the multiplicative-$Y$ estimator class
-% is not as powerful as the unrestricted estimator class.
-% However, as we discuss here below, there might be a way to
-% circumvent this issue.
-
-% The whole story starts from eq~\ref{eq:Lambda-original}
-% where we defined $\Lambda_{a,\eta}(P,E||a_\star,\ell)$, as
-% \begin{align*}
-%     \Lambda_{a, \eta}(P, E || a_\star, \ell) \triangleq
-%     \frac{1}{\eta}
-%     \E\left[
-%         \langle A - a_\star, \ell\rangle
-%         - \langle a - a_\star, \hl\rangle
-%         + \frac{1}{\eta} D_{F^\star}(\nabla F(a) - \eta \hl, \nabla F(a))
-%         \right]\,,
-% \end{align*}
-% and then we moved to the randomized version
-% \begin{align*}
-%     \Lambda_{a, \eta}(P, E || \nu) \triangleq
-%     \frac{1}{\eta}
-%     \E_{(A_\star, \ell) \sim \nu}\left[
-%         \langle A - A_\star, \ell\rangle
-%         - \langle a - A_\star, \hl\rangle
-%         + \frac{1}{\eta} D_{F^\star}(\nabla F(a) - \eta \hl, \nabla F(a))
-%         \right]\,,
-% \end{align*}
-% where results in
-% \begin{align}
-%     \sup_{a_\star \in \cA, \ell \in \cL}
-%     \Lambda_{a, \eta}(P, E || a_\star, \ell)
-%     \stackrel{(=)}{\leq}
-%     \sup_{\nu \in \cP(\cA \times \cL)}
-%     \Lambda_{a, \eta}(P, E || \nu)\,,
-%     \label{ineq:nu-spikes}
-% \end{align}
-% which buys us the following minimax theorem (lemma~\ref{lem:exp-by-opt-minimax}):
-% \begin{align*}
-%     \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
-%     \sup_{\nu \in \cP(\cA \times \cL)}
-%     \Lambda_{a,\eta}(P, E || \nu)
-%     =
-%     \sup_{\nu \in \cP(\cA \times \cL)}
-%     \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
-%     \Lambda_{a,\eta}(P, E || \nu)\,;
-% \end{align*}
-% however, as we have seen so far, the multiplicative-$Y$ estimator class
-% is not rich enough to guarantee that the value of the RHS
-% is upper-bounded by the information ratio.
-
-% A possible solution is to restrict the adversary's choice of $\nu$ to
-% only those distributions that satisfy the feasibility condition
-% in theorem~\ref{thm:mul-Y-Lambda-info-ratio}, i.e,
-% \begin{align*}
-%     \tilde{A} = \po \quad \text{almost surely.}
-% \end{align*}
-% Basically, we need to find a subset of $\cP(\cA \times \cL)$ such that
-% \begin{itemize}
-%     \item it contains the spike distributions $\delta_{(a_\star, \ell)}$ for
-%           all $a_\star \in \cA, \ell \in \cL$, so that ineq~\ref{ineq:nu-spikes}
-%           still holds,
-%     \item for every $\nu$ in this subset, and for every $P \in \Delta(\cA)$,
-%           $\tilde{A} = \po$ almost surely when using the optimal
-%           multiplicative-$Y$ estimator $E_{T_{\nu,P}}$.
-%     \item the class of such $\nu$ admits a parametric
-%           representation like $\cN(\Theta)$ for some $\Theta$,
-%           such that:
-%           \begin{itemize}
-%               \item the set $\Theta$ is convex,
-%               \item the objective $\Lambda_{a,\eta}(P, E || \nu_\theta)$
-%                     is convex (concave?) in $\theta$ for every fixed $(P,E)$,
-%           \end{itemize}
-%           which would allow us to still have a minimax theorem like
-%           lemma~\ref{lem:exp-by-opt-minimax}.
-% \end{itemize}
-% If it all works out, we would have
-% \begin{align*}
-%     \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
-%     \sup_{\nu_\theta \in \cN(\Theta)}
-%     \Lambda_{a,\eta}(P, E || \nu_\theta)
-%     =
-%     \sup_{\nu_\theta \in \cN(\Theta)}
-%     \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
-%     \Lambda_{a,\eta}(P, E || \nu_\theta)\,,
-% \end{align*}
-% and this time, the RHS would be upper-bounded by the information ratio
-% when using the optimal multiplicative-$Y$ estimator.
-
-% Does this plan makes sense? Can we find such a subset of distributions?
-% We are allowed to design $\cN(\Theta)$ based on $F, \cA, \cL, a, \eta$,
-% and any other information that is available to the learner at round $t$.
 
 \clearpage
 \bibliographystyle{plainnat}
@@ -1456,12 +1735,13 @@ Then, we can conclude that
     from the optimization since they don't depend on the estimator choice
     $T$ (no $\hl$ present).
 
-    For $x \in \cA$, we solve for $T_{\nu, P}(x)$ through differentiation:
-    (dropping $\Delta(\nu, P)$ and $F^\star(F'(a))$)
+    For $x \in \cA$, we solve for $T_1\ind{\nu, P}(x), T_0\ind{\nu, P}(x)$ through differentiation.
+    First, for $T_0(x)$, we have
     \begin{align*}
-        \tfrac{\partial}{\partial T(x)} \Lambda(P, T||\nu)
+         & \tfrac{\partial}{\partial T_0(x)} \Lambda(P, T||\nu)
+        \\
          & =
-        \tfrac{\partial}{\partial T(x)}
+        \tfrac{\partial}{\partial T_0(x)}
         \eta^{-1}
         \E\!\left[
             \langle A_\star, \hl \rangle
@@ -1470,19 +1750,71 @@ Then, we can conclude that
         \\
          & =
         \tfrac{P(x)}{\eta} \cdot
-        \tfrac{\partial}{\partial T(x)}
+        \tfrac{\partial}{\partial T_0(x)}
         \E\!\left[
-            \langle A_\star, Y T(x) \rangle
-            + \frac{1}{\eta} F^\star\left(F'(a) - \eta Y T(x)\right)
+            \langle A_\star, Y T_1(x) + T_0(x) \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta (Y T_1(x) + T_0(x))\right)
             | A = x
             \right]
         \\
          & =
         \tfrac{P(x)}{\eta} \cdot
-        \tfrac{\partial}{\partial T(x)}
+        \tfrac{\partial}{\partial T_0(x)}
         \E\!\left[
-            \langle A_\star, Y T(x) \rangle
-            + \frac{1}{\eta} F^\star\left(F'(a) - \eta Y T(x)\right)
+            \langle A_\star, T_0(x) \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta (Y T_1(x) + T_0(x))\right)
+            | A = x
+            \right]
+        \\
+         & =
+        \tfrac{P(x)}{\eta} \cdot
+        \E\!\left[
+        A_\star
+        - {F^\star}'\left(F'(a) - \eta (Y T_1(x) + T_0(x))\right)
+        | A = x
+        \right]\,,
+    \end{align*}
+    which by setting the derivative to zero gives
+    \begin{align}
+        \E\!\left[
+            A_\star
+            | A = x
+            \right]
+         & =
+        \E\!\left[
+            {F^\star}'\left(F'(a) - \eta \hl \right)
+            | A = x
+            \right]\,,
+        \label{eq:t0-optimal}
+    \end{align}
+    for all $x \in \cA$.
+    Secondly, for $T_1(x)$, we have
+    \begin{align*}
+         & \tfrac{\partial}{\partial T_1(x)} \Lambda(P, T||\nu)
+        \\
+         & =
+        \tfrac{\partial}{\partial T_1(x)}
+        \eta^{-1}
+        \E\!\left[
+            \langle A_\star, \hl \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
+            \right]
+        \\
+         & =
+        \tfrac{P(x)}{\eta} \cdot
+        \tfrac{\partial}{\partial T_1(x)}
+        \E\!\left[
+            \langle A_\star, Y T_1(x) + T_0(x) \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta (Y T_1(x) + T_0(x))\right)
+            | A = x
+            \right]
+        \\
+         & =
+        \tfrac{P(x)}{\eta} \cdot
+        \tfrac{\partial}{\partial T_1(x)}
+        \E\!\left[
+            \langle A_\star, Y T_1(x) \rangle
+            + \frac{1}{\eta} F^\star\left(F'(a) - \eta (Y T_1(x) + T_0(x))\right)
             | A = x
             \right]
         \\
@@ -1490,7 +1822,7 @@ Then, we can conclude that
         \tfrac{P(x)}{\eta} \cdot
         \E\!\left[
             Y A_\star
-            - Y {F^\star}'\left(F'(a) - \eta Y T(x)\right)
+            - Y {F^\star}'\left(F'(a) - \eta (Y T_1(x) + T_0(x))\right)
             | A = x
             \right]\,,
     \end{align*}
@@ -1502,22 +1834,51 @@ Then, we can conclude that
             \right]
          & =
         \E\!\left[
-            Y {F^\star}'\left(F'(a) - \eta Y T(x)\right)
-            | A = x
-        \right] \nonumber \\
-        \abovelabel{$\odot T(x)$}
-        \Rightarrow
-        \E\!\left[
-            \hl \odot A_\star
+            Y {F^\star}'\left(F'(a) - \eta \hl \right)
             | A = x
             \right]
-         & =
-        \E\!\left[
-            \hl \odot {F^\star}'\left(F'(a) - \eta \hl\right)
-            | A = x
-            \right]\,,
+        \label{eq:t1-optimal}
     \end{align}
     for all $x \in \cA$.
+    Finally, combining eqs~\ref{eq:t0-optimal} and~\ref{eq:t1-optimal}
+    we have
+    \begin{align*}
+        \E\left[
+            \hl A_\star|A=x
+            \right]
+         & =
+        \E\left[
+            (T_1(x) Y + T_0(x)) A_\star|A=x
+        \right] \\
+         & =
+        T_1(x)
+        \E\left[
+            Y A_\star|A=x
+            \right]
+        + T_0(x)
+        \E\left[
+            A_\star|A=x
+        \right] \\
+         & =
+        T_1(x)
+        \E\left[
+            Y {F^\star}'\left(F'(a) - \eta \hl \right)
+            | A = x
+            \right]
+        +
+        T_0(x)
+        \E\left[
+            {F^\star}'\left(F'(a) - \eta \hl \right)
+            | A = x
+        \right] \\
+         & =
+        \E\left[
+            \hl
+            {F^\star}'\left(F'(a) - \eta \hl \right)
+            | A = x
+            \right]\,,
+    \end{align*}
+    which concludes the proof.
 \end{proof}
 
 \subsubsection{Proof of lemma~\ref{lem:E-optimized-Lambda}}
@@ -1525,7 +1886,7 @@ Then, we can conclude that
 \begin{proof}[Proof of lemma~\ref{lem:E-optimized-Lambda}]
     Starting from eq~\ref{eq:Lambda-simplified}, we have
     \begin{align*}
-        \eta \Lambda(P, E_{T_{\nu,P}} || \nu)
+        \eta \Lambda(P, E_{T^{\nu,p}} || \nu)
          & =
         \Delta(\nu, P) +
         \E\!\left[
@@ -1755,4 +2116,402 @@ Then, we can conclude that
     \eqref{eq:Lambda-Exp3-bound}. Since $\ell\in[0,1]^d$,
     $\|\ell\|_2^2\le d$, which yields the second inequality.
 \end{proof}
+\subsubsection{Proof of theorem~\ref{thm:fixed-action-per-loss}}
+\label{proof:thm:fixed-action-per-loss}
+\begin{proof}[Proof of theorem~\ref{thm:fixed-action-per-loss}]
+    Observe that
+    \begin{align*}
+        \po & = \E[A_\star|A, Y] \\
+            & = \E\left[
+            \E[A_\star|\ell, A, Y]
+            | A, Y
+        \right]                  \\
+            & = \E\left[
+            \E[A_\star|\ell, A]
+            | A, Y
+            \right]
+        \tag{$Y = \langle A, \ell \rangle$}
+        \\
+            & = \E\left[
+            \E[A_\star|\ell]
+            | A, Y
+            \right]\,,
+        \tag{$A_\star$ is independent of $A$ given $\ell$}
+    \end{align*}
+    so defining
+    \begin{align*}
+        a_\star(\ell) & = \E[A_\star|\ell]\,,
+    \end{align*}
+    we have $\po = \E\left[
+            a_\star(\ell)
+            | A, Y
+            \right]$.
+    Next, recall the value of $\Lambda(P, G^{\nu} || \nu)$ from lemma~\ref{lem:optimal-Lambda-wrong-turn}:
+    \begin{align*}
+        \Lambda(P, G^{\nu} || \nu)
+         & = \frac{1}{\eta}
+        \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \po, a\right)
+        \right]                                      \\
+         & =
+        \frac{1}{\eta}
+        \E\left[
+            \langle A - A_\star, \ell\rangle
+            \right]
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \E[a_\star(\ell)|A, Y], a\right)
+        \right]                                      \\
+         & =
+        \frac{1}{\eta}
+        \E\left[
+            \langle A - \E[A_\star|\ell], \ell\rangle
+            \right]
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \E[a_\star(\ell)|A, Y], a\right)
+        \right]                                      \\
+         & =
+        \frac{1}{\eta}
+        \E\left[
+            \langle A - a_\star(\ell), \ell\rangle
+            \right]
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \E[a_\star(\ell)|A, Y], a\right)
+        \right]                                      \\
+         & = \Lambda(P, G^{\nu'} || \nu')\,.\qedhere
+    \end{align*}
+\end{proof}
+
+\subsubsection{Proof of lemma~\ref{lem:mu-concave}}
+\label{proof:lem:mu-concave}
+\begin{proof}[Proof of lemma~\ref{lem:mu-concave}]
+    By Lemma~\ref{lem:optimal-Lambda-wrong-turn}, for $\nu=\nu(\mu,a_\star)$,
+    \begin{align}
+        \Phi(\mu,a_\star)
+         & = \frac{1}{\eta}\,\Delta(\nu,P) \;-\; \frac{1}{\eta^2}\,
+        \E\!\left[D_F\!\left(\po,a\right)\right],
+        \qquad \po=\E\!\left[a_\star(\ell)\,\middle|\,A,Y\right].
+        \label{eq:phi-decomp}
+    \end{align}
+    The first term is
+    \[
+        \Delta(\nu,P)
+        = \E\!\left[\ip{A-a_\star(\ell),\,\ell}\right]
+        = \E\!\left[\ip{A,\ell}\right] - \E\!\left[\ip{a_\star(\ell),\ell}\right],
+    \]
+    where the first expectation is linear in $\mu$.
+    The second expectation is bilinear in $(\mu,a_\star)$,
+    but we need to show concavity of the entire term
+    $(\mu,a_\star)\mapsto \E[D_F(\po,a)]$.
+    To this end, we have
+    \begin{align*}
+        \E\!\left[D_F(\po,a)\right]
+         & = \E\!\left[F(\po)\right] - F(a) - \nabla F(a)^\top (\E[\po]-a) \\
+         & = \E\!\left[F(\po)\right] - \nabla F(a)^\top \E[\po] + c(a),
+    \end{align*}
+
+    For the second term, use the Bregman form
+    $D_F(x,a)=F(x)-\nabla F(a)^\top x + c(a)$,
+    to write
+    \[
+        \E\!\left[D_F(\po,a)\right]
+        = \E\!\left[F(\po)\right] - \nabla F(a)^\top \E[\po] + c(a)
+        = \E\!\left[F(\po)\right] - \nabla F(a)^\top \E[a_\star(\ell)] + c(a),
+    \]
+    where we used $\E[\po]=\E[a_\star(\ell)]$.
+    Thus convexity of $(\mu,a_\star)\mapsto \E[D_F(\po,a)]$ reduces to convexity of
+    $(\mu,a_\star)\mapsto \E[F(\po)]$.
+
+    By Fenchel–Young,
+    $F(u)=\sup_{q\in\Rd}\{\ip{q,u}-F^\star(q)\}$.
+    Applying this pointwise to $u=\po=\E[a_\star(\ell)\mid A,Y]$ and using a measurable
+    selection for the maximizer (or taking the supremum over measurable $Q:\cA\times\R\to\Rd$) yields
+    \begin{align*}
+        \E\!\left[F(\po)\right]
+         & = \sup_{Q}\,
+        \left\{
+        \E\!\left[\ip{Q(A,Y),\,\po}\right] - \E\!\left[F^\star(Q(A,Y))\right]
+        \right\}        \\
+         & = \sup_{Q}\,
+        \left\{
+        \E\!\left[\ip{Q(A,Y),\,a_\star(\ell)}\right] - \E\!\left[F^\star(Q(A,Y))\right]
+        \right\},
+    \end{align*}
+    where we used the tower property
+    $\E[\ip{Q(A,Y),\po}]=\E[\ip{Q(A,Y),a_\star(\ell)}]$.
+    For fixed $Q$, the functional
+    \(
+    (\mu,a_\star)\mapsto \E[\ip{Q(A,Y),a_\star(\ell)}] - \E[F^\star(Q(A,Y))]
+    \)
+    is affine in $(\mu,a_\star)$ (linear in the law of $(A,Y)$—hence in $\mu$—and linear in $a_\star$).
+    A supremum of affine functionals is convex. Hence
+    $(\mu,a_\star)\mapsto \E[F(\po)]$ is convex, so
+    $(\mu,a_\star)\mapsto \E[D_F(\po,a)]$ is convex, and by \eqref{eq:phi-decomp},
+    $(\mu,a_\star)\mapsto \Phi(\mu,a_\star)$ is concave.
+\end{proof}
+
+\subsubsection{Proof of theorem~\ref{thm:binary-hypercube-losses}}
+\label{proof:thm:binary-hypercube-losses}
+\begin{proof}[Proof of theorem~\ref{thm:binary-hypercube-losses}]
+    Recall the definitions of $\po$ and $\tilde{A}$:
+    \begin{align*}
+        \po       & = \E[a_\star(\ell) | A, Y]\,,          \\
+        \tilde{A} & = {F^\star}'\left(F'(a) - \eta \right)
+        = {F^\star}'\left(F'(a) - \eta (T_1(A)Y + T_0(A))\right)\,,
+    \end{align*}
+    where $a_\star$ is the function defined in theorem~\ref{thm:fixed-action-per-loss}.
+
+    Since the action space is the $k$-simplex,
+    we have $A = e_I$ for some random variable $I \in [k]$ with
+    $\P(I = i) = P_i$.
+    Also, since $\ell$ is supported on $\{0,1\}^k$,
+    we have $Y = \langle e_I, \ell \rangle = \ell_I$.
+    Therefore, we can rewrite $\po$ as
+    \begin{align*}
+        \po & = \E[a_\star(\ell) | I, \ell_I]\,,
+    \end{align*}
+    and we can rewrite $\tilde{A}$ as
+    \begin{align*}
+        \tilde{A} & = {F^\star}'\left(F'(a) - \eta (T_1(e_I)\ell_I + T_0(e_I))\right)\,.
+    \end{align*}
+
+    Note that $\ell_I$ is a Bernoulli random variable
+    given $I$ since $\ell$ is supported on $\{0,1\}^k$.
+    Therefore, for every fixed $i \in [k]$,
+    we can choose $T_1(e_i)$ and $T_0(e_i)$ as
+    \begin{align*}
+        T_0(e_i) & = \frac{1}{\eta}
+        \left(F'(a) - F'(\E[a_\star(\ell) | I = i, \ell_i = 0])\right)\,, \\
+        T_1(e_i) & = \frac{1}{\eta}
+        \left(F'(\E[a_\star(\ell) | I = i, \ell_i = 0])
+        - F'(\E[a_\star(\ell) | I = i, \ell_i = 1])\right)\,,
+    \end{align*}
+    which results in
+    \begin{align*}
+        \tilde{A} & =
+        {F^\star}'\left(F'(a) - \eta (T_1(e_I)\ell_I + T_0(e_I))\right) \\
+                  & =
+        \E[a_\star(\ell) | I, \ell_I] = \po\,,
+    \end{align*}
+    almost surely.
+\end{proof}
+
+\subsection{Proof of theorem~\ref{thm:1d-basis}}
+\label{proof:thm:1d-basis}
+\begin{proof}[Proof of theorem~\ref{thm:1d-basis}]
+    \emph{Step 1: $\cC_m$ is the discretization of convex functions on $[0,1]$.}
+    Given $v\in\cC_m$, define $f:[0,m-1]\to\R$ to be the continuous, piecewise
+    affine function with $f(i)=v_i$ and affine on each $[i,i+1]$.
+    The inequalities $v_{i-1}-2v_i+v_{i+1}\ge 0$ are equivalent to the slopes
+    $f(i)-f(i-1)$ forming a nondecreasing sequence, hence $f$ is convex.
+    Conversely, the sampled values of any convex $f$ on $\{0,\dots,m-1\}$ satisfy
+    these inequalities.
+    The box constraints $0\le v_i\le 1$ translate to $0\le f(i)\le 1$ on the grid.
+
+    \smallskip
+    \emph{Step 2: the zero set of an extreme point is an interval.}
+    Let $v\in\cC_m$ be extreme and $f$ its extension.
+    Suppose $f(i)=0$ and $f(\ell)=0$ for some integers $0\le i<\ell\le m-1$.
+    Convexity and $f\ge 0$ on the grid imply
+    \[
+        f(t)
+        \;\le\;
+        \frac{\ell-t}{\ell-i}f(i)
+        +
+        \frac{t-i}{\ell-i}f(\ell)
+        \;=\; 0,
+        \qquad t\in[i,\ell],
+    \]
+    so $f(j)\le 0$ for all integers $j\in[i,\ell]$.
+    Since $f(j)\ge 0$ on the grid, we have $f(j)=0$ for all $j\in[i,\ell]$.
+    Thus the set
+    \[
+        Z := \{\,i\in\{0,\dots,m-1\}: f(i)=0\,\}
+    \]
+    is, if nonempty, a contiguous block $Z=\{a,\dots,b\}$ for some $0\le a\le b\le m-1$.
+
+    \smallskip
+    \emph{Step 3: classification of extreme points.}
+    We consider two cases.
+
+    \paragraph{Case A: $Z=\varnothing$ (no zeros).}
+    If $f(i)\in(0,1)$ for all $i$, then for sufficiently small $\varepsilon>0$ the
+    vectors $v^\pm:=v\pm\varepsilon\cdot(1,\dots,1)$ still lie in $\cC_m$ (they
+    preserve discrete convexity and stay in $[0,1]^m$), and $v=\tfrac12(v^+ + v^-)$
+    with $v^+\neq v^-$, contradicting extremality.
+    Hence at least one coordinate must lie at the upper boundary, $f(j)=1$ for some $j$.
+    Convexity and $0<f(i)\le 1$ then force $f\equiv 1$ on the grid, so $v=\psi^{\mathrm{one}}$.
+    Thus $\psi^{\mathrm{one}}$ is the unique extreme point with $Z=\varnothing$.
+
+    \paragraph{Case B: $Z\neq\varnothing$.}
+    Write $Z=\{a,\dots,b\}$ with $0\le a\le b\le m-1$.
+    We first show $f$ must coincide with the piecewise affine function corresponding to $\psi^{a,b}$.
+
+    On $[a,b]$ we already know $f\equiv0$.
+    On $[0,a]$, convexity and $f\ge0$ imply that $f$ attains its minimum $0$ at the
+    right endpoint $a$.
+    For a convex function, this forces the derivative on $[0,a]$ to be constant:
+    otherwise there would be a strictly smaller value in the interior.
+    Hence $f$ is affine on $[0,a]$.
+    Similarly, $f$ is affine on $[b,m-1]$.
+
+    If $a>0$ and $f(0)<1$, then for small $\varepsilon>0$ the functions
+    \[
+        f^\pm(t)
+        :=
+        f(t) \pm \varepsilon\frac{a-t}{a}
+        \quad\text{for } t\in[0,a],
+        \qquad
+        f^\pm(t):=f(t)\ \text{ for } t\in[a,m-1],
+    \]
+    remain convex, agree with $f$ on $[a,m-1]$, and still satisfy $0\le f^\pm(i)\le1$
+    on the grid.
+    Their sampled vectors $v^\pm$ lie in $\cC_m$, $v^\pm\neq v$, and
+    $v=\tfrac12(v^+ + v^-)$, contradicting extremality.
+    Hence if $a>0$ we must have $f(0)=1$.
+    An analogous perturbation on $[b,m-1]$ shows that if $b<m-1$ we must have
+    $f(m-1)=1$.
+
+    Combining these facts, $f$ is exactly the piecewise affine function which
+    is $0$ on $\{z_a,\dots,z_b\}$,
+    linear from $(z_0,1)$ to $(z_a,0)$ when $a>0$, and
+    linear from $(z_b,0)$ to $(z_{m-1},1)$ when $b<m-1$,
+    i.e.\ $v=\psi^{a,b}$.
+
+    \smallskip
+    We have shown that every extreme point of $\cC_m$ is either $\psi^{\mathrm{one}}$
+    or $\psi^{a,b}$ for some $0\le a\le b\le m-1$.
+    Thus $\mathrm{ext}(\cC_m)\subseteq \cB_m$.
+
+    \smallskip
+    \emph{Step 4: each $\psi^{a,b}$ is extreme.}
+    It remains to check that every $\psi^{a,b}$ (and $\psi^{\mathrm{one}}$) is in fact
+    an extreme point.
+    For $\psi^{\mathrm{one}}$, all upper box constraints $v_i\le 1$ are tight, and
+    it is the unique point in $\cC_m$ with $v_i=1$ for all $i$, hence extreme.
+
+    For $\psi^{a,b}$, note that:
+    \begin{itemize}
+        \item the constraints $v_i\ge 0$ are tight for all $i\in\{a,\dots,b\}$;
+        \item if $a>0$ then $v_0\le 1$ is tight with $v_0=1$; if $b<m-1$ then
+              $v_{m-1}\le 1$ is tight with $v_{m-1}=1$;
+        \item the convexity constraints $v_{i-1}-2v_i+v_{i+1}\ge 0$ are tight
+              (equalities) for all $i\in\{1,\dots,m-2\}\setminus\{a,b\}$, because
+              $\psi^{a,b}$ is affine on $[0,a]$, on $[a,b]$, and on $[b,m-1]$.
+    \end{itemize}
+    These equalities form a system of $m$ linearly independent constraints whose
+    unique solution in $\R^m$ is $v=\psi^{a,b}$, so $\psi^{a,b}$ is a vertex of $\cC_m$
+    and hence an extreme point.
+
+    \smallskip
+    Since $\cC_m$ is a polytope, it is the convex hull of its extreme points, and
+    we have just identified those with $\cB_m$.
+    This proves $\cC_m=\conv(\cB_m)$ and the stated formula for $d=|\cB_m|$.
+\end{proof}
+
+
+\newpage
+It's fun to look at the optimal estimator for the value $\ell_i = y$:
+\begin{align*}
+    \tilde{A}(i,y) & =
+    {F^\star}'\left(F'(a) - \eta (T_1(e_i)y + T_0(e_i))\right)       \\
+                   & =
+    {F^\star}'\left(F'(a)
+    - \left(F'(\E[a_\star(\ell) | \ell_i = 0])
+    - F'(\E[a_\star(\ell) | \ell_i = 1])\right)y
+    - \left(F'(a) - F'(\E[a_\star(\ell) | \ell_i = 0])\right)\right) \\
+                   & =
+    {F^\star}'\left(y F'(\E[a_\star(\ell) | \ell_i = 1])
+    + (1 - y) F'(\E[a_\star(\ell) | \ell_i = 0])\right)              \\
+                   & \stackrel{?}{=}
+    \E[a_\star(\ell) | \ell_i = y]\,,
+\end{align*}
+where the last equality needs to be proven somehow...
+
+
+When $F$ is the negentropy, we have
+\begin{align*}
+    \tilde{A} & =
+    \exp\!\left(
+    \lambda \ln(\E[a_\star(\ell) | \ell_i = 1])
+    + (1 - \lambda) \ln(\E[a_\star(\ell) | \ell_i = 0])
+    \right)       \\
+              & =
+    (\E[a_\star(\ell) | \ell_i = 1])^y
+    \cdot (\E[a_\star(\ell) | \ell_i = 0])^{1 - y}\,.
+\end{align*}
+Let's put this estimator inside the $\Lambda$ expression: (with negentropy $F=R$)
+\begin{align*}
+     & \Lambda(P, T || \nu) \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        D_R\left(\tilde{A}, a\right)
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        R(\tilde{A}) - R(a) - \nabla R(a)^\top (\tilde{A} - a)
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        \sum_{j=1}^d \tilde{A}_j \ln \tilde{A}_j
+        - a_j \ln a_j
+        - (1 + \ln a_j)(\tilde{A}_j - a_j)
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        \sum_{j=1}^d \tilde{A}_j \ln \frac{\tilde{A}_j}{a_j}
+        \right]\,.
+\end{align*}
+Let's suppose that $a = \E[a_\star(\ell)]$.
+Then we get
+\begin{align*}
+     & \Lambda(P, T || \nu) \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        \sum_{j=1}^d \tilde{A}_j \ln \frac{\tilde{A}_j}{\E[a_{\star,j}(\ell)]}
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        D_{R^\star}\left(
+        \ln \tilde{A},
+        \ln \E[a_\star(\ell)]
+        \right)
+        \right]\,.
+    a
+\end{align*}
+
 \end{document}
