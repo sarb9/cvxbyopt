@@ -12,9 +12,9 @@
 \usepackage{bbm}
 \usepackage{framed}
 \usepackage{xcolor}
-\usepackage{hyperref} % add backlinks to the end of bibliography items
 \usepackage{nicefrac}
 \usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage{floatrow}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -22,15 +22,17 @@
 \usepackage{tikz}
 \usepackage{amssymb}
 \usepackage[plain]{algorithm}
-\lstset{emph={try,catch,throw,def,or,to,for,then,end,for,if,args,else,return},emphstyle=\color{blue!100!black}\textbf}
+\lstset{emph={try,catch,throw,def,or,to,for,then,end,for,if,args,else,return},emphstyle=\color{blue!100!black}\bfseries}
 \lstset{mathescape=true,escapechar=\&,numbers=left,xleftmargin=3mm,linewidth=0.47\textwidth,framextopmargin=0pt,framexbottommargin=0pt,aboveskip=-1pt,belowskip=-1pt}
 \usepackage{mdframed}
 \usepackage{bm}
-\usepackage[capitalise]{cleveref}
 \usepackage[bf]{caption}
 \usepackage{graphicx}
-\usepackage{natbib}
 \usepackage{xspace}
+\usepackage{mathtools}
+\usepackage{natbib}
+\usepackage{hyperref} % add backlinks to the end of bibliography items
+\usepackage[capitalise]{cleveref}
 
 \definecolor{dkblue}{cmyk}{1,.54,.04,.19} 
 \theoremstyle{plain}
@@ -49,17 +51,16 @@
 \newtheorem{assumption}[theorem]{Assumption}
 
 \renewcommand{\P}{\mathbb{P}}
-\newcommand{\RR}{\mathbb{R}}
 \newcommand{\ind}[1]{^{{\scriptscriptstyle(#1)}}}
 \newcommand{\reason}[1]{\texttt{(#1)}}
 \newcommand{\by}[2]{\stackrel{\texttt{(#1)}}{#2}}
 \newcommand{\half}{\tfrac{1}{2}}
 \newcommand{\pr}{\texttt{pr}}
 \newcommand{\po}{\texttt{po}}
+\newcommand{\dom}[1]{\operatorname{dom}(#1)}
 \newcommand{\dA}{\tilde{A}}
 \newcommand{\cN}{\mathcal{N}}
 \newcommand{\cB}{\mathcal{B}}
-\newcommand{\Cov}{\operatorname{Cov}}
 \newcommand{\cR}{\mathcal{R}}
 \newcommand{\cV}{\mathcal{V}}
 \newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
@@ -72,8 +73,8 @@
 \newcommand{\BReg}{\mathfrak{BR}}
 \newcommand{\norm}[1]{\Vert #1 \Vert}
 \newcommand{\E}{\mathbb E}
-\newcommand{\PP}{\mathbb P}
-\newcommand{\Var}{\mathbb V}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
 \newcommand{\cE}{\mathcal E}
 \newcommand{\cK}{\mathcal K}
 \newcommand{\cH}{\mathcal H}
@@ -88,9 +89,7 @@
 \newcommand{\cD}{\mathcal D}
 \newcommand{\cP}{\mathcal P}
 \newcommand{\BS}{\mathbb S}
-\newcommand{\Nu}{\mathcal V}
 \newcommand{\zeros}{ \bm 0}
-\newcommand{\bbP}{\mathbb P}
 \newcommand{\polylog}{\operatorname{polylog}}
 \newcommand{\const}{\operatorname{const}}
 \newcommand{\interior}{\operatorname{int}}
@@ -108,6 +107,7 @@
 \newcommand{\smdalg}{\textsf{SMD}\xspace}
 \newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
 \newcommand{\expthree}{\textsf{Exp3}\xspace}
+\newcommand{\expthreeix}{\textsf{Exp3.IX}\xspace}
 \newcommand{\olo}{\texttt{OLO}\xspace}
 \newcommand{\blo}{\texttt{BLO}\xspace}
 \newcommand{\bco}{\texttt{BCO}\xspace}
@@ -119,9 +119,10 @@
 \maketitle
 
 \section{Overview}
-In this note, we aim to improve the dimension dependence of bandit convex optimization(\bco).
-We start by reviewing online linear optimization(\olo) and bandit linear optimization(\blo).
-Then we move onto \bco in section 4.
+In this note, we aim to improve the dimension dependence of bandit convex optimization (\bco).
+The main theoretical tool we use is mirror descent (\mdalg).
+We start by reviewing online linear optimization (\olo) and bandit linear optimization (\blo).
+Then we move on to \bco.
 The current state of affairs can be summarized as follows:
 \begin{enumerate}
     \item \oco reduces to \olo: $f(x) - f(x_\star) \leq \langle \nabla f(x), x - x_\star \rangle$.
@@ -135,29 +136,72 @@ Let $[n] = \{1,2, \cdots, n\}$.
 Let $D_F(a, b) = F(a) - F(b) - \nabla F(b)^\top (a - b)$ be the Bregman divergence.
 Also let $\cP(A)$ be the set of all probability measures over the set $A$,
 equipped with appropriate $\sigma$-algebra.
+We use uppercase letters such as $A, B, X, Y$ to denote random variables or elements.
 
-\section{Online linear optimization(\texttt{OLO})}
-The adversary chooses a sequence of losses $\ell_1, \cdots, \ell_n \in \cL \subseteq \Rd$.
-In each round $t \in [n]$, the player chooses an action $a_t \in \cA \subseteq \Rd$, and observes $\ell_t$.
-The regret w.r.t to an action $a_\star \in \cA$ is
+Let $\interior(\cD)$ be the interior of the set $\cD$.
+For a convex function $F: \Rd \to \R \cup \{+\infty\}$
+let $\dom{F} = \{x \in \Rd: F(x) < \infty\}$ be the domain of $F$.
+A convex function $F$ is \emph{proper} if $\dom{F} \neq \emptyset$.
+A convex function $F$ is \emph{closed} if its epigraph $\text{epi}(F) = \{(x, t) \in \Rd \times \R: F(x) \leq t\}$ is a closed set.
+In this note, we only consider proper closed convex functions.
+
+\section{Preliminaries: online optimization and regret}
+Online optimization is a repeated game between a player and an adversary.
+In each round $t \in [n]$, the player chooses an action $a_t$ from an action set $\cA$ (usually assumed to be convex and compact), and the adversary chooses a loss function $f_t: \cA \to \R$ from a class of functions $\cF$ (e.g., linear, convex, Lipschitz, smooth, etc.).
+The player then incurs loss $f_t(a_t)$.
+The regret w.r.t. an action $a_\star \in \cA$ is defined as
+\begin{align*}
+    \Reg_n(a_\star) = \sum_{t=1}^{n} f_t(a_t) - f_t(a_\star)\,.
+\end{align*}
+The adversary is free to choose $f_t$ adaptively based on the player's past actions $a_1, \cdots, a_{t-1}$.
+The player is allowed to randomize its actions, i.e., $A_t$ can be a random element taking values in $\cA$.
+Then the expected regret is defined as
+\begin{align*}
+    \E[\Reg_n(a_\star)] = \E\left[\sum_{t=1}^{n} f_t(A_t) - f_t(a_\star)\right]\,,
+\end{align*}
+where the expectation is taken w.r.t. the randomness of the player's actions (and the induced randomness in $f_t$ if the adversary is adaptive).
+The goal is to minimize the expected regret uniformly over all possible sequences of losses and all actions $a_\star \in \cA$.
+
+In the \textit{full-information} setting, at the end of each round $t \in [n]$,
+the player observes the entire loss function $f_t$.
+In the \textit{bandit} setting, the player only observes the incurred loss $f_t(a_t)$.
+We will study both settings in the following sections.
+
+\section{Online linear optimization (\texttt{OLO})}
+By online linear optimization, we mean the following \textit{full-information} game between a player and an adversary, where the losses $f_t$ are linear functions.
+Since $f_t$ is linear, we can write $f_t(a) = \langle \ell_t, a \rangle$ for some loss vector $\ell_t \in \Rd$.
+Then, the regret w.r.t. an action $a_\star \in \cA$ is defined as
 \begin{align*}
     \Reg_n(a_\star) = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle\,.
 \end{align*}
+The algorithm we study for \olo is mirror descent (\mdalg),
+which is presented in \cref{alg:MD}.
 
-\subsection{Mirror decent(\mdalg)}
+\begin{mdframed}
+    \begin{definition}[Legendre function]
+        A convex function $F$ is called \emph{Legendre} if:
+        \begin{enumerate}
+            \item $\interior(\dom{F})$ is nonempty;
+            \item $F$ is strictly convex on $\interior(\dom{F})$;
+            \item $F$ is differentiable on $\interior(\dom{F})$;
+            \item if $x_n\to x\in\partial\dom{F}$ then $\|\nabla F(x_n)\|\to\infty$.
+        \end{enumerate}
+    \end{definition}
+\end{mdframed}
+
+Suppose that $\cA \subset \Rd$ is convex and compact,
+and $F: \Rd \to \R \cup \{+\infty\}$ is a Legendre function such that $\cA \cap \interior(\dom{F}) \neq \emptyset$.
+
+
 For a sequence of losses $\ell_{1:t-1}$, we define the functions $\fmd(\ell_{1:t-1})$
 and $\tfmd(\ell_{1:t-1})$ to be the actions $a_t$ and $\ta_t$
 in \cref{alg:MD}, when the loss sequence $\ell_{1:t-1}$ is fed to the algorithm.
-
-We also overload this notation as $\fmd(\ell; a) = \argmin_{b \in \cA} \eta\langle b, \ell \rangle + D_F(b, a)$,
-and $\tfmd(\ell; a) = \argmin_{b \in \Rd} \eta\langle b, \ell \rangle + D_F(b, a)$.
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
             \begin{lstlisting}
-args: $\eta \in \R$, $F$
-$\ta_1 = \argmin_{a \in \Rd} F(a)$
-$a_1 = \argmin_{a \in \cA} D_F(a, \ta_1)$
+args: $\eta > 0$, potential function $F$
+$a_1 = \argmin_{a \in \cA} F(a)$
 for $t = 1$ to $n$:
     Play $a_t$ and observe $\ell_t$
     $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \ell_t\rangle + D_F(a, a_t)$
@@ -185,13 +229,11 @@ for $t = 1$ to $n$:
         \frac{1}{\eta}
         \left(
         D_F(a_\star, a_1) + \sum_{t=1}^{n} D_F(a_{t}, \tilde{a}_{t+1})
-        \right) \\
-         & =
-        \frac{1}{\eta}
-        \left(
-        D_{F}(a_\star, a_1) + \sum_{t=1}^{n} D_{F^\star}\left(\nabla F(a_t) - \eta \ell_t, \nabla F(a_t)\right)
-        \right)\,.
+        \right).
     \end{align*}
+    Moreover,
+    $ D_F(a_{t}, \tilde{a}_{t+1})
+        = D_{F^\star}\left(\nabla F(a_t) - \eta \ell_t, \nabla F(a_t)\right)$.
 \end{theorem}
 \begin{proof}
     We have
@@ -202,11 +244,12 @@ for $t = 1$ to $n$:
     \end{align*}
     What do we know about $a_{t+1}$?
     \begin{align*}
-         & a_{t+1} = \argmin_{a \in \cA} \eta \langle \ell_t, a \rangle + D_F(a, a_t)                                                                                                          \\
+                    & a_{t+1} = \argmin_{a \in \cA} \eta \langle \ell_t, a \rangle + D_F(a, a_t)                                                                            \\
+        \Rightarrow &
+        \forall \tilde{a} \in \cA, \quad
+        \langle \eta \ell_t + \nabla F(a_{t+1}) - \nabla F(a_t), \tilde{a} - a_{t+1} \rangle \geq 0                                                                         \\
         \Rightarrow
-         & \langle \eta \ell_t + \nabla F(a_{t+1}) - \nabla F(a_t), \tilde{a} - a_{t+1} \rangle \geq 0                                                           & (\forall \tilde{a} \in \cA) \\
-        \Rightarrow
-         & \texttt{tr}_t = \langle \ell_t, a_{t+1} - a_\star \rangle \leq \frac{1}{\eta} \langle \nabla F(a_{t+1}) - \nabla F(a_t), a_\star - a_{t+1} \rangle\,.
+                    & \texttt{tr}_t = \langle \ell_t, a_{t+1} - a_\star \rangle \leq \frac{1}{\eta} \langle \nabla F(a_{t+1}) - \nabla F(a_t), a_\star - a_{t+1} \rangle\,.
     \end{align*}
     Then there's the nice equality
     \begin{align*}
@@ -243,14 +286,15 @@ for $t = 1$ to $n$:
         \nabla F(a_t) - \nabla F(\tilde{a}_{t+1})
         \right)
     \end{align*}
-    which results in another nice equality:
+    which results in another nice equality
     \begin{align*}
         \texttt{st}_t
-         & = \langle \ell_t, a_{t} - a_{t+1} \rangle                                                 \\
-         & = \frac{1}{\eta} \langle \nabla F(a_t) - \nabla F(\tilde{a}_{t+1}), a_t - a_{t+1} \rangle \\
-         & = \frac{1}{\eta} \left(D_F(a_{t+1}, a_t) + D_F(a_t, \tilde{a}_{t+1})\right)
+         & = \langle \ell_t, a_{t} - a_{t+1} \rangle                                                                      \\
+         & = \frac{1}{\eta} \langle \nabla F(a_t) - \nabla F(\tilde{a}_{t+1}), a_t - a_{t+1} \rangle                      \\
+         & = \frac{1}{\eta} \left(D_F(a_{t+1}, a_t) + D_F(a_t, \tilde{a}_{t+1}) - D_F(a_{t+1}, \tilde{a}_{t+1})\right)\,.
     \end{align*}
-    and proves the second inequality,
+    Thus, by dropping the negative term $- D_F(a_{t+1}, \tilde{a}_{t+1})$,
+    we have proved the second inequality,
     \begin{align*}
         \Reg_n(a_\star)
          & \leq
@@ -259,7 +303,7 @@ for $t = 1$ to $n$:
         D_F(a_\star, a_1) + \sum_{t=1}^{n} D_F(a_{t}, \tilde{a}_{t+1})
         \right)\,.
     \end{align*}
-    To see the third part, note that
+    To see the last part of the theorem, we use the definition of Bregman divergence
     \begin{align*}
         D_F(a_{t}, \tilde{a}_{t+1})
          & =D_{F^\star}\left(\nabla F(\tilde{a}_{t+1}), \nabla F(a_t)\right)       \\
@@ -273,13 +317,13 @@ for $t = 1$ to $n$:
     Much of what comes after hinges on the generality of the proof of this theorem.
 \end{remark}
 
-\subsubsection{When $\cA=\Delta(d)$ and $F$ is the negentropy}\label{sec:md-negentropy}
+\subsection*{When \texorpdfstring{$\cA=\Delta(d)$}{A=Delta(d)} and \texorpdfstring{$F$}{F} is the negentropy}\label{sec:md-negentropy}
 The case that $\cA = \Delta(d)$ is the simplex and the potential
 is negentropy,
 \begin{align*}
     R(p) = \begin{cases}
-               \langle p, \ln(p) - 1 \rangle & p \in \Delta(d)         \\
-               \infty                        & p \in \text{otherwise,} \\
+               \langle p, \ln(p) - 1 \rangle & p \in \Rd_+    \\
+               \infty                        & p \notin \Rd_+ \\
            \end{cases}
 \end{align*}
 is of special interest as it results in a sort of universal algorithm for all
@@ -288,18 +332,19 @@ can come up with the cover $\cA$ and randomize over that.
 That being said, while being theoretically interesting, such an algorithm
 would be computationally expensive as the size of the cover grows.
 
-Since $\cA = \Delta(d)$ in this section, instead of denoting actions by `$a$' we use `$p$' to denote a probability measures over $d$ atoms.
 Note that $D_R = D_{KL}$, $R^\star(q) = \langle \exp(q), 1\rangle$,
 $R'(p) = \ln(p)$, and ${R^\star}'(q) = \exp(q)$.
 \begin{theorem}[\mdalg on simplex]\label{thm:md-simplex}
-    Suppose that $\eta \|\ell_t\|_\infty \leq 1$ for all $t \in [n]$,
-    then the regret of \mdalg with $R$ as the potential,
-    when $\cA = \Delta(d)$ is bounded as
+    Suppose that $\ell_t \in [0,1]^d$ and $\cA = \Delta(d)$.
+    Then the regret of \mdalg with $R$ as the potential
+    with learning rate $\eta \in (0,1]$
+    satisfies
     \begin{align*}
         \Reg_n(a_\star) \leq
         \frac{\ln(d)}{\eta}
         +
-        \eta\sum_{t=1}^{n} \langle a_t, \ell_t^2\rangle\,.
+        \eta\sum_{t=1}^{n} \langle a_t, \ell_t^2\rangle
+        \leq 2 \sqrt{n\ln(d)}\,.
     \end{align*}
 \end{theorem}
 \begin{proof}
@@ -345,11 +390,8 @@ $R'(p) = \ln(p)$, and ${R^\star}'(q) = \exp(q)$.
         \ln(d) + \eta^2\sum_{t=1}^{n} \langle a_t, \ell_t^2\rangle
         \right)\,.
     \end{align*}
-\end{proof}
-\begin{remark}[An explicit bound]\label{rem:md-simplex-explicit}
     In order to get a bound in terms of $d$ and $n$,
-    we can further suppose that $\ell_t \in [0,1]^d$
-    and then from theorem~\ref{thm:md-simplex} we have
+    we use the fact that $\ell_t \in [0,1]^d$ to get
     \begin{align*}
         \Reg_n(a_\star) & \leq
         \frac{\ln(d)}{\eta}
@@ -368,35 +410,55 @@ $R'(p) = \ln(p)$, and ${R^\star}'(q) = \exp(q)$.
     \end{align*}
     The better bound of $\sqrt{2n\ln(d)}$ is also possible by using
     $\exp(-x) \leq 1 - x + \frac{x^2}{2}$.
-\end{remark}
+\end{proof}
 
-\section{Bandit linear optimization(\blo)}
+\section{Bandit linear optimization (\blo)}
 In the bandit setting, the learner only observes $y_t = \langle \ell_t, a_t \rangle$, instead of $\ell_t$.
 
 \paragraph{The need for randomization:}
-In \blo, if the learner plays a deterministic action $a_t$ in round $t$,
-then an adversary can choose $\ell_t \perp a_t$ such that
-\begin{align*}
-    \langle \ell_t, a_t \rangle = 0\,,
-\end{align*}
-while $\langle \ell_t, a_\star \rangle$ can be large for some $a_\star \in \cA$.
+In the bandit setting, it is necessary for the learner to randomize its actions,
+as shown by the next theorem.
+\begin{theorem}[Failure of determinism in bandit feedback]
+    \label{thm:blo-deterministic}
+    Consider \blo with action set $\cA=\Delta(2)$, and loss vectors $\ell_t \in [0,1]^2$.
+    The loss of playing $p_t\in\Delta(2)$ is $\langle \ell_t, p_t\rangle$.
+    Then, for every deterministic algorithm and every horizon $n$,
+    there exists a loss sequence $(\ell_t)_{t=1}^n\subset[0,1]^2$
+    such that the regret satisfies
+    \[
+        \max_{p\in\Delta(2)} \sum_{t=1}^{n}\langle \ell_t, p_t - p \rangle \;\ge\; \frac{n}{4}.
+    \]
+\end{theorem}
+\begin{proof}
+    We only provide the proof sketch here.
+    The idea is to only show $1/2$ loss to the learner in each round,
+    and observe its action $p_t$.
+    Let $a_t$ be the second coordinate of $p_t$.
+    WLOG, assume that $a_t \geq 1/2$ for at least $n/2$ rounds.
+    Then, in those rounds, the adversary sets $\ell_t = (0,\frac{1}{2 a_t})$,
+    resulting in loss $1/2$ to the learner (since $\langle \ell_t, p_t \rangle = a_t \cdot \frac{1}{2 a_t} = 1/2$).
+    In the other rounds, the adversary sets $\ell_t = (\frac{1}{2},\frac{1}{2})$.
+    Thus, the learner suffers the loss of $1/2$ in each round that it plays $a_t \geq 1/2$,
+    compared to the $p_\star = (1,0)$ which suffers zero loss in those rounds.
+    Therefore, in total, the learner suffers at least $n/4$ regret.
+\end{proof}
 
-\textcolor{red}{TODO: add the lower bound.}
 
-\subsection{Stochastic mirror decent(\smdalg)}
+\subsection{Stochastic mirror descent(\smdalg)}
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
             \begin{lstlisting}
-args: $\eta \in \R$, $F$
+args: $\eta > 0$, potential function $F$
 $a_1 = \argmin_{a \in \cA} F(a)$
 $\ta_1 = \argmin_{a \in \Rd} F(a)$
 for $t = 1$ to $n$:
-    Choose $P_t \in \Delta(\cA)$, s.t. $\E_{A \sim P_t}[A] = a_t$
+    Choose $P_t \in \cP(\cA)$, s.t. $\E_{A \sim P_t}[A] = a_t$
+    Choose $E_t: \cA \times \R \to \Rd$
     Play $A_t \sim P_t$ and observe $Y_t=\langle A_t, \ell_t \rangle$
     Compute $\hl_t = E_t(A_t, Y_t)$
-    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hl_t\rangle + F(a)$
-    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \hl_t\rangle + F(a)$
+    $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hl_t\rangle + D_F(a, a_t)$
+    $\ta_{t+1} = \argmin_{a \in \Rd} \eta \langle a, \hl_t\rangle + D_F(a, \ta_t)$
 \end{lstlisting}
             \caption{\smdalg}\label{alg:SMD}
         \end{mdframed}
@@ -409,7 +471,7 @@ Instead of choosing an action $a_t \in \cA$, \smdalg chooses an
 \textbf{with mean} $a_t$ in round $t \in [n]$.
 Since losses are linear in {\blo}, we have that
 \begin{align*}
-    \E_t[\langle A_t, \ell \rangle] = \langle a_t, \ell\rangle\,,
+    \E[\langle A_t, \ell_t \rangle] = \langle a_t, \ell_t\rangle\,,
 \end{align*}
 which means \smdalg and \mdalg have the \textbf{same expected loss} given
 the \mdalg action $a_t$.
@@ -472,7 +534,7 @@ However, it is not clear if it is possible to construct such an estimator
 with one sample $Y_t = \langle A_t, \ell_t \rangle$.
 However, the next lemma not only shows that such a task is possible,
 but also shows that it is possible for whole classes of distributions
-$P_t$ with invertible covariance matrix.
+$P_t$ with invertible second moment matrix.
 \begin{lemma}[Unbiased 1-sample estimator]
     \label{lem:1-sample-estimator}
     Let $v \in \R^d$ be a vector,
@@ -498,7 +560,7 @@ $P_t$ with invertible covariance matrix.
          & = v\,.
     \end{align*}
 \end{proof}
-This shows that as long as the covariance matrix of $P_t$ is invertible,
+This shows that as long as the second moment matrix of $P_t$ is invertible,
 it is possible to construct a sequence of unbiased estimators $\hl_t$,
 such that $\E_t[\hl_t] = \ell_t$.
 
@@ -507,11 +569,11 @@ such that $\E_t[\hl_t] = \ell_t$.
     \begin{minipage}{13cm}
         \begin{mdframed}
             \begin{lstlisting}
-args: $\eta \in \R$, $F$
+args: $\eta > 0$, potential function $F$
 $a_1 = \argmin_{a \in \cA} F(a)$
 $\ta_1 = \argmin_{a \in \Rd} F(a)$
 for $t = 1$ to $n$:
-    Choose $P_t \in \Delta(\cA)$ and $E_t \in (\Rd)^{(\cA \times \R)}$, as functions of $a_t$.
+    Choose $P_t \in \cP(\cA)$ and $E_t \in (\Rd)^{(\cA \times \R)}$, as functions of $a_t$.
     Play $A_t \sim P_t$ and observe $Y_t = \langle A_t, \ell_t\rangle$
     Compute $\hl_t = E_t(A_t, Y_t)$
     $a_{t+1} = \argmin_{a \in \cA} \eta \langle a, \hl_t\rangle + D_F(a, a_t)$
@@ -525,63 +587,44 @@ Suppose there are two sampling rules $P_t, P_t' \in \cP(\cA)$ where
 $\E_{A \sim P_t}[A] = \E_{A \sim P_t'}[A]$, and \smdalg should choose
 one of them for sampling $A_t$ at round $t$.
 In \blo, these two \textit{result in the exact same loss} in round $t$,
-and the reason for prefering one over the other is \textit{better exploration}.
-The situation is different for \bco later.
+so how to choose between them?
+If one is biased and the other is unbiased,
+is the unbiased one always preferred?
+The answer seems to be \textit{no}: compare the \expthree and \expthreeix algorithms.
 
-This observation hints us that $P_t$ can (should?) be
-chosen as a function of $\fmd(\ell_{1:t-1})$:
-the best action to choose is $\fmd(\ell_{1:t-1})$,
-and amongst all distributions $P$ that have the mean $\fmd(\ell_{1:t-1})$
-(and so are effectively taking $\fmd(\ell_{1:t-1})$ in \blo), choose the one that
-explores the best---results in \textit{better} $\hl_{1:n}$ sequence.
-
-However, $\hl_t$ is a random vector that depends on both $P_t$ and $E_t$;
-in this sense the best sampling (exploration) rule depends on the
-estimation scheme in use ($E_t$), and vice-versa.
-
-\paragraph{Bias:}
-Maintaining {\smdalg}'s two degrees of freedoms $E_t$ and $P_t$ in
-a way that $\E[\hl_t|\fmd(\hl_{1:t-1})] = \ell_t$ can be costly in terms of the bound on
-\begin{align*}
-    \E\left[
-        \sum_{t=1}^{n} D_F(\bar{A}_{t}, \tilde{A}_{t+1})
-        \right]\,,
-\end{align*}
-and its look-alikes. We have access to two sources of bias to control this quantity:
-\begin{enumerate}
-    \item $\E_{A \sim P_t}[A] \neq a_t$, where $a_t = \fmd(\hl_{1:t-1})$,
-    \item $\E_{A \sim P_t}[\hl_t] \neq \ell_t$. Recall that $\hl_t = E_t(A_t, \langle A_t, \ell \rangle)$, so randomness is only by $A_t$.
-\end{enumerate}
+For the moment, we formulate this question.
+We define a variant of \smdalg where $P_t$ and $E_t$
+can be chosen freely as long as they are functions of $a_t$.
+We call this variant Biased-\smdalg and present it in \cref{alg:biased-SMD}.
 \begin{remark}[Is this an \mdalg-type of algorithm anymore?]
     At this point, it is fair to ask in what sense this is related
     to \mdalg? The key that distinguish Biased-\smdalg from
-    \textit{all possible algorithms} is that $a_t = \fmd(\hl_{1:t-1})$
-    is a sufficient statistics for choosing $P_t$ and $E_t$
-    in Biased-\smdalg.
+    \textit{all possible algorithms} is that $P_t$ and $E_t$
+    are only functions of $a_t$ in Biased-\smdalg.
 \end{remark}
 
 \begin{theorem}[Biased-\smdalg, (\cite{lattimore2024bandit}, Theorem 8.14)]\label{thm:SMD-biased}
     The expected regret of Biased-\smdalg is bounded by
     \begin{align*}
-        \Reg_n(a_\star) \leq
         \frac{D_F(a_\star, a_1)}{\eta} +
         \sum_{t=1}^{n}
         \E\left[
             \langle A_t - a_\star, \ell_t\rangle
-            - \langle \fmd(\hl_{1:t-1}) - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            - \langle \hat{a}_t - a_\star, \hl_t\rangle
+            + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
             \right]\,.
     \end{align*}
+    where $\hat{a}_t = \fmd(\hl_{1:t-1})$.
 \end{theorem}
 \begin{proof}
-    Let $\hat{a}_t = \fmd(\hl_{1:t-1})$, we have
+    We have
     \begin{align*}
-        \Reg_n(a_\star)
-         & =
+         & \Reg_n(a_\star)
+        =
         \E\left[
             \sum_{t=1}^{n}
             \langle A_t - a_\star, \ell_t\rangle
-        \right] \\
+        \right]            \\
          & =
         \E\left[
             \sum_{t=1}^{n}
@@ -591,15 +634,17 @@ and its look-alikes. We have access to two sources of bias to control this quant
             \right]
         \\
          & \leq
-        \frac{D_F(a_\star, a_1)}{\eta} +
         \E\left[
+            \frac{D_F(a_\star, \hat{a}_1)}{\eta}
+            +
             \sum_{t=1}^{n}
             \langle A_t - a_\star, \ell_t\rangle
             - \langle \hat{a}_t - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_F(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
             \right]\,,
     \end{align*}
     where the inequality is by theorem~\ref{thm:MD}.
+    Also note that $\hat{a}_1 = a_1$ since $\hl_{1:0}$ is an empty sequence.
 \end{proof}
 \begin{remark}[\fmd{} in a virtual game]
     Note that $\hl_t$ is adapted to $A_t$ since the algorithm actually plays
@@ -612,9 +657,9 @@ and its look-alikes. We have access to two sources of bias to control this quant
     $\hl_1, \cdots, \hl_n$.
 \end{remark}
 
-\begin{remark}[Closer look at theorem~\ref{thm:SMD-biased}---dummy bound]
+\begin{remark}[Closer look at theorem~\ref{thm:SMD-biased}---a dummy bound]
     \label{rem:dummy-bound}
-    If we look closer at theorem~\ref{alg:biased-SMD}, we can see that
+    If we look closer at theorem~\ref{thm:SMD-biased}, we can see that
     $\sum_{t=1}^{n} \E[\langle A_t - a_\star, \ell_t\rangle]$ term
     that appears on the RHS of the claim is exactly $\Reg_n(a_\star)$,
     so we did bound $\Reg_n(a_\star)$ by $\Reg_n(a_\star) + \square$ and
@@ -638,7 +683,24 @@ and its look-alikes. We have access to two sources of bias to control this quant
     for $\hat{a}_\star$.
 \end{remark}
 
-\subsection{Exploration By Optimization(\expbyopt)}
+In the next section, we present a particular way of choosing $P_t$ and $E_t$
+that results in a low-regret algorithm.
+
+\section{Exploration By Optimization(\expbyopt)}
+The idea is to choose $P_t$ and $E_t$ in each round $t \in [n]$
+to minimize the term inside the expectation in theorem~\ref{thm:SMD-biased}
+which is
+\begin{align*}
+    \E\left[
+        \langle A_t - a_\star, \ell_t\rangle
+        - \langle \hat{a}_t - a_\star, \hl_t\rangle
+        + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
+        \right]\,.
+\end{align*}
+It's helpful to remind ourselves what is random here: $A_t \sim P_t$ and
+$\hl_t = E_t(A_t, Y_t)$ where $Y_t = \langle A_t, \ell_t \rangle$,
+so the \text{expectation is only over $A_t$}.
+
 \begin{algorithm}[h!]
     \begin{minipage}{12cm}
         \begin{mdframed}
@@ -646,7 +708,7 @@ and its look-alikes. We have access to two sources of bias to control this quant
 args: learning rate $\eta >0$, precision $\epsilon > 0$
 for $t = 1$ to $n$:
     compute $a_t = \fmd(\hl_{1:t-1})$
-    find distribution $P_t \in \Delta(\cA)$ and $E_t \in (\Rd)^{(\cA \times \R)}$ s.t.
+    find distribution $P_t \in \cP(\cA)$ and $E_t \in (\Rd)^{(\cA \times \R)}$ s.t.
         $\sup_{\ell, a_\star} \Lambda_{a_t, \eta}(P_t, E_t) \leq \inf_{P,E} \sup_{\ell, a_\star} \Lambda_{a_t, \eta}(P, E) + \epsilon$
     sample $A_t \sim P_t$, and observe $Y_t = \langle \ell_t, A_t \rangle$
     compute $\hl_t = E_t(A_t, Y_t)$
@@ -656,7 +718,7 @@ for $t = 1$ to $n$:
     \end{minipage}
 \end{algorithm}
 
-Suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $\hat{a}_t = \fmd(\hl_{1:t-1})$.
+Perhaps more precisely, suppose it's round $t$; the learner knows what \mdalg suggests to play, i.e., $\hat{a}_t = \fmd(\hl_{1:t-1})$.
 The idea is to choose the best $P_t$ and $E_t$ given $\hat{a}_t$,
 hoping that the term inside the expectation in theorem~\ref{thm:SMD-biased} could
 then be bounded uniformly for all $t \in [n]$.
@@ -672,14 +734,36 @@ $\hl = E(A, Y) = E(A, \langle A, \ell\rangle)$, define
         + \frac{1}{\eta} D_{F^\star}(\nabla F(a) - \eta \hl, \nabla F(a))
         \right]\,,
 \end{align}
-A bound on the following quantity would be ideal:
+Then, a bound on
 \begin{align*}
     \Lambda_{\cA, \cL, F}^\star \triangleq
     \sup_{\eta \geq 0, a \in \cA}
-    \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
+    \inf_{P \in \cP(\cA), E \in (\R^d)^{\cA \times \R}}
     \sup_{a_\star \in \cA, \ell \in \cL}
-    \Lambda_{a, \eta}(P, E || a_\star, \ell)\,.
+    \Lambda_{a, \eta}(P, E || a_\star, \ell)\,,
 \end{align*}
+will  result in a regret bound for \expbyopt.
+\begin{theorem}[Regret of \expbyopt]
+    \label{thm:exp-by-opt-regret}
+    The expected regret of \expbyopt with precision $\epsilon > 0$
+    is bounded as
+    \begin{align*}
+        \Reg_n(a_\star) \leq
+        \inf_{\eta > 0}
+        \left(
+        \frac{D_F(a_\star, a_1)}{\eta}
+        +
+        n \eta
+        \left(
+            \Lambda_{\cA, \cL, F}^\star + \epsilon
+            \right)
+        \right)\,.
+    \end{align*}
+\end{theorem}
+\begin{proof}
+    The proof follows directly from theorem~\ref{thm:SMD-biased}
+    and the definition of \expbyopt.
+\end{proof}
 Moreover, if we allow the second sup player to randomize, the resulting
 saddle point value can't get smaller,
 so let $\nu \in \cP(\cA \times \cL)$ and
@@ -706,12 +790,12 @@ which results in the following minimax theorem.
     \label{lem:exp-by-opt-minimax}
     For all $\eta > 0, a \in \cA$,  we have
     \begin{align*}
-        \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
+        \inf_{P \in \cP(\cA), E \in (\R^d)^{\cA \times \R}}
         \sup_{\nu \in \cP(\cA \times \cL)}
         \Lambda_{a,\eta}(P, E || \nu)
         =
         \sup_{\nu \in \cP(\cA \times \cL)}
-        \inf_{P \in \Delta(\cA), E \in (\R^d)^{\cA \times \R}}
+        \inf_{P \in \cP(\cA), E \in (\R^d)^{\cA \times \R}}
         \Lambda_{a,\eta}(P, E || \nu)\,.
     \end{align*}
 \end{lemma}
@@ -721,40 +805,39 @@ which results in the following minimax theorem.
     See remark~\ref{rem:dummy-bound}.
 \end{remark}
 
-Let $\Delta(\nu, P) = \E_{A \sim P, (A_\star, \ell) \sim \nu}\!\left[\langle A - A_\star, \ell \rangle\right]$.
-\subsubsection{Optimizing for $E$}
+\subsection{General estimators}
+Let $\cP(\nu, P) = \E_{A \sim P, (A_\star, \ell) \sim \nu}\!\left[\langle A - A_\star, \ell \rangle\right]$.
 The inf player can choose the best optimizer given the
 $\nu$ choice of the adversary and its own sampling policy $P$.
-The following lemma shows that the \textit{optimal unrestricted estimator}
-has a closed form.
+\textbf{Most notably, we see that the optimal estimator doesn't depend on the choice of sampling policy $P$},
+and following lemma shows that it comes with a closed form.
 \begin{lemma}
     \label{lem:optimal-E}
-    Given $\nu \in \Delta(\cA \times \cL)$, and $P \in \Delta(d)$
-    define $G_{\nu, p} \in (\Rd)^{(\cA \times \R)}$ as
+    Given $\nu \in \cP(\cA \times \cL)$, and any $P \in \cP(\cA)$,
+    there exists $G_\nu \in (\Rd)^{(\cA \times \R)}$ such that
     \begin{align*}
-        G_{\nu, P}(b, y) & =
+        G_{\nu}(b, y) & =
         \frac{1}{\eta}\left(
         F'(a) - F'(\E[A_\star|Y = y, A = b])
         \right)\,,
     \end{align*}
-    then we have
+    and
     $
         \inf_{E \in (\Rd)^{\cA \times \R}}
-        \Lambda(P, E|| \nu)
+        \Lambda(P, E || \nu)
         =
-        \Lambda(P, G_{\nu, p}|| \nu)\,.
+        \Lambda(P, G_\nu|| \nu)\,.
     $
 \end{lemma}
 \noindent The proof is deferred to \ref{proof:lem:optimal-E}.
-The next theorem shows the connection between this optimal estimator and the information ratio.
 For reasons that will be clear later, let
 $\pr = \E[A_\star]$ (`pr' for prior) and
 $\po = \E[A_\star|A, Y]$ (`po' for posterior).
 \begin{lemma}
     \label{lem:optimal-Lambda-wrong-turn}
-    When using the optimal estimator $G_{\nu, P}$, we have
+    When using the optimal estimator $G_{\nu}$, we have
     \begin{align*}
-        \Lambda(P, G_{\nu, P}|| \nu)
+        \Lambda(P, G_{\nu}|| \nu)
          & = \frac{1}{\eta} \Delta(\nu, P)
         - \frac{1}{\eta^2}
         \E\!\left[
@@ -795,7 +878,7 @@ elegant, it is not useful for proving the connection to the information ratio.
     \end{align*}
 \end{lemma}
 \begin{proof}
-    Follows directly from the expected Bregman identity.
+    Follows directly from the expected Bregman identity and $\E[\po] = \pr$.
 \end{proof}
 \begin{remark}
     Note how the result of lemma~\ref{lem:the-right-turn} is similar to the
@@ -823,20 +906,49 @@ the value of the game, and hence the regret of \expbyopt.
 \end{theorem}
 \noindent The proof is deferred to \ref{proof:thm:optimal-Lambda-info-ratio}.
 
-\subsection{Optimizing for $E$---Affine estimators}
-The player (even in the primal problem), has the knowledge of
-$\eta$ and $a_t = \fmd(\hl_{1:t-1})$, and also has the control over $P_t$,
-so given these three variables, it can limit its search for the
-optimal estimator.
-However, the space $(\Rd)^{(\cA \times \R)}$ is huge.
-
-The learner can further restrict its search to be only over
-estimators $E_T(x,y)$ of the form
+\subsection{Affine estimators}
+One issue with the optimal estimator $G_{\nu, P}$ is that
+it is not clear how to compute it in practice as
+the space of all possible estimators is huge: $(\Rd)^{(\cA \times \R)}$.
+In this subsection, we consider a smaller class of estimators
+and show how they can result in the same kind of results as the unrestricted ones.
+Concretely, let $T = (T_0, T_1)$ be a pair of functions $T_0, T_1 \in (\R^{d})^{\cA}$.
+We define the affine estimators $E_T$ as
 \begin{align*}
-    E_T(x,y) & = T_1(x) \cdot y + T_0(x)\,
+    E_T(x,y) & = T_1(x) \cdot y + T_0(x)\,.
 \end{align*}
-and then only optimizes for $T_1, T_0 \in (\Rd)^\cA \equiv \R^{d \times |\cA|}$.
-\subsubsection{A sanity check---\expthree algorithm}
+\subsubsection{A sanity check---$d$-armed adversarial bandit and \expthree}
+\expthree is a classical algorithm for the $d$-armed adversarial bandit problem.
+This algorithm is of special interest to us since it uses affine estimators
+\begin{align*}
+    E(x,y) & = \frac{y}{p_x} e_x\,,
+\end{align*}
+where $p_x$ is the probability of choosing action $x$.
+Written differently, \expthree uses an affine estimator (as defined above)
+with $T_1(x) = \frac{1}{p_x} e_x$ and $T_0(x) = 0$.
+This shows that \expthree fits into our setup.
+
+\textit{Technically speaking}, there are two different versions of the
+$d$-armed adversarial bandit problem: (1) the action set is the simplex
+$\Delta(d)$, and (2) the action set is the set of standard basis vectors
+$\{e_1, \ldots, e_d\}$.
+To make the distinction clear,
+suppose it's round $t$ and the loss vector is $\ell_t \in [0,1]^d$.
+We have four possible scenarios:
+\begin{center}
+    \begin{tabular}{|c|p{5.5cm}|p{5.5cm}|}
+        \hline
+                           & \textbf{Action set $\Delta(d)$}                                                                                                                         & \textbf{Action set $\{e_1, \ldots, e_d\}$}                                                                                                                     \\
+        \hline
+        \textbf{Full-inf.} & \textbf{Plays:} $a_t \in \Delta(d)$ \newline \textbf{Observes:} $\ell_t$ \newline \textbf{Suffers:} $\langle a_t, \ell_t \rangle$
+                           & \textbf{Plays:} $I_t \sim a_t$ \newline \textbf{Observes:} $\ell_t$ \newline \textbf{Suffers:} $\ell_{t, I_t}$ (expected $\langle a_t, \ell_t \rangle$)                                                                                                                                                                  \\
+        \hline
+        \textbf{Bandit}    & \textbf{Plays:} $a_t \in \Delta(d)$ \newline \textbf{Observes:} $\langle a_t, \ell_t \rangle$ \newline \textbf{Suffers:} $\langle a_t, \ell_t \rangle$  & \textbf{Plays:} $I_t \sim a_t$ \newline \textbf{Observes:} $\ell_{t, I_t}$ \newline \textbf{Suffers:} $\ell_{t, I_t}$ (expected $\langle a_t, \ell_t \rangle$) \\
+        \hline
+    \end{tabular}
+\end{center}
+
+
 In this subsection we instantiate the \expbyopt\ setup with the classical
 \expthree\ choices on the $d$-armed simplex and obtain a uniform
 (per-round, worst-case) bound on $\Lambda$. Plugging this bound into
@@ -846,7 +958,7 @@ $\cO\!\left(\sqrt{dn\ln d}\right)$ regret.
     Let $\cA=\{e_1,\ldots,e_d\}$ and $F=R$ be the negentropy on $\Delta(d)$.
     Fix a round with MD iterate $a\in\Delta(d)$ and learning rate $\eta>0$.
     Let the exploration distribution be $P$ with
-    $\PP(A=e_i)=a_i$ (so $\E[A]=a$), and use the standard loss-based
+    $\P(A=e_i)=a_i$ (so $\E[A]=a$), and use the standard loss-based
     importance-weighted estimator
     \(
     \hl \equiv E(A,Y)=\frac{Y}{a_I}e_I
@@ -867,45 +979,58 @@ $\cO\!\left(\sqrt{dn\ln d}\right)$ regret.
     The inequality is uniform in $a\in\Delta(d)$ and $\eta>0$.
 \end{proposition}
 The proof is deferred to \ref{proof:prop:Lambda-Exp3}.
-
+\subsubsection{The optimal affine estimator}
 Let
 \begin{align*}
     \tilde{A} = {F^\star}'(F'(a) - \eta \hl)\,.
 \end{align*}
-\begin{theorem}[Multiplicative-$Y$ estimators]
+\begin{theorem}[Optimal affine estimators]
     \label{thm:optimal-mult-y}
-    Given $\nu \in \cP(\cA \times \cL)$, $P \in \Delta(d)$,
-    and a function $T: \cA \to \R^d$,
-    define the estimator $E_T:\cA \to \Rd$ as
+    Given $\nu \in \cP(\cA \times \cL)$ and any $P \in \Delta(\cA)$,
+    there exists $T^\nu = (T_0^\nu, T_1^\nu)$ such that
     \begin{align*}
-        E_T(x, y) = y T(x)\,.
+        \Lambda(P, E_{T^{\nu}}|| \nu) =
+        \argmin_{T_0, T_1 \in (\Rd)^\cA}
+        \Lambda(P, E_{(T_0, T_1)}|| \nu)\,,
     \end{align*}
-    Then, for $T^{\nu,p}$ such that
-    \begin{align*}
-        \inf_{T: \cA \to \Rd}
-        \Lambda(P, E_T|| \nu)
-        =
-        \Lambda(P, E_{T^{\nu,p}}|| \nu)\,,
-    \end{align*}
-    it holds that
+    and it holds that
     \begin{align}
         \E\!\left[
             \hl \odot A_\star
             | A
             \right]
-         & =
+        =
         \E\!\left[
             \hl \odot \tilde{A}
             | A
-            \right]\,
+            \right]\,,
+        \text{and}
+        \qquad
+        \E\!\left[
+            \tilde{A}
+            | A
+            \right]
+        =
+        \E\!\left[
+            A_\star
+            | A
+            \right]
+        = \E\!\left[
+            A_\star
+            \right]
+        \,,
         \label{eq:mul-E-opt}
     \end{align}
-    almost surely, where $\hl = E_{T^{\nu,p}}(A, Y) = Y T^{\nu,p}(A)$.
+    almost surely, where $\hl = E_{T^{\nu}}(A, Y)$.
 \end{theorem}
 \noindent The proof is deferred to \ref{proof:thm:optimal-mult-y}.
 It can be seen that, unlike the unrestricted estimator $G_{\nu, P}$,
 $T^{\nu,p}$ doesn't have a closed form,
 but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
+\begin{remark}
+    Somewhat similar to remark~\ref{rem:univ-of-general-estimator},
+    equation~\ref{eq:mul-E-opt} holds regardless of the sampling policy $P$.
+\end{remark}
 \begin{lemma}
     \label{lem:E-optimized-Lambda}
     For $T^{\nu,p}$ defined in Thm~\ref{thm:optimal-mult-y}, we have
@@ -967,7 +1092,7 @@ but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
     and more importantly,
     \begin{align*}
         \Lambda(P, G_{\nu, P}|| \nu)
-         & \leq
+         & =
         \frac{1}{\eta} \Delta(\nu, P)
         - \frac{1}{\eta^2}
         \left(
@@ -981,7 +1106,7 @@ but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
     \end{align*}
 \end{remark}
 
-\begin{theorem}[Connection to information ratio---mul-$Y$ case]\label{thm:mul-Y-Lambda-info-ratio}
+\begin{theorem}[Connection to information ratio---mul-\texorpdfstring{$Y$}{Y} case]\label{thm:mul-Y-Lambda-info-ratio}
     When using the optimal multiplicative-$Y$ estimator $E_{T^{\nu,p}}$,
     suppose that for every $a \in \cA$,
     \[
@@ -1007,7 +1132,7 @@ but we may hope that eq~\ref{eq:mul-E-opt} appear useful.
 \end{theorem}
 \noindent The proof is deferred to \ref{proof:thm:no-alpha}.
 
-\subsection{Deterministic $A_\star$}
+\subsection{Deterministic \texorpdfstring{$A_\star$}{A\_star}}
 \begin{theorem}[Fixed action per loss]
     \label{thm:fixed-action-per-loss}
     For any $\nu \in \cP(\cA \times \cL)$, there exists
@@ -1078,7 +1203,7 @@ coincides with the optimal affine-$Y$ estimator.
 \noindent The proof is deferred to \ref{proof:thm:binary-hypercube-losses}.
 
 
-\subsection{From $\{0,1\}^d$ to $[0,1]^d$}
+\subsection{From \texorpdfstring{$\{0,1\}^d$}{\{0,1\}\^{}d} to \texorpdfstring{$[0,1]^d$}{[0,1]\^{}d}}
 In this section, we fix $\cA = \{e_1, \cdots, e_d\}$.
 We would like to extend the result of theorem~\ref{thm:binary-hypercube-losses}
 to losses in $[0,1]^d$.
@@ -1252,6 +1377,10 @@ Therefore, we have the following for affine \textbf{(or convex)} estimators
      & =
     \inf_{P, E \in \cE_{\text{aff}}}
     \sup_{\bar{\phi} \in \{\phi_1, \cdots, \phi_d\}, a_\star}
+    \Lambda_{a, \eta}(P, E || a_\star, \bar{\phi}) \\
+     & \stackrel{?}{=}
+    \inf_{P, E \in \cE_{\text{gen}}}
+    \sup_{\bar{\phi} \in \{\phi_1, \cdots, \phi_d\}, a_\star}
     \Lambda_{a, \eta}(P, E || a_\star, \bar{\phi})\,,
 \end{align*}
 and it would be nice if we could show that $\cE_{\text{aff}}$ (or $\cE_{\text{conv}}$)
@@ -1395,7 +1524,7 @@ be the corresponding convex polytope of discretized convex functions.
     \]
 \end{definition}
 
-\begin{theorem}[Extreme points of $\cC_m$]\label{thm:1d-basis}
+\begin{theorem}[Extreme points of \texorpdfstring{$\cC_m$}{C\_m}]\label{thm:1d-basis}
     Every element of $\cB_m$ lies in $\cC_m$, and $\cB_m$ is exactly the set of
     extreme points of $\cC_m$.
     Consequently,
@@ -1422,43 +1551,43 @@ be the corresponding convex polytope of discretized convex functions.
 
 
 
-\subsection{continue}
-Therefore, we have that
-\begin{align*}
-     & \eta \Lambda_{a, \eta}(P, E || a_\star, \ell)
-    \leq
-    \E\bigg[
-        \langle e_I - a_\star, \bar{\phi}\rangle
-        - \langle a - a_\star, (1-\bar{\phi}_I)T\ind{0}_I + \bar{\phi}_I T_I\ind{1}\rangle
-        + \frac{
-            S((1 - \bar{\phi}_I)T_I\ind{0} + \bar{\phi}_I T\ind{1}_I)
-        }{\eta}
-    \bigg]                                           \\
-     & \leq
-    \E\bigg[
-        \phi_I -
-        \langle a_\star, \bar{\phi}\rangle
-        - \langle a - a_\star, (1-\bar{\phi}_I)T\ind{0}_I + \bar{\phi}_I T_I\ind{1}\rangle
-        + (1 - \bar{\phi}_I)\frac{S(T_I\ind{0})}{\eta}
-        + \bar{\phi}_I \frac{S(T\ind{1}_I)}{\eta}
-    \bigg]                                           \\
-     & =
-    \E\bigg[
-        (1 - \bar{\phi}_I)
-        \left\{
-        0 - \langle a_\star, \bar{\phi} \rangle
-        - \langle a - a_\star, T\ind{0}_I\rangle
-        + \frac{S(T_I\ind{0})}{\eta}
-        \right\}
-        +
-        \bar{\phi}_I
-        \left\{
-        1 - \langle a_\star, \bar{\phi} \rangle
-        - \langle a - a_\star, T_I\ind{1}\rangle
-        + \frac{S(T\ind{1}_I)}{\eta}
-        \right\}
-    \bigg]                                           \\
-\end{align*}
+% \subsection{continue}
+% Therefore, we have that
+% \begin{align*}
+%      & \eta \Lambda_{a, \eta}(P, E || a_\star, \ell)
+%     \leq
+%     \E\bigg[
+%         \langle e_I - a_\star, \bar{\phi}\rangle
+%         - \langle a - a_\star, (1-\bar{\phi}_I)T\ind{0}_I + \bar{\phi}_I T_I\ind{1}\rangle
+%         + \frac{
+%             S((1 - \bar{\phi}_I)T_I\ind{0} + \bar{\phi}_I T\ind{1}_I)
+%         }{\eta}
+%     \bigg]                                           \\
+%      & \leq
+%     \E\bigg[
+%         \phi_I -
+%         \langle a_\star, \bar{\phi}\rangle
+%         - \langle a - a_\star, (1-\bar{\phi}_I)T\ind{0}_I + \bar{\phi}_I T_I\ind{1}\rangle
+%         + (1 - \bar{\phi}_I)\frac{S(T_I\ind{0})}{\eta}
+%         + \bar{\phi}_I \frac{S(T\ind{1}_I)}{\eta}
+%     \bigg]                                           \\
+%      & =
+%     \E\bigg[
+%         (1 - \bar{\phi}_I)
+%         \left\{
+%         0 - \langle a_\star, \bar{\phi} \rangle
+%         - \langle a - a_\star, T\ind{0}_I\rangle
+%         + \frac{S(T_I\ind{0})}{\eta}
+%         \right\}
+%         +
+%         \bar{\phi}_I
+%         \left\{
+%         1 - \langle a_\star, \bar{\phi} \rangle
+%         - \langle a - a_\star, T_I\ind{1}\rangle
+%         + \frac{S(T\ind{1}_I)}{\eta}
+%         \right\}
+%     \bigg]                                           \\
+% \end{align*}
 
 
 \clearpage
@@ -1565,7 +1694,7 @@ Therefore, we have that
         \right) \\
          & =
         \tfrac{\partial}{\partial E(b,y)}
-        \tfrac{\PP(A=b, Y=y)}{\eta}
+        \tfrac{\P(A=b, Y=y)}{\eta}
         \E\!\left[
             \langle A_\star, \hl \rangle
             + \frac{1}{\eta} F^\star\left(F'(a) - \eta \hl\right)
@@ -1573,21 +1702,21 @@ Therefore, we have that
         \right] \\
          & =
         \tfrac{\partial}{\partial E(b,y)}
-        \tfrac{\PP(A=b, Y=y)}{\eta}
+        \tfrac{\P(A=b, Y=y)}{\eta}
         \E\!\left[
             \langle A_\star, E(b, y) \rangle
             + \frac{1}{\eta} F^\star\left(F'(a) - \eta E(b, y)\right)
             \bigg|A = b, Y = y
         \right] \\
          & =
-        \tfrac{\PP(A=b, Y=y)}{\eta}
+        \tfrac{\P(A=b, Y=y)}{\eta}
         \E\!\left[
         A_\star
         - {F^\star}'\left(F'(a) - \eta E(b, y)\right)
         \bigg| A = b, Y = y
         \right] \\
          & =
-        \tfrac{\PP(A=b, Y=y)}{\eta}
+        \tfrac{\P(A=b, Y=y)}{\eta}
         \left(
         \E\!\left[
             A_\star
@@ -1934,30 +2063,43 @@ Therefore, we have that
 \label{proof:thm:mul-Y-Lambda-info-ratio}
 \begin{proof}[Proof of theorem~\ref{thm:mul-Y-Lambda-info-ratio}]
     Start from the optimality condition for multiplicative-$Y$ estimators,
+    we have
     \begin{equation}
         \E\!\left[\hl \odot A_\star \,\middle|\, A \right]
         \;=\;
-        \E\!\left[\hl \odot \tilde{A} \,\middle|\, A \right],
+        \E\!\left[\hl \odot \tilde{A} \,\middle|\, A \right]
+        \quad \Rightarrow \quad
+        \E\!\left[\hl \odot \left(A_\star-\tilde{A}\right) \,\middle|\, A \right] \;=\; 0
+        \,.
         \tag{\ref{eq:mul-E-opt}}
     \end{equation}
-    and use that $\hl$ is a function of $(A,Y)$. Conditioning further on $(A,Y)$ gives
-    \[
-        \E\!\left[\hl \odot \left(A_\star-\tilde{A}\right) \,\middle|\, A,Y \right]
-        \;=\;
-        \hl \odot \Big(\E[A_\star \mid A,Y] - \tilde{A}\Big)
-        \;=\; \hl \odot \left(\po - \tilde{A}\right),
-    \]
-    hence
-    \begin{equation}
-        \E\!\left[\hl \odot \left(\po - \tilde{A}\right) \,\middle|\, A \right] \;=\; 0.
+    Next, by tower rule and conditioning further on $(A,Y)$ we get
+    \begin{align}
+        0 & = \E\!\left[\hl \odot \left(A_\star-\tilde{A}\right) \,\middle|\, A \right] \nonumber \\
+          & = \E\!\left[
+            \E\!\left[\hl \odot \left(A_\star-\tilde{A}\right) \,\middle|\, A, Y \right]
+            \,\middle|\, A
+        \right]                                                                         \nonumber \\
+          & = \E\!\left[
+            \hl \odot
+            \left(\po-\tilde{A}\right)
+            \,\middle|\, A
+            \right]\,,
         \label{eq:tildeA-vs-po}
-    \end{equation}
+    \end{align}
+    where in the last step we used that $\tilde{A}$ and $\hl$ are functions of $(A,Y)$
+    and that $\po=\E[A_\star|A,Y]$.
+    % hence
+    % \begin{equation}
+    %     \E\!\left[\hl \odot \left(\po - \tilde{A}\right) \,\middle|\, A \right] \;=\; 0.
+    %     \label{eq:tildeA-vs-po}
+    % \end{equation}
     Next, use the defining relation
     \begin{equation}
         F'(a) - F'(\tilde{A}) \;=\; \eta\,\hl,
         \tag{\ref{eq:hl-alternate}}
     \end{equation}
-    to turn \eqref{eq:tildeA-vs-po} into
+    together with \eqref{eq:tildeA-vs-po} gives
     \[
         \E\!\left[
             \left\langle F'(a) - F'(\tilde{A}),\, \po - \tilde{A} \right\rangle
@@ -2338,7 +2480,7 @@ Therefore, we have that
     \emph{Step 3: classification of extreme points.}
     We consider two cases.
 
-    \paragraph{Case A: $Z=\varnothing$ (no zeros).}
+    \paragraph{Case A: \texorpdfstring{$Z=\varnothing$}{Z=empty} (no zeros).}
     If $f(i)\in(0,1)$ for all $i$, then for sufficiently small $\varepsilon>0$ the
     vectors $v^\pm:=v\pm\varepsilon\cdot(1,\dots,1)$ still lie in $\cC_m$ (they
     preserve discrete convexity and stay in $[0,1]^m$), and $v=\tfrac12(v^+ + v^-)$
@@ -2347,7 +2489,7 @@ Therefore, we have that
     Convexity and $0<f(i)\le 1$ then force $f\equiv 1$ on the grid, so $v=\psi^{\mathrm{one}}$.
     Thus $\psi^{\mathrm{one}}$ is the unique extreme point with $Z=\varnothing$.
 
-    \paragraph{Case B: $Z\neq\varnothing$.}
+    \paragraph{Case B: \texorpdfstring{$Z\neq\varnothing$}{Z!=empty}.}
     Write $Z=\{a,\dots,b\}$ with $0\le a\le b\le m-1$.
     We first show $f$ must coincide with the piecewise affine function corresponding to $\psi^{a,b}$.
 
@@ -2511,7 +2653,6 @@ Then we get
         \ln \E[a_\star(\ell)]
         \right)
         \right]\,.
-    a
 \end{align*}
 
 \end{document}
