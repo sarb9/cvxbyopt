@@ -1,0 +1,444 @@
+\subsubsection{Proof of proposition~\ref{prop:Lambda-Exp3}}
+\label{proof:prop:Lambda-Exp3}
+\begin{proof}[Proof of proposition~\ref{prop:Lambda-Exp3}]
+    By unbiasedness, $\E[\hl]=\ell$, and by construction $\E[A]=a$. Hence the
+    linear terms in the definition of $\Lambda$ cancel in expectation:
+    \begin{align*}
+        \Lambda_{a,\eta}(P,E\!\mid\mid a_\star,\ell)
+         & =\frac{1}{\eta}\,\E\!\Big[\ip{A-a_\star,\ell}-\ip{a-a_\star,\hl}
+        +\frac{1}{\eta}D_{F^\star}(F'(a)-\eta \hl,F'(a))\Big]                  \\
+         & =\frac{1}{\eta^2}\,\E\!\big[D_{F^\star}(F'(a)-\eta \hl,F'(a))\big].
+    \end{align*}
+    For negentropy $F=R$, we have $R'(a)=\ln a$ (componentwise),
+    $R^\star(q)=\sum_i e^{q_i}$, and, for any $z\in\R^d$,
+    \begin{align*}
+        D_{R^\star}(\ln a-\eta z,\ln a)
+         & = R^\star(\ln a-\eta z)-R^\star(\ln a)
+        - R'^\star(\ln a)^\top(-\eta z)                         \\
+         & =\sum_{i=1}^d a_i\Big(e^{-\eta z_i}-1+\eta z_i\Big).
+    \end{align*}
+    Taking $z=\hl$ and recalling that under the estimator
+    $\hl_I=\ell_I/a_I$ and $\hl_i=0$ for $i\neq I$, we obtain
+    \[
+        D_{R^\star}(\ln a-\eta \hl,\ln a)
+        = a_I\!\left(e^{-\eta \ell_I/a_I}-1\right)+\eta \ell_I.
+    \]
+    Averaging over $I\sim a$ yields
+    \begin{align}
+        \E\!\big[D_{R^\star}(\ln a-\eta \hl,\ln a)\big]
+         & =\sum_{i=1}^d a_i^2\!\left(e^{-\eta \ell_i/a_i}-1\right)+\eta \sum_{i=1}^d a_i \ell_i.
+        \label{eq:exact-exp3-D}
+    \end{align}
+    Using the elementary bound $e^{-x}\le 1-x+\tfrac{x^2}{2}$ for all $x\ge 0$
+    (with $x=\eta \ell_i/a_i$; note $\ell_i\ge 0$ and $a_i>0$), we get
+    \[
+        a_i^2\!\left(e^{-\eta \ell_i/a_i}-1\right)
+        \le -\eta a_i\ell_i+\frac{\eta^2}{2}\,\ell_i^2.
+    \]
+    Summing this over $i$ and adding the $+\eta\sum_i a_i\ell_i$ term in
+    \eqref{eq:exact-exp3-D} produces a cancellation, giving
+    \[
+        \E\!\big[D_{R^\star}(\ln a-\eta \hl,\ln a)\big]
+        \le \frac{\eta^2}{2}\sum_{i=1}^d \ell_i^2
+        = \frac{\eta^2}{2}\,\|\ell\|_2^2.
+    \]
+    Dividing by $\eta^2$ proves the first inequality in
+    \eqref{eq:Lambda-Exp3-bound}. Since $\ell\in[0,1]^d$,
+    $\|\ell\|_2^2\le d$, which yields the second inequality.
+\end{proof}
+\subsubsection{Proof of theorem~\ref{thm:fixed-action-per-loss}}
+\label{proof:thm:fixed-action-per-loss}
+\begin{proof}[Proof of theorem~\ref{thm:fixed-action-per-loss}]
+    Observe that
+    \begin{align*}
+        \po & = \E[A_\star|A, Y] \\
+            & = \E\left[
+            \E[A_\star|\ell, A, Y]
+            | A, Y
+        \right]                  \\
+            & = \E\left[
+            \E[A_\star|\ell, A]
+            | A, Y
+            \right]
+        \tag{$Y = \langle A, \ell \rangle$}
+        \\
+            & = \E\left[
+            \E[A_\star|\ell]
+            | A, Y
+            \right]\,,
+        \tag{$A_\star$ is independent of $A$ given $\ell$}
+    \end{align*}
+    so defining
+    \begin{align*}
+        a_\star(\ell) & = \E[A_\star|\ell]\,,
+    \end{align*}
+    we have $\po = \E\left[
+            a_\star(\ell)
+            | A, Y
+            \right]$.
+    Next, recall the value of $\Lambda(P, G^{\nu} || \nu)$ from lemma~\ref{lem:optimal-Lambda-wrong-turn}:
+    \begin{align*}
+        \Lambda(P, G^{\nu} || \nu)
+         & = \frac{1}{\eta}
+        \Delta(\nu, P)
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \po, a\right)
+        \right]                                      \\
+         & =
+        \frac{1}{\eta}
+        \E\left[
+            \langle A - A_\star, \ell\rangle
+            \right]
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \E[a_\star(\ell)|A, Y], a\right)
+        \right]                                      \\
+         & =
+        \frac{1}{\eta}
+        \E\left[
+            \langle A - \E[A_\star|\ell], \ell\rangle
+            \right]
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \E[a_\star(\ell)|A, Y], a\right)
+        \right]                                      \\
+         & =
+        \frac{1}{\eta}
+        \E\left[
+            \langle A - a_\star(\ell), \ell\rangle
+            \right]
+        - \frac{1}{\eta^2}
+        \E\!\left[
+            D_F\left( \E[a_\star(\ell)|A, Y], a\right)
+        \right]                                      \\
+         & = \Lambda(P, G^{\nu'} || \nu')\,.\qedhere
+    \end{align*}
+\end{proof}
+
+\subsubsection{Proof of lemma~\ref{lem:mu-concave}}
+\label{proof:lem:mu-concave}
+\begin{proof}[Proof of lemma~\ref{lem:mu-concave}]
+    By Lemma~\ref{lem:optimal-Lambda-wrong-turn}, for $\nu=\nu(\mu,a_\star)$,
+    \begin{align}
+        \Phi(\mu,a_\star)
+         & = \frac{1}{\eta}\,\Delta(\nu,P) \;-\; \frac{1}{\eta^2}\,
+        \E\!\left[D_F\!\left(\po,a\right)\right],
+        \qquad \po=\E\!\left[a_\star(\ell)\,\middle|\,A,Y\right].
+        \label{eq:phi-decomp}
+    \end{align}
+    The first term is
+    \[
+        \Delta(\nu,P)
+        = \E\!\left[\ip{A-a_\star(\ell),\,\ell}\right]
+        = \E\!\left[\ip{A,\ell}\right] - \E\!\left[\ip{a_\star(\ell),\ell}\right],
+    \]
+    where the first expectation is linear in $\mu$.
+    The second expectation is bilinear in $(\mu,a_\star)$,
+    but we need to show concavity of the entire term
+    $(\mu,a_\star)\mapsto \E[D_F(\po,a)]$.
+    To this end, we have
+    \begin{align*}
+        \E\!\left[D_F(\po,a)\right]
+         & = \E\!\left[F(\po)\right] - F(a) - F'(a)^\top (\E[\po]-a) \\
+         & = \E\!\left[F(\po)\right] - F'(a)^\top \E[\po] + c(a),
+    \end{align*}
+
+    For the second term, use the Bregman form
+    $D_F(x,a)=F(x)-F'(a)^\top x + c(a)$,
+    to write
+    \[
+        \E\!\left[D_F(\po,a)\right]
+        = \E\!\left[F(\po)\right] - F'(a)^\top \E[\po] + c(a)
+        = \E\!\left[F(\po)\right] - F'(a)^\top \E[a_\star(\ell)] + c(a),
+    \]
+    where we used $\E[\po]=\E[a_\star(\ell)]$.
+    Thus convexity of $(\mu,a_\star)\mapsto \E[D_F(\po,a)]$ reduces to convexity of
+    $(\mu,a_\star)\mapsto \E[F(\po)]$.
+
+    By Fenchel–Young,
+    $F(u)=\sup_{q\in\Rd}\{\ip{q,u}-F^\star(q)\}$.
+    Applying this pointwise to $u=\po=\E[a_\star(\ell)\mid A,Y]$ and using a measurable
+    selection for the maximizer (or taking the supremum over measurable $Q:\cA\times\R\to\Rd$) yields
+    \begin{align*}
+        \E\!\left[F(\po)\right]
+         & = \sup_{Q}\,
+        \left\{
+        \E\!\left[\ip{Q(A,Y),\,\po}\right] - \E\!\left[F^\star(Q(A,Y))\right]
+        \right\}        \\
+         & = \sup_{Q}\,
+        \left\{
+        \E\!\left[\ip{Q(A,Y),\,a_\star(\ell)}\right] - \E\!\left[F^\star(Q(A,Y))\right]
+        \right\},
+    \end{align*}
+    where we used the tower property
+    $\E[\ip{Q(A,Y),\po}]=\E[\ip{Q(A,Y),a_\star(\ell)}]$.
+    For fixed $Q$, the functional
+    \(
+    (\mu,a_\star)\mapsto \E[\ip{Q(A,Y),a_\star(\ell)}] - \E[F^\star(Q(A,Y))]
+    \)
+    is affine in $(\mu,a_\star)$ (linear in the law of $(A,Y)$—hence in $\mu$—and linear in $a_\star$).
+    A supremum of affine functionals is convex. Hence
+    $(\mu,a_\star)\mapsto \E[F(\po)]$ is convex, so
+    $(\mu,a_\star)\mapsto \E[D_F(\po,a)]$ is convex, and by \eqref{eq:phi-decomp},
+    $(\mu,a_\star)\mapsto \Phi(\mu,a_\star)$ is concave.
+\end{proof}
+
+\subsubsection{Proof of theorem~\ref{thm:binary-hypercube-losses}}
+\label{proof:thm:binary-hypercube-losses}
+\begin{proof}[Proof of theorem~\ref{thm:binary-hypercube-losses}]
+    Recall the definitions of $\po$ and $\tilde{A}$:
+    \begin{align*}
+        \po       & = \E[a_\star(\ell) | A, Y]\,,          \\
+        \tilde{A} & = {F^\star}'\left(F'(a) - \eta \right)
+        = {F^\star}'\left(F'(a) - \eta (T_1(A)Y + T_0(A))\right)\,,
+    \end{align*}
+    where $a_\star$ is the function defined in theorem~\ref{thm:fixed-action-per-loss}.
+
+    Since the action space is the $k$-simplex,
+    we have $A = e_I$ for some random variable $I \in [k]$ with
+    $\P(I = i) = P_i$.
+    Also, since $\ell$ is supported on $\{0,1\}^k$,
+    we have $Y = \langle e_I, \ell \rangle = \ell_I$.
+    Therefore, we can rewrite $\po$ as
+    \begin{align*}
+        \po & = \E[a_\star(\ell) | I, \ell_I]\,,
+    \end{align*}
+    and we can rewrite $\tilde{A}$ as
+    \begin{align*}
+        \tilde{A} & = {F^\star}'\left(F'(a) - \eta (T_1(e_I)\ell_I + T_0(e_I))\right)\,.
+    \end{align*}
+
+    Note that $\ell_I$ is a Bernoulli random variable
+    given $I$ since $\ell$ is supported on $\{0,1\}^k$.
+    Therefore, for every fixed $i \in [k]$,
+    we can choose $T_1(e_i)$ and $T_0(e_i)$ as
+    \begin{align*}
+        T_0(e_i) & = \frac{1}{\eta}
+        \left(F'(a) - F'(\E[a_\star(\ell) | I = i, \ell_i = 0])\right)\,, \\
+        T_1(e_i) & = \frac{1}{\eta}
+        \left(F'(\E[a_\star(\ell) | I = i, \ell_i = 0])
+        - F'(\E[a_\star(\ell) | I = i, \ell_i = 1])\right)\,,
+    \end{align*}
+    which results in
+    \begin{align*}
+        \tilde{A} & =
+        {F^\star}'\left(F'(a) - \eta (T_1(e_I)\ell_I + T_0(e_I))\right) \\
+                  & =
+        \E[a_\star(\ell) | I, \ell_I] = \po\,,
+    \end{align*}
+    almost surely.
+\end{proof}
+
+\subsection{Proof of theorem~\ref{thm:1d-basis}}
+\label{proof:thm:1d-basis}
+\begin{proof}[Proof of theorem~\ref{thm:1d-basis}]
+    \emph{Step 1: $\cC_m$ is the discretization of convex functions on $[0,1]$.}
+    Given $v\in\cC_m$, define $f:[0,m-1]\to\R$ to be the continuous, piecewise
+    affine function with $f(i)=v_i$ and affine on each $[i,i+1]$.
+    The inequalities $v_{i-1}-2v_i+v_{i+1}\ge 0$ are equivalent to the slopes
+    $f(i)-f(i-1)$ forming a nondecreasing sequence, hence $f$ is convex.
+    Conversely, the sampled values of any convex $f$ on $\{0,\dots,m-1\}$ satisfy
+    these inequalities.
+    The box constraints $0\le v_i\le 1$ translate to $0\le f(i)\le 1$ on the grid.
+
+    \smallskip
+    \emph{Step 2: the zero set of an extreme point is an interval.}
+    Let $v\in\cC_m$ be extreme and $f$ its extension.
+    Suppose $f(i)=0$ and $f(\ell)=0$ for some integers $0\le i<\ell\le m-1$.
+    Convexity and $f\ge 0$ on the grid imply
+    \[
+        f(t)
+        \;\le\;
+        \frac{\ell-t}{\ell-i}f(i)
+        +
+        \frac{t-i}{\ell-i}f(\ell)
+        \;=\; 0,
+        \qquad t\in[i,\ell],
+    \]
+    so $f(j)\le 0$ for all integers $j\in[i,\ell]$.
+    Since $f(j)\ge 0$ on the grid, we have $f(j)=0$ for all $j\in[i,\ell]$.
+    Thus the set
+    \[
+        Z := \{\,i\in\{0,\dots,m-1\}: f(i)=0\,\}
+    \]
+    is, if nonempty, a contiguous block $Z=\{a,\dots,b\}$ for some $0\le a\le b\le m-1$.
+
+    \smallskip
+    \emph{Step 3: classification of extreme points.}
+    We consider two cases.
+
+    \paragraph{Case A: \texorpdfstring{$Z=\varnothing$}{Z=empty} (no zeros).}
+    If $f(i)\in(0,1)$ for all $i$, then for sufficiently small $\varepsilon>0$ the
+    vectors $v^\pm:=v\pm\varepsilon\cdot(1,\dots,1)$ still lie in $\cC_m$ (they
+    preserve discrete convexity and stay in $[0,1]^m$), and $v=\tfrac12(v^+ + v^-)$
+    with $v^+\neq v^-$, contradicting extremality.
+    Hence at least one coordinate must lie at the upper boundary, $f(j)=1$ for some $j$.
+    Convexity and $0<f(i)\le 1$ then force $f\equiv 1$ on the grid, so $v=\psi^{\mathrm{one}}$.
+    Thus $\psi^{\mathrm{one}}$ is the unique extreme point with $Z=\varnothing$.
+
+    \paragraph{Case B: \texorpdfstring{$Z\neq\varnothing$}{Z!=empty}.}
+    Write $Z=\{a,\dots,b\}$ with $0\le a\le b\le m-1$.
+    We first show $f$ must coincide with the piecewise affine function corresponding to $\psi^{a,b}$.
+
+    On $[a,b]$ we already know $f\equiv0$.
+    On $[0,a]$, convexity and $f\ge0$ imply that $f$ attains its minimum $0$ at the
+    right endpoint $a$.
+    For a convex function, this forces the derivative on $[0,a]$ to be constant:
+    otherwise there would be a strictly smaller value in the interior.
+    Hence $f$ is affine on $[0,a]$.
+    Similarly, $f$ is affine on $[b,m-1]$.
+
+    If $a>0$ and $f(0)<1$, then for small $\varepsilon>0$ the functions
+    \[
+        f^\pm(t)
+        :=
+        f(t) \pm \varepsilon\frac{a-t}{a}
+        \quad\text{for } t\in[0,a],
+        \qquad
+        f^\pm(t):=f(t)\ \text{ for } t\in[a,m-1],
+    \]
+    remain convex, agree with $f$ on $[a,m-1]$, and still satisfy $0\le f^\pm(i)\le1$
+    on the grid.
+    Their sampled vectors $v^\pm$ lie in $\cC_m$, $v^\pm\neq v$, and
+    $v=\tfrac12(v^+ + v^-)$, contradicting extremality.
+    Hence if $a>0$ we must have $f(0)=1$.
+    An analogous perturbation on $[b,m-1]$ shows that if $b<m-1$ we must have
+    $f(m-1)=1$.
+
+    Combining these facts, $f$ is exactly the piecewise affine function which
+    is $0$ on $\{z_a,\dots,z_b\}$,
+    linear from $(z_0,1)$ to $(z_a,0)$ when $a>0$, and
+    linear from $(z_b,0)$ to $(z_{m-1},1)$ when $b<m-1$,
+    i.e.\ $v=\psi^{a,b}$.
+
+    \smallskip
+    We have shown that every extreme point of $\cC_m$ is either $\psi^{\mathrm{one}}$
+    or $\psi^{a,b}$ for some $0\le a\le b\le m-1$.
+    Thus $\mathrm{ext}(\cC_m)\subseteq \cB_m$.
+
+    \smallskip
+    \emph{Step 4: each $\psi^{a,b}$ is extreme.}
+    It remains to check that every $\psi^{a,b}$ (and $\psi^{\mathrm{one}}$) is in fact
+    an extreme point.
+    For $\psi^{\mathrm{one}}$, all upper box constraints $v_i\le 1$ are tight, and
+    it is the unique point in $\cC_m$ with $v_i=1$ for all $i$, hence extreme.
+
+    For $\psi^{a,b}$, note that:
+    \begin{itemize}
+        \item the constraints $v_i\ge 0$ are tight for all $i\in\{a,\dots,b\}$;
+        \item if $a>0$ then $v_0\le 1$ is tight with $v_0=1$; if $b<m-1$ then
+              $v_{m-1}\le 1$ is tight with $v_{m-1}=1$;
+        \item the convexity constraints $v_{i-1}-2v_i+v_{i+1}\ge 0$ are tight
+              (equalities) for all $i\in\{1,\dots,m-2\}\setminus\{a,b\}$, because
+              $\psi^{a,b}$ is affine on $[0,a]$, on $[a,b]$, and on $[b,m-1]$.
+    \end{itemize}
+    These equalities form a system of $m$ linearly independent constraints whose
+    unique solution in $\R^m$ is $v=\psi^{a,b}$, so $\psi^{a,b}$ is a vertex of $\cC_m$
+    and hence an extreme point.
+
+    \smallskip
+    Since $\cC_m$ is a polytope, it is the convex hull of its extreme points, and
+    we have just identified those with $\cB_m$.
+    This proves $\cC_m=\conv(\cB_m)$ and the stated formula for $d=|\cB_m|$.
+\end{proof}
+
+
+\newpage
+It's fun to look at the optimal estimator for the value $\ell_i = y$:
+\begin{align*}
+    \tilde{A}(i,y) & =
+    {F^\star}'\left(F'(a) - \eta (T_1(e_i)y + T_0(e_i))\right)       \\
+                   & =
+    {F^\star}'\left(F'(a)
+    - \left(F'(\E[a_\star(\ell) | \ell_i = 0])
+    - F'(\E[a_\star(\ell) | \ell_i = 1])\right)y
+    - \left(F'(a) - F'(\E[a_\star(\ell) | \ell_i = 0])\right)\right) \\
+                   & =
+    {F^\star}'\left(y F'(\E[a_\star(\ell) | \ell_i = 1])
+    + (1 - y) F'(\E[a_\star(\ell) | \ell_i = 0])\right)              \\
+                   & \stackrel{?}{=}
+    \E[a_\star(\ell) | \ell_i = y]\,,
+\end{align*}
+where the last equality needs to be proven somehow...
+
+
+When $F$ is the negentropy, we have
+\begin{align*}
+    \tilde{A} & =
+    \exp\!\left(
+    \lambda \ln(\E[a_\star(\ell) | \ell_i = 1])
+    + (1 - \lambda) \ln(\E[a_\star(\ell) | \ell_i = 0])
+    \right)       \\
+              & =
+    (\E[a_\star(\ell) | \ell_i = 1])^y
+    \cdot (\E[a_\star(\ell) | \ell_i = 0])^{1 - y}\,.
+\end{align*}
+Let's put this estimator inside the $\Lambda$ expression: (with negentropy $F=R$)
+\begin{align*}
+     & \Lambda(P, T || \nu) \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        D_R\left(\tilde{A}, a\right)
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        R(\tilde{A}) - R(a) - R'(a)^\top (\tilde{A} - a)
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        \sum_{j=1}^d \tilde{A}_j \ln \tilde{A}_j
+        - a_j \ln a_j
+        - (1 + \ln a_j)(\tilde{A}_j - a_j)
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        \sum_{j=1}^d \tilde{A}_j \ln \frac{\tilde{A}_j}{a_j}
+        \right]\,.
+\end{align*}
+Let's suppose that $a = \E[a_\star(\ell)]$.
+Then we get
+\begin{align*}
+     & \Lambda(P, T || \nu) \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        \sum_{j=1}^d \tilde{A}_j \ln \frac{\tilde{A}_j}{\E[a_{\star,j}(\ell)]}
+    \right]                 \\
+     & =
+    \frac{1}{\eta}
+    \E\!\left[
+        \langle A - A_\star, \ell \rangle
+        \right]
+    - \frac{1}{\eta^2}
+    \E\!\left[
+        D_{R^\star}\left(
+        \ln \tilde{A},
+        \ln \E[a_\star(\ell)]
+        \right)
+        \right]\,.
+\end{align*}

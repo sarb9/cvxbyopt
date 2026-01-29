@@ -76,7 +76,7 @@ We now introduce a parametric family that \emph{guarantees} the equality $\tilde
     The inclusion $\Nu(\Theta)\subseteq \Nu_{\text{good}}$ is a statement \emph{after} we augment $\nu$ with the sampling kernel $A\sim P$ and the observation map $Y=\ip{A,\ell}$. We do not alter the prior $\nu$ on $(A_\star,\ell)$; rather, we require that the resulting \emph{conditional} $A_\star\mid(A,Y)$ lie in the mirror–exponential tilt family \eqref{eq:mirror-exp-density} for some measurable $T$.
 \end{remark}
 
-\paragraph{When is $\Nu(\Theta)$ nonempty?}
+\paragraph{When is \texorpdfstring{$\Nu(\Theta)$}{Nu(Theta)} nonempty?}
 We need $F^\star$ to be a valid log–Laplace transform relative to a base measure $\mu$ on $\cD$. This holds in many standard cases.
 
 \subsubsection*{Specialization I: Quadratic/Gaussian}
@@ -280,7 +280,7 @@ Although $\cN_{\mathrm{aff}}$ is not convex in general, there are rich families 
 For regret \emph{upper bounds}, it suffices to analyze the dual problem and, by Theorem~\ref{thm:restricted-dual}, the adversary can be restricted to $\cN_{\mathrm{aff}}$ without changing the dual value. Inside this class, multiplicative-$Y$ achieves $\tilde{A}=\po$ a.s.\ and inherits the information-ratio bound of the unrestricted estimator. Attempting to impose the same restriction on the \emph{primal} side runs into genuine obstacles (non-convexity of priors with dual-affine posteriors and the concavity of $f(\nu)$).
 
 \section{Nov 4, try 1}
-\subsection{When can multiplicative-$Y$ recover $A_\star$ (or the posterior mean)?}
+\subsection{When can multiplicative-\texorpdfstring{$Y$}{Y} recover \texorpdfstring{$A_\star$}{A\_star} (or the posterior mean)?}
 
 \paragraph{Setup.}
 Throughout this subsection we work with the multiplicative-$Y$ class
@@ -387,7 +387,7 @@ $E_T(x,y)=y\,T(x)$, hence $\hl=Y\,T_A$ and
     Theorem~\ref{thm:optimal-Lambda-info-ratio}.
 \end{proof}
 
-\paragraph{Two canonical templates for $\nu$ where $\tilde{A}=A_\star$ is feasible.}
+\paragraph{Two canonical templates for \texorpdfstring{$\nu$}{nu} where \texorpdfstring{$\tilde{A}=A_\star$}{A\_tilde=A\_star} is feasible.}
 
 \begin{example}[Quadratic potential, single-index linear model]\label{ex:quad-single-index}
     Let $F(x)=\tfrac12\|x\|^2$ so $F'(x)=x$ and ${F^\star}'(q)=q$.
@@ -444,7 +444,7 @@ information-ratio reduction need not hold without additional assumptions
 
 \hrule
 
-\subsection*{When does $\dA=\po$ almost surely?}
+\subsection*{When does \texorpdfstring{$\dA=\po$}{A\_tilde=po} almost surely?}
 
 Recall the definition
 \[
@@ -523,7 +523,7 @@ and (in the multiplicative-$Y$ class) $\hl=\frac{Y}{\eta P_A}T_A$ with $T\in(\R^
     and consequently $\dA=\po$ a.s.\ (this is vacuous for learning, but it shows attainability in degenerate cases).
 \end{corollary}
 
-\paragraph{A necessary condition (no hidden curvature in $y$).}
+\paragraph{A necessary condition (no hidden curvature in \texorpdfstring{$y$}{y}).}
 \begin{lemma}[Affine-dual necessity]
     \label{lem:affine-necessary}
     Suppose $E_T$ is multiplicative-$Y$ and $\dA=\po$ a.s.
@@ -552,7 +552,7 @@ This explains why the equality $\dA=\po$ cannot be enforced by multiplicative-$Y
 
 \hrule
 
-\subsubsection{Optimizing for $E$---linear (affine) in $Y$ without normalizers}
+\subsubsection{Optimizing for \texorpdfstring{$E$}{E}---linear (affine) in \texorpdfstring{$Y$}{Y} without normalizers}
 We now remove the explicit normalizers from the estimator and work directly with
 \begin{equation}
     \label{eq:def-linY-no-norm}
@@ -707,7 +707,7 @@ $\E[D_F(\po,\pr)]$ by a universal multiplicative factor.
     exists.
 \end{corollary}
 
-\paragraph{When can we achieve $\tilde{A}=\po$ a.s.?}
+\paragraph{When can we achieve \texorpdfstring{$\tilde{A}=\po$}{A\_tilde=po} a.s.?}
 Allowing a bias relaxes the intercept but does not remove the fundamental
 nonlinearity barrier.
 

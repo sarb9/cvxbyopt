@@ -1,0 +1,394 @@
+\documentclass{article}
+
+\textwidth=125mm
+\textheight=200mm
+\linespread{1.04}
+
+
+\title{\textsc{1D Convex Regression on a Grid}}
+\usepackage{marginnote}
+\reversemarginpar % switch default margin to the left
+\usepackage{framed}
+\usepackage{xcolor}
+\usepackage{hyperref} % add backlinks to the end of bibliography items
+\usepackage{nicefrac}
+\usepackage{pgfplots}
+\usepackage{floatrow}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage[plain]{algorithm}
+\lstset{emph={try,catch,throw,def,or,to,for,then,end,for,if,args,else,return},emphstyle=\color{blue!100!black}\textbf}
+\lstset{mathescape=true,escapechar=\&,numbers=left,xleftmargin=3mm,linewidth=0.47\textwidth,framextopmargin=0pt,framexbottommargin=0pt,aboveskip=-1pt,belowskip=-1pt}
+\usepackage{mdframed}
+\usepackage{bm}
+\usepackage[capitalise]{cleveref}
+\usepackage[bf]{caption}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{xspace}
+
+\definecolor{dkblue}{cmyk}{1,.54,.04,.19} 
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{optprob}[theorem]{Optimisation Problem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+
+
+
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Rd}{\mathbb{R}^d}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\ip}[1]{\langle #1 \rangle}
+\newcommand{\Reg}{\mathfrak{R}}
+\newcommand{\BReg}{\mathfrak{BR}}
+\newcommand{\norm}[1]{\Vert #1 \Vert}
+\newcommand{\E}{\mathbb E}
+\newcommand{\PP}{\mathbb P}
+\newcommand{\Var}{\mathbb V}
+\newcommand{\cE}{\mathcal E}
+\newcommand{\cK}{\mathcal K}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cO}{\mathcal O}
+\newcommand{\cS}{\mathcal S}
+\newcommand{\cC}{\mathcal C}
+\newcommand{\cL}{\mathcal L}
+\newcommand{\cG}{\mathcal G}
+\newcommand{\cA}{\mathcal A}
+\newcommand{\cD}{\mathcal D}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\BS}{\mathbb S}
+\newcommand{\zeros}{ \bm 0}
+\newcommand{\bbP}{\mathbb P}
+\newcommand{\polylog}{\operatorname{polylog}}
+\newcommand{\const}{\operatorname{const}}
+\newcommand{\interior}{\operatorname{int}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\diam}{\operatorname{diam}}
+\renewcommand{\d}[1]{\operatorname{d}\!#1}
+\newcommand{\abovelabel}[1]{\stackrel{\raisebox{0.5mm}{\textrm{\tiny \color{red} #1}}}}
+\newcommand{\ta}{\tilde{a}}
+\newcommand{\tP}{P'}
+\newcommand{\tA}{A'}
+\newcommand{\fmd}{\texttt{MD}}
+\newcommand{\tfmd}{\widetilde{\texttt{MD}}}
+
+\newcommand{\mdalg}{\textsf{MD}\xspace}
+\newcommand{\smdalg}{\textsf{SMD}\xspace}
+\newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
+\newcommand{\olo}{\texttt{OLO}\xspace}
+\newcommand{\blo}{\texttt{BLO}\xspace}
+\newcommand{\bco}{\texttt{BCO}\xspace}
+\newcommand{\oco}{\texttt{OCO}\xspace}
+\newcommand{\hl}{\hat{\ell}\xspace}
+
+
+\begin{document}
+\maketitle
+
+Consider the $[-1, 1]$ interval and let the grid points be given by
+\[
+    x_i = -1 + \frac{2(i-1)}{d}, \quad i = 1, \ldots, d.
+\]
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        % Axis
+        \draw[->] (-2.5, 0) -- (2.5, 0) node[right] {$x$};
+        \draw[->] (0, -0.2) -- (0, 1.5) node[above] {$f(x)$};
+
+        % The Convex Function Curve (f(x) = 0.5x^2 + 0.3)
+        \draw[thick, blue, domain=-1.2:1.2, samples=100] plot (\x*1.8, {0.5*(\x)^2 + 0.3});
+        \node[blue, right] at (1.2, 1.1) {$f$};
+
+        % Grid points and vertical projection to the function
+        \foreach \i in {1, ..., 10} {
+                % Calculate x coordinate from -1 to 1 based on your formula
+                \pgfmathsetmacro{\xval}{-1 + 2*(\i-1)/9}
+                % Scale for visualization (multiplying by 2 to stretch across the TikZ canvas)
+                \pgfmathsetmacro{\xplot}{\xval * 2}
+                \pgfmathsetmacro{\yplot}{0.5*(\xval)^2 + 0.3}
+
+                % Draw tick marks on x-axis
+                \draw (\xplot, 0.1) -- (\xplot, -0.1) node[below] {\tiny $x_{\i}$};
+
+                % Draw points v_i = f(x_i)
+                \filldraw[black] (\xplot, \yplot) circle (1.5pt);
+                \ifnum\i=10
+                    \node[above right] at (\xplot, \yplot) {\small $v_{10}$};
+                \fi
+            }
+
+        % Label the interval boundaries
+        \draw[dashed] (-2, 0) -- (-2, 1.5);
+        \draw[dashed] (2, 0) -- (2, 1.5);
+        \node at (-2, -0.4) {\small $-1$};
+        \node at (2, -0.4) {\small $1$};
+
+    \end{tikzpicture}
+    \caption{A sample convex function $f$ and the resulting convex vector $\bm{v}$ where $v_i = f(x_i)$ on the grid $d=10$.}
+    \label{fig:grid_points}
+\end{figure}
+
+A \emph{convex vector} on this grid is a vector $v \in \R^{d}$ such that there exists a \textbf{bounded} convex function $f: [-1, 1] \to [0, 1]$ satisfying $v_i = f(x_i)$ for all $i = 1, \ldots, d$. The set of all convex vectors on this grid is denoted by $\cC_d$.
+
+\begin{theorem}
+    The set $\cC_d$ can be characterized as convex hall of the vectors $u_{a,b} \in \R^d$ defined for $1\leq a \leq b \leq d$ as
+    \[
+        (u_{a,b})_i = \begin{cases}
+            1 - \frac{i}{x_a + 1} & \text{if } i \leq a,  \\
+            0                     & \text{if } a < i < b, \\
+            \frac{i - b}{1 - x_b} & \text{if } b \leq i.
+        \end{cases}
+    \]
+    Moreover, this is the unique minimal set with such a property.
+\end{theorem}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[x=3.25cm,y=2.2cm] % <-- bigger overall (both axes)
+        % parameters
+        \pgfmathsetmacro{\d}{10}
+        \pgfmathsetmacro{\a}{3}
+        \pgfmathsetmacro{\b}{5}
+        \pgfmathsetmacro{\xa}{-1 + 2*(\a-1)/(\d-1)}
+        \pgfmathsetmacro{\xb}{-1 + 2*(\b-1)/(\d-1)}
+
+        % axes
+        \draw[->, line width=0.6pt] (-1.35, 0) -- (1.35, 0) node[right] {$x$};
+        \draw[->, line width=0.6pt] (0, -0.12) -- (0, 1.25) node[above] {$u_{3,5}(x)$};
+
+        % piecewise-linear shape of u_{3,5}
+        \draw[thick, blue]
+        (-1,1) -- (\xa,0) -- (\xb,0) -- (1,1);
+        \node[blue, right] at (1,1) {$u_{3,5}$};
+
+        % mark a and b breakpoints
+        \draw[dashed, gray] (\xa,0) -- (\xa,1.18);
+        \draw[dashed, gray] (\xb,0) -- (\xb,1.18);
+        \node[gray, above] at (\xa,1.18) {\small $x_3$};
+        \node[gray, above] at (\xb,1.18) {\small $x_5$};
+
+        % grid points, ticks, and values
+        \foreach \i in {1,...,10} {
+                \pgfmathsetmacro{\xi}{-1 + 2*(\i-1)/(\d-1)}
+
+                \pgfmathparse{(\i<=\a) ? (1 - (\xi+1)/(\xa+1)) : ((\i<\b) ? 0 : ((\xi-\xb)/(1-\xb)))}
+                \let\yi\pgfmathresult
+
+                \draw[line width=0.5pt] (\xi, 0.05) -- (\xi, -0.05);
+                \filldraw[black] (\xi, \yi) circle (1.8pt);
+            }
+
+        % interval endpoints
+        \node at (-1, -0.18) {\small $-1$};
+        \node at (1, -0.18) {\small $1$};
+    \end{tikzpicture}
+    \caption{Example \(u_{3,5}\) on the grid \(d=10\).}
+\end{figure}
+
+Let $U \subseteq \R$ be a free set and $E:[d] \times [0, 1] \to U^d$ be an \emph{estimation function} that maps each index $i \in [d]$ and value $v_i \in [0, 1]$ to a vector in $U^d$.
+Our goal can roughly be stated as follows: find an estimation function $E$ such that given a convex vector $v \in \cC_d$, we have
+\begin{align*}
+    v \approx \frac{1}{d}\sum_{i=1}^d E(i, v_i)\,.
+\end{align*}
+
+\paragraph{A trivial choice of estimation function.}
+A simple choice is to let $U = [0, d]$ and define
+\begin{align*}
+    E(i, v_i) = d \cdot v_i \cdot e_i\,,
+\end{align*}
+where $e_i$ is the $i$-th standard basis vector in $\R^d$. This gives
+\begin{align*}
+    \frac{1}{d}\sum_{i=1}^d E(i, v_i) = \frac{1}{d}\sum_{i=1}^d d \cdot v_i \cdot e_i = \sum_{i=1}^d v_i \cdot e_i = v\,.
+\end{align*}
+This choice perfectly reconstructs the vector $v$ and is also not limited to convex vectors.
+So is it the answer to our problem?
+Before answering this question, we use the structure of convex vectors to further restrict the search space of estimation functions.
+
+\paragraph{Restricting the search space.}
+The function $E:[d] \times [0, 1] \to \R^d$ doesn't have to be defined for all values in $[0, 1]$,
+as it simply needs to work for values $v_i$ that are part of convex vectors $v \in \cC_d$.
+Using this observation, we can restrict the search space of $E$ to only those values that appear in the extreme points $u_{a,b}$ of $\cC_d$.
+Specifically, for an index $i \in [d]$, the only possible values of $v_i$ for convex vectors $v \in \cC_d$ are
+\begin{align*}
+    V_i = \{(u_{a,b})_i : 1 \leq a \leq b \leq d\}\,.
+\end{align*}
+We would like to express $V_i$ in a more explicit form.
+To this end, we define $V_i^-$ and $V_i^+$ as follows:
+\begin{align*}
+    V_i^- & := \{(u_{a,b})_i : 1\le a\le b\le d,\ i<a\}, \\
+    V_i^+ & := \{(u_{a,b})_i : 1\le a\le b\le d,\ i>b\}.
+\end{align*}
+Equivalently, using the explicit form of $u_{a,b}$, for each fixed $i\in[d]$ we have
+\begin{align*}
+    V_i^- & = \left\{\,1-\frac{x_i+1}{x_a+1}\ :\ a\in\{i+1,i+2,\ldots,d\}\right\}, \\
+    V_i^+ & = \left\{\,\frac{x_i-x_b}{1-x_b}\ :\ b\in\{1,2,\ldots,i-1\}\right\}.
+\end{align*}
+Moreover,
+\[
+    V_i=\{0\}\ \cup\ V_i^-\ \cup\ V_i^+,
+\]
+since $(u_{a,b})_i=0$ whenever $a\le i\le b$ (including $i=a$ and $i=b$).
+Also note that $|V_i| = d$ since $|V_i^-| = d - i$, $|V_i^+| = i - 1$, and we have the additional value $0$.
+Therefore, we can restrict the domain of $E$ to $[d] \times V_i$ for each index $i \in [d]$ without loss of generality.
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[x=3.1cm,y=3.1cm]
+        % parameters
+        \pgfmathsetmacro{\d}{10}
+        \pgfmathsetmacro{\i}{5}
+        \pgfmathsetmacro{\xi}{-1 + 2*(\i-1)/(\d-1)}
+
+        % axes
+        \draw[->] (-1.15,0) -- (1.15,0) node[right] {$x$};
+        \draw[->] (0,-0.05) -- (0,1.08) node[above] {$y$};
+
+        % vertical line at x_i
+        \draw[dashed, gray] (\xi,0) -- (\xi,1.05);
+        \node[below] at (\xi,0) {\small $x_i$};
+
+        % left fan (a > i): lines from (-1,1) to (x_a,0), and their intersections at x_i
+        \foreach \a in {6,...,10} {
+                \pgfmathsetmacro{\xa}{-1 + 2*(\a-1)/(\d-1)}
+                \draw[blue!35] (-1,1) -- (\xa,0);
+                \pgfmathsetmacro{\yval}{1 - (\xi+1)/(\xa+1)}
+                \filldraw[blue] (\xi,\yval) circle (0.7pt);
+            }
+        \node[blue] at (-0.78,0.93) {$V_i^-$};
+
+        % right fan (b < i): lines from (x_b,0) to (1,1), and their intersections at x_i
+        \foreach \b in {1,...,4} {
+                \pgfmathsetmacro{\xb}{-1 + 2*(\b-1)/(\d-1)}
+                \draw[red!35] (\xb,0) -- (1,1);
+                \pgfmathsetmacro{\yval}{(\xi-\xb)/(1-\xb)}
+                \filldraw[red] (\xi,\yval) circle (0.7pt);
+            }
+        \node[red] at (0.78,0.93) {$V_i^+$};
+
+        % the zero case (a <= i <= b)
+        \filldraw[black] (\xi,0) circle (0.8pt);
+        \node[below right] at (\xi,0) {\tiny $0$};
+
+    \end{tikzpicture}
+    \caption{For fixed $x_i$, intersecting $x=x_i$ with all left chords $(-1,1)\to(x_a,0)$ (with $a>i$) gives $V_i^-$, and intersecting with all right chords $(x_b,0)\to(1,1)$ (with $b<i$) gives $V_i^+$. Choosing $a\le i\le b$ yields value $0$.}
+    \label{fig:Vi_pm_fan}
+\end{figure}
+
+\paragraph{The objective.}
+Before stating our objective, we introduce some notation.
+Let
+\begin{align*}
+    \bar{v} = \frac{1}{d} \sum_{i=1}^d E(i, v_i)\,,
+\end{align*}
+and let $u = 1/d \mathbf{1}$ be the uniform vector in $\R^d$.
+We measure the quality of the estimation function $E$ using the following two quantities:
+\begin{enumerate}
+    \item The bias term:
+          \begin{align*}
+              \max_{i \in [d]} \langle u - e_i, v - \bar{v} \rangle\,,
+          \end{align*}
+          which measures how well $\bar{v}$ approximates $v$ in all directions.
+    \item The variance term:
+          \begin{align*}
+              \frac{1}{d^2} \sum_{i=1}^d \|E(i, v_i)\|^2\,,
+          \end{align*}
+          which measures the spread of the estimation vectors.
+\end{enumerate}
+
+With the restricted domain of $E$, our goal is to find an estimation function $E:[d] \times V_i \to U^d$ such that for any convex vector $v \in \cC_d$, the following quantity is minimized
+\begin{align*}
+    \Lambda(E, v) := C \cdot \max_{i \in [d]} \langle u - e_i, v - \bar{v} \rangle + \frac{1}{d^2} \sum_{i=1}^d \|E(i, v_i)\|^2\,,
+\end{align*}
+for the worst case convex vector $v \in \cC_d$, where $C > 0$ is a constant that balances the bias and variance terms.
+$C$ in practice would be almost equal to $d$.
+
+\paragraph{Compute the value of interest for the trivial estimation function.}
+For the trivial estimation function defined earlier, we have $\bar{v} = v$.
+Thus, the bias term is zero.
+For the variance term, we have
+\begin{align*}
+    \frac{1}{d^2} \sum_{i=1}^d \|E(i, v_i)\|^2 & = \frac{1}{d^2} \sum_{i=1}^d \|d \cdot v_i \cdot e_i\|^2 \\
+                                               & = \frac{1}{d^2} \sum_{i=1}^d d^2 \cdot v_i^2             \\
+                                               & = \|v_i\|^2 \leq d\,,
+\end{align*}
+since $v_i \in [0, 1]$ for all $i \in [d]$.
+Therefore, for the trivial estimation function, we have
+\begin{align*}
+    \Lambda(E, v) \leq d\,,
+\end{align*}
+for any convex vector $v \in \cC_d$.
+
+
+\paragraph{Further \emph{deliberate} restriction of the search space---multiplicative form.}
+To make the problem more tractable, we further restrict the search space of estimation functions.
+Specifically, we only consider estimation functions of the form
+\begin{align*}
+    E(i, v_i) = v_i \cdot s_i + b_i\,,
+\end{align*}
+where $s_i, b_i \in U^d$ are vectors in $U^d$ for each index $i \in [d]$.
+With this form, a function $E$ is fully specified by the two matrices $S = [s_1, s_2, \ldots, s_d]$ and $B = [b_1, b_2, \ldots, b_d]$ in $U^{d \times d}$.
+Further, we can rewrite $\bar{v}$ as
+\begin{align*}
+    \bar{v} = \frac{1}{d} \sum_{i=1}^d E(i, v_i)
+    = \frac{1}{d} \sum_{i=1}^d \left( v_i \cdot s_i + b_i \right)
+    = \frac{1}{d} (S v + B \mathbf{1})\,,
+\end{align*}
+where $\mathbf{1}$ is the all-ones vector in $\R^d$.
+Thus, the bias term can be expressed as
+\begin{align*}
+    \max_{k \in [d]} \langle u - e_k, v - \bar{v} \rangle
+     & = \max_{k \in [d]} \langle \frac{\mathbf{1}}{d} - e_k, v - \frac{1}{d} (S v + B \mathbf{1}) \rangle \\
+     & = \max_{k \in [d]} \frac{1}{d^2} \langle \mathbf{1} - d e_k, (dI - S) v - B \mathbf{1} \rangle\,.
+\end{align*}
+Similarly, the variance term can be expressed as
+\begin{align*}
+    \frac{1}{d^2} \sum_{i=1}^d \|E(i, v_i)\|^2  = \frac{1}{d^2} \sum_{i=1}^d \|v_i \cdot s(i) + b(i)\|^2
+    = \frac{1}{d^2} \| V S + B \|_F^2\,,
+\end{align*}
+where $V$ is the diagonal matrix with entries $v_1, v_2, \ldots, v_d$ on the diagonal, and $\|\cdot\|_F$ denotes the Frobenius norm.
+
+So our design problem is
+\begin{align*}
+    \inf_{S, B \in U^{d \times d}} \sup_{v \in \cC_d} \Lambda(S, B, v)\,,
+\end{align*}
+or equivalently,
+\begin{align*}
+    \inf_{S, B \in U^{d \times d}} \sup_{v \in \cC_d} \max_{k \in [d]} d\cdot\frac{1}{d^2} \langle \mathbf{1} - d e_k, (d I - S) v - B \mathbf{1} \rangle + \frac{1}{d^2} \| V S + B \|_F^2
+    \,,
+\end{align*}
+where we have made the dependence of $\Lambda$ on $S$ and $B$ explicit and set $C = d$.
+With further work, this problem can be cast as a convex optimization problem.
+We can formulate this problem as a QCQP as
+\[
+    \boxed{
+        \begin{array}{ll}
+            \text{minimize}_{S,B,t,\theta_{a,b}} & t                                                                                           \\[1mm]
+            \text{subject to}
+                                                 & \theta_{a,b} \ge \frac{1}{d} \langle \mathbf{1} - d e_k, (d I - S) v - B \mathbf{1} \rangle
+            \quad \forall 1\le a\le b\le d,\ \forall k\in[d],                                                                                  \\[1mm]
+                                                 & t \ge \theta_{a,b}+\frac{1}{d^2}\sum_{i=1}^d\|(u_{a,b})_i s_i+b_i\|^2
+            \quad \forall 1\le a\le b\le d\,.
+        \end{array}
+    }
+\]
+
+
+
+\end{document}
+

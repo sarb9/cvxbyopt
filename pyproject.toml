@@ -1,0 +1,13 @@
+[project]
+name = "cvxbyopt"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "cvxpy>=1.8.0",
+    "ecos>=2.0.14",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.1",
+]

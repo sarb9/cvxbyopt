@@ -1,0 +1,173 @@
+\newcommand{\RR}{\mathbb{R}}
+
+\begin{definition}
+    Fix an integer $k\ge1$, and consider vectors
+    \[
+        x=(x_0,\dots,x_k)\in\RR^{k+1}
+    \]
+    interpreted as the values of a function on the grid $\{0,1/k,\dots,1\}$.
+    We call $x$ \emph{discretely convex} if
+    \[
+        x_{i-1}-2x_i+x_{i+1}\;\ge 0\qquad\text{for all }i=1,\dots,k-1.
+    \]
+    Let $P\subset\RR^{k+1}$ be the polytope of \emph{bounded discretely convex} vectors:
+    \[
+        P:=\Bigl\{x\in\RR^{k+1}:\ 0\le x_i\le1\ \text{for all }i,\
+        x_{i-1}-2x_i+x_{i+1}\ge0\ \text{for }i=1,\dots,k-1\Bigr\}.
+    \]
+\end{definition}
+
+\begin{definition}[Basis candidates]
+    Let $\mathbf{1}=(1,\dots,1)\in\RR^{k+1}$.
+
+    For integers $0\le a\le b\le k$, define $v^{a,b}\in\RR^{k+1}$ as follows.
+    Consider the unique piecewise affine function
+    \[
+        f^{a,b}:[0,k]\to\RR
+    \]
+    such that:
+    \begin{enumerate}
+        \item $f^{a,b}$ is affine on each of the intervals $[0,a]$, $[a,b]$, $[b,k]$ (with the convention that an interval may be degenerate or empty),
+        \item $f^{a,b}(i)=0$ for all integers $i$ with $a\le i\le b$,
+        \item if $a>0$ then $f^{a,b}(0)=1$, and if $b<k$ then $f^{a,b}(k)=1$.
+    \end{enumerate}
+    We then set
+    \[
+        v^{a,b}_i := f^{a,b}(i),\qquad i=0,\dots,k.
+    \]
+    (In particular, $v^{0,k}=(0,\dots,0)$, and for $0<a\le b<k$ the vector
+    $v^{a,b}$ is $1$ at $i=0,k$, equals $0$ for $a\le i\le b$, and is linear in $i$
+    on $[0,a]$ and on $[b,k]$.)
+    Define
+    \[
+        \mathcal{B}:=\{\mathbf{1}\}\cup\{v^{a,b}:\ 0\le a\le b\le k\}.
+    \]
+\end{definition}
+
+\begin{theorem}
+    The set $\mathcal{B}$ is exactly the set of extreme points of the polytope $P$.
+    In particular,
+    \[
+        P = \operatorname{conv}(\mathcal{B}),
+    \]
+    so $\mathcal{B}$ is a ``basis'' in the sense that every $x\in P$ is a convex combination of elements of $\mathcal{B}$.
+\end{theorem}
+
+\begin{proof}
+    We proceed in three steps.
+
+    \smallskip
+    \noindent\textbf{1. Extension to a convex function on $[0,k]$.}
+    Given any $x\in P$, define $f:[0,k]\to\RR$ to be the continuous function that is affine on each interval $[i,i+1]$ and satisfies $f(i)=x_i$ for $i=0,\dots,k$.
+    It is standard (and easy to verify) that the discrete inequalities
+    \[
+        x_{i-1}-2x_i+x_{i+1}\ge0
+    \]
+    are equivalent to the convexity of $f$ on $[0,k]$ (the slopes $f(i)-f(i-1)$ form a nondecreasing sequence).
+    Thus points of $P$ are in bijection with convex functions $f$ on $[0,k]$ satisfying $0\le f(i)\le1$ for all integers $i$.
+
+    \smallskip
+    \noindent\textbf{2. Shape of the zero set for an extreme point.}
+    Let $x\in P$ be an extreme point, and let $f$ be its piecewise affine extension.
+
+    \begin{claim}
+        If $f(i)=0$ and $f(\ell)=0$ for some integers $0\le i<\ell\le k$, then $f(j)=0$ for all integers $j$ with $i\le j\le \ell$.
+    \end{claim}
+
+    \begin{proof}[Proof of the claim]
+        Since $f$ is convex on $[i,\ell]$ and $f(i)=f(\ell)=0$, we have
+        \[
+            f(t)\le \frac{\ell-t}{\ell-i}f(i)+\frac{t-i}{\ell-i}f(\ell)=0
+            \qquad\text{for all }t\in[i,\ell].
+        \]
+        In particular, $f(j)\le0$ for integers $j$ with $i\le j\le \ell$.
+        But $x_j=f(j)\ge0$ by definition of $P$, hence $f(j)=0$.
+    \end{proof}
+
+    Thus the set
+    \[
+        Z:=\{i\in\{0,\dots,k\}: f(i)=0\}
+    \]
+    is (if nonempty) an interval of integers, say $Z=\{a,\dots,b\}$ with $0\le a\le b\le k$.
+    If $Z=\varnothing$, then $f(i)>0$ for all integers $i$.
+
+    \smallskip
+    \noindent\textbf{3. Classification of extreme points.}
+
+    \smallskip
+    \emph{Case 1: $Z=\varnothing$.}
+    Then $f(i)>0$ for all $i$, and also $f(i)<1$ for some $i$ unless $x=\mathbf{1}$.
+    If $x\neq\mathbf{1}$, there exists $\varepsilon>0$ such that $f(i)\in(2\varepsilon,1-2\varepsilon)$ for all $i$.
+    Define
+    \[
+        f^{\pm}(t):=f(t)\pm\varepsilon,\qquad t\in[0,k],
+    \]
+    and let $x^{\pm}$ be their values on the grid.
+    Convexity is preserved and $0\le x_i^{-}\le x_i^{+}\le1$, so $x^{\pm}\in P$.
+    Moreover $x=\frac12(x^{+}+x^{-})$ and $x^{+}\neq x^{-}$, contradicting extremality.
+    Hence the only extreme point with $Z=\varnothing$ is $x=\mathbf{1}$, which lies in $\mathcal{B}$.
+
+    \smallskip
+    \emph{Case 2: $Z\neq\varnothing$.}
+    Write $Z=\{a,\dots,b\}$, $0\le a\le b\le k$.
+
+    We first show that $f$ must coincide with $f^{a,b}$ as in the definition of $v^{a,b}$.
+
+    \begin{claim}
+        On $[a,b]$ we have $f\equiv0$ (already shown), and on $[0,a]$ the function $f$ is affine, likewise on $[b,k]$.
+        Moreover, if $a>0$ then $f(0)=1$, and if $b<k$ then $f(k)=1$.
+    \end{claim}
+
+    \begin{proof}[Proof of the claim]
+        Convexity of $f$ implies that on $[0,a]$ the left derivative is nondecreasing and $f(a)=0$ is a minimum on that interval (since $f\ge0$ on integers, hence on $[0,k]$ by convexity of the extension).
+        Thus $f$ has nonincreasing derivative as we move from $0$ to $a$ and reaches its minimum at the endpoint $a$; the only possibility for a convex function is that the derivative is constant on $[0,a]$, i.e.\ $f$ is affine there.
+        The same argument applies on $[b,k]$.
+
+        Now assume $a>0$ and $f(0)<1$.
+        Then for sufficiently small $\varepsilon>0$ we can define
+        \[
+            \tilde f^{\pm}(t)=f(t)\pm\varepsilon\frac{a-t}{a}\quad\text{for }t\in[0,a],
+        \]
+        and $\tilde f^{\pm}(t)=f(t)$ for $t\in[a,k]$.
+        The function $\frac{a-t}{a}$ is affine on $[0,a]$ and vanishes at $t=a$, so $\tilde f^{\pm}$ are convex on $[0,k]$, agree with $f$ on $[a,k]$, and for small $\varepsilon$ still satisfy $0\le \tilde f^{\pm}(i)\le1$ on the grid.
+        Let $\tilde x^{\pm}$ be their sampled values.
+        Then $\tilde x^{\pm}\in P$, $\tilde x^{+}\neq \tilde x^{-}$, and $x=\frac12(\tilde x^{+}+\tilde x^{-})$, contradicting extremality.
+        Hence if $a>0$ we must have $f(0)=1$.
+        The argument for $b<k$ and $f(k)=1$ is analogous (use an affine perturbation supported on $[b,k]$).
+    \end{proof}
+
+    Thus $f$ is exactly the piecewise affine function $f^{a,b}$ from the definition of $v^{a,b}$, and therefore $x=v^{a,b}\in\mathcal{B}$.
+
+    \medskip
+    It remains to show that each element of $\mathcal{B}$ is indeed an extreme point of $P$.
+
+    \smallskip
+    \emph{Case $\mathbf{1}$.}
+    Here all constraints $x_i\le1$ are tight, so $\mathbf{1}$ is clearly a vertex.
+
+    \smallskip
+    \emph{Case $v^{a,b}$.}
+    Consider $x=v^{a,b}$.
+    On the level of $f^{a,b}$, we have:
+    \begin{itemize}
+        \item $f^{a,b}(0)\in\{0,1\}$ and $f^{a,b}(k)\in\{0,1\}$ (depending on whether $a=0$ or $b=k$),
+        \item $f^{a,b}(i)=0$ for $a\le i\le b$,
+        \item $f^{a,b}$ is affine on each of the intervals $[0,a]$, $[a,b]$, $[b,k]$.
+    \end{itemize}
+    Translating to the discrete constraints, this means:
+    \begin{itemize}
+        \item the box constraints $x_i\ge0$ are tight for all $i$ with $a\le i\le b$;
+        \item the box constraints $x_0\le1$ (if $a>0$) and $x_k\le1$ (if $b<k$) are tight;
+        \item the convexity constraints $x_{i-1}-2x_i+x_{i+1}\ge0$ are tight (equalities) for all $i\in\{1,\dots,k-1\}\setminus\{a,b\}$, because $f^{a,b}$ is affine on $[0,a]$, on $[a,b]$, and on $[b,k]$.
+    \end{itemize}
+    These give exactly $k+1$ independent linear equalities (they uniquely determine an affine function on each of the three subintervals and fix the values at their junctions), hence their common solution is the single point $x=v^{a,b}$.
+    Therefore $v^{a,b}$ is the unique point of $P$ satisfying these tight constraints, i.e.\ it is a vertex of $P$ and thus an extreme point.
+
+    \smallskip
+    Combining the two directions, we have shown:
+    \begin{itemize}
+        \item every extreme point of $P$ lies in $\mathcal{B}$;
+        \item every element of $\mathcal{B}$ is an extreme point of $P$.
+    \end{itemize}
+    Since $P$ is a polytope, it is the convex hull of its extreme points, so $P=\operatorname{conv}(\mathcal{B})$, as claimed.
+\end{proof}
