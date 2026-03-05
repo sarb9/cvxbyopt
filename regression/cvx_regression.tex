@@ -799,7 +799,17 @@ so using our notation for affine estimators, we can write $E_\lambda(x, f(x))_t 
 \begin{align*}
     s^\lambda_x(t) := 1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\,.
 \end{align*}
-Moreover, we have
+Further, notice that the density of the random variable $Y = (1-\lambda)X + \lambda t$ is given by
+\begin{align*}
+    p^\lambda_t(y) = \frac{1}{(1-\lambda)^d} p\left(\frac{y - \lambda t}{1 - \lambda}\right)\,,
+\end{align*}
+and then we have
+\begin{align*}
+    p(x) s^\lambda_x(t)
+     & = p(x) \left(1 - \frac{1}{\lambda}\right) + \frac{1}{\lambda} p^\lambda_t(x) \,,
+\end{align*}
+which means that $p(x) s^\lambda_x(t)$ is an affine combination of two probability densities $p$ and $p^\lambda_t$,
+and therefore the following normalization constant is exactly 1:
 \begin{align*}
     Z(t) & = \int_{\Rd} p(x) s^\lambda_x(t) \,dx                                                                                                                       \\
          & = \int_{\Rd} p(x) \left(1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\right) \,dx \\
@@ -809,15 +819,15 @@ Moreover, we have
 \end{align*}
 So, now we can see what $h(\cdot|t)$ is in this case:
 \begin{align*}
-    h_\lambda(x|t) := \frac{p(x) s^\lambda_x(t)}{Z(t)} =
-    p(x) \left(1 - \frac{1}{\lambda}\right) + p\left(\frac{x - \lambda t}{1 - \lambda}\right) \left(\frac{1}{\lambda (1-\lambda)^d}\right)\,.
+    h_\lambda(x|t) := \frac{p(x) s^\lambda_x(t)}{Z(t)}
+     & = p(x) \left(1 - \frac{1}{\lambda}\right) + \frac{1}{\lambda} p^\lambda_t(x) \,.
 \end{align*}
 Let's see what is $\E_{X\sim h_\lambda(\cdot|t)}[X]$ in this case:
 \begin{align*}
     \E_{X\sim h_\lambda(\cdot|t)}[X]
      & = \int_{\Rd} h_\lambda(x|t) x \,dx
     \\
-     & = \int_{\Rd} p(x) \left(1 - \frac{1}{\lambda}\right) x \,dx + \int_{\Rd} p\left(\frac{x - \lambda t}{1 - \lambda}\right) \left(\frac{1}{\lambda (1-\lambda)^d}\right) x \,dx
+     & = \left(1 - \frac{1}{\lambda}\right) \int_{\Rd} p(x) x \,dx + \frac{1}{\lambda} \int_{\Rd} p_t^\lambda\left(x\right)  x \,dx
     \\
      & =
     \left(1 - \frac{1}{\lambda}\right)
@@ -870,11 +880,11 @@ Our concern should be whether $p$ is a valid probability distribution.
 One can check that $\int_{\Rd} p(x) dx = 1$, so we only need to check if $p(x)\ge 0$ for all $x$.
 To this end, we have
 \begin{align*}
-    p(x) & = \int_{\Rd} q(t) h_\lambda(x|t) dt                                                                                                                                      \\
-         & = \int_{\Rd} q(t) \left(p(x) \left(1 - \frac{1}{\lambda}\right) + p\left(\frac{x - \lambda t}{1 - \lambda}\right) \left(\frac{1}{\lambda (1-\lambda)^d}\right)\right) dt \\
+    p(x) & = \int_{\Rd} q(t) h_\lambda(x|t) dt                                                                          \\
+         & = \int_{\Rd} q(t) \left(p(x) \left(1 - \frac{1}{\lambda}\right) + \frac{1}{\lambda}p_t^\lambda(x) \right) dt \\
          & = \left(1 - \frac{1}{\lambda}\right) p(x)
     +
-    \frac{1}{\lambda (1-\lambda)^d} \int_{\Rd} q(t) p\left(\frac{x - \lambda t}{1 - \lambda}\right) dt\,,
+    \frac{1}{\lambda} \int_{\Rd} q(t) p_t^\lambda\left(x\right) dt\,,
 \end{align*}
 so technically for $p$ to be even well-defined, we need
 \begin{align*}
@@ -954,7 +964,7 @@ The variance term  in the continuous setting is
      & = \int_{\Rd} p(x) q(t) f(x)^2 s^\lambda_x(t)^2 dt dx\,.
 \end{align*}
 
-Let's once more upper bound $f(x)$ by 1 (naively) to get
+Let's once more upper bound $f(x)$ by 1 (not too naively) to get
 \begin{align*}
     \Lambda_{\text{var}, q}(E_\lambda, p; f)
     \leq
@@ -965,11 +975,7 @@ which might not be as bad as it looks, since this is actually the worst case for
 term, which is realized by the constant function $f\equiv 1$.
 Recall that
 \begin{align*}
-    s_x^\lambda(t) = 1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\,,
-\end{align*}
-and define the density
-\begin{align*}
-    \mu_t(x) := \frac{1}{(1-\lambda)^{d}}p\left(
+    p_t^\lambda(x) := \frac{1}{(1-\lambda)^{d}}p\left(
     \frac{
         x - \lambda t
     }{
@@ -978,24 +984,20 @@ and define the density
     \right)\,,
 \end{align*}
 which is the density of the random variable $Y\triangleq(1-\lambda)X + \lambda t$ when $X\sim p$.
-Then we can write
-\begin{align*}
-    s_x^\lambda(t) = 1 - \frac{1}{\lambda} + \frac{1}{\lambda} \cdot \frac{\mu_t(x)}{p(x)}
-    = 1 + \frac{1}{\lambda} \cdot \left(\frac{\mu_t(x)}{p(x)} - 1\right)\,.
-\end{align*}
 Let,
 \begin{align*}
-    \omega_t(x) := \frac{\mu_t(x)}{p(x)}\,,
+    \omega_t(x) := \frac{p_t^\lambda(x)}{p(x)}\,,
 \end{align*}
 then for every $t$ we have
 \begin{align*}
     \int_{\Rd} p(x) \omega_t(x) dx
-     & = \int_{\Rd} \mu_t(x) dx
+     & = \int_{\Rd} p_t^\lambda(x) dx
     = 1\,,
 \end{align*}
 so $\omega_t$ is a density ratio function with respect to $p$.
 Now, observe that $\int (\omega_t(x) - 1) p(x) dx = 0$, so $\omega_t(x)-1$ is a zero-mean function with respect to $p$,
-and therefore we can write
+and recalling that $p(x)s^\lambda_x(t) = (1 - \frac{1}{\lambda})p(x) + \frac{1}{\lambda} \cdot p_t^\lambda\left(x\right)$,
+we can write
 \begin{align*}
     \int p(x) s_x^\lambda(t)^2 dx
      & = \int p(x) \left(1 + \frac{1}{\lambda}(\omega_t(x) - 1)\right)^2 dx   \\
@@ -1005,46 +1007,46 @@ and therefore we can write
 but using the definition of $\omega_t$ we can also write
 \begin{align*}
     1 + \frac{1}{\lambda^2}\int p(x) (\omega_t(x) - 1)^2 dx\,,
-     & = 1 + \frac{1}{\lambda^2}\int p(x) (\frac{\mu_t(x)}{p(x)} - 1)^2 dx \\
-     & = 1 + \frac{1}{\lambda^2} \chi^2(\mu_t \| p)\,,
+     & = 1 + \frac{1}{\lambda^2}\int p(x) (\frac{p_t^\lambda(x)}{p(x)} - 1)^2 dx \\
+     & = 1 + \frac{1}{\lambda^2} \chi^2(p_t^\lambda \| p)\,,
 \end{align*}
-where $\chi^2(\mu_t \| p)$ is the chi-squared divergence between $\mu_t$ and $p$.
+where $\chi^2(p_t^\lambda \| p)$ is the chi-squared divergence between $p_t^\lambda$ and $p$.
 Therefore, in one line we have
 \begin{align*}
     \int p(x) s_x^\lambda(t)^2 dx
-     & = 1 + \frac{1}{\lambda^2} \chi^2(\mu_t \| p)\,,
+     & = 1 + \frac{1}{\lambda^2} \chi^2(p_t^\lambda \| p)\,,
 \end{align*}
 and consequently, we have
 \begin{align*}
     \sup_{f \in [0,1], \textrm{convex}}\Lambda_{\text{var}, q}(E_\lambda, p; f)
-     & \stackrel{(\mathrm{"="for} f\equiv 1)}{\le} \int q(t) \left(1 + \frac{1}{\lambda^2} \chi^2(\mu_t \| p)\right) dt \\
-     & = 1 + \frac{1}{\lambda^2} \E_{T\sim q}[\chi^2(\mu_T \| p)]\,.
+     & \stackrel{(\mathrm{"="for} f\equiv 1)}{\le} \int q(t) \left(1 + \frac{1}{\lambda^2} \chi^2(p_t^\lambda \| p)\right) dt \\
+     & = 1 + \frac{1}{\lambda^2} \E_{T\sim q}[\chi^2(p_T^\lambda \| p)]\,.
 \end{align*}
-Moreover, recall the setup
+Recall the setup
 \begin{align*}
     T \sim q,\,  \qquad \qquad X \sim p, \qquad \qquad
     Y                = (1-\lambda) X + \lambda T\, ,
 \end{align*}
-and $\mu_t$ is the density of $Y|T=t$.
+and $p_t^\lambda$ is the density of $Y|T=t$.
 Now by expanding the chi-squared divergence, we can write
 \begin{align*}
-    \E_{T\sim q}[\chi^2(\mu_T \| p)]
+    \E_{T\sim q}[\chi^2(p_T^\lambda \| p)]
      & =
     \int \int
     \frac{
-        (\mu_t(y) - p(y))^2
+        (p_t^\lambda(y) - p(y))^2
     }{p(y)} q(t) \, dy dt \\
      & =
     \int \int
     \frac{
-        \left(q(t)\mu_t(y) - q(t)p(y)\right)^2
+        \left(q(t)p_t^\lambda(y) - q(t)p(y)\right)^2
     }{q(t) p(y)} \, dy dt\,,
 \end{align*}
 and note that $Y \stackrel{D.}{=} X$, so we can write
 \begin{align*}
     \int \int
     \frac{
-        \left(q(t)\mu_t(y) - q(t)p(y)\right)^2
+        \left(q(t)p_t^\lambda(y) - q(t)p(y)\right)^2
     }{q(t) p(y)} \, dy dt
      & =
     \int \int
@@ -1159,12 +1161,6 @@ Therefore, we can equally write
 \end{align}
 To step a bit further from Gaussians, we can ask what would happen if $q$ is a log-concave distribution
 on a convex body $\cK$; then what would be the best bound one can achieve on \cref{eq:chi_squared_mutual_info_infinite_sum}?
-
-\subsubsection{Properties of $s_x^\lambda(t)$}
-First observe that the density $\mu_t$ of $Y|T=t$ is
-\begin{align*}
-    \mu_t(x) = \frac{1}{(1-\lambda)^d}
-\end{align*}
 
 
 
