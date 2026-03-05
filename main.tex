@@ -265,7 +265,7 @@ for $t = 1$ to $n$:
         \eta \sum_{t=1}^{n} \langle \ell_t, a_{t+1} - a_\star \rangle
          & \leq \sum_{t=1}^{n} D_F(a_\star, a_t)  - D_F(a_\star, a_{t+1}) - D_F(a_{t+1}, a_t)                   \\
          & = D_F(a_\star, a_1) - \underbrace{D_F(a_\star, a_{n+1})}_{\geq 0} - \sum_{t=1}^{n} D_F(a_{t+1}, a_t) \\
-         & = D_F(a_\star, a_1) - \sum_{t=1}^{n} D_F(a_{t+1}, a_t)\,.
+         & \leq D_F(a_\star, a_1) - \sum_{t=1}^{n} D_F(a_{t+1}, a_t)\,.
     \end{align*}
     Note that the tracking term scales inversely with $\eta$ as expected.
     Without touching the stability term, we have proved the first inequality,

@@ -12,7 +12,7 @@
 \newtheorem{definition}{Definition}
 \newtheorem{remark}{Remark}
 
-\title{Hedge on a $1/\sqrt{T}$ Grid with a Concentrated Prior: Regret and Concentration}
+\title{Hedge with a Concentrated Prior}
 \date{}
 \author{}
 
@@ -40,8 +40,6 @@ At each round $t=1,2,\dots,T$:
 
 We will analyze Hedge on the finite action set $\{x_i\}$ using the losses evaluated on the grid.
 
-\subsection*{Standing boundedness assumption (for regret)}
-The standard Hedge regret bound is cleanest when losses are bounded. We assume:
 \begin{assumption}[Bounded losses on the grid]\label{ass:bounded}
     For all $t$ and all grid points $x_i$, the grid losses satisfy
     \[
@@ -50,7 +48,6 @@ The standard Hedge regret bound is cleanest when losses are bounded. We assume:
 \end{assumption}
 This can be enforced by scaling/clipping if needed, since only regret statements depend on it.
 
-\subsection*{Convexity assumption (for log-concavity / concentration propagation)}
 \begin{assumption}[Convex losses]\label{ass:convex}
     Each $f_t$ is convex on $[-1,1]$.
 \end{assumption}
@@ -63,14 +60,10 @@ Hedge updates are
 \begin{equation}\label{eq:hedge}
     a_{t+1}(i) \;=\; \frac{a_t(i)\exp\!\big(-\eta\,\ell_t(i)\big)}{\sum_{j=0}^N a_t(j)\exp\!\big(-\eta\,\ell_t(j)\big)}\,,\qquad i=0,\dots,N.
 \end{equation}
-Unrolling \eqref{eq:hedge} gives the closed form
-\begin{equation}\label{eq:closedform}
-    a_t(i)\ \propto\ a_1(i)\exp\!\Big(-\eta\sum_{s=1}^{t-1}\ell_s(i)\Big).
-\end{equation}
 
 \section{Regret with a non-uniform (concentrated) prior}
 
-Define the expected (pseudo-)regret against the best \emph{grid} action:
+Define the expected regret against the best \emph{grid} action:
 \[
     \mathrm{Reg}^{\mathrm{grid}}_T
     := \sum_{t=1}^T \mathbb{E}\big[\ell_t(X_t)\big] - \min_{i\in\{0,\dots,N\}} \sum_{t=1}^T \ell_t(i),
@@ -136,35 +129,6 @@ keeps $\log(1/a_{\min})=\Theta(\log T)$ and therefore (by Corollary~\ref{cor:wor
 \]
 which is $\widetilde{O}(\sqrt{T})$ (i.e.\ $\sqrt{T}$ up to logarithmic factors).
 
-\begin{remark}
-    Your prompt asked about keeping ``$\widetilde{O}(T)$'' regret, but the standard target in this setting is $\widetilde{O}(\sqrt{T})$ regret; the bound above achieves $\widetilde{O}(\sqrt{T})$ even with a non-uniform concentrated prior.
-\end{remark}
-
-\subsection{Regret against the best \emph{continuous} point in $[-1,1]$}
-
-To compare against the best $x\in[-1,1]$, one needs a discretization condition; a standard one is Lipschitzness.
-
-\begin{assumption}[Lipschitz losses (optional)]\label{ass:lipschitz}
-    Each $f_t$ is $L$-Lipschitz on $[-1,1]$:
-    \[
-        |f_t(x)-f_t(y)|\le L|x-y| \quad \forall x,y\in[-1,1].
-    \]
-\end{assumption}
-
-Let $x^\star\in[-1,1]$ minimize $\sum_{t=1}^T f_t(x)$. Let $\hat x^\star$ be its nearest grid point, so $|\hat x^\star-x^\star|\le h/2$.
-Then by Lipschitzness,
-\[
-    \sum_{t=1}^T f_t(\hat x^\star) - \sum_{t=1}^T f_t(x^\star)\ \le\ \frac{LTh}{2}.
-\]
-Hence the regret against the best continuous point is
-\[
-    \mathrm{Reg}^{\mathrm{cont}}_T
-    := \sum_{t=1}^T \mathbb{E}[f_t(X_t)] - \min_{x\in[-1,1]}\sum_{t=1}^T f_t(x)
-    \ \le\
-    \mathrm{Reg}^{\mathrm{grid}}_T + \frac{LTh}{2}.
-\]
-With $h=\Theta(1/\sqrt{T})$, this discretization term is $O(L\sqrt{T})$, matching the $\sqrt{T}$ scale.
-
 \section{Log-concavity and ``strong log-concavity'' on a grid}
 
 Define the (discrete) potential of a distribution $a\in\Delta^{N+1}$ by
@@ -187,8 +151,6 @@ A sequence $g$ is \emph{discrete convex} if $\Delta^2 g(i)\ge 0$ for all interio
               \]
     \end{itemize}
 \end{definition}
-
-The scaling by $h^2$ is chosen so that $m$ is stable as $h\to 0$; for smooth $V$, one has $\Delta^2 V(i)\approx h^2 V''(x_i)$.
 
 \subsection{Convex losses preserve (strong) log-concavity}
 Let $V_t(i):=-\log a_t(i)$.
@@ -234,7 +196,7 @@ Let $V_t(i):=-\log a_t(i)$.
     \[
         V_1(i)=-\log a_1(i)=\frac{x_i^2}{2\sigma^2}+\text{const}.
     \]
-    Compute the second difference using $x_{i\pm 1}=x_i\pm h$:
+    Compute the second difference:
     \[
         \Delta^2 V_1(i)
         = \frac{(x_i+h)^2 - 2x_i^2 + (x_i-h)^2}{2\sigma^2}
@@ -253,14 +215,6 @@ Let
     \mu_t := \mathbb{E}[X_t].
 \]
 
-There are (at least) two standard ways to convert strong log-concavity into mean-centered concentration:
-\begin{itemize}
-    \item A Poincar\'e/variance bound $\mathrm{Var}(X_t)\lesssim 1/m$, giving Chebyshev-type tails.
-    \item A log-Sobolev/moment-generating-function bound giving sub-Gaussian (Chernoff) tails with variance proxy $\asymp 1/m$.
-\end{itemize}
-
-Because you requested a clean $(\epsilon,\delta)$-style statement, we record the following widely used implication of strong log-concavity (on a line) in a form suited to this note.
-
 \begin{assumption}[Mean-centered sub-Gaussianity from $m$-strong log-concavity]\label{ass:subg}
     There exists an absolute constant $c_0>0$ such that if a grid distribution is $m$-strongly log-concave (Definition~\ref{def:slc}), then for $X$ drawn from that distribution,
     \[
@@ -273,9 +227,9 @@ Because you requested a clean $(\epsilon,\delta)$-style statement, we record the
     \]
 \end{assumption}
 
-\begin{remark}
-    Assumption~\ref{ass:subg} is the discrete-grid analogue of the standard continuous fact: if a density is proportional to $\exp(-V(x))$ with $V''(x)\ge m$, then it satisfies a log-Sobolev inequality with constant $1/m$ and hence is sub-Gaussian with variance proxy $1/m$. On a 1D grid (a birth--death geometry), analogous (modified) log-Sobolev and concentration statements are available for strongly log-concave measures. This note treats the sub-Gaussian tail bound as a black box so that the dependence on $(T,h,\sigma)$ is fully explicit.
-\end{remark}
+% \begin{remark}
+%     Assumption~\ref{ass:subg} is the discrete-grid analogue of the standard continuous fact: if a density is proportional to $\exp(-V(x))$ with $V''(x)\ge m$, then it satisfies a log-Sobolev inequality with constant $1/m$ and hence is sub-Gaussian with variance proxy $1/m$. On a 1D grid (a birth--death geometry), analogous (modified) log-Sobolev and concentration statements are available for strongly log-concave measures. This note treats the sub-Gaussian tail bound as a black box so that the dependence on $(T,h,\sigma)$ is fully explicit.
+% \end{remark}
 
 Under this assumption, concentration for the Hedge iterates is immediate.
 
@@ -329,7 +283,7 @@ so for any fixed confidence level (e.g.\ constant $\delta$), the number of ticks
     M(\delta)\ =\ \Theta\!\Big(\sqrt{\frac{T}{\log T}}\Big)\cdot \sqrt{\log\frac{1}{\delta}}
     \quad\text{(up to absolute constant factors and the ceiling)}.
 \]
-In particular, it is \emph{not} a constant number of ticks when $h\asymp 1/\sqrt{T}$.
+% In particular, it is \emph{not} a constant number of ticks when $h\asymp 1/\sqrt{T}$.
 
 \section{Putting it together: one concrete choice of parameters}
 
@@ -345,10 +299,6 @@ Then:
 \begin{itemize}
     \item \textbf{Regret.} By \eqref{eq:amin-bound}, $\log(1/a_{\min}) \le \log(N+1)+\alpha \log T/2 = \Theta(\log T)$.
           Thus Hedge attains $\mathrm{Reg}^{\mathrm{grid}}_T = O(\sqrt{T\log T})=\widetilde{O}(\sqrt{T})$.
-          If in addition Assumption~\ref{ass:lipschitz} holds, the regret against the best continuous point is
-          \[
-              \mathrm{Reg}^{\mathrm{cont}}_T \ \le\ O(\sqrt{T\log T}) + O(L\sqrt{T}) \ =\ \widetilde{O}(\sqrt{T}).
-          \]
     \item \textbf{Concentration at every round.} For every $t$, $X_t$ is concentrated around its mean with
           \[
               \mathbb{P}\big(|X_t-\mu_t|\ge \epsilon\big)\ \le\ 2\exp\!\big(-c_0 \alpha (\log T)\,\epsilon^2\big).
@@ -367,12 +317,12 @@ Then:
           \]
 \end{itemize}
 
-\section{Tradeoff note (why you cannot generally get ``constant ticks'' and worst-case $\widetilde{O}(\sqrt{T})$ regret)}
+% \section{Tradeoff note (why you cannot generally get ``constant ticks'' and worst-case $\widetilde{O}(\sqrt{T})$ regret)}
 
-If you wanted most mass to lie within $O(1)$ ticks, you would need $\epsilon(\delta)=O(h)$, i.e.\ $\sigma=O(h)$.
-With $h\asymp 1/\sqrt{T}$, that means $\sigma^2=O(1/T)$ and hence $1/(2\sigma^2)=\Omega(T)$.
-But then \eqref{eq:amin-bound} gives $\log(1/a_{\min})=\Omega(T)$, which makes the Hedge regret bound (Corollary~\ref{cor:worst-grid}) linear in $T$.
-Thus, in the worst-case (adversarial) setting over all comparators in $[-1,1]$, there is an inherent tension:
-very strong per-round concentration (at the grid scale) forces a large prior penalty and destroys $\widetilde{O}(\sqrt{T})$ regret guarantees.
+% If you wanted most mass to lie within $O(1)$ ticks, you would need $\epsilon(\delta)=O(h)$, i.e.\ $\sigma=O(h)$.
+% With $h\asymp 1/\sqrt{T}$, that means $\sigma^2=O(1/T)$ and hence $1/(2\sigma^2)=\Omega(T)$.
+% But then \eqref{eq:amin-bound} gives $\log(1/a_{\min})=\Omega(T)$, which makes the Hedge regret bound (Corollary~\ref{cor:worst-grid}) linear in $T$.
+% Thus, in the worst-case (adversarial) setting over all comparators in $[-1,1]$, there is an inherent tension:
+% very strong per-round concentration (at the grid scale) forces a large prior penalty and destroys $\widetilde{O}(\sqrt{T})$ regret guarantees.
 
 \end{document}

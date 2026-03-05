@@ -1,0 +1,551 @@
+\documentclass{article}
+
+\textwidth=125mm
+\textheight=200mm
+\linespread{1.04}
+
+
+\title{\textsc{Continuous Exponential Weights}}
+\usepackage{marginnote}
+\reversemarginpar % switch default margin to the left
+\usepackage{framed}
+\usepackage{xcolor}
+\usepackage{hyperref} % add backlinks to the end of bibliography items
+\usepackage{nicefrac}
+\usepackage{pgfplots}
+\usepackage{floatrow}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage[plain]{algorithm}
+\lstset{emph={try,catch,throw,def,or,to,for,then,end,for,if,args,else,return},emphstyle=\color{blue!100!black}\textbf}
+\lstset{mathescape=true,escapechar=\&,numbers=left,xleftmargin=3mm,linewidth=0.47\textwidth,framextopmargin=0pt,framexbottommargin=0pt,aboveskip=-1pt,belowskip=-1pt}
+\usepackage{mdframed}
+\usepackage{bm}
+\usepackage[capitalise]{cleveref}
+\usepackage[bf]{caption}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{xspace}
+
+\definecolor{dkblue}{cmyk}{1,.54,.04,.19} 
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{optprob}[theorem]{Optimisation Problem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{plain}
+\newtheorem{exampleinner}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+% Boxed example environment with light gray background and shadow
+\mdfdefinestyle{examplestyle}{%
+    backgroundcolor=gray!10,
+    linewidth=0.5pt,
+    linecolor=gray!50,
+    shadow=true,
+    shadowsize=3pt,
+    shadowcolor=gray!30,
+    innertopmargin=8pt,
+    innerbottommargin=8pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+    skipabove=10pt,
+    skipbelow=10pt
+}
+\newenvironment{example}[1][]{%
+    \begin{mdframed}[style=examplestyle]%
+    \begin{exampleinner}[#1]%
+}{%
+    \end{exampleinner}%
+    \end{mdframed}%
+}
+
+
+
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Rd}{\mathbb{R}^d}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\ip}[1]{\langle #1 \rangle}
+\newcommand{\Reg}{\mathfrak{R}}
+\newcommand{\BReg}{\mathfrak{BR}}
+\newcommand{\norm}[1]{\Vert #1 \Vert}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\K}{\mathcal K}
+\newcommand{\cU}{\mathcal U}
+\newcommand{\cN}{\mathcal N}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\PP}{\mathbb P}
+\newcommand{\Var}{\mathbb V}
+\newcommand{\cE}{\mathcal E}
+\newcommand{\cK}{\mathcal K}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cO}{\mathcal O}
+\newcommand{\cS}{\mathcal S}
+\newcommand{\cC}{\mathcal C}
+\newcommand{\cL}{\mathcal L}
+\newcommand{\cG}{\mathcal G}
+\newcommand{\cA}{\mathcal A}
+\newcommand{\cD}{\mathcal D}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\BS}{\mathbb S}
+\newcommand{\zeros}{ \bm 0}
+\newcommand{\bbP}{\mathbb P}
+\newcommand{\polylog}{\operatorname{polylog}}
+\newcommand{\const}{\operatorname{const}}
+\newcommand{\interior}{\operatorname{int}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\diam}{\operatorname{diam}}
+\renewcommand{\d}[1]{\operatorname{d}\!#1}
+\newcommand{\abovelabel}[1]{\stackrel{\raisebox{0.5mm}{\textrm{\tiny \color{red} #1}}}}
+\newcommand{\ta}{\tilde{a}}
+\newcommand{\tP}{P'}
+\newcommand{\tA}{A'}
+\newcommand{\fmd}{\texttt{MD}}
+\newcommand{\tfmd}{\widetilde{\texttt{MD}}}
+
+\newcommand{\mdalg}{\textsf{MD}\xspace}
+\newcommand{\smdalg}{\textsf{SMD}\xspace}
+\newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
+\newcommand{\olo}{\texttt{OLO}\xspace}
+\newcommand{\blo}{\texttt{BLO}\xspace}
+\newcommand{\bco}{\texttt{BCO}\xspace}
+\newcommand{\oco}{\texttt{OCO}\xspace}
+\newcommand{\hl}{\hat{\ell}\xspace}
+
+
+\begin{document}
+\maketitle
+
+Let $\K \subset \Rd$ be a compact convex set (i.e. $[-1,1]^d$),
+and let $\mu$ be the Lebesgue measure on $\K$.
+Define the decision set
+\begin{align*}
+    \cP(\K) := \left\{p: \K \to \R_+ \mid \text{measurable}, \int_{\K} p(x) \, d\mu(x) = 1\right\}\,,
+\end{align*}
+which is the set of all probability densities supported on $\K$.
+Let $f_1, f_2, \ldots$ be a sequence of \textit{measurable} loss functions, where $f_t: \K \to \cU$ for all $t$ where $\cU$ is some subset of $\R$ (not $[0,1]$ necessarily).
+The continuous exponential weight distribution at time $t$ is defined as
+\begin{align}
+    p_t(x) := \frac{\exp(-\eta \sum_{s=1}^{t-1} f_s(x))}{\int_{\K} \exp(-\eta \sum_{s=1}^{t-1} f_s(x)) d\mu(x)}
+    \in \cP(\K)\,,
+    \label{eq:cexp-definition}
+\end{align}
+where $\eta > 0$ is the learning rate parameter.
+However, we need to be more careful about when $p_t$ is well-defined, so next we make this precise.
+
+\subsubsection*{When does the entropy exist?}
+The basis of the analysis of the exponential weight algorithm is the entropy function, which is defined as
+\begin{align}
+    H(v) = \int_{\K} v(x) \log v(x) - v(x) d\mu(x)\,, \qquad \text{with } 0\log 0 := 0\,.
+    \label{eq:negentropy_definition}
+\end{align}
+But the question is, does $H(v)$ always exist (is finite) for every measurable function $v: \K \to \R_+$?
+Note that $v$ does not need to be a probability density, it can be any non-negative measurable function, but
+even for a probability density $v$, the answer is not always yes, as the following example shows.
+\begin{example}
+    Let $\K = [0, \frac{1}{e}]$, and let
+    \begin{align*}
+        v(x) = \begin{cases}
+                   \frac{1}{x \log^2 x}, & x > 0 \\
+                   0,                    & x = 0
+               \end{cases}\,.
+    \end{align*}
+    First, observe that $v$ is a probability density on $\K$, since
+    \begin{align*}
+        \int_0^{\frac{1}{e}} v(x) dx
+         & = \int_0^{\frac{1}{e}} \frac{1}{x \log^2 x} dx
+        = \int_{-\infty}^{-1} \frac{1}{u^2} du
+        = 1\,,
+    \end{align*}
+    on the other hand, we have
+    \begin{align*}
+        \int_0^{\frac{1}{e}} v(x) \log v(x) dx
+         & = \int_0^{\frac{1}{e}} \frac{1}{x \log^2 x} \log\left(\frac{1}{x \log^2 x}\right) dx \\
+         & = \int_0^{\frac{1}{e}} \frac{-\log x - 2\log(-\log x)}{x \log^2 x} dx                \\
+         & = \int_{-\infty}^{-1} \frac{-u - 2\log(-u)}{u^2} du
+        = +\infty\,,
+    \end{align*}
+    so $H(v) = +\infty$ in this case.
+\end{example}
+So the natural question is, what is a good characterization of the class of functions (non-negative densities) $v$ for which $H(v)$ is finite?
+\begin{theorem}
+    \label{thm:negentropy-LlogLspace}
+    Let $v: \K \to \R_+$ be a measurable function, then
+    \begin{align*}
+        \int_\K v(x) \log v(x) - v(x) d\mu(x) \in \R\,,
+    \end{align*}
+    if and only if
+    \begin{align}
+        v \in L\log L(\K) := \left\{v: \K \to \R_+ \mid \text{measurable}, \int_\K \Phi(v(x))d\mu(x) < +\infty\right\}\,, \label{eq:LlogLspace_definition}
+    \end{align}
+    where
+    \begin{align*}
+        \Phi(x) := \begin{cases}
+                       (1+x) \log(1+x) - x & x \ge 0\,, \\
+                       +\infty             & x < 0\,.
+                   \end{cases}
+    \end{align*}
+    Furthermore, $L\log L(\K) \subset L^1(\K)$.
+\end{theorem}
+The proof is deferred to \cref{proof:negentropy-LlogLspace}.
+
+A fair question is why the description in \cref{eq:LlogLspace_definition} is any better than just saying that $v$ should satisfy $H(v) \in \R$.
+The answer is that it describes the class of losses $f: \K \to \R$ for which the regret of the continuous exponential weight algorithm is well-defined (finite).
+
+The dual pairing $\langle p, f \rangle$ between the density functions $p$ and the loss functions $f$ is given by
+\begin{align*}
+    \langle p, f \rangle := \int_\K p(x) f(x) d\mu(x)\,.
+\end{align*}
+% Note the compatibility between $p$'s and $f$'s also has a different aspect, which is that
+% $f_s$'s should be such that $p_t(x)$ defined in \cref{eq:cexp-definition} is well-defined for all $t$,
+% and stays in $L \log L(\K)$ for all $t$; we should get back to this issue later.
+% \paragraph{What $f_t$'s are possible?}
+The $L\log L$ space is an Orlicz space, with the Young function $\Phi(x) = (1+x)\log(1+x)-x$, and therefore it has nice properties such as being a Banach space with the Luxemburg norm, and having a well-defined dual space.
+The Orlicz theory tells us that the dual space of $L^\Phi(\K)$ is $L^{\Phi^*}(\K)$, where $\Phi^*$ is the convex conjugate of $\Phi$.
+In our case, we have
+\begin{align*}
+    \Psi(x) := \Phi^*(x) = \begin{cases}
+                               e^x - x - 1, & x \ge 0 \\
+                               0,           & x < 0
+                           \end{cases}
+\end{align*}
+which describes the dual Orlicz space
+\begin{align*}
+    L\exp(\K) := \left\{f: \K \to \R \mid \text{measurable}, \int_\K \Psi(f(x)) d\mu(x) < +\infty\right\}\,,
+\end{align*}
+which means that as long as the loss functions $f_t$ are in $L\exp(\K)$, the regret of the continuous exponential weight algorithm is well-defined and finite.
+
+Interestingly, this space also coincides with the space of all measurable functions $f$ such that $\int_\K e^{f(x)} d\mu(x) < +\infty$.
+All in all, this means that if we want to have a well-defined algorithm and regret for the continuous exponential weight algorithm, we need to make sure that the loss functions $f_t$ are in $L\exp(\K)$, and that the densities $p_t$ are in $L\log L(\K)$ for all $t$.
+
+\subsubsection*{Bregman divergence and $p_t$ and $\tilde{p}_t$.}
+Two important quantities show up in the analysis of the continuous exponential weight algorithm
+\begin{itemize}
+    \item The restricted minimizing probability density $p_t$
+          \begin{align*}
+              p_t(x) & = \argmin_{p \in \cP(\K) \cap L\log L(\cK)} \left\{ \eta \langle f_{t-1}, p \rangle + D_H(p, p_{t-1}) \right\}
+              \stackrel{(\mathrm{a})}{=} \frac{p_{t-1}(x) \exp(-\eta f_{t-1}(x))}{\int_\K p_{t-1}(x) \exp(-\eta f_{t-1}(x)) \mu(dx)}
+              \,,
+          \end{align*}
+    \item and the unrestricted minimizing function $\tilde{p}_t$
+          \begin{align*}
+              \tilde{p}_t(x) & = \argmin_{p \in L\log L(\cK)} \left\{ \eta \langle f_{t-1}, p \rangle + D_H(p, p_{t-1}) \right\} \stackrel{(\mathrm{b})}{=} p_{t-1}(x) \exp(-\eta f_{t-1}(x))\,,
+          \end{align*}
+\end{itemize}
+where the Bregman divergence associated with $H$ is defined as
+\begin{align*}
+    D_H(u, v) & := H(u) - H(v) - H'(v)[u - v]\,,
+\end{align*}
+and next we show $\mathrm{(a)}$ and $\mathrm{(b)}$ above, which is a consequence of the properties of the Bregman divergence associated with the negative entropy function $H$.
+The Gâteaux derivative of $H$ at $u \in L \log L(\K)$ is given by
+\begin{align*}
+    H'(u)[v]
+     & = \lim_{\epsilon \to 0}
+    \frac{
+        H(u + \epsilon v) - H(u)
+    }{\epsilon}
+    \\
+     & = \lim_{\epsilon \to 0}
+    \frac{
+        \int_\K (u(x) + \epsilon v(x)) \log\left(u(x) + \epsilon v(x)\right) \mu(dx)
+        - u(x) \log(u(x)) \mu(dx)
+        - \epsilon v(x) \mu(dx)
+    }{\epsilon}
+    \\
+     & = \lim_{\epsilon \to 0}
+    \frac{
+        \int_\K u(x) \log\left(1 + \epsilon \frac{v(x)}{u(x)}\right) \mu(dx)
+    }{\epsilon}
+    + \int_\K v(x) \log(u(x) + \epsilon v(x)) - v(x) \mu(dx)
+    \\
+     & =
+    \int_\K u(x) \frac{v(x)}{u(x)}\mu(dx)
+    + \int_\K v(x) \log(u(x)) - v(x) \mu(dx)
+    \\
+     & = \int_\K v(x) \log(u(x)) \mu(dx)
+    \\
+     & = \left\langle \log(u), v \right\rangle\,.
+\end{align*}
+
+We first show $\mathrm{(b)}$.
+The function $s:p \mapsto \eta \langle f_t, p \rangle + D_H(p, p_t)$ is convex so the necessary
+and sufficient condition for $\tilde{p}_{t+1}$ to be the minimizer is that for all $p \in L\log L(\K)$, we have
+\begin{align*}
+    0 \leq s'(\tilde{p}_{t+1})[p - \tilde{p}_{t+1}] & =
+    \eta \langle f_t, p - \tilde{p}_{t+1} \rangle + \partial_{u} D_H(\tilde{p}_{t+1}, p_t)[p - \tilde{p}_{t+1}]                                                    \\
+                                                    & = \eta \langle f_t, p - \tilde{p}_{t+1} \rangle
+    + H'(\tilde{p}_{t+1})[p - \tilde{p}_{t+1}] - H'(p_t)[p - \tilde{p}_{t+1}]                                                                                      \\
+                                                    & = \eta \langle f_t, p - \tilde{p}_{t+1} \rangle
+    + \langle \log(\tilde{p}_{t+1}), p - \tilde{p}_{t+1} \rangle - \langle \log(p_t), p - \tilde{p}_{t+1} \rangle                                                  \\
+                                                    & = \left\langle \eta f_t + \log\left(\frac{\tilde{p}_{t+1}}{p_t}\right), p - \tilde{p}_{t+1} \right\rangle\,.
+\end{align*}
+It can be checked that $\tilde{p}_{t+1}(x) = p_t(x) \exp(-\eta f_t(x))$, satisfies
+\begin{align}
+    \eta f_t + \log\left(\frac{\tilde{p}_{t+1}}{p_t}\right) = 0\,, \label{eq:optimality_condition_1}
+\end{align}
+proving $\mathrm{(b)}$ holds.
+
+To prove $\mathrm{(a)}$, notice that the same calculation shows that it is necessary and sufficient for $p_{t+1} \in\cP(\K)$ to satisfy
+\begin{align*}
+    0 \leq \left\langle \eta f_t + \log\left(\frac{p_{t+1}}{p_t}\right), p - p_{t+1} \right\rangle = 0\,,
+\end{align*}
+for all $p \in \cP(\K)$, (instead of all $p \in L\log L(\K)$).
+So, if we choose $p_{t+1}$ such that
+\begin{align*}
+    \eta f_t + \log\left(
+    \frac{p_{t+1}}{p_t}
+    \right) = c \mathbf{1}
+\end{align*}
+holds for some scalar $c$, then we have satisfied the optimality condition, and therefore $p_{t+1}$ is the minimizer.
+This gives $p_{t+1}(x)  = p_t(x) \exp(-\eta f_t(x) + c)$,
+and now the constant $c$ can be chosen to make $p_{t+1}$ integrate to 1, which gives
+\begin{align*}
+    p_{t+1}(x) & = \frac{p_t(x) \exp(-\eta f_t(x))}{\int_\K p_t(x) \exp(-\eta f_t(x)) \mu(dx)}\,,
+\end{align*}
+which is exactly the definition of the continuous exponential weight distribution.
+
+\begin{remark}
+    The uniqueness of both of these minimizers follows from the strict convexity of $s$.
+\end{remark}
+
+\subsubsection*{The regret of continuous exponential weight}
+Given a probability density $q \in \cP(\K)$, we define the regret of the continuous exponential weight algorithm with respect to $q$ as
+\begin{align*}
+    R_T(q) & := \sum_{t=1}^T \langle f_t, p_t - q \rangle                                            \\
+           & = \sum_{t=1}^T \langle f_t, p_t - p_{t+1} \rangle + \langle f_t, p_{t+1} - q \rangle\,.
+\end{align*}
+We know that $p_{t+1}$ satisfies the optimality condition
+\begin{align*}
+    p_{t+1} & = \argmin_{p \in \cP(\K)}
+    \eta \left\langle f_t, p \right\rangle + D_H(p, p_t)\,,
+\end{align*}
+Therefore, we can write
+\begin{align*}
+     & p_{t+1}(x)                                                     = \argmin_{p \in \cP(\K)} \left\{ \eta \langle f_t, p \rangle + D_H(p, p_t) \right\} \\
+    \Rightarrow
+     & \forall p \in \cP(\K),\qquad
+    \langle \eta f_t + H'(p_{t+1}) - H'(p_t), p - p_{t+1} \rangle  \ge 0                                                                                   \\
+    \Rightarrow
+     & \langle f_t, p_{t+1} - q \rangle                               \leq \frac{1}{\eta}
+    \langle H'(p_{t+1}) - H'(p_t), q - p_{t+1} \rangle\,.
+\end{align*}
+Then, there's the nice identity for Bregman divergences that
+\begin{align*}
+    \langle H'(p_{t+1}) - H'(p_t), q - p_{t+1} \rangle & = D_H(q, p_t) - D_H(q, p_{t+1}) - D_H(p_{t+1}, p_t)\,,
+\end{align*}
+so we have
+\begin{align*}
+    \eta \sum_{t=1}^T \langle f_t, p_{t+1} - q \rangle & \leq \sum_{t=1}^T D_H(q, p_t) - D_H(q, p_{t+1}) - D_H(p_{t+1}, p_t) \\
+                                                       & = D_H(q, p_1) - D_H(q, p_{T+1}) - \sum_{t=1}^T D_H(p_{t+1}, p_t)    \\
+                                                       & \leq D_H(q, p_1) - \sum_{t=1}^T D_H(p_{t+1}, p_t)\,.
+\end{align*}
+So, we get our first regret bound of
+\begin{align}
+    R_T(q) & \leq
+    \sum_{t=1}^T \langle f_t, p_t - p_{t+1} \rangle + \frac{1}{\eta} D_H(q, p_1) + \frac{1}{\eta} \sum_{t=1}^T D_H(p_{t+1}, p_t)\,, \label{eq:cexp_regret_bound_1}
+\end{align}
+which is our first regret bound.
+
+On the other hand, we can write
+\begin{align*}
+     & \tilde{p}_{t+1} = \argmin_{p \in L\log L(\K)} \eta \langle f_t, p \rangle + D_H(p, p_t) \\
+     & \Rightarrow
+    \forall p \in L\log L(\K),\qquad
+    \langle \eta f_t + H'(\tilde{p}_{t+1}) - H'(p_t), p - \tilde{p}_{t+1} \rangle  \ge 0\,,
+\end{align*}
+where the necessary and sufficient condition for optimality is
+\begin{align*}
+     & \eta f_t + H'(\tilde{p}_{t+1}) - H'(p_t) = 0 \\
+     & \Rightarrow
+    f_t = \frac{1}{\eta} \left(H'(p_t) - H'(\tilde{p}_{t+1})\right)\,,
+\end{align*}
+so we can write
+\begin{align*}
+    \langle f_t, p_t - p_{t+1} \rangle
+     & = \frac{1}{\eta} \langle H'(p_t) - H'(\tilde{p}_{t+1}), p_t - p_{t+1} \rangle
+    \\
+     & = \frac{1}{\eta} \left(D_H(p_{t+1}, p_t) + D_H(p_t, \tilde{p}_{t+1}) - D_H(p_{t+1}, \tilde{p}_{t+1})\right)\,,
+\end{align*}
+so continuing from \eqref{eq:cexp_regret_bound_1}, we have
+\begin{align}
+    R_T(q)
+     & \leq
+    \sum_{t=1}^T \langle f_t, p_t - p_{t+1} \rangle + \frac{1}{\eta} D_H(q, p_1) - \frac{1}{\eta} \sum_{t=1}^T D_H(p_{t+1}, p_t)                                                                                         \nonumber \\
+     & =
+    \left\{\frac{1}{\eta} \sum_{t=1}^T D_H(p_{t+1}, p_t) + D_H(p_t, \tilde{p}_{t+1}) - D_H(p_{t+1}, \tilde{p}_{t+1})\right\} + \left\{\frac{1}{\eta} D_H(q, p_1) - \frac{1}{\eta} \sum_{t=1}^T D_H(p_{t+1}, p_t)\right\} \nonumber \\
+     & \leq
+    \frac{1}{\eta} D_H(q, p_1) + \frac{1}{\eta} \sum_{t=1}^T D_H(p_t, \tilde{p}_{t+1})\,.
+    \label{eq:cexp_regret_bound_2}
+\end{align}
+which is our second regret bound.
+
+\subsubsection*{The $\Lambda$ for the continuous exponential weight algorithm}
+The Fenchel conjugate of $H$ is given by
+\begin{align*}
+    H^*(v) := \sup_{u \in L^2(\K)} \left\{ \langle v, u \rangle - H(u) \right\} = \int_\K \exp(v(x)) \mu(dx)\,.
+\end{align*}
+Now, we define the $\Lambda_{\mathrm{var}}$ for the continuous exponential weight algorithm as
+\begin{align*}
+    \Lambda_{\mathrm{var}, q}(E, p; f)
+     & :=
+    \E\left[
+        D_{H}\left(
+        H'(q), H^{\star\prime}\left(H'(q) - \eta E(X, f(X))\right)
+        \right)
+    \right] \\
+     & =
+    \E\left[
+        D_{H^\star}\left(
+        H'(q) - \eta E(X, f(X)), H'(q)
+        \right)
+        \right]\,,
+\end{align*}
+where $X \sim p$ and $H^\star$ is the Fenchel conjugate of $H$,
+and $E: \K \times \cU \to \R^\K$ is some function that maps the input $x$ and the loss $f(x)$ to a function in $L\exp (\K)$,
+which we call the "estimator" of the loss function $f$ when the input is $x$ and the observed loss is $f(x)$.
+
+Let $g_{x,f} = E(x, f(x))$, then we have
+\begin{align*}
+     & \E\left[
+        D_{H^\star}\left(
+        H'(q) - \eta g_X^f, H'(q)
+        \right)
+    \right]     \\
+     & =
+    \E\left[
+        H^\star(H'(q) - \eta g_X^f) - H^\star(H'(q)) + \eta \langle  g_X^f, q \rangle
+        \right]\,.
+\end{align*}
+Recall that $H^\star(v) = \int_\K \exp(v(t)) dt$, and $H'(q) = \log(q)$, so we have
+\begin{align*}
+    H^\star(H'(q)) & = \int_\K \exp(\log(q(t))) dt = \int_\K q(t) dt = 1\,,
+\end{align*}
+and
+\begin{align*}
+    H^\star(H'(q) - \eta g_x^f) & = \int_\K \exp(\log(q(t)) - \eta g_x^f(t)) dt = \int_\K q(t) \exp(-\eta g_x^f(t)) dt\,,
+\end{align*}
+so we have
+\begin{align*}
+     & \E\left[
+        D_{H^\star}\left(
+        H'(q) - \eta g_X^f, H'(q)
+        \right)
+    \right]     \\
+     & =
+    \E\left[
+        \int_\K q(t) \exp(-\eta g_X^f(t)) dt - 1 + \eta \langle  g_A^f, q \rangle
+    \right]     \\
+     & =
+    \E\left[
+        \int_\K q(t) \exp(-\eta g_X^f(t)) dt + \int_\K \eta g_X^f(t) q(t) dt - 1
+    \right]     \\
+     & =
+    \E\left[
+        \int_\K q(t) \left(\exp(-\eta g_X^f(t)) - 1 + \eta g_X^f(t)\right) dt
+    \right]     \\
+     & =
+    \int_\K \int_\K q(t) \left(\exp(-\eta g_x^f(t)) - 1 + \eta g_x^f(t)\right) p(x) dt dx
+    \,.
+\end{align*}
+We can't move forward without further structure on $g_x^f(t)$,
+so motivated by our previous affine studies,
+we take the liberty to assume that $g_x^f(t) = f(x) s_x(t) + b_x(t)$ is an affine function of $f(x)$ for some $s_x(t), b_x(t) \in \R^\K$.
+Then, we have
+\begin{align*}
+     & \int_\K \int_\K q(t) \left(\exp(-\eta g_x^f(t)) - 1 + \eta g_x^f(t)\right) p(x) dt dx \\
+     & = \int_\K\int_\K \exp(-\eta g_x^f(t)) + \eta g_x^f(t) dp(x)dq(t) - 1                  \\
+     & = \int_\K\int_\K \exp(-\eta g_x^f(t))dp(x)dq(t)                                       \\
+     & \,\,+ \eta \int_\K\int_\K g_x^f(t)  dp(x)dq(t)- 1                                     \\
+     & = \int_\K\int_\K \exp(-\eta [f(x) s_x(t) + b_x(t)])dp(x)dq(t)                         \\
+     & \,\,+ \eta \int_\K\int_\K [f(x) s_x(t) + b_x(t)]  dp(x)dq(t) - 1                      \\
+     & = \int_\K\int_\K \exp(-\eta f(x) s_x(t)) \exp(-\eta b_x(t))dp(x)dq(t)                 \\
+     & \,\,+ \eta \int_\K \int_\K f(x)  s_x(t)dp(x) dq(t)
+    +\eta\int_\K b_x(t) dp(x) dq(t) - 1\,.
+\end{align*}
+We'd like to write this in terms of $h(\cdot| \cdot)$,
+$Z(t)$ and $C(t)$, so we can use the same machinery as before to get a bias-variance decomposition.
+To this end, recall that
+\begin{align*}
+    Z(t)   & = \int_\K s_x(t) dp(x)\,,            \\
+    C(t)   & = \int_\K b_x(t) dp(x)\,,            \\
+    h(x|t) & = \frac{p(x) s_x(t)}{Z(t)}\,, \qquad
+    \text{so that } \int_\K h(x|t) dx = 1\,.
+\end{align*}
+Then, we can write
+\begin{align*}
+     & \int_\K\int_\K \exp(-\eta f(x) s_x(t)) \exp(-\eta b_x(t))dp(x)dq(t)                               \\
+     & \,\,+ \eta \int_\K f(x) \left[\int_\K s_x(t)dp(x)\right]q(t) dt
+    +\eta\int_\K b_x(t) dp(x) dq(t) - 1                                                                  \\
+     & =\int_\K\int_\K \exp\left(-\eta f(x) \frac{Z(t) h(x|t)}{p(x)}\right) \exp(-\eta b_x(t))dp(x)dq(t) \\
+     & \,\,+ \eta \int_\K \int_\K f(x) Z(t) h(x|t) dq(t) dx
+    +\eta\int_\K b_x(t) dp(x) dq(t) - 1                                                                  \\
+     & =\int_\K\int_\K \exp\left(-\eta f(x) \frac{h(x|t)}{p(x)}\right)
+    + \eta f(x) \frac{h(x|t)}{p(x)} dq(t) dp(x) - 1                                                      \\
+     & \leq \int_\K\int_\K \exp\left(-\eta \frac{h(x|t)}{p(x)}\right)
+    + \eta \frac{h(x|t)}{p(x)}  - 1 dq(t) dp(x)                                                          \\
+     & =\int_\K\int_\K \exp\left(-\eta s_x(t)\right)
+    + \eta s_x(t)  - 1 dq(t) dp(x)
+\end{align*}
+
+
+
+
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{../all}
+\clearpage
+
+\appendix
+\section{Appendix}
+\label{sec:appendix}
+
+\section{Proofs for the continuous exponential weight algorithm}
+\subsection{Proof of \cref{thm:negentropy-LlogLspace}}
+\label{proof:negentropy-LlogLspace}
+\begin{proof}[Proof of \ref{thm:negentropy-LlogLspace}]
+    We prove the theorem for $\Phi(x) = x \log(1+x)$ instead of $\Phi(x) = (1+x) \log(1+x) - x$,
+    which is equivalent since these two function describe the same Orlicz space as they have the same asymptotic growth rate as $x \to \infty$.
+
+    First, since $\K \subset \Rd$ is a compact set, its Lebesgue measure $\mu(\K)$ is finite.
+    To prove the equivalence, we partition $\K$ into two sets based on the value of $v(x)$: $A = \{x \in \K \mid v(x) \le e^2\}$ and $B = \{x \in \K \mid v(x) > e^2\}$.
+    On the set $A$, $v(x)$ is bounded in $[0, e^2]$. The functions $f(v) = v \log v - v$ (with $0 \log 0 := 0$) and $g(v) = v \log(1+v)$ are continuous on the compact interval $[0, e^2]$, meaning they are bounded by some constant $C > 0$. Because $\mu(A) \le \mu(\K) < +\infty$, the integrals of both functions over $A$ are strictly finite. Thus, integrability over $\K$ entirely depends on their behavior on $B$.
+    On the set $B$, $v(x) > e^2 > 1$. Here, both $v \log v - v$ and $v \log(1+v)$ are strictly positive. We can bound them relative to one another:
+    \begin{enumerate}
+        \item Since $v > e^2$, we have $\log v > 2$, which implies $v < \frac{1}{2} v \log v$. Therefore, $v \log v - v > \frac{1}{2} v \log v > 0$.
+        \item We also have $v \log(1+v) \le v \log(2v) = v \log 2 + v \log v < 2 v \log v$.
+    \end{enumerate}
+    Combining these inequalities, for all $x \in B$:
+    \begin{align*}
+        \frac{1}{4} v(x) \log(1+v(x)) < \frac{1}{2} v(x) \log v(x) < v(x) \log v(x) - v(x) < v(x) \log v(x) < v(x) \log(1+v(x))\,.
+    \end{align*}
+    Because the functions bound each other up to constant factors on $B$, it follows that:
+    \begin{align*}
+        \int_B (v(x) \log v(x) - v(x)) d\mu(x) < +\infty \iff \int_B v(x) \log(1+v(x)) d\mu(x) < +\infty\,.
+    \end{align*}
+    Since the integrals over $A$ are finite in both cases, $\int_\K (v(x) \log v(x) - v(x)) d\mu(x) \in \R$ if and only if $v \in L\log L(\K)$.
+
+    Furthermore, to show $L\log L(\K) \subset L^1(\K)$, assume $v \in L\log L(\K)$. We can bound the $L^1$ norm of $v$ by splitting the integral at $v(x) = 1$:
+    \begin{align*}
+        \int_\K v(x) d\mu(x) & = \int_{\{x \in \K \mid v(x) \le 1\}} v(x) d\mu(x) + \int_{\{x \in \K \mid v(x) > 1\}} v(x) d\mu(x)     \\
+                             & \le \mu(\K) + \frac{1}{\log 2} \int_{\{x \in \K \mid v(x) > 1\}} v(x) \log(1+v(x)) d\mu(x) < +\infty\,.
+    \end{align*}
+    Thus, $v \in L^1(\K)$.
+\end{proof}
+
+
+\end{document}
