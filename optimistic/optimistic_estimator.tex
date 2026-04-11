@@ -1,0 +1,1164 @@
+\documentclass{article}
+
+\textwidth=125mm
+\textheight=200mm
+\linespread{1.04}
+
+
+\title{\textsc{Optimistic BCO}}
+\usepackage{marginnote}
+\reversemarginpar % switch default margin to the left
+\usepackage{framed}
+\usepackage{xcolor}
+\usepackage{nicefrac}
+\usepackage{pgfplots}
+\usepackage{floatrow}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage[plain]{algorithm}
+\lstset{emph={try,catch,throw,def,or,to,for,then,end,for,if,args,else,return},emphstyle=\color{blue!100!black}\textbf}
+\lstset{mathescape=true,escapechar=\&,numbers=left,xleftmargin=3mm,linewidth=0.47\textwidth,framextopmargin=0pt,framexbottommargin=0pt,aboveskip=-1pt,belowskip=-1pt}
+\usepackage{mdframed}
+\usepackage{bm}
+\usepackage[bf]{caption}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{xspace}
+\usepackage[hypertexnames=false]{hyperref} % add backlinks to the end of bibliography items
+\usepackage[capitalise]{cleveref}
+\usepackage{autonum}
+
+\definecolor{dkblue}{cmyk}{1,.54,.04,.19} 
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{optprob}[theorem]{Optimisation Problem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{plain}
+\newtheorem{exampleinner}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+% Boxed example environment with light gray background and shadow
+\mdfdefinestyle{examplestyle}{%
+    backgroundcolor=gray!10,
+    linewidth=0.5pt,
+    linecolor=gray!50,
+    shadow=true,
+    shadowsize=3pt,
+    shadowcolor=gray!30,
+    innertopmargin=8pt,
+    innerbottommargin=8pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+    skipabove=10pt,
+    skipbelow=10pt
+}
+\newenvironment{example}[1][]{%
+    \begin{mdframed}[style=examplestyle]%
+    \begin{exampleinner}[#1]%
+}{%
+    \end{exampleinner}%
+    \end{mdframed}%
+}
+
+
+
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Rd}{\mathbb{R}^d}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\ip}[1]{\langle #1 \rangle}
+\newcommand{\Reg}{\mathfrak{R}}
+\newcommand{\BReg}{\mathfrak{BR}}
+\newcommand{\norm}[1]{\Vert #1 \Vert}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\K}{\mathcal K}
+\newcommand{\cU}{\mathcal U}
+\newcommand{\cN}{\mathcal N}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\PP}{\mathbb P}
+\newcommand{\Var}{\mathbb V}
+\newcommand{\cE}{\mathcal E}
+\newcommand{\cK}{\mathcal K}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cO}{\mathcal O}
+\newcommand{\cS}{\mathcal S}
+\newcommand{\cC}{\mathcal C}
+\newcommand{\cL}{\mathcal L}
+\newcommand{\cG}{\mathcal G}
+\newcommand{\cA}{\mathcal A}
+\newcommand{\cD}{\mathcal D}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\BS}{\mathbb S}
+\newcommand{\zeros}{ \bm 0}
+\newcommand{\bbP}{\mathbb P}
+\newcommand{\polylog}{\operatorname{polylog}}
+\newcommand{\poly}{\operatorname{poly}}
+\newcommand{\const}{\operatorname{const}}
+\newcommand{\interior}{\operatorname{int}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\diam}{\operatorname{diam}}
+\renewcommand{\d}[1]{\operatorname{d}\!#1}
+\newcommand{\abovelabel}[1]{\stackrel{\raisebox{0.5mm}{\textrm{\tiny \color{red} #1}}}}
+\newcommand{\ta}{\tilde{a}}
+\newcommand{\tP}{P'}
+\newcommand{\tA}{A'}
+\newcommand{\fmd}{\texttt{MD}}
+\newcommand{\tfmd}{\widetilde{\texttt{MD}}}
+
+\newcommand{\mdalg}{\textsf{MD}\xspace}
+\newcommand{\smdalg}{\textsf{SMD}\xspace}
+\newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
+\newcommand{\olo}{\texttt{OLO}\xspace}
+\newcommand{\blo}{\texttt{BLO}\xspace}
+\newcommand{\bco}{\texttt{BCO}\xspace}
+\newcommand{\oco}{\texttt{OCO}\xspace}
+\newcommand{\hl}{\hat{\ell}\xspace}
+
+
+\begin{document}
+\maketitle
+The goal of this document is design and analyze a simple algorithm for bandit convex optimization (BCO) in the continuous setting, which is based on the idea of optimistic estimators \citet{bubeck2016kernelbasedmethodsbanditconvex}.
+
+\section{The complexity measure}
+Instead of defining the whole bandit setting, regret, and the algorithm, we just focus on the complexity measure $\Lambda_q(E, p; f)$, which in turn results in a regret bound for the algorithm.
+
+Given a convex body $\K$, a convex function $f:\K \to [0,1]$, two probability distributions $q$ and $p$ supported on $\K$, and an estimator $E:\K \times [0,1] \to \R^\cK$, we can define the complexity measure $\Lambda_q(E, p; f)$ as
+\begin{align}
+    \Lambda_q(E, p; f) := \int_{\K} p(t) f(t) dt - \int_{\K} q(t) \bar{f}(t) dt + \sup_{t\in \K} (\bar{f}(t) - f(t)) + \int_{\K} q(t) \int_{\K} p(x) E(x, f(x))_t^2 dx dt,
+\end{align}
+where $\bar{f}(t) := \int_{\K} p(x) E(x, f(x))_t dx$ is the estimator function associated with $E$ and $p$.
+By using the notation $\langle f, p\rangle := \int_{\K} p(t) f(t) dt$, and letting $X\sim p$ and $T\sim q$ be random variables with distributions $p$ and $q$ respectively, we can rewrite $\Lambda_q(E, p; f)$ as
+\begin{align}
+    \Lambda_q(E, p; f) & = \langle f, p\rangle - \langle \bar{f}, q\rangle + \sup_{t\in \K} (\bar{f}(t) - f(t)) + \E_{T\sim q} \E_{X\sim p} [E(X, f(X))_T^2]                                                                                                                               \\
+                       & = \underbrace{\langle f, p\rangle - \langle \bar{f}, q\rangle + \sup_{t\in \K} (\bar{f}(t) - f(t))}_{\triangleq \Lambda_{\mathrm{bias}, q}(E, p; f)} + \underbrace{\E_{T\sim q} \E_{X\sim p} [E(X, f(X))_T^2]}_{\triangleq \Lambda_{\mathrm{var}, q}(E, p; f)}\,.
+\end{align}
+
+\section{The kernel viewpoint}
+To make the problem more tractable, we further restrict the search space of estimation functions.
+Specifically, we only consider estimation functions of the form
+\begin{align}
+    E(x, y) = y \cdot s_x + b_x\,,
+\end{align}
+where $s_x, b_x \in \R^\K$ for $x \in \K$.
+An affine estimator in this setting is a map
+\begin{align}
+    E: \cK \times[0,1]\to \R^\K,\qquad \text{which means} \qquad
+    E(x,f(x))(\,\cdot\,)= f(x)\,s_x(\,\cdot\,) + b_x(\,\cdot\,),
+\end{align}
+and the average estimate is
+\begin{equation}
+    \bar f(t) := \int_\K p(x)\,E(x,f(x))(t)\,dx
+    = \int_\K p(x)\,\bigl(f(x)s_x(t)+b_x(t)\bigr)\,dx.
+    \label{eq:barf_def}
+\end{equation}
+
+\paragraph{The probabilistic view}
+The overall goal is to design $S, B$ and $p$ jointly to minimize the worst-case value of $\Lambda_q$.
+In this section we basically re-parametrize this joint design problem in a way that makes the structure of the solution more transparent.
+
+Fix some $p$.
+Define
+\begin{align}
+    Z(t) := \int_\K p(x) s_x(t) \,dx\,.
+\end{align}
+Suppose that $p(x)$ and $s_x(t)$ are such that $Z(t) \neq 0$ for all $t$ (which is the case for exponential kernels).
+Then, we can define a new function $h(x|t)$ as
+\begin{align}
+    h(x|t) := \frac{p(x) s_x(t)}{Z(t)}\,, \qquad \text{so that} \qquad \int_\K h(x|t) \, dx = 1.
+\end{align}
+
+The idea is that \textbf{if we restrict to nonnegative kernels $s_x(t) \ge 0$},
+then instead of designing $s_x(t)$ directly, we can equivalently design $h(\cdot|t)$ on $\K$ for each $t$,
+and the scaling factors $Z_t$ for each $t$.
+
+Starting from the continuous form $\bar{f}$ , we have
+\begin{align}
+    \bar{f}(t) & = \int_{\K} p(x) s_x(t) f(x) \,dx + \underbrace{\int_{\K} p(x)\,b_x(t)}_{:=C(t)}\,dx \\
+               & = Z(t) \cdot \int_{\K} h(x|t) f(x) \, dx + C(t)                                      \\
+               & = Z(t) \cdot \E_{x\sim h(\cdot|t)}[f(x)] + C(t)\,.
+\end{align}
+The take away message is that, when we restrict to nonnegative kernels, the design of the estimator can be viewed as the design
+of a family of (kernel) distributions $h(\cdot|t)$ on $\K$ for each $t$, and the scaling and bias factors $Z(t)$ and $C(t)$ for each $t$.
+
+\section{The optimistic estimator}
+We switch gear and consider a new idea for designing estimators based on \cite{bubeck2016kernelbasedmethodsbanditconvex}, this time in the continuous setting
+in $\R^d$.
+Let $\K \subset \Rd$ be a convex body, and $f: \K \to [0,1]$ be a convex function supported on $K$.
+We define
+\begin{align}
+    \tilde{f}(t) = \E\left[
+        \left(1 - \frac{1}{\lambda}\right) f(X)
+        + \frac{1}{\lambda} f\left(
+        (1-\lambda) X + \lambda t
+        \right)
+        \right]\,,
+\end{align}
+where $X \sim p$ is a random variable supported on $\K$ and $\lambda\in(0,1)$ is a parameter.
+
+First, it is not clear if $\tilde{f}(t)$ is a good estimate of $f(t)$;
+however, even if it is, \textit{it is not a valid $\bar{f}$},
+since we do not yet know if there exists an estimator function $E$ such that
+\begin{align}
+    \tilde{f}(t) \stackrel{?}{=} \int_{\Rd} p(x) E(x,f(x))(t)\,dx.
+\end{align}
+But before we worry about the existence of an estimator, let's first check if $\tilde{f}(t)$ is a good estimate of $f(t)$.
+The key observation is that \textbf{every term in the expectation defining $\tilde{f}(t)$ is an underestimate of $f(t)$, hence $\tilde{f}(t)\le f(t)$ for all $t$}.
+To see that, note that by convexity we have
+\begin{align}
+    f\left((1-\lambda)X+\lambda t\right)
+    \le (1-\lambda)f(X) + \lambda f(t),
+\end{align}so
+\begin{align}
+    \left(1 - \frac{1}{\lambda}\right) f(X)
+    + \frac{1}{\lambda} f\left((1-\lambda) X + \lambda t\right)
+    \le f(t).
+\end{align}
+Therefore, $\tilde{f}(t)$ is a pointwise underestimate of $f(t)$, i.e
+\begin{align}
+    \label{eq:tilde_f_underestimates_f}
+    \tilde{f}(t) \le f(t),\qquad \forall t\in \Rd.
+\end{align}
+\paragraph{The valid estimator $E$ for $\tilde{f}$.}
+With a change of measure argument, we can show that there exists an estimator $E$ for $\tilde{f}$.
+Precisely, we can write
+\begin{align}
+    \tilde{f}(t)
+     & = \int_{\Rd}
+    p(x) \left[
+        \left(1 - \frac{1}{\lambda}\right) f(x)
+        + \frac{1}{\lambda} f\left(
+        (1-\lambda) x + \lambda t
+        \right)
+    \right]\,dx     \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \int_{\Rd}
+    p(x)
+    f(x)
+    dx
+    +
+    \frac{1}{\lambda}
+    \int_{\Rd}
+    p(x)
+    f\left(
+    (1-\lambda) x + \lambda t
+    \right) \,dx    \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \int_{\Rd}
+    p(x)
+    f(x)
+    dx
+    +
+    \frac{1}{\lambda (1-\lambda)^d}
+    \int_{\Rd}
+    p\left(
+    \frac{y - \lambda t}{1 - \lambda}
+    \right)
+    f(y) \,dy       \\
+     & =
+    \int_{\Rd}
+    p(x)
+    f(x)
+    \left(
+    1 - \frac{1}{\lambda}
+    +
+    \frac{1}{\lambda (1-\lambda)^d}
+    \cdot
+    p\left(
+    \frac{x - \lambda t}{1 - \lambda}
+    \right)
+    p(x)^{-1}
+    \right) \,dx\,,
+\end{align}
+where we have used the change of variable $y = (1-\lambda)x + \lambda t$ in the second term.
+Therefore, we can define the estimator $E$ as
+\begin{align}
+    E_\lambda(x, f(x))_t := f(x) \cdot \left(1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\right)\,.
+\end{align}
+An interesting observation is that $E_\lambda(x, f(x))_t$ is a linear (more than affine) function of $f(x)$,
+so using our notation for affine estimators, we can write $E_\lambda(x, f(x))_t = f(x) \cdot s^\lambda_x(t)$, where
+\begin{align}
+    s^\lambda_x(t) := 1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\,.
+\end{align}
+Further, notice that the density of the random variable $Y = (1-\lambda)X + \lambda t$ is given by
+\begin{align}
+    p^\lambda_t(y) = \frac{1}{(1-\lambda)^d} p\left(\frac{y - \lambda t}{1 - \lambda}\right)\,,
+\end{align}
+and then we have
+\begin{align}
+    p(x) s^\lambda_x(t)
+     & = p(x) \left(1 - \frac{1}{\lambda}\right) + \frac{1}{\lambda} p^\lambda_t(x) \,,
+\end{align}
+which means that $p(x) s^\lambda_x(t)$ is an affine combination of two probability densities $p$ and $p^\lambda_t$,
+and therefore the following normalization constant is exactly 1:
+\begin{align}
+    Z(t) & = \int_{\Rd} p(x) s^\lambda_x(t) \,dx                                                                                                                       \\
+         & = \int_{\Rd} p(x) \left(1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\right) \,dx \\
+         & =
+    1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \int_{\Rd} p\left(\frac{x - \lambda t}{1 - \lambda}\right) \,dx                                            \\
+         & = 1.
+\end{align}
+So, now we can see what $h(\cdot|t)$ is in this case:
+\begin{align}
+    h_\lambda(x|t) := \frac{p(x) s^\lambda_x(t)}{Z(t)}
+     & = p(x) \left(1 - \frac{1}{\lambda}\right) + \frac{1}{\lambda} p^\lambda_t(x) \,.
+\end{align}
+Let's see what is $\E_{X\sim h_\lambda(\cdot|t)}[X]$ in this case:
+\begin{align}
+    \E_{X\sim h_\lambda(\cdot|t)}[X]
+     & = \int_{\Rd} h_\lambda(x|t) x \,dx
+    \\
+     & = \left(1 - \frac{1}{\lambda}\right) \int_{\Rd} p(x) x \,dx + \frac{1}{\lambda} \int_{\Rd} p_t^\lambda\left(x\right)  x \,dx
+    \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \int_{\Rd} p(x)  x \,dx
+    + \frac{1}{\lambda}
+    \int_{\Rd} p\left(y\right) \left(
+    (1-\lambda) y + \lambda t
+    \right) \,dy
+    \\
+     & = \left(
+    1 - \frac{1}{\lambda}
+    \right) \E[X] + \frac{1}{\lambda} \left(
+    (1-\lambda) \E[X] + \lambda t
+    \right)
+    = t,
+\end{align}
+therefore, we have the barycenter condition \eqref{eq:barycenter_condition} satisfied in this case.
+\begin{remark}
+    It is tempting to apply Jensen's inequality to $f$ and get
+    \begin{align}
+        \bar{f}(t)
+        = \E_{X\sim h_\lambda(\cdot|t)}[f(X)]
+        \stackrel{(\text{Jensen})}{\geq}
+        f\left(\E_{X\sim h_\lambda(\cdot|t)}[X]\right)
+        = f(t),
+    \end{align}
+    so by combining this with \eqref{eq:tilde_f_underestimates_f}, do we (almost) have a contradiction?
+    No.
+    The issue is that $s^\lambda_x(t)$ can be negative for some $x$ and therefore,
+    Jensen's inequality does not apply to $s(t) = \int_{\Rd} p(x) s^\lambda_x(t) f(x) dx$.
+    In fact, $h_\lambda(\cdot|t)$ is not a probability distribution,
+    rather it is a signed measure, which integrates to 1 but can have negative mass on some sets.
+\end{remark}
+
+\paragraph{Taking a look at $\Lambda_{\mathrm{bias}}$}
+First, we need to actually define the $\Lambda_{\mathrm{bias}}$ term for the continuous setting, which is
+\begin{align}
+    \Lambda_{\mathrm{bias}, q}(E_\lambda, p; f)
+     & =
+    \int_{\Rd} p(t) f(t) dt - \int_{\Rd} q(t) \bar{f}(t) dt + \sup_{t\in \K} (\bar{f}(t) - f(t))\,.
+\end{align}
+We need to somehow \textit{bind} $p$ to $q$.
+This time, since $\bar{f}$ is a pointwise underestimate of $f$, we would be in good shape
+if we can do our kernel trick to make $\int_{\Rd} q(t) \bar{f}(t) dt = \int_{\Rd} p(t) f(t) dt$.
+So to this end, we can define $p$ as
+\begin{align}
+    p(x) := \int_{\Rd} q(t) h_\lambda(x|t) dt\,.
+\end{align}
+Our concern should be whether $p$ is a valid probability distribution.
+One can check that $\int_{\Rd} p(x) dx = 1$, so we only need to check if $p(x)\ge 0$ for all $x$.
+To this end, we have
+\begin{align}
+    p(x) & = \int_{\Rd} q(t) h_\lambda(x|t) dt                                                                          \\
+         & = \int_{\Rd} q(t) \left(p(x) \left(1 - \frac{1}{\lambda}\right) + \frac{1}{\lambda}p_t^\lambda(x) \right) dt \\
+         & = \left(1 - \frac{1}{\lambda}\right) p(x)
+    +
+    \frac{1}{\lambda} \int_{\Rd} q(t) p_t^\lambda\left(x\right) dt\,,
+\end{align}
+so technically for $p$ to be even well-defined, we need
+\begin{align}
+    p(x) = (1 - \lambda)^{-d} \int_{\Rd} q(t) p\left(\frac{x - \lambda t}{1 - \lambda}\right) dt\,,
+\end{align}
+which is a convolution-type equation for $p$.
+To analyze this, define the operator $\cT$ on the space of probability densities on $\Rd$ as
+\begin{align}
+    (\cT p)(x) := (1 - \lambda)^{-d} \int_{\Rd} q(t) p\left(\frac{x - \lambda t}{1 - \lambda}\right) dt\,,
+\end{align}
+which is exactly the density of the random variable
+\begin{align}
+    X' = (1-\lambda) X + \lambda T\,,
+\end{align}
+where $X\sim p$ and $T\sim q$ are independent.
+Therefore, the condition for $p$ to be well-defined is exactly that $p$ is a fixed point of $\cT$, i.e.
+\begin{equation}
+    p = \cT p\,.
+    \label{eq:fixed_point_condition}
+\end{equation}
+which means that $p$ is a stationary distribution for the affine recursion (or Markov chain) of
+\begin{align}
+    X_{n+1} = (1-\lambda) X_n + \lambda T_{n+1}, \qquad
+    T_n \stackrel{iid}{\sim} q\,.
+\end{align}
+Define
+\begin{align}
+    X := \lambda \sum_{k=0}^\infty (1-\lambda)^k T_{k},
+\end{align}
+which converges almost surely whenever $q$ has a finite first moment.
+Then, the law of $X$ is a fixed point of $\cT$, since
+\begin{align}
+    (1-\lambda) X + \lambda T_0
+     & = (1-\lambda) \lambda \sum_{k=0}^\infty (1-\lambda)^k T_{k} + \lambda T_0
+    = \lambda \sum_{k=0}^\infty (1-\lambda)^k T_{k} = X.
+\end{align}
+Therefore, the law of $X$ is a valid choice for $p$,
+and it is the unique stationary solution.
+Also, one can show that $p$ is supported on $\cK$ if $q$ is supported on $\cK$.
+This is a very big win for the continuous setting, since we now have
+\begin{align}
+    \Lambda_{\mathrm{bias}, q}(E_\lambda, p; f)
+     & =
+    \int_{\Rd} p(t) f(t) dt - \int_{\Rd} q(t) \bar{f}(t) dt + \sup_{t\in \K} (\bar{f}(t) - f(t))
+    \\
+     & =
+    \sup_{t\in \K} (\bar{f}(t) - f(t))
+    \le 0\,,
+\end{align}
+which is surprisingly non-positive.
+\begin{remark}
+    Some immediate moment relations between $X \sim p$ and $T\sim q$:
+    \begin{itemize}
+        \item We have
+              \begin{align}
+                  \E[X] & = \lambda \sum_{k=0}^\infty (1-\lambda)^k \E[T_k] = \E[T]\,.
+              \end{align}
+        \item We have
+              \begin{align}
+                  \mathrm{Cov}[X]
+                   & = \lambda^2 \sum_{k=0}^\infty (1-\lambda)^{2k} \mathrm{Cov}[T_k]
+                  = \frac{\lambda}{2-\lambda} \mathrm{Cov}[T].
+              \end{align}
+    \end{itemize}
+\end{remark}
+
+\begin{example}
+    If $q$ is $\cN(\mu, \Sigma)$, then $p$ is $\cN(\mu, \frac{\lambda}{2-\lambda}\Sigma)$.
+\end{example}
+
+\paragraph{The variance term.}
+The variance term  in the continuous setting is
+\begin{align}
+    \Lambda_{\text{var}, q}(E_\lambda, p; f)
+     & =
+    \int_{\Rd} q(t) \int_{\Rd} p(x) E_\lambda(x, f(x))_t^2 dx dt \\
+     & = \int_{\Rd} p(x) q(t) f(x)^2 s^\lambda_x(t)^2 dt dx\,.
+\end{align}
+
+Let's once more upper bound $f(x)$ by 1 (not too naively) to get
+\begin{align}
+    \Lambda_{\text{var}, q}(E_\lambda, p; f)
+    \leq
+    \Lambda_{\text{var}, q}(E_\lambda, p; \mathbf{1})
+     & \le \int_{\Rd} p(x) q(t) s^\lambda_x(t)^2 dt dx\,,
+\end{align}
+which might not be as bad as it looks, since this is actually the worst case for the variance
+term, which is realized by the constant function $f\equiv 1$.
+Recall that
+\begin{align}
+    p_t^\lambda(x) := \frac{1}{(1-\lambda)^{d}}p\left(
+    \frac{
+        x - \lambda t
+    }{
+        1 - \lambda
+    }
+    \right)\,,
+\end{align}
+which is the density of the random variable $Y\triangleq(1-\lambda)X + \lambda t$ when $X\sim p$.
+Let,
+\begin{align}
+    \omega_t(x) := \frac{p_t^\lambda(x)}{p(x)}\,,
+\end{align}
+then for every $t$ we have
+\begin{align}
+    \int_{\Rd} p(x) \omega_t(x) dx
+     & = \int_{\Rd} p_t^\lambda(x) dx
+    = 1\,,
+\end{align}
+so $\omega_t$ is a density ratio function with respect to $p$.
+Now, observe that $\int (\omega_t(x) - 1) p(x) dx = 0$, so $\omega_t(x)-1$ is a zero-mean function with respect to $p$,
+and recalling that $p(x)s^\lambda_x(t) = (1 - \frac{1}{\lambda})p(x) + \frac{1}{\lambda} \cdot p_t^\lambda\left(x\right)$,
+we can write
+\begin{align}
+    \int p(x) s_x^\lambda(t)^2 dx
+     & = \int p(x) \left(1 + \frac{1}{\lambda}(\omega_t(x) - 1)\right)^2 dx   \\
+     & = \int p(x) \left(1 + \frac{1}{\lambda^2}(\omega_t(x) - 1)^2\right) dx \\
+     & = 1 + \frac{1}{\lambda^2}\int p(x) (\omega_t(x) - 1)^2 dx\,,
+\end{align}
+but using the definition of $\omega_t$ we can also write
+\begin{align}
+    1 + \frac{1}{\lambda^2}\int p(x) (\omega_t(x) - 1)^2 dx\,,
+     & = 1 + \frac{1}{\lambda^2}\int p(x) (\frac{p_t^\lambda(x)}{p(x)} - 1)^2 dx \\
+     & = 1 + \frac{1}{\lambda^2} \chi^2(p_t^\lambda \| p)\,,
+\end{align}
+where $\chi^2(p_t^\lambda \| p)$ is the chi-squared divergence between $p_t^\lambda$ and $p$.
+Therefore, in one line we have
+\begin{align}
+    \int p(x) s_x^\lambda(t)^2 dx
+     & = 1 + \frac{1}{\lambda^2} \chi^2(p_t^\lambda \| p)\,,
+\end{align}
+and consequently, we have
+\begin{align}
+    \sup_{f \in [0,1], \textrm{convex}}\Lambda_{\text{var}, q}(E_\lambda, p; f)
+     & \stackrel{(\mathrm{"="for} f\equiv 1)}{\le} \int q(t) \left(1 + \frac{1}{\lambda^2} \chi^2(p_t^\lambda \| p)\right) dt \\
+     & = 1 + \frac{1}{\lambda^2} \E_{T\sim q}[\chi^2(p_T^\lambda \| p)]\,.
+\end{align}
+Recall the setup
+\begin{align}
+    T \sim q,\,  \qquad \qquad X \sim p, \qquad \qquad
+    Y                = (1-\lambda) X + \lambda T\, ,
+\end{align}
+and $p_t^\lambda$ is the density of $Y|T=t$.
+Now by expanding the chi-squared divergence, we can write
+\begin{align}
+    \E_{T\sim q}[\chi^2(p_T^\lambda \| p)]
+     & =
+    \int \int
+    \frac{
+        (p_t^\lambda(y) - p(y))^2
+    }{p(y)} q(t) \, dy dt \\
+     & =
+    \int \int
+    \frac{
+        \left(q(t)p_t^\lambda(y) - q(t)p(y)\right)^2
+    }{q(t) p(y)} \, dy dt\,,
+\end{align}
+and note that $Y \stackrel{D.}{=} X$, so we can write
+\begin{align}
+    \int \int
+    \frac{
+        \left(q(t)p_t^\lambda(y) - q(t)p(y)\right)^2
+    }{q(t) p(y)} \, dy dt
+     & =
+    \int \int
+    \frac{
+        \left(P_{Y,T}(y,t) - P_T(t)P_X(y)\right)^2
+    }{P_X(y) P_T(t)} \, dy dt                            \\
+     & =
+    \int \int
+    \frac{
+        \left(P_{Y,T}(y,t) - P_T(t)P_Y(y)\right)^2
+    }{P_Y(y) P_T(t)} \, dy dt                            \\
+     & = \chi^2(P_{Y,T} \| P_Y P_T) = I_{\chi^2}(T;Y)\,,
+\end{align}
+where $I_{\chi^2}(T;Y)$ is the chi-squared mutual information between $T$ and $Y$.
+Note that generally speaking, by decreasing $\lambda$ the mutual information $I_{\chi^2}(T;Y)$ decreases, but the factor $\frac{1}{\lambda^2}$ increases, so there is a tradeoff here.
+
+\begin{example}[The one dimensional Gaussian case]
+    Let $q$ be $\cN(\mu, \sigma_q^2)$, then $p$ is $\cN(\mu, \sigma_p^2)$,
+    where $\sigma_p^2 = \frac{\lambda}{2-\lambda} \sigma_q^2$.
+    Further, $\mu_t$ is the density of $Y = (1 - \lambda) X + \lambda T$,
+    where $X \sim p$ and $T \sim q$ are independent.
+    The pair $(T,Y)$ is jointly Gaussian with corelation
+    \begin{align}
+        \rho^2
+         & = \frac{\mathrm{Cov}[T,Y]^2}{\mathrm{Var}[T]\mathrm{Var}[Y]}
+        = \frac{\mathrm{Cov}[T, (1-\lambda) X + \lambda T]^2}{\mathrm{Var}[T]\mathrm{Var}[(1-\lambda)X + \lambda T]} \\
+         & = \frac{\left((1-\lambda) \mathrm{Cov}[T, X] + \lambda \mathrm{Cov}[T, T] \right)^2}{
+            \mathrm{Var}[T]
+            \left(
+            (1-\lambda)^2 \mathrm{Var}[X] + \lambda^2 \mathrm{Var}[T]
+            \right)
+        }
+        = \frac{\lambda^2 \mathrm{Var}[T]^2}{
+            \mathrm{Var}[T]
+            \left(
+            (1-\lambda)^2 \mathrm{Var}[X] + \lambda^2 \mathrm{Var}[T]
+            \right)
+        }                                                                                                            \\
+         & = \frac{\lambda^2\sigma_q^2}{
+            (1-\lambda)^2 \sigma_p^2 + \lambda^2 \sigma_q^2
+        }
+        = \frac{\lambda^2}{
+            \frac{\lambda(1-\lambda)^2}{2-\lambda} + \lambda^2
+        } = \lambda(2 - \lambda)\,,
+    \end{align}
+    and therefore $(1 - \rho^2) = (1-\lambda)^2$.
+    Now, using the formula for the chi-squared mutual information between jointly Gaussian variables, we have
+    \begin{align}
+        \chi^2(P_{X,T} \| P_X P_T) = I_{\chi^2}(T;X) = \frac{\rho^2}{1-\rho^2} = \frac{\lambda(2-\lambda)}{(1-\lambda)^2}
+        =(1 - \lambda)^{-2} - 1\,.
+    \end{align}
+    Hence, we have
+    \begin{align}
+        \sup_{f \in [0,1], \textrm{convex}}\Lambda_{\text{var}, q}(E_\lambda, p; f)
+         & = 1 + \frac{1}{\lambda^2} \left(
+        (1 - \lambda)^2 - 1
+        \right)
+        = 1 + \frac{2 - \lambda}{\lambda (1-\lambda)^2}\,.
+    \end{align}
+\end{example}
+
+\begin{example}[The $d$-dimensional Gaussian case]
+    If $q$ is $\cN(\mu, \Sigma_q)$, then $p$ is $\cN(\mu, \Sigma_p)$,
+    where $\Sigma_p = \frac{\lambda}{2-\lambda} \Sigma_q$.
+    In whitened coordinates, the $(X, T)$ joint splits into $d$ independent
+    correlated Gaussian pairs with the same $\rho^2 = \lambda(2-\lambda)$.
+    Therefore, we have
+    \begin{align}
+        I_{\chi^2}(T;X) = \prod_{i=1}^d \frac{1}{1-\rho^2} - 1 = (1-\lambda)^{-2d} - 1\,,
+    \end{align}
+    and
+    \begin{align}
+        \sup_{f \in [0,1], \textrm{convex}}\Lambda_{\text{var}, q}(E_\lambda, p; f)
+         & = 1 + \frac{1}{\lambda^2} \left(
+        (1 - \lambda)^{-2d} - 1
+        \right)\,.
+    \end{align}
+    Now by setting $\lambda = \frac{c}{d}$ for some constant $c>0$, we get
+    \begin{align}
+        (1 - \lambda)^{-2d} - 1
+         & = \left(1 - \frac{c}{d}\right)^{-2d} - 1
+        \approx e^{2c} - 1\,,
+    \end{align}
+    so we have
+    \begin{align}
+        \sup_{f \in [0,1], \textrm{convex}}\Lambda_{\text{var}, q}(E_\lambda, p; f)
+         & \approx 1 + \frac{e^{2c} - 1}{c^2} d^2\,,
+    \end{align}
+    which is a quadratic dependence on $d$.
+\end{example}
+
+So the bottom line is
+\begin{align}
+    \sup_{f \in [0,1], \textrm{convex}}\Lambda_{\text{var}, q}(E_\lambda, p; f)
+     & = 1 + \frac{1}{\lambda^2} I_{\chi^2}(T;Y)\,,
+\end{align}
+where $T\sim q$, $X\sim p$ and $Y = (1-\lambda) X + \lambda T$.
+However, recall that
+\begin{align}
+    X = \lambda \sum_{k=1}^\infty (1-\lambda)^{k-1} T_k\,,
+\end{align}
+where $T_k$ are i.i.d. copies of $T$, so $Y$ can be written as
+\begin{align}
+    Y = (1-\lambda) X + \lambda T = \lambda \sum_{k=1}^\infty (1-\lambda)^{k} T_k + \lambda T_0
+    = \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\,,
+\end{align}
+where we set $T_0 \triangleq T$ in the second equality.
+Therefore, we can equally write
+\begin{equation}
+    I_{\chi^2}(T;Y) = I_{\chi^2}\left(T_0; \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\right)\,.
+    \label{eq:chi_squared_mutual_info_infinite_sum}
+\end{equation}
+To step a bit further from Gaussians, we can ask what would happen if $q$ is a log-concave distribution
+on a convex body $\cK$; then what would be the best bound one can achieve on \eqref{eq:chi_squared_mutual_info_infinite_sum}?
+
+\clearpage
+\subsection{Bounding the chi-squared mutual information}
+We are looking for a set of regularity conditions on $q$ that would give us a good upper bound on the chi-squared mutual information quantity in the following:
+\begin{conjecture}\label{conj:logconcave_chi2_poly_d}
+    Let $q$ be a log-concave distribution on a convex body $\cK\subseteq \Rd$, and let $T_k$ be i.i.d. samples from $q$.
+    Does there exist a $\poly(d)$ upper bound on the following chi-squared mutual information quantity?
+    \begin{align}
+        \sup_{q} \inf_{\lambda\in(0,1)} \frac{1}{\lambda^2} I_{\chi^2}\left(T_0; \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\right)\,.
+    \end{align}
+\end{conjecture}
+
+\subsubsection{The mutual information is infinite for Laplace}
+Suppose that $T \sim \mathrm{Laplace}(0, 1)$, then
+\begin{align}
+    q(t) = \frac{1}{2} e^{-|t|}\,,
+\end{align}
+and $\lambda T$ has density $q_\lambda(t) \triangleq \frac{1}{2\lambda} e^{-\frac{|t|}{\lambda}}$.
+Recall that $Y = (1-\lambda) X + \lambda T$, where $X$ is an independent copy of $Y$, so $p = q_\lambda * p$, and
+for every $y$ we have
+\begin{align}
+    p(y) = \int q_\lambda(y - z) r(z) dz = \E_{Z \sim r} \left[q_\lambda(y - Z)\right]
+    = \E_{Z \sim r} \left[\frac{1}{2\lambda} e^{-\frac{|y-Z|}{\lambda}}\right]\,,
+\end{align}
+For $y > 0$, we have the triangle inequality $|y-Z| \ge y - |Z|$, so we can write
+\begin{align}
+    p(y) \le \E_{Z \sim r} \left[\frac{1}{2\lambda} e^{\frac{-y + |Z|}{\lambda}}\right] = \frac{1}{2\lambda} e^{-\frac{y}{\lambda}} \E_{Z \sim r} \left[e^{\frac{|Z|}{\lambda}}\right]\,,
+\end{align}
+which by setting $C_\lambda \triangleq \E_{Z \sim r} \left[e^{\frac{|Z|}{\lambda}}\right]$ gives
+\begin{align}
+    p(y) \le \frac{C_\lambda}{2\lambda} e^{-\frac{y}{\lambda}}\,.
+\end{align}
+However, we need to show that $C_\lambda$ is finite. To this end, write
+\begin{align}
+    Z = \lambda \sum_{k=1}^\infty (1-\lambda)^k T_k \quad \Rightarrow \quad \frac{|Z|}{\lambda} \leq \sum_{k=1}^\infty (1-\lambda)^k |T_k|
+    \quad \Rightarrow \quad \exp(\frac{|Z|}{\lambda}) \leq \prod_{k=1}^\infty \exp((1-\lambda)^k |T_k|)\,,
+\end{align}
+then taking expectation and using the independence of $T_k$ gives
+\begin{align}
+    \E_{Z \sim r} \left[e^{\frac{|Z|}{\lambda}}\right] \leq \prod_{k=1}^\infty \E_{T_k \sim q} \left[e^{(1-\lambda)^k |T_k|}\right]\,,
+\end{align}
+but for a laplace variable $L$ and $\alpha \in (0,1)$ we have
+\begin{align}
+    \E[e^{\alpha |L|}] = \int_0^\infty e^{-x} e^{\alpha x} dx = \int_0^\infty e^{x(\alpha - 1)}dx = \frac{1}{1 - \alpha}\,.
+\end{align}
+Therefore, we have
+\begin{align}
+    \E_{Z \sim r} \left[e^{\frac{|Z|}{\lambda}}\right] \leq \prod_{k=1}^\infty \frac{1}{1 - (1-\lambda)^k}\,,
+\end{align}
+To show that this is finite, it is enough to show that
+\begin{align}
+    \sum_{k=1}^\infty -\log\bigl(1-(1-\lambda)^k\bigr) < \infty\,.
+\end{align}
+Since $(1-\lambda)^k \to 0$, there exists $K$ such that for all $k \ge K$,
+\begin{align}
+    (1-\lambda)^k \le \frac12\,.
+\end{align}
+Now for every $x \in [0,1/2]$ we have
+\begin{align}
+    -\log(1-x) \le 2x\,.
+\end{align}
+Therefore, for all $k \ge K$,
+\begin{align}
+    -\log\bigl(1-(1-\lambda)^k\bigr)
+    \le 2(1-\lambda)^k\,.
+\end{align}
+Summing over $k \ge K$ gives
+\begin{align}
+    \sum_{k=K}^\infty -\log\bigl(1-(1-\lambda)^k\bigr)
+    \le 2\sum_{k=K}^\infty (1-\lambda)^k < \infty\,,
+\end{align}
+since the right-hand side is a convergent geometric series. The finitely many terms with $k < K$ are also finite, so altogether
+\begin{align}
+    \sum_{k=1}^\infty -\log\bigl(1-(1-\lambda)^k\bigr) < \infty\,.
+\end{align}
+Hence
+\begin{align}
+    \prod_{k=1}^\infty \frac{1}{1-(1-\lambda)^k} < \infty\,,
+\end{align}
+and therefore $C_\lambda < \infty$. We conclude that for all $y>0$,
+\begin{align}
+    p(y) \le \frac{C_\lambda}{2\lambda} e^{-y/\lambda}\,.
+\end{align}
+
+Next, note that
+\begin{align}
+    Z = \lambda(1-\lambda)T_1 + \lambda\sum_{k=2}^\infty (1-\lambda)^k T_k\,.
+\end{align}
+Thus the law $r$ of $Z$ is the convolution of a Laplace density with a probability measure, and in particular $r$ is continuous and strictly positive everywhere. Hence there exist $\epsilon>0$ and $m_\lambda>0$ such that
+\begin{align}
+    r(u) \ge m_\lambda
+    \qquad\text{for all } |u|\le \epsilon\,.
+\end{align}
+
+Now recall that the conditional law of $Y$ given $T=t$ is exactly the translate of $r$:
+\begin{align}
+    p_t^\lambda(y)=r(y-\lambda t)\,.
+\end{align}
+Therefore, by the integral formula for $\chi^2$-mutual information,
+\begin{align}
+    I_{\chi^2}(T;Y)+1
+     & = \int_{\mathbb R}\int_{\mathbb R}
+    q(t)\,\frac{p_t^\lambda(y)^2}{p(y)}\,dy\,dt \\
+     & = \int_{\mathbb R}\int_{\mathbb R}
+    q(t)\,\frac{r(y-\lambda t)^2}{p(y)}\,dy\,dt\,.
+\end{align}
+Restrict the integral to the strip
+\begin{align}
+    \mathcal S \triangleq \{(t,y): t\ge 2\epsilon/\lambda,\ |y-\lambda t|\le \epsilon\}\,.
+\end{align}
+On this strip we have $y\ge \epsilon>0$, so the tail bound on $p$ applies, and also
+\begin{align}
+    r(y-\lambda t)\ge m_\lambda\,.
+\end{align}
+Hence for $(t,y)\in\mathcal S$,
+\begin{align}
+    q(t)\frac{r(y-\lambda t)^2}{p(y)}
+     & \ge \frac12 e^{-t}\,
+    \frac{m_\lambda^2}{(C_\lambda/(2\lambda))e^{-y/\lambda}} \\
+     & = \frac{\lambda m_\lambda^2}{C_\lambda}
+    \exp\!\left(-t+\frac{y}{\lambda}\right).
+\end{align}
+But on $\mathcal S$ we have $y=\lambda t + u$ with $|u|\le \epsilon$, so
+\begin{align}
+    -t+\frac{y}{\lambda}
+    = -t + \frac{\lambda t + u}{\lambda}
+    = \frac{u}{\lambda}
+    \ge -\frac{\epsilon}{\lambda}.
+\end{align}
+Therefore, throughout $\mathcal S$,
+\begin{align}
+    q(t)\frac{r(y-\lambda t)^2}{p(y)}
+    \ge \frac{\lambda m_\lambda^2}{C_\lambda}e^{-\epsilon/\lambda}
+    =: c_\lambda > 0\,.
+\end{align}
+It follows that
+\begin{align}
+    I_{\chi^2}(T;Y)+1
+    \ge \iint_{\mathcal S} c_\lambda\,dy\,dt.
+\end{align}
+Since $\mathcal S$ has infinite Lebesgue measure in the $t$-direction, the right-hand side is infinite. Hence
+\begin{align}
+    I_{\chi^2}(T;Y)=\infty.
+\end{align}
+Since this holds for every $\lambda\in(0,1)$, we conclude that
+\begin{align}
+    \inf_{\lambda\in(0,1)} \frac{1}{\lambda^2} I_{\chi^2}(T;Y)=\infty.
+\end{align}
+
+\clearpage
+\subsubsection{The KL mutual information case.}
+It is instructive to compare Conjecture \ref{conj:logconcave_chi2_poly_d} with the usual (KL-based) mutual information.
+Assume $q$ has a density on a full-dimensional convex body $\cK$ (which holds for log-concave measures on $\cK$),
+so that $Y$ also has a density and finite entropy.
+Recall the decomposition
+\begin{align}
+    Y
+    = \lambda T_0 + (1-\lambda)Y',
+    \qquad
+    Y' \triangleq \lambda \sum_{k=0}^\infty (1-\lambda)^k T_{k+1},
+\end{align}
+where $Y'$ is independent of $T_0$ and $Y' \stackrel{d}{=} Y$.
+Let $h(\cdot)$ denote differential entropy.
+Then the KL mutual information admits an exact, distribution-free evaluation:
+\begin{align}
+    I(T_0;Y)
+     & = h(Y) - h(Y \mid T_0)\label{eq:kl_mi_entropy_def}                                                                     \\
+     & = h(Y) - \E_{T_0}\!\left[ h\bigl( (1-\lambda)Y' + \lambda T_0 \,\big|\, T_0 \bigr) \right]\label{eq:kl_mi_expand_cond} \\
+     & = h(Y) - h\bigl((1-\lambda)Y'\bigr)\label{eq:kl_mi_translation_invariance}                                             \\
+     & = h(Y) - \bigl(h(Y') + d\log(1-\lambda)\bigr)\label{eq:kl_mi_scaling}                                                  \\
+     & = d\log\!\left(\frac{1}{1 - \lambda}\right)\label{eq:kl_mi_final},
+\end{align}
+where \eqref{eq:kl_mi_translation_invariance} uses translation invariance of differential entropy
+(the shift by $\lambda T_0$ does not affect $h(\cdot)$), \eqref{eq:kl_mi_scaling} uses the scaling rule
+$h(aX)=h(X)+d\log|a|$, and \eqref{eq:kl_mi_final} uses $Y'\stackrel{d}{=}Y$.
+
+In particular, unlike the $\chi^2$-mutual information, the quantity $I(T_0;Y)$ depends only on $\lambda$ and $d$,
+and is completely independent of the choice of $q$:
+\begin{align}
+    I(T_0;Y) = d\log\!\left(\frac{1}{1-\lambda}\right).
+\end{align}
+Consequently, $\inf_{\lambda\in(0,1)} I(T_0;Y)=0$ (by taking $\lambda\downarrow 0$), while for the scaling
+$\lambda = c/d$ one obtains the constant-order behavior $I(T_0;Y)=c+O(1/d)$.
+
+\clearpage
+
+\subsubsection{An upper bound based on $\|q\|_{\infty}$}
+Let $Y := \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k$ be the infinite autoregressive sum,
+then by the definition of the chi-squared divergence, we can write
+\begin{align}
+    I_{\chi^2}(T_0; Y)
+     & = \chi^2(P_{T_0, Y} \| P_{T_0} P_{Y})                                                       \\
+     & = \int_{\cK} \int_{\cK} \frac{P_{T_0, Y}(t, y)^2}{P_{T_0}(t) P_{Y}(y)} dy dt - 1            \\
+     & = \int_{\cK} \int_{\cK} \frac{P_{T_0}(t)^2 P_{Y|T_0=t}(y)^2}{P_{T_0}(t) P_{Y}(y)} dy dt - 1 \\
+     & = \int_{\cK} \int_{\cK} \frac{P_{T_0}(t) P_{Y|T_0=t}(y)^2}{P_{Y}(y)} dy dt - 1              \\
+     & = \int_{\cK} P_{T_0}(t) \left(\int_{\cK} \frac{P_{Y|T_0=t}(y)^2}{P_{Y}(y)} dy - 1\right) dt \\
+     & = \E_{T_0} \left[
+        \chi^2(P_{Y|T_0} \| P_{Y})
+        \right]\,.
+\end{align}
+Note that
+\begin{align}
+    Y = \lambda T_0 + \lambda \sum_{k=1}^\infty (1-\lambda)^k T_k
+    = \lambda T_0 + (1-\lambda) \lambda \sum_{k=0}^\infty (1-\lambda)^k T_{k+1}
+    = \lambda T_0 + \underbrace{(1-\lambda) Y^\prime}_{\triangleq Z}\,,
+\end{align}
+where $Y^\prime$ is an independent copy of $Y$.
+Define the densities of the relevant distributions as
+\begin{align}
+    q(t) \triangleq P_{T_0}(t), \quad p(y) \triangleq P_{Y}(y), \quad \text{and} \quad p_t^\lambda(y) \triangleq P_{Y|T_0=t}(y)\,, \quad \text{and} \quad r(z) \triangleq P_Z(z)\,.
+\end{align}
+Although the exact form of $p$ in terms of $q$ is not very explicit,
+the other two densities are just scaled shifts of $p$.
+First, note that $Z = (1-\lambda) Y^\prime$, so we have
+\begin{align}
+    r(z) = \frac{1}{(1-\lambda)^d} p\left(\frac{z}{1-\lambda}\right)\,,
+\end{align}
+and secondly, given $T_0 = t$, we have $Y = \lambda t + Z$, so the density of $Y$ given $T_0 = t$ is just a shifted version of the density of $Z$:
+\begin{align}
+    p_t^\lambda(y) = r(y - \lambda t) = \frac{1}{(1-\lambda)^d} p\left(\frac{y - \lambda t}{1-\lambda}\right)\,.
+\end{align}
+Now, by putting these back into the chi-squared divergence we have
+\begin{align}
+    \chi^2(P_{Y|T_0=t} \| P_{Y}) + 1
+     & = \int_{\cK} \frac{P_{Y|T_0=t}(y)^2}{P_{Y}(y)} dy
+    = \int_{\cK} \frac{p_t^\lambda(y)^2}{p(y)} dy\,.
+    \label{eq:chi_squared_divergence_integral_form_1}
+\end{align}
+Note that
+\begin{align}
+    p(y) = \int_{\cK} P_{Y|T_0=t}(y) P_{T_0}(t) dt
+    = \int_{\cK} q(t) p_t^\lambda(y) dt\,,
+    \label{eq:p_convolution_form_1}
+\end{align}
+so by putting this back into \eqref{eq:chi_squared_divergence_integral_form_1}, and taking the expectation over $T_0$, we have
+\begin{align}
+    \int_\cK \chi^2(P_{Y|T_0=t} \| P_{Y}) q(t) dt + 1
+     & = \int_{\cK} q(t) \int_{\cK} \frac{p_t^\lambda(y)^2}{\int_{\cK} q(s) p_s^\lambda(y) ds} dy dt   \\
+     & = \int_{\cK} \int_{\cK}q(t) \frac{p_t^\lambda(y)^2}{\int_{\cK} q(s) p_s^\lambda(y) ds} dt dy    \\
+     & = \int_{\cK} \frac{\int_{\cK}q(t) p_t^\lambda(y)^2 dt}{\int_{\cK} q(s) p_s^\lambda(y) ds} dy\,.
+    \label{eq:chi_squared_divergence_integral_form_2}
+\end{align}
+% Now we can go two ways from here. (the second way is to use $p_t^\lambda(y) q(t) = P_{Y,T}(y,t)$, but let's first try something else)
+Next, we have
+\begin{align}
+    \int_{\cK} \frac{\int_{\cK}q(t) p_t^\lambda(y)^2 dt}{\int_{\cK} q(s) p_s^\lambda(y) ds} dy
+    \leq
+    \int_{\cK} \sup_{t\in\cK} p_t^\lambda(y)\,dy
+    =
+    \int_{\cK} \sup_{t\in\cK} r(y - \lambda t)\,dy
+\end{align}
+where we use the fact that $p_t^\lambda(y) = r(y - \lambda t)$.
+By upper bounding naively the supremum by the \(L^\infty\) norm of \(r\), we get
+\begin{align}
+    \int_{\cK} \sup_{t\in\cK} r(y - \lambda t)\,dy
+    \le \|r\|_{\infty} \cdot \mathrm{Vol}(\cK)\,.
+\end{align}
+So we just need to upper bound the \(L^\infty\) norm of \(r\), which is a scaled version of \(p\).
+From the relation $r(z) = \frac{1}{(1-\lambda)^d} p\left(\frac{z}{1-\lambda}\right)$, we have
+\begin{align}
+    \|r\|_{\infty} = \frac{1}{(1-\lambda)^d} \|p\|_{\infty}\,.
+\end{align}
+Further, recall the convolution form of $p$ in \eqref{eq:p_convolution_form_1}, we can write
+\begin{align}
+    p(y)
+    = \int_{\cK} q(t') r(y - \lambda t') dt'
+    = \int_{\lambda \cK} \frac{q(t)}{\lambda^d} r(y - t) dt
+    = (q_\lambda * r)(y),
+\end{align}
+where
+\begin{align}
+    q_\lambda(t) :=\begin{cases}
+                       \frac{1}{\lambda^d} q\left(\frac{t}{\lambda}\right) & t \in \lambda \cK   \\
+                       0                                                   & \text{otherwise}\,.
+                   \end{cases}
+\end{align}
+By Young's convolution inequality, we have
+\begin{align}
+    \|p\|_{\infty} \le \|q_\lambda\|_{\infty} \|r\|_{1} = \|q_\lambda\|_{\infty} = \frac{1}{\lambda^d} \|q\|_{\infty}\,,
+\end{align}
+since \(r\) is a probability density.
+Combining the last two displays, we have
+\begin{align}
+    \|r\|_{\infty} = \frac{1}{(1-\lambda)^d} \|p\|_{\infty} \le \frac{1}{\lambda (1-\lambda)^d} \|q\|_{\infty}\,,
+\end{align}
+and therefore,
+\begin{align}
+    I_{\chi^2}(T_0; Y) + 1
+    \le \frac{\mathrm{Vol}(\cK)}{\lambda^d (1-\lambda)^d} \|q\|_{\infty}\,.
+\end{align}
+Furthermore, from the original objective, we have a factor of $\frac{1}{\lambda^2}$ in front of the chi-squared mutual information, so we have
+\begin{align}
+    \frac{1}{\lambda^2} I_{\chi^2}(T_0; Y)
+    \le \frac{\mathrm{Vol}(\cK)}{\lambda^{d+2} (1-\lambda)^d} \|q\|_{\infty},
+\end{align}
+which by setting $\lambda = \frac{d + 2}{2d + 2}$ gives
+\begin{align}
+    \frac{1}{\lambda^2} I_{\chi^2}(T_0; Y)
+    \le \frac{\mathrm{Vol}(\cK)}{\left(\frac{d + 2}{2d + 2}\right)^{d+2} \left(\frac{d}{2d + 2}\right)^d} \|q\|_{\infty}
+    \le \frac{\mathrm{Vol}(\cK)}{\left(\frac{d}{2d + 2}\right)^{2d+2}} \|q\|_{\infty}
+    \le \mathrm{Vol}(\cK) \cdot 4^{d+1} \|q\|_{\infty}\,.
+\end{align}
+\begin{remark}
+    Couple of remarks on this bound:
+    \begin{itemize}
+        \item It is not a very good bound, since it has an exponential dependence on $d$.
+        \item Also note that we got this far without using the log-concavity or any other structural assumption on $q$.
+        \item It is affine invariant, since the right hand side does not change if we apply an affine transformation to $q$.
+        \item $\|q\|_{\infty}$ is a very bad quantity to upper bound, since as the algorithm runs, the distribution $q$ will get more and more spiky, and consequently $\|q\|_{\infty}$ will get larger and larger.
+    \end{itemize}
+\end{remark}
+
+\paragraph{Upper bounding $\|q\|_\infty$ for l.c. measures}
+A possible way to upper bound $\|q\|_{\infty}$ is to use the fact that $q$ is log-concave then (using the isotropic constant / slicing bound) we have
+\begin{align}
+    \|q\|_{\infty} \le \frac{C^d}{\sqrt{\det(\mathrm{Cov}(q))}}\,,
+\end{align}
+where $C$ is some universal constant.
+By putting this back into the previous bound, we have
+\begin{align}
+    I_{\chi^2}(T_0; Y) + 1
+    \le
+    \frac{\mathrm{Vol}(\cK)}{\lambda^d (1-\lambda)^d} \cdot \frac{C^d}{\sqrt{\det(\mathrm{Cov}(q))}}
+    =
+    \frac{C^d}{\lambda^d (1-\lambda)^d} \cdot \frac{\mathrm{Vol}(\cK)}{\sqrt{\det(\mathrm{Cov}(q))}}
+\end{align}
+A nice property of this upper bound is that it is \textbf{affine invariant},
+i.e. it does not change if we apply an affine transformation to the distribution $q$.
+A bad property of this upper bound is that the first term has an exponential dependence on $d$, which is not good for our purposes.
+
+
+\clearpage
+\subsubsection{An upper bound based on Fisher information matrix (WIP)}
+Since $q$ is log-concave, then $p(y) = e^{-V(y)}$ for some convex potential function $V:\Rd \to \R$.
+We have the autoregressive model
+\begin{align}
+    Y & = \lambda T_0 + (1-\lambda) \lambda T_1 + (1-\lambda)^2 \lambda T_2 + \cdots = \lambda T_0 + (1-\lambda) Y'\,,
+\end{align}
+where $Y, Y' \stackrel{i.i.d}{\sim} p$.
+Same as the previous section, we define the density of the conditional distribution of $Y$ given $T_0 = t$ as
+\begin{align}
+    p^\lambda_t(y) = \frac{1}{(1-\lambda)^d} p\left(\frac{y - \lambda t}{1-\lambda}\right)
+\end{align}
+
+We want to evaluate the chi-squared mutual information quantity, which from \eqref{eq:chi_squared_divergence_integral_form_1} can be written as
+\begin{align}
+    I_{\chi^2}(T_0; Y) = \mathbb{E}_{T \sim q} \left[ \int_{\cK} p(y) \left( \frac{p^\lambda_T(y)}{p(y)} - 1 \right)^2 dy \right]\,,
+    \label{eq:chi_squared_divergence_integral_form_3}
+\end{align}
+\paragraph{Taylor expansion of $\frac{p_t^\lambda(y)}{p(y)}$ around $\lambda=0$.}
+Let
+\begin{align}
+    h(\lambda) = \frac{p_t^\lambda(y)}{p(y)} = \frac{1}{(1-\lambda)^d} \cdot \frac{p\left(\frac{y - \lambda t}{1-\lambda}\right)}{p(y)}
+    = \frac{1}{(1-\lambda)^d} \cdot \frac{e^{-V\left(\frac{y - \lambda t}{1-\lambda}\right)}}{e^{-V(y)}}\,.
+\end{align}
+To compute $h'$, we use the fact that $h'(\lambda) = h(\lambda) \cdot \frac{d}{d\lambda} \log h(\lambda)$.
+First, we compute $\log h(\lambda)$ as
+\begin{align}
+    \log(h(\lambda)) = -d \log(1-\lambda) + V(y) - V\left(\frac{y - \lambda t}{1-\lambda}\right)\,,
+\end{align}
+so
+\begin{align}
+    (\log h)'(\lambda)
+     & = \frac{d}{1-\lambda} + \nabla V\left(\frac{y - \lambda t}{1-\lambda}\right)^\top \cdot \frac{t-y}{(1-\lambda)^2}\,,
+\end{align}
+and therefore
+\begin{align}
+    h'(\lambda)
+     & = h(\lambda) \cdot \left(\frac{d}{1-\lambda} + \nabla V\left(\frac{y - \lambda t}{1-\lambda}\right)^\top \cdot \frac{t-y}{(1-\lambda)^2}\right)\,,
+\end{align}
+which for $\lambda = 0$ simplifies to $h'(0) = d - \langle \nabla V(y), y-t \rangle$.
+Before computing $h''(\lambda)$, we can already write the Taylor expansion of $h$ around $\lambda = 0$ as
+\begin{align}
+    h(\lambda) = h(0) + \lambda h'(0) + \frac{1}{2} \lambda^2 h''(\tilde{\lambda}) = 1 + \lambda \Big( d - \langle \nabla V(y), y-t \rangle \Big) + \frac{1}{2} \lambda^2 h''(\tilde{\lambda})\,,
+\end{align}
+where $\tilde{\lambda} \in (0, \lambda)$.
+By overloading a bit the notation, let $h_{t,y}(\lambda) := h(\lambda)$ to emphasize the dependence of $h$ on $t$ and $y$, then
+putting this back into \eqref{eq:chi_squared_divergence_integral_form_3}, we have
+\begin{align}
+    I_{\chi^2}(T_0; Y) = \mathbb{E}_{T \sim q}
+    \left[
+    \int_{\cK} p(y) \Big( \lambda (d - \langle \nabla V(y), y-T \rangle) + \frac{\lambda^2}{2} h''_{T,y}(\tilde{\lambda}_{T,y}) \Big)^2 dy
+    \right]\,,
+\end{align}
+\textbf{We drop the second order term for now.}
+
+\noindent
+By plugging this approximation back into the integral, the $\chi^2$ divergence becomes:
+\begin{align}
+    I_{\chi^2}(T_0; Y) \approx \lambda^2 \mathbb{E}_{T \sim q}
+    \left[
+        \int_{\cK} p(y) \Big( d - \langle \nabla V(y), y-T \rangle \Big)^2 dy
+        \right]
+\end{align}
+
+We expand the squared term inside the integral. Assume without loss of generality that $q$ is centered ($\mathbb{E}[T] = 0$), which implies $Y$ is also centered.
+We can split the term as $(d + \langle \nabla V(y), y \rangle) - \langle \nabla V(y), T \rangle$.
+Integrating against $p(y)$ and taking the expectation gives
+\begin{align}
+    I_{\chi^2}(T_0; Y) \approx \lambda^2 \left(
+    \underbrace{\int_{\cK} p(y) \big( d - \langle \nabla V(y), y \rangle \big)^2 dy}_{\text{First term}} + \underbrace{\int_{\cK} p(y) \langle \nabla V(y), \mathbb{E}[T T^\top] \nabla V(y) \rangle dy}_{\text{Second term}} \right)
+\end{align}
+
+\paragraph{Bounding the second term.}
+Notice that $\mathbb{E}[TT^\top] = \Sigma_q$. Furthermore, the second term is exactly the trace of the Fisher Information Matrix $J(p)$ weighted by $\Sigma_q$ as
+\begin{align}
+    \int_{\cK} p(y) (\nabla V(y))^\top \Sigma_q (\nabla V(y)) dy = \text{Tr}(\Sigma_q J(p))\,.
+\end{align}
+
+By the stationary condition $Y = \lambda T_0 + (1-\lambda)X$, the covariance of $p$ is $\Sigma_p = \frac{\lambda}{2-\lambda} \Sigma_q$.
+For a strictly log-concave distribution, the Fisher Information Matrix is bounded by a constant multiple of its inverse covariance matrix (not really..)
+\begin{align}
+    J(p) \preceq C \Sigma_p^{-1} = C \left( \frac{2-\lambda}{\lambda} \right) \Sigma_q^{-1} \approx \frac{2C}{\lambda} \Sigma_q^{-1}\,,
+\end{align}
+Taking the trace:
+\begin{align}
+    \text{Tr}(\Sigma_q J(p)) \le \text{Tr}\left( \Sigma_q \frac{2C}{\lambda} \Sigma_q^{-1} \right) = \frac{2C}{\lambda} \text{Tr}(I_d) = O\left(\frac{d}{\lambda}\right)
+\end{align}
+
+\paragraph{Bounding the first term.}
+Let
+\begin{align}
+    g(Y) = d - \langle \nabla V(Y), Y \rangle, \qquad \text{and} \qquad p(y) = e^{-V(y)}\,,
+\end{align}
+and we want to evaluate $\E[g(Y)^2]$.
+First, from integration by parts, we have
+\begin{align}
+    \E[g(Y)] = d - \int_{\cK} p(y) \nabla V(y)^\top y dy = d - \int_\cK \nabla p(y)^\top y dy
+\end{align}
+\begin{align}
+    \E[g(Y)^2] = \E\left[
+        (d - \nabla V(Y)^\top Y)^2
+        \right]
+    = \E\left[
+        d^2 - 2d\nabla V(Y)^\top Y + Y^\top \nabla V(Y) \nabla V(Y)^\top Y
+        \right]
+\end{align}
+Meanwhile, the term $\E_Y[g(Y)^2] = \text{Var}(\langle \nabla V(Y), Y \rangle)$ represents the variance of the trace of the Hessian-equivalent, which for standard log-concave measures scales like $O(d^2)$ (this also needs to be verified).
+
+Finally, substitute these bounds back into the target quantity:
+\begin{align}
+    \frac{1}{\lambda^2} I_{\chi^2}(T_0; Y) \approx \frac{1}{\lambda^2} \left( \lambda^2 O(d^2) + \lambda^2 O\left(\frac{d}{\lambda}\right) \right) = O(d^2) + O\left(\frac{d}{\lambda}\right)
+\end{align}
+To evaluate $\inf_{\lambda \in (0,1)} \frac{1}{\lambda^2} I_{\chi^2}(T_0; Y)$, we are free to choose a scaling for $\lambda$. If we set $\lambda = \frac{c}{d}$ (the exact same scaling that optimizes the exact Gaussian case), we obtain:$$\frac{1}{\lambda^2} I_{\chi^2}(T_0; Y) \le O(d^2) + O\left( d \cdot \frac{d}{c} \right) = O(d^2)$$Thus, the supremum over any compact log-concave distribution $q$ yields a polynomial upper bound of $O(d^2)$, matching the dimensional scaling of the Gaussian case.
+
+\newpage
+Let $q$ be a log-concave distribution on a convex body $\cK\subseteq \Rd$, and let $T_k$ be i.i.d. samples from $q$.
+Does there exist a $\poly(d)$ upper bound on the following chi-squared mutual information quantity?
+\begin{align}
+    \sup_{q} \inf_{\lambda\in(0,1)} \frac{1}{\lambda^2} I_{\chi^2}\left(T_0; \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\right)
+\end{align}
+
+\begin{example}[The Gaussian case]
+    Let
+    \[
+        Y \triangleq \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k
+    \]
+    and let $p$ be the law of $Y$.
+
+    If $q=\cN(\mu,\Sigma_q)$ on $\R^d$, then the affine recursion
+    $X_{n+1}=(1-\lambda)X_n+\lambda T_{n+1}$ has the unique stationary law
+    \[
+        p=\cN(\mu,\Sigma_p),
+        \qquad
+        \Sigma_p=\frac{\lambda}{2-\lambda}\Sigma_q.
+    \]
+    Moreover, for fixed $t\in\R^d$, the conditional law $\mu_t$ of
+    \[
+        Y=(1-\lambda)X+\lambda t,\qquad X\sim p
+    \]
+    is Gaussian with mean $(1-\lambda)\mu+\lambda t$ and covariance $(1-\lambda)^2\Sigma_p$.
+    The pair $(T,Y)$ is jointly Gaussian, and in whitened coordinates it splits into $d$
+    independent correlated Gaussian pairs with
+    \[
+        \rho^2=\lambda(2-\lambda)
+        \qquad\Longrightarrow\qquad
+        1-\rho^2=(1-\lambda)^2.
+    \]
+    Using the chi-squared mutual information formula for jointly Gaussian variables,
+    \[
+        I_{\chi^2}(T;Y)=\chi^2(P_{T,Y}\|P_TP_Y)
+        = \prod_{i=1}^d\frac{1}{1-\rho^2}-1
+        = (1-\lambda)^{-2d}-1.
+    \]
+    Therefore,
+    \[
+        \frac{1}{\lambda^2}I_{\chi^2}(T;Y)
+        = \frac{1}{\lambda^2}\bigl((1-\lambda)^{-2d}-1\bigr).
+    \]
+    In particular, taking $\lambda=\frac{c}{d}$ gives
+    \[
+        (1-\lambda)^{-2d}-1=\left(1-\frac{c}{d}\right)^{-2d}-1 \approx e^{2c}-1
+        \,\Rightarrow\,
+        \sup_{q} \inf_\lambda I_{\chi^2}(T;Y) \le \frac{e^{2c}-1}{c^2}\,d^2.
+    \]
+\end{example}
+
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{../all}
+\clearpage
+
+\end{document}
