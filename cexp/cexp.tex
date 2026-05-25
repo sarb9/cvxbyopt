@@ -161,76 +161,236 @@ which partially closes the gap between the upper and lower bounds for \bco.
 \newpage
 
 \section{Continuous exponential weights}
-Online optimization is a repeated game between a player and an adversary.
-The \textbf{action set} of the player is $\K$, which should be thought of as a subset of $\Rd$,
-and is often assumed to be compact and convex.
-First, the adversary chooses a sequence of loss functions $f_1, f_2, \ldots$ from a predetermined class of functions $\cF$
-(e.g., measurable, linear, convex, Lipschitz, smooth, etc.), where $f_t: \K \to [0, 1]$.
-Then in each round $t \in [n]$, the player chooses an action $a_t$ from an action set $\K$,
-and incurs a loss of $f_t(a_t)$,
-and only after that the player observes the loss function $f_t$.
-The regret w.r.t. an action $a_\star \in \cA$ is defined as
+We study a repeated game between a player and an adversary, which proceeds in $n$ rounds.
+Let $\K \subset \R^d$ be a compact convex subset with non-empty interior, and the set $\cF \subseteq \mathsf{C}(\K)$ be the class of continuous functions defined on $\K$.
+In each round $t \in [n]$, the player chooses an \textbf{action} $A_t \in \K$ (possibly randomly) and incurs a loss of $\ell_t(A_t)$, where $\ell_t \in \cF$ is a loss function chosen by the adversary, simultaneously with the player.
+Throughout this section, we study the \textit{full information} setting where the adversary reveals the whole loss function $\ell_t$ to the player at the end of each round.
+
+The player is allowed to randomize its actions, by choosing a distribution $\pi_t$ over $\K$ and sampling $A_t \sim \pi_t$.
+The distribution $\pi_t$ is called the \textbf{policy}.
+Precisely, in round $t$, the player chooses a distribution $\pi_t \in \mathsf{P}(\K)$ where
+$\mathsf{P}(\K)$ is the set of all probability measures supported on $\K$.
+The goal of the player is to minimize regret with respect to a comparator action $a_\star \in \K$, defined as
 \begin{align}
-    \Reg_n(a_\star) = \sum_{t=1}^{n} f_t(a_t) - f_t(a_\star)\,.
+    \Reg_n(a_\star) \triangleq \sum_{t=1}^{n} \ell_t(A_t) - \ell_t(a_\star)\,.
 \end{align}
-The player is allowed to randomize its actions.
-Let $\mu$ be the Lebesgue measure on $\Rd$.
+Note that $\Reg_n(a_\star)$ is a random variable,
+and the goal of the player is to minimize this quantity, either in expectation or with high probability.
+
+\subsection{The algorithm and its regret bound}
+The Continuous Exponential Weights Algorithm (\cewaalg), shown in \cref{alg:MD},
+is a natural extension of the discrete exponential weights algorithm to the continuous setting.
+\begin{algorithm}[H]
+    \begin{minipage}{12cm}
+        \begin{mdframed}
+            \begin{lstlisting}
+args: $\eta > 0,  \ell_0$
+Set $\pi_0(x) = \mathsf{Unif}(\K)$
+for $t = 1$ to $n$:
+    For $x \in \K$, let $\tpi_t(x) = \pi_{t-1}(x) \exp\left(-\eta \ell_{t-1}(x)\right)$
+    Set $\pi_t(x) = \frac{\tpi_t(x)}{\int_\K \tpi_t(y) d\mu(y)}$
+    Play $A_t \sim \pi_t$ and observe $\ell_t$
+\end{lstlisting}
+            \caption{
+                \cewaalg algorithm.
+            }\label{alg:MD}
+        \end{mdframed}
+    \end{minipage}
+\end{algorithm}
+\noindent
+Before stating the regret bound for \cewaalg, we need to introduce some notations.
 Define the set of probability densities supported on $\K$ as
 \begin{align}
-    \cP(\K) \triangleq \left\{ p: \K \to \R_+ \;\middle|\; p \text{ measurable}, \int_{\K} p(x) \, d\mu(x) = 1 \right\} \,,
+    \cP(\K)
+    \triangleq
+    \left\{
+    p:\K\to\R_+
+    \;\middle|\;
+    \textit{measurable}, \int_\K p(x)\d\mu(x)=1
+    \right\}.
 \end{align}
-then, $A_t$ can be sampled from a \textit{policy} $\pi_t \in \cP(\cK)$
-which should be $\cH_{t-1}$-measurable, where $\cH_{t-1} = \sigma(A_1, f_1, \ldots, A_{t-1}, f_{t-1})$
-is the natural filtration of the game up to time $t$.
-The expected regret is defined as
+The \cewaalg algorithm is a special case of the mirror descent algorithm with \textbf{the negative entropy} as the potential function, which is defined as
 \begin{align}
-    \E[\Reg_n(a_\star)] = \E\left[\sum_{t=1}^{n} f_t(A_t) - f_t(a_\star)\right]\,,
+    H(v) \triangleq \int_{\K} v(x) \log v(x) - v(x) + 1 d\mu(x)\,, \qquad \text{with } 0\log 0 \triangleq 0\,,
 \end{align}
-where the expectation is taken w.r.t. the randomness of the player's actions.
-The goal is to identify
+for a measurable function $v:\K \to \R_+$.
+The Bregman divergence associated with the negative entropy is the generalized Kullback-Leibler divergence, defined as
 \begin{align}
-    \Reg_n^\star(\cK, \cF) = \inf_{\pi_1, \ldots, \pi_n} \sup_{f_1, \ldots, f_n \in \cF, a_\star \in \cK} \E[\Reg_n(a_\star)]\,.
+    D_H(p,q)
+    =
+    \int_\K p(x)\log\frac{p(x)}{q(x)} - p(x) + q(x)\d x\,,
+\end{align}
+for $p,q$ being two measurable functions from $\K$ to $\R_+$.
+For a probability density $p \in \cP(\K)$, and a loss function $\ell \in \cF$, define the dual pairing as
+\begin{align}
+    \langle \ell, p \rangle
+    =
+    \int_\K \ell(x) p(x) d\mu(x)\,,
+\end{align}
+which is always finite since $\ell$ is continuous on a compact set and $p$ is a probability density.
+Finally, for a comparator fixed policy $\pi_\star \in \cP(\K)$, define the \textbf{pseudo-regret} with respect to $\pi_\star$ as
+\begin{align}
+    \Reg_n(\pi_\star) \triangleq
+    \sum_{t=1}^{n} \langle \ell_t, \pi_t - \pi_\star \rangle\,.
 \end{align}
 
-Next, we specify the \textit{largest} class of losses $\cF$ that are solvable.
+The following theorem gives a regret bound for the regret of \cewaalg algorithm.
+\begin{theorem}\label{thm:MD}
+    Let $\ell_0 \in \mathsf{C}(\K)$ be an arbitrary initial loss function,
+    and $\pi_\star \in \cP(\K)$ be an arbitrary comparator policy.
+    Then the regret of \cewaalg with respect to $\pi_\star$ satisfies
+    \begin{align}
+        \Reg_n(\pi_\star)
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        +
+        \sum_{t=1}^{n} D_H(\pi_t, \tilde{\pi}_{t+1})
+        \right)\,.
+    \end{align}
+\end{theorem}
 
-\subsection{The negative entropy potential}
-For a non-negative measurable function $v: \K \to \R_+$ the \textbf{negative entropy function} is defined as
-\begin{align}
-    H(v) \triangleq \int_{\K} v(x) \log v(x) - v(x) + 1 d\mu(x)\,, \qquad \text{with } 0\log 0 \triangleq 0\,.
-\end{align}
-We return to the (strict) convexity of $H$, but first it is natural to ask about the domain of $H$, that is,
-\begin{align}
-    \dom{H} = \left\{v: \K \to \R_+ \mid \text{measurable}, H(v) < +\infty\right\}\,.
-    \label{eq:negentropy-domain-trivial-definition}
-\end{align}
-The following example shows that $\dom{H}$ is strictly smaller than the set of all non-negative measurable functions.
-In fact there are probability densities for which $H$ is infinite.
-\begin{example}
-    Let $\K = [0, \frac{1}{e}]$, and let
+\begin{proof}
+    We have
     \begin{align}
-        v(x) = \begin{cases}
-                   \frac{1}{x \log^2 x}, & x > 0 \\
-                   0,                    & x = 0
-               \end{cases}\,.
+        \Reg_n(\pi_\star)
+         & =
+        \sum_{t=1}^{n} \langle \ell_t, \pi_t - \pi_\star \rangle \\
+         & =
+        \sum_{t=1}^{n}
+        \underbrace{\langle \ell_t, \pi_t - \pi_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stability}}
+        +
+        \underbrace{\langle \ell_t, \pi_{t+1} - \pi_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
     \end{align}
-    First, observe that $v$ is a probability density on $\K$, since
+    It is standard that the normalized exponential update for $\pi_{t+1}$ can be equivalently written as the following optimization problem
     \begin{align}
-        \int_0^{\frac{1}{e}} v(x) dx
-         & = \int_0^{\frac{1}{e}} \frac{1}{x \log^2 x} dx
-        = \int_{-\infty}^{-1} \frac{1}{u^2} du
-        = 1\,,
+        \pi_{t+1}
+         & =
+        \argmin_{\pi \in \cP(\K)}
+        \eta \langle \ell_t, \pi \rangle + D_H(\pi,\pi_t)\,,
     \end{align}
-    on the other hand, we have
+    then the first order optimality condition for this optimization problem gives us
     \begin{align}
-        \int_0^{\frac{1}{e}} v(x) \log v(x) dx
-         & = \int_0^{\frac{1}{e}} \frac{1}{x \log^2 x} \log\left(\frac{1}{x \log^2 x}\right) dx \\
-         & = \int_0^{\frac{1}{e}} \frac{-\log x - 2\log(-\log x)}{x \log^2 x} dx                \\
-         & = \int_{-\infty}^{-1} \frac{-u - 2\log(-u)}{u^2} du
-        = +\infty\,.
+         & \forall \bar{\pi} \in \cP(\K), \quad
+        \left\langle
+        \eta \ell_t + \log \pi_{t+1} - \log \pi_t,
+        \bar{\pi} - \pi_{t+1}
+        \right\rangle
+        \geq 0                                  \\
+        \Rightarrow
+         &
+        \texttt{tr}_t
+        =
+        \langle \ell_t, \pi_{t+1} - \pi_\star \rangle
+        \leq
+        \frac{1}{\eta}
+        \left\langle
+        \log \pi_{t+1} - \log \pi_t,
+        \pi_\star - \pi_{t+1}
+        \right\rangle\,.
     \end{align}
-\end{example}
-The next theorem characterizes the class of functions $v$ for which $H(v)$ is finite.
+    The RHS in the last display can be written in terms of the Bregman divergences as
+    \begin{align}
+        \left\langle
+        \log \pi_{t+1} - \log \pi_t,
+        \pi_\star - \pi_{t+1}
+        \right\rangle
+         & =
+        D_H(\pi_\star, \pi_t)
+        -
+        D_H(\pi_{t+1}, \pi_t)
+        -
+        D_H(\pi_\star, \pi_{t+1})\,,
+    \end{align}
+    which gives us a bound on the tracking terms
+    \begin{align}
+        \sum_{t=1}^{n} \texttt{tr}_t
+         & =
+        \sum_{t=1}^{n}
+        \langle \ell_t, \pi_{t+1} - \pi_\star \rangle \\
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        \sum_{t=1}^{n}
+        D_H(\pi_\star, \pi_t)
+        -
+        D_H(\pi_\star, \pi_{t+1})
+        -
+        D_H(\pi_{t+1}, \pi_t)
+        \right)                                       \\
+         & =
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        -
+        \underbrace{D_H(\pi_\star, \pi_{n+1})}_{\geq 0}
+        -
+        \sum_{t=1}^{n} D_H(\pi_{t+1}, \pi_t)
+        \right)
+        \\
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        -
+        \sum_{t=1}^{n} D_H(\pi_{t+1}, \pi_t)
+        \right)
+        \,.
+    \end{align}
+    To analyze the stability term $\texttt{st}_t$,
+    note that $\textsf{CEWA}$ stores the latest loss in the unnormalized density $\tilde{\pi}_{t+1}$, as
+    \begin{align}
+        \log \tilde{\pi}_{t+1}
+        =
+        \log \pi_t - \eta \ell_t,
+        \qquad\text{so}\qquad
+        \ell_t
+        =
+        \frac{1}{\eta}
+        \left(
+        \log \pi_t - \log \tilde{\pi}_{t+1}
+        \right).
+    \end{align}
+    Therefore, the stability term can be written as
+    \begin{align}
+        \texttt{st}_t
+         & =
+        \langle \ell_t, \pi_t - \pi_{t+1} \rangle \\
+         & =
+        \frac{1}{\eta}
+        \left\langle
+        \log \pi_t - \log \tilde{\pi}_{t+1},
+        \pi_t - \pi_{t+1}
+        \right\rangle                             \\
+         & =
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_{t+1}, \pi_t)
+        +
+        D_H(\pi_t, \tilde{\pi}_{t+1})
+        -
+        D_H(\pi_{t+1}, \tilde{\pi}_{t+1})
+        \right).
+    \end{align}
+    Thus, by dropping the negative term $-D_H(\pi_{t+1}, \tilde{\pi}_{t+1})$,
+    we have proved the second inequality,
+    \begin{align}
+        \Reg_n(\pi_\star)
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        +
+        \sum_{t=1}^{n} D_H(\pi_t, \tilde{\pi}_{t+1})
+        \right).
+    \end{align}
+\end{proof}
+
+\subsection{A discussion on generalization to unbounded losses}
+Since, $\cF \subseteq \mathsf{C}(\K)$ and continuous functions on compact sets are automatically bounded, the bilinear form $\langle f, p \rangle$ is finite for every $p \in \cP(\K)$.
+However, one might wonder about the \textbf{largest class of measurable loss functions} that are compatible with continuous exponential weights algorithm.
+Firstly, the next theorem characterizes the class of functions $v$ for which $H(v)$ is finite, i.e. $\dom{H}$.
 \begin{theorem}
     \label{thm:negentropy-LlogLspace}
     Define
@@ -245,8 +405,8 @@ The next theorem characterizes the class of functions $v$ for which $H(v)$ is fi
         \dom{H} = L\log\!L(\K) \triangleq \left\{v: \K \to \R_+ \middle| \text{measurable}, \int_\K \Phi(v(x))d\mu(x) < +\infty\right\}\,. \label{eq:LlogLspace_definition}
     \end{align}
 \end{theorem}
-A fair question is why the description in \eqref{eq:LlogLspace_definition} is any better than \cref{eq:negentropy-domain-trivial-definition};
-To answer this, define
+The $L\log\!L(\K)$ in \cref{eq:LlogLspace_definition} is the Orlicz space associated with the function $\Phi$.
+The dual space of $L\log\!L(\K)$ is the Orlicz space associated with the convex conjugate $\Phi^\star$ of $\Phi$, which is given by
 \begin{align}
     \Phi^\star(x) = \begin{cases}
                         e^x - x - 1, & x \ge 0  \\
@@ -255,170 +415,16 @@ To answer this, define
 \end{align}
 and
 \begin{align}
-    L\!\exp(\K) \triangleq \left\{f: \K \to \R \middle| \text{measurable}, \int_\K \Phi^\star(f(x)) d\mu(x) < +\infty\right\}\,.
+    L\!\exp(\K) \triangleq \left\{f: \K \to \R \middle| \textit{measurable}, \int_\K \Phi^\star(f(x)) d\mu(x) < +\infty\right\}\,.
 \end{align}
-Define the dual pairing (inner product) $\langle p, f \rangle$ between functions $p \in L\!\log\!L(\K)$ and $f \in L\!\exp(\K)$ as
+Then, the dual pairing (bilinear form) between functions $p \in L\!\log\!L(\K)$ and $f \in L\!\exp(\K)$ is finite and given by
 \begin{align}
-    \langle p, f \rangle \triangleq \int_\K p(x) f(x) d\mu(x)\,.
+    \langle f, p \rangle \triangleq \int_\K f(x) p(x) d\mu(x) < +\infty\,.
 \end{align}
-It can be shown that this pairing is well-defined and finite for all $p \in L\!\log\!L(\K)$ and $f \in L\!\exp(\K)$, which means that the continuous exponential weight algorithm is well-defined for losses in $L\!\exp(\K)$ and densities in $L\!\log\!L(\K)$.
-Basically, for
-\begin{align}
-    f_t \in L\!\exp(\K) \quad \text{and} \quad p_t \in L\!\log\!L(\K)\,,
-\end{align}
-the, for $A_t \sim p_t$ the expected loss is
-\begin{align}
-    \E\left[
-        f_t(A_t)
-        \right]
-    =
-    \langle f_t, p_t \rangle = \int_\K f_t(x) p_t(x) d\mu(x)
-\end{align}
-is finite, which is a necessary condition for the algorithm to be well-defined.
-There is also one more important implication of this pairing, which we will get to later.
-Using the fact that
-\begin{align}
-    \delta_{a_\star} \in L\!\log\!L(\K)\,,
-\end{align}
-the regret of an algorithm with respect to an action $a_\star$ can be written as
-\begin{align}
-    \E\left[
-        \Reg_n(a_\star)
-        \right]
-    =
-    \E\left[
-        \sum_{t=1}^n f_t(A_t) - f_t(a_\star)
-        \right]
-    =
-    \sum_{t=1}^n \langle f_t, \pi_t - \delta_{a_\star} \rangle
-    \,,
-\end{align}
-where $\pi_t$ is the density of the distribution from which $A_t$ is sampled.
-We removed the expectation in the last equality since we assumed that $f_t$ sequence is chosen before the game starts,
-but it turns out to be possible to control this quantity even if $f_t$ is chosen adaptively by the adversary---when $f_t$ is chosen after observing the previous actions of the player but before sampling $A_t \sim \pi_t$.
-\textbf{In that case, the $\Reg_n(a_\star)$ is a random variable, but a uniform bound is still possible.}
+The curious fact here is that the set $L\!\exp(\K)$ coincides with the set of measurable functions $f$ such that the denominator $\int_\K \exp(-\eta f(x)) d\mu(x)$ in the update rule of \cewaalg is finite for every $\eta > 0$.
+I still don't have a good intuition for why this is the case.
 
-The Continuous Exponential Weights Algorithm (\cewaalg) is a special case of the mirror descent algorithm with negative entropy as the potential function, as shown in \cref{alg:MD}.
-\begin{algorithm}[H]
-    \begin{minipage}{12cm}
-        \begin{mdframed}
-            \begin{lstlisting}
-args: $\eta > 0,  \pi_1$
-for $t = 1$ to $n$:
-    Play $A_t \sim \pi_t$ and observe $f_t$
-    For $x \in \K$, let $\tpi_t(x) = \exp\left(-\eta \sum_{s=1}^{t-1} f_s(x)\right)$
-    Set $\pi_t(x) = \frac{\tpi_t(x)}{\int_\K \tpi_t(x) d\mu(x)}$
-\end{lstlisting}
-            \caption{
-                \cewaalg algorithm.
-            }\label{alg:MD}
-        \end{mdframed}
-    \end{minipage}
-\end{algorithm}
-\noindent
-The following theorem gives a regret bound for the regret of \cewaalg algorithm.
-\begin{theorem}\label{thm:MD}
-    Let $F$ be Legendre with domain $\cD$ such that $\cA \cap \interior(\cD)\neq \emptyset$.
-    Then
-    \begin{align}
-        \Reg_n(a_\star)
-         & \leq
-        \sum_{t=1}^{n} \langle \ell_t, a_t - a_{t+1} \rangle
-        + \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) -
-        \sum_{t=1}^{n} D_F(a_{t+1}, a_t)
-        \right) \\
-         & \leq
-        \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) + \sum_{t=1}^{n} D_F(a_{t}, \tilde{a}_{t+1})
-        \right).
-    \end{align}
-    Moreover,
-    $ D_F(a_{t}, \tilde{a}_{t+1})
-        = D_{F^\star}\left(F'(a_t) - \eta \ell_t, F'(a_t)\right)$.
-\end{theorem}
-\begin{proof}
-    We have
-    \begin{align}
-        \Reg_n(a_\star)
-         & = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle                                                                                                                                                                         \\
-         & = \sum_{t=1}^{n} \underbrace{\langle \ell_t, a_t - a_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stability}} + \underbrace{\langle \ell_t, a_{t+1} - a_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
-    \end{align}
-    What do we know about $a_{t+1}$?
-    \begin{align}
-                    & a_{t+1} = \argmin_{a \in \cA} \eta \langle \ell_t, a \rangle + D_F(a, a_t)                                                                \\
-        \Rightarrow &
-        \forall \tilde{a} \in \cA, \quad
-        \langle \eta \ell_t + F'(a_{t+1}) - F'(a_t), \tilde{a} - a_{t+1} \rangle \geq 0                                                                         \\
-        \Rightarrow
-                    & \texttt{tr}_t = \langle \ell_t, a_{t+1} - a_\star \rangle \leq \frac{1}{\eta} \langle F'(a_{t+1}) - F'(a_t), a_\star - a_{t+1} \rangle\,.
-    \end{align}
-    Then there's the nice equality
-    \begin{align}
-        \langle F'(a_{t+1}) - F'(a_t), a_\star - a_{t+1} \rangle
-         & =
-        D_F(a_\star, a_t) - D_F(a_{t+1}, a_t) - D_F(a_\star, a_{t+1})\,,
-    \end{align}
-    which gives us a bound on the \textit{tracking} terms
-    \begin{align}
-        \eta \sum_{t=1}^{n} \langle \ell_t, a_{t+1} - a_\star \rangle
-         & \leq \sum_{t=1}^{n} D_F(a_\star, a_t)  - D_F(a_\star, a_{t+1}) - D_F(a_{t+1}, a_t)                   \\
-         & = D_F(a_\star, a_1) - \underbrace{D_F(a_\star, a_{n+1})}_{\geq 0} - \sum_{t=1}^{n} D_F(a_{t+1}, a_t) \\
-         & \leq D_F(a_\star, a_1) - \sum_{t=1}^{n} D_F(a_{t+1}, a_t)\,.
-    \end{align}
-    Note that the tracking term scales inversely with $\eta$ as expected.
-    Without touching the stability term, we have proved the first inequality,
-    \begin{align}
-        \Reg_n(a_\star)
-         & \leq
-        \sum_{t=1}^{n} \langle \ell_t, a_t - a_{t+1} \rangle
-        + \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) -
-        \sum_{t=1}^{n} D_F(a_{t+1}, a_t)
-        \right)\,.
-    \end{align}
-    Next, we move onto the stability term.
-    $\textsf{MD}$ stores the latest loss in the gradient of $\tilde{a}_{t+1}$,
-    \begin{align}
-         & \tilde{a}_{t+1}  = \argmin_{a \in \R^d} \eta \langle \ell_t, a \rangle + D_F(a, a_t) \\
-        \Rightarrow
-         & \ell_t = \frac{1}{\eta}
-        \left(
-        F'(a_t) - F'(\tilde{a}_{t+1})
-        \right)
-    \end{align}
-    which results in another nice equality
-    \begin{align}
-        \texttt{st}_t
-         & = \langle \ell_t, a_{t} - a_{t+1} \rangle                                                                      \\
-         & = \frac{1}{\eta} \langle F'(a_t) - F'(\tilde{a}_{t+1}), a_t - a_{t+1} \rangle                                  \\
-         & = \frac{1}{\eta} \left(D_F(a_{t+1}, a_t) + D_F(a_t, \tilde{a}_{t+1}) - D_F(a_{t+1}, \tilde{a}_{t+1})\right)\,.
-    \end{align}
-    Thus, by dropping the negative term $- D_F(a_{t+1}, \tilde{a}_{t+1})$,
-    we have proved the second inequality,
-    \begin{align}
-        \Reg_n(a_\star)
-         & \leq
-        \frac{1}{\eta}
-        \left(
-        D_F(a_\star, a_1) + \sum_{t=1}^{n} D_F(a_{t}, \tilde{a}_{t+1})
-        \right)\,.
-    \end{align}
-    To see the last part of the theorem, we use the definition of Bregman divergence
-    \begin{align}
-        D_F(a_{t}, \tilde{a}_{t+1})
-         & =D_{F^\star}\left(F'(\tilde{a}_{t+1}), F'(a_t)\right)       \\
-         & = D_{F^\star}\left(F'(a_t) - \eta \ell_t, F'(a_t)\right)\,.
-    \end{align}
-\end{proof}
 
-\noindent
-The analysis is remarkably amenable to different modifications.
-For instance, the result continues to work even if $f_t$ is adapted to $a_1, \cdots, a_{t-1}$---equivalently, $f_t$ is chosen by the adversary after observing the previous actions of the player.
-Much of what comes after hinges on the generality of the proof of this theorem.
 
 \newpage
 \section{Stochastic continuous exponential weights}
@@ -428,7 +434,7 @@ namely $f_t(A_t)$, instead of the entire loss function $f_t$.
 \textbf{Unlike the full information setting, the sequence $f_t$ must be fixed before the game starts.}
 Essentially, \textit{the regret is not really well-defined if $f_t$ is chosen adaptively by the adversary after observing the previous actions of the player}\footnote{The adversary can decide to show only $f_t(\cdot)=1$ for $t\geq2$, if $a_1\neq a_\star$, and otherwise show $f_t(\cdot)=0$ for all $t$ when $a_1 = a_\star$, turning the whole game a trivial needle in a haystack problem.}.
 
-The regret is, still, defined as
+The expected regret is defined as
 \begin{align}
     \Reg_n(a_\star) = \E\left[
         \sum_{t=1}^{n} f_t(A_t) - f_t(a_\star)
@@ -438,14 +444,13 @@ The regret is, still, defined as
     \,.
 \end{align}
 
-The major problem is that the player cannot form $\tpi_t$ since it doesn't have access to the entire loss function $f_t$.
-The main idea is to use the observed loss $f_t(A_t)$ and the action $A_t$ to construct an \textit{estimated loss} $\hf_t$ through a function $\cE_t$.
-That is the first modification to the \cewaalg algorithm, which results in the Stochastic Exponential Weights Algorithm(\scewaalg) shown in \cref{alg:stochastic-cewa}.
-The second modification is that the algorithm doesn't necessarily play $A_t \sim \pi_t$, but instead it
-samples $A_t \sim \hat{\pi}_t$ where $\hat{\pi}_t$.
+The main difficulty is that the player cannot form $\tpi_t$, since it does not observe the entire loss function $f_t$.
+The key idea is to use the sampled action $A_t$ together with the observed loss $f_t(A_t)$ to construct an \textit{estimated loss function} $\hf_t$.
+This is the first modification to the \cewaalg algorithm, leading to the Stochastic Exponential Weights Algorithm (\scewaalg) in \cref{alg:stochastic-cewa}.
+A second modification is that the algorithm need not play according to $\pi_t$ itself; instead it samples $A_t \sim \hat{\pi}_t$, where $\hat{\pi}_t$ is a distribution constructed from $\pi_t$.
 
 Philosophically, the resulting algorithm has very little in common with the mirror descent algorithm.
-Precisely, $\pi_t$ is not really playing the role of the `policy' in round $t$, but rather it plays the role of a `sufficient statistic' that summarizes the history of the game up to time $t$, and the player uses it to construct the distribution $\hat{\pi}_t$ and the estimator $\cE_t$.
+Precisely, $\pi_t$ is not really playing the role of the `policy' in round $t$, but rather it plays the role of a `sufficient statistic' that summarizes the history of the game up to time $t$, and the player uses it to construct the \textit{playing policy} $\hat{\pi}_t$ and the \textit{estimator map} $\cE_t: \K \times \R \to L\!\exp(\K)$ that maps the observed action and loss to an estimated loss function $\hf_t$.
 
 \begin{algorithm}[h!]
     \begin{minipage}{13cm}
@@ -464,192 +469,515 @@ for $t = 1$ to $n$:
     \end{minipage}
 \end{algorithm}
 
-The basis of the analysis of the exponential weight algorithm is the entropy function, which for a non-negative measurable function $v: \K \to \R_+$ is defined as
-\begin{align}
-    H(v) \triangleq \int_{\K} v(x) \log v(x) - v(x) d\mu(x)\,, \qquad \text{with } 0\log 0 \triangleq 0\,,
-\end{align}
-and the Fenchel conjugate of $H$ is given by
-\begin{align}
-    H^\star(v) \triangleq \int_\K \exp(v(x)) \mu(dx)\,.
-\end{align}
-
-By using negative entropy as the potential function, the mirror descent distribution at time $t$ is defined as
-\begin{align}
-    q_t(x) = \frac{\exp(-\eta \sum_{s=1}^{t-1} \hf_s(x))}{\int_{\K} \exp(-\eta \sum_{s=1}^{t-1} \hf_s(x)) d\mu(x)}
-    \in \cP(\K)\,,
-\end{align}
-where $\eta > 0$ is the learning rate parameter.
-
-The space $L\log L(\K)$ is defined as the set of non-negative measurable functions $v: \K \to \R_+$ such that $H(v) < \infty$,
-as explained in the Appendix~\ref{appendix:negentropy}.
-An important quantity that shows up in the analysis of the continuous exponential weight algorithm is
-\begin{align}
-    \tilde{q}_t(x) & = \argmin_{q \in L\log L(\cK)} \left\{ \eta \langle \hf_{t-1}, q \rangle + D_H(q, q_{t-1}) \right\} = q_{t-1}(x) \exp(-\eta \hf_{t-1}(x))\,,
-\end{align}
-where the second equality is a consequence of the optimality condition for the minimization problem.
-
-The Bregman divergence associated with $H$ is defined as
-\begin{align}
-    D_H(u, v) & \triangleq H(u) - H(v) - H'(v)[u - v]\,,
-\end{align}
-where the Gâteaux derivative of $H$ at $u \in L \log L(\K)$ is given by
-\begin{align}
-    H'(u)[v] & = \left\langle \log(u), v \right\rangle\,.
-\end{align}
-\begin{remark}[The unnormalized KL divergence]
-    \label{remark:unnormalized_KL_divergence}
-    It will be useful to note that
-    \begin{align}
-        D_H(u, v) & = \int_\K u(x) \log\left(\frac{u(x)}{v(x)}\right) - u(x) + v(x) \mu(dx)\,,
-    \end{align}
-    which recovers the KL divergence when $u$ and $v$ are probability densities.
-\end{remark}
-
-\subsubsection*{The regret of continuous exponential weight}
-Given a probability density $q^\star \in \cP(\K)$, the regret of the continuous exponential weight algorithm with respect to $q^\star$ is
-\begin{align}
-    R_T(q^\star) & \triangleq
-    \E\left[
-        \sum_{t=1}^T
-        f_t(A_t) - f_t(q^\star)
-        \right]
-    =
-    \E\left[
-        \sum_{t=1}^T
-        \langle f_t, \delta_{A_t} - q^\star \rangle
-        \right]
-    \,.
-\end{align}
-
-\begin{proposition}[Regret of continuous exponential weight]
+\begin{proposition}[Regret of stochastic continuous exponential weights]
     \label{prop:cexp_regret_bound}
-    For every $q^\star \in \cP(\K)$, the regret of the continuous exponential weight algorithm with respect to $q^\star$ can be upper bounded as follows,
+    When running \scewaalg in \cref{alg:stochastic-cewa}, let
+    $\pi_\star \in \cP(\K)$ be such that $D_H(\pi_\star,\pi_1)<+\infty$.
+    Then the regret with respect to $\pi_\star$ satisfies
     \begin{align}
-        R_T(q^\star) & \leq
-        \frac{1}{\eta} D_H(q^\star, q_1) +
+        R_T(\pi_\star)
+         & \leq
+        \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+        +
         \sum_{t=1}^T
         \E\left[
-            \langle f_t, p_t - q^\star \rangle
+            \langle f_t,\hat{\pi}_t-\pi_\star\rangle
             -
-            \langle \hf_t, q_t - q^\star \rangle
+            \langle \hf_t,\pi_t-\pi_\star\rangle
             +
-            \frac{1}{\eta} D_H(q_t, \tilde{q}_{t+1})
-            \right]
+            \frac{1}{\eta}
+            D_{H^\star}
+            \left(
+            H'(\pi_t)-\eta \hf_t,
+            H'(\pi_t)
+            \right)
+            \right].
     \end{align}
 \end{proposition}
+
 \begin{proof}
-    Starting from the definition of regret, we can write
+    Starting from the definition of regret, and using that conditionally on the past
+    $A_t\sim \hat{\pi}_t$, we can write
     \begin{align}
-        R_T(q^\star)
+        R_T(\pi_\star)
          & =
         \E\left[
             \sum_{t=1}^T
-            \langle f_t, \delta_{A_t} - q^\star \rangle
-            \right]
-        \\
+            \langle f_t,\delta_{A_t}-\pi_\star\rangle
+        \right] \\
          & =
         \E\left[
             \sum_{t=1}^T
-            \langle f_t, p_t - q^\star \rangle
+            \langle f_t,\hat{\pi}_t-\pi_\star\rangle
+        \right] \\
+         & =
+        \E\left[
+            \sum_{t=1}^T
+            \langle f_t,\hat{\pi}_t-\pi_\star\rangle
             -
-            \langle \hf_t, q_t - q^\star \rangle
+            \langle \hf_t,\pi_t-\pi_\star\rangle
             +
-            \langle \hf_t, q_t - q^\star \rangle
-            \right]
+            \sum_{t=1}^T
+            \langle \hf_t,\pi_t-\pi_\star\rangle
+            \right].
     \end{align}
-    Let
+    Now fix a realization of the estimated losses $\hf_1,\ldots,\hf_T$.
+    By the update rule of \scewaalg,
     \begin{align}
-        \hat{R}_T(q^\star) & = \sum_{t=1}^T \langle \hf_t, q_t - q^\star \rangle
-        = \sum_{t=1}^T \langle \hf_t, q_t - q_{t+1} \rangle + \langle \hf_t, q_{t+1} - q^\star \rangle\,.
-    \end{align}
-    We know that $q_{t+1}$ satisfies the optimality condition
-    \begin{align}
-        q_{t+1} & = \argmin_{q \in \cP(\K)}
-        \eta \left\langle f_t, q \right\rangle + D_H(q, q_t)\,,
-    \end{align}
-    Therefore, for all $q \in \cP(\K)$, we have
-    \begin{align}
-         &
-        \langle \eta \hf_t + H'(q_{t+1}) - H'(q_t), q - q_{t+1} \rangle  \ge 0                      \\
-        \Rightarrow
-         & \langle f_t, q_{t+1} - q^\star \rangle                               \leq \frac{1}{\eta}
-        \langle H'(q_{t+1}) - H'(q_t), q^\star - q_{t+1} \rangle\,.
-    \end{align}
-    Then, there's the nice identity for Bregman divergences that
-    \begin{align}
-        \langle H'(q_{t+1}) - H'(q_t), q^\star - q_{t+1} \rangle & = D_H(q^\star, q_t) - D_H(q^\star, q_{t+1}) - D_H(q_{t+1}, q_t)\,,
-    \end{align}
-    so we have
-    \begin{align}
-        \eta \sum_{t=1}^T \langle \hf_t, q_{t+1} - q^\star \rangle & \leq \sum_{t=1}^T D_H(q^\star, q_t) - D_H(q^\star, q_{t+1}) - D_H(q_{t+1}, q_t) \\
-                                                                   & = D_H(q^\star, q_1) - D_H(q^\star, q_{T+1}) - \sum_{t=1}^T D_H(q_{t+1}, q_t)    \\
-                                                                   & \leq D_H(q^\star, q_1) - \sum_{t=1}^T D_H(q_{t+1}, q_t)\,.
-    \end{align}
-    So we can write
-    \begin{align}
-        \hat{R}_T(q^\star) & \leq
-        \sum_{t=1}^T \langle \hf_t, q_t - q_{t+1} \rangle + \frac{1}{\eta} D_H(q^\star, q_1) + \frac{1}{\eta} \sum_{t=1}^T D_H(q_{t+1}, q_t)\,, \label{eq:cexp_regret_bound_1}
-    \end{align}
-    Next, since
-    $\tilde{q}_{t+1} = \argmin_{q \in L\log L(\K)} \eta \langle \hf_t, q \rangle + D_H(q, q_t)$,
-    for all $q \in L\log L(\K)$, we have
-    \begin{align}
-        \langle \eta \hf_t + H'(\tilde{p}_{t+1}) - H'(q_t), q - \tilde{q}_{t+1} \rangle  \ge 0\,,
-    \end{align}
-    where the necessary and sufficient condition for optimality is
-    \begin{align}
-        \eta \hf_t + H'(\tilde{q}_{t+1}) - H'(q_t) = 0\qquad
-        \Rightarrow
+        \tilde{\pi}_{t+1}(x)
+        =
+        \pi_t(x)\exp(-\eta \hf_t(x)),
         \qquad
-        \hf_t = \frac{1}{\eta} \left(H'(q_t) - H'(\tilde{q}_{t+1})\right)\,,
+        \pi_{t+1}(x)
+        =
+        \frac{\tilde{\pi}_{t+1}(x)}
+        {\int_\K \tilde{\pi}_{t+1}(y)\d y}.
     \end{align}
-    so we can write
+    Thus, the sequence $\pi_1,\ldots,\pi_{T+1}$ is exactly the continuous
+    exponential weights sequence applied to the losses $\hf_1,\ldots,\hf_T$.
+    Therefore, applying \cref{thm:MD} with $f_t$ replaced by $\hf_t$, we get
     \begin{align}
-        \langle \hf_t, q_t - q_{t+1} \rangle
-         & = \frac{1}{\eta} \langle H'(q_t) - H'(\tilde{q}_{t+1}), q_t - q_{t+1} \rangle
-        \\
-         & = \frac{1}{\eta} \left(D_H(q_{t+1}, q_t) + D_H(q_t, \tilde{q}_{t+1}) - D_H(q_{t+1}, \tilde{q}_{t+1})\right)\,,
-    \end{align}
-    so continuing from \eqref{eq:cexp_regret_bound_1}, we have
-    \begin{align}
-        \hat{R}_T(q^\star)
+        \sum_{t=1}^T
+        \langle \hf_t,\pi_t-\pi_\star\rangle
          & \leq
-        \sum_{t=1}^T \langle \hf_t, q_t - q_{t+1} \rangle + \frac{1}{\eta} D_H(q^\star, q_1) - \frac{1}{\eta} \sum_{t=1}^T D_H(q_{t+1}, q_t)                                                                                         \nonumber \\
+        \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+        +
+        \frac{1}{\eta}
+        \sum_{t=1}^T
+        D_H(\pi_t,\tilde{\pi}_{t+1}).
+    \end{align}
+    Finally, by Fenchel duality for the negative entropy,
+    \begin{align}
+        D_H(\pi_t,\tilde{\pi}_{t+1})
          & =
-        \left\{\frac{1}{\eta} \sum_{t=1}^T D_H(q_{t+1}, q_t) + D_H(q_t, \tilde{q}_{t+1}) - D_H(q_{t+1}, \tilde{q}_{t+1})\right\} + \left\{\frac{1}{\eta} D_H(q^\star, q_1) - \frac{1}{\eta} \sum_{t=1}^T D_H(q_{t+1}, q_t)\right\} \nonumber   \\
-         & \leq
-        \frac{1}{\eta} D_H(q^\star, q_1) + \frac{1}{\eta} \sum_{t=1}^T D_H(q_t, \tilde{q}_{t+1})\,.
+        D_{H^\star}
+        \left(
+        H'(\tilde{\pi}_{t+1}),
+        H'(\pi_t)
+        \right) \\
+         & =
+        D_{H^\star}
+        \left(
+        H'(\pi_t)-\eta \hf_t,
+        H'(\pi_t)
+        \right),
     \end{align}
-    Which is the desired bound.
+    where the last equality follows from
+    $\log \tilde{\pi}_{t+1}=\log \pi_t-\eta \hf_t$.
+    Plugging this into the previous display and taking expectation gives the result.
 \end{proof}
 
 
-Motivated by the regret bound in \cref{prop:cexp_regret_bound}, we define the following quantity, which is a key quantity that shows up in the analysis of the continuous exponential weight algorithm.
+% \subsection{The complexity $\Lambda$}
+% Motivated by the regret bound in \cref{prop:cexp_regret_bound}, we define the following quantity, which is a key quantity that shows up in the analysis of the continuous exponential weight algorithm.
+% \begin{align}
+%     \label{eq:Lambda_definition}
+%     \Lambda_{q, \eta}(P, E || q_\star, f) \triangleq
+%     \E\left[
+%         \langle A - q_\star, f\rangle
+%         - \langle q - q_\star, \hf\rangle
+%         + \frac{1}{\eta} D_{H^\star}(H'(q) - \eta \hf, H'(q))
+%         \right]\,,
+% \end{align}
+% where the randomness is with respect to $A \sim P$ and $\hf = E(A, f(A))$.
+
+% Then the regret bound in \cref{prop:cexp_regret_bound} can be bounded as
+% \begin{align}
+%     R_T(q^\star) & \leq
+%     \inf_{\eta>0}
+%     \frac{1}{\eta} D_H(q^\star, q_1) +
+%     \sum_{t=1}^T
+%     \Lambda_{q_t, \eta}(p_t, E_t || q^\star, f_t)\,.
+% \end{align}
+% The optimal choice of $\eta$ is almost always $\frac{1}{\sqrt{T}}$.
+\newpage
+\section{The complexity \texorpdfstring{$\Lambda$}{Lambda} and the optimistic estimator}
+
+The regret bound in \cref{prop:cexp_regret_bound} suggests isolating the
+one-step quantity that has to be controlled.  Fix a density
+$\pi \in \cP(\K)$, a playing density $\hat{\pi}\in\cP(\K)$, an estimator
+$\cE:\K\times\R\to L\!\exp(\K)$, a comparator
+$\pi_\star\in\cP(\K)$, and a loss $f:\K\to[0,1]$.
+Write
+\begin{align}
+    \cE_x^f \triangleq \cE(x,f(x))\,.
+\end{align}
+Define
 \begin{align}
     \label{eq:Lambda_definition}
-    \Lambda_{q, \eta}(P, E || q_\star, f) \triangleq
-    \E\left[
-        \langle A - q_\star, f\rangle
-        - \langle q - q_\star, \hf\rangle
-        + \frac{1}{\eta} D_{H^\star}(H'(q) - \eta \hf, H'(q))
-        \right]\,,
+    \Lambda_{\pi,\eta}(\hat{\pi},\cE \| \pi_\star,f)
+    \triangleq
+    \E_{X\sim\hat{\pi}}\left[
+        \langle f,\delta_X-\pi_\star\rangle
+        -
+        \langle \cE_X^f,\pi-\pi_\star\rangle
+        +
+        \frac{1}{\eta}
+        D_{H^\star}
+        \left(
+        H'(\pi)-\eta \cE_X^f,
+        H'(\pi)
+        \right)
+        \right].
 \end{align}
-where the randomness is with respect to $A \sim P$ and $\hf = E(A, f(A))$.
 
-Then the regret bound in \cref{prop:cexp_regret_bound} can be bounded as
+Let
 \begin{align}
-    R_T(q^\star) & \leq
-    \inf_{\eta>0}
-    \frac{1}{\eta} D_H(q^\star, q_1) +
-    \sum_{t=1}^T
-    \Lambda_{q_t, \eta}(p_t, E_t || q^\star, f_t)\,.
+    \bar f_{\cE,\hat{\pi}}(z)
+    \triangleq
+    \E_{X\sim \hat{\pi}}\left[\cE_X^f(z)\right]\,,
 \end{align}
-The optimal choice of $\eta$ is almost always $\frac{1}{\sqrt{T}}$.
+and rewrite \(\Lambda\) as a bias term plus a variance term:
+\begin{align}
+    \Lambda_{\pi,\eta}(\hat{\pi},\cE \| \pi_\star,f)
+     & =
+    \Lambda_{\mathrm{bias},\pi}(\cE,\hat{\pi}\| \pi_\star,f)
+    +
+    \frac{1}{\eta}
+    \Lambda_{\mathrm{var},\pi}(\cE,\hat{\pi};f),
+\end{align}
+where
+\begin{align}
+    \Lambda_{\mathrm{bias},\pi}(\cE,\hat{\pi}\| \pi_\star,f)
+     & \triangleq
+    \langle f,\hat{\pi}\rangle
+    -
+    \langle \bar f_{\cE,\hat{\pi}},\pi\rangle
+    +
+    \langle \bar f_{\cE,\hat{\pi}}-f,\pi_\star\rangle,
+    \label{eq:Lambda_bias_definition}
+    \\
+    \Lambda_{\mathrm{var},\pi}(\cE,\hat{\pi};f)
+     & \triangleq
+    \E_{X\sim\hat{\pi}}\left[
+        D_{H^\star}
+        \left(
+        H'(\pi)-\eta \cE_X^f,
+        H'(\pi)
+        \right)
+        \right].
+    \label{eq:Lambda_var_definition}
+\end{align}
+
+\begin{proposition}[Regret in terms of \texorpdfstring{$\Lambda$}{Lambda}]
+    \label{prop:regret_in_terms_of_Lambda}
+    When running \scewaalg in \cref{alg:stochastic-cewa}, for every
+    $\pi_\star\in\cP(\K)$ with $D_H(\pi_\star,\pi_1)<+\infty$, we have
+    \begin{align}
+        R_T(\pi_\star)
+        \le
+        \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+        +
+        \sum_{t=1}^T
+        \E\left[
+            \Lambda_{\pi_t,\eta}
+            \left(
+            \hat{\pi}_t,\cE_t
+            \middle\|
+            \pi_\star,f_t
+            \right)
+            \right].
+    \end{align}
+    In particular, if for every round $t$ the choice of
+    $(\hat{\pi}_t,\cE_t)$ guarantees
+    \begin{align}
+        \Lambda_{\pi_t,\eta}
+        \left(
+        \hat{\pi}_t,\cE_t
+        \middle\|
+        \pi_\star,f_t
+        \right)
+        \le B_t,
+    \end{align}
+    then
+    \begin{align}
+        R_T(\pi_\star)
+        \le
+        \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+        +
+        \sum_{t=1}^T \E[B_t].
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    This is just \cref{prop:cexp_regret_bound} with the conditional
+    expectation over $A_t\sim\hat{\pi}_t$ absorbed into the definition of
+    $\Lambda_{\pi_t,\eta}$.  Indeed, conditionally on the past,
+    $\pi_t,\hat{\pi}_t,\cE_t$ are fixed, and
+    $\hf_t=\cE_t(A_t,f_t(A_t))$.  Therefore,
+    \begin{align}
+         & \E\left[
+            \langle f_t,\delta_{A_t}-\pi_\star\rangle
+            -
+            \langle \hf_t,\pi_t-\pi_\star\rangle
+            +
+            \frac{1}{\eta}
+            D_{H^\star}
+            \left(
+            H'(\pi_t)-\eta \hf_t,
+            H'(\pi_t)
+            \right)
+            \middle|
+            \cH_{t-1}
+            \right]
+        \\
+         & \qquad =
+        \Lambda_{\pi_t,\eta}
+        \left(
+        \hat{\pi}_t,\cE_t
+        \middle\|
+        \pi_\star,f_t
+        \right).
+    \end{align}
+    Plugging this identity into \cref{prop:cexp_regret_bound} proves the claim.
+\end{proof}
+
+\subsection{A joint kernel construction}
+
+We restrict attention to multiplicative estimators of the form
+\begin{align}
+    \cE(x,y)(z) = y\,s_x(z),
+\end{align}
+where the kernel $s_x(z)$ may be signed.  Then
+\begin{align}
+    \bar f_{\cE,\hat{\pi}}(z)
+    =
+    \int_\K \hat{\pi}(x)s_x(z)f(x)\d x.
+\end{align}
+The bias identity \eqref{eq:Lambda_bias_definition} shows that it is
+enough to arrange
+\begin{align}
+    \bar f_{\cE,\hat{\pi}}(z) \le f(z)
+    \quad\text{for all }z\in\K,
+    \qquad
+    \text{and}
+    \qquad
+    \langle \bar f_{\cE,\hat{\pi}},\pi\rangle
+    =
+    \langle f,\hat{\pi}\rangle.
+    \label{eq:optimistic_bias_conditions}
+\end{align}
+Indeed, under \eqref{eq:optimistic_bias_conditions}, for every comparator
+$\pi_\star\in\cP(\K)$,
+\begin{align}
+    \Lambda_{\mathrm{bias},\pi}(\cE,\hat{\pi}\| \pi_\star,f)
+    =
+    \langle \bar f_{\cE,\hat{\pi}}-f,\pi_\star\rangle
+    \le 0.
+\end{align}
+
+\subsection{The optimistic kernel}
+
+Fix $\lambda\in(0,1)$ and let $T_0,T_1,\ldots$ be i.i.d. samples from
+the current density $\pi$.  Define
+\begin{align}
+    X
+    =
+    \lambda\sum_{k=0}^{\infty}(1-\lambda)^k T_k,
+\end{align}
+and denote the density of $X$ by $\hat{\pi}^{\lambda}$.
+Since the coefficients are non-negative and sum to one, $X\in\K$ whenever
+$\K$ is convex and the $T_k$ are supported on $\K$.
+Moreover, if $X'\sim\hat{\pi}^{\lambda}$ and $T\sim\pi$ are independent,
+then
+\begin{align}
+    (1-\lambda)X' + \lambda T
+    \stackrel{d}{=}
+    X.
+    \label{eq:optimistic_stationarity}
+\end{align}
+This is the fixed-point property that binds the playing density
+$\hat{\pi}^{\lambda}$ to the current density $\pi$.
+
+For $z\in\K$, let $\hat{\pi}^{\lambda}_z$ be the density of
+$(1-\lambda)X+\lambda z$, namely
+\begin{align}
+    \hat{\pi}^{\lambda}_z(x)
+    =
+    \frac{1}{(1-\lambda)^d}
+    \hat{\pi}^{\lambda}
+    \left(
+    \frac{x-\lambda z}{1-\lambda}
+    \right).
+\end{align}
+Define the optimistic kernel by
+\begin{align}
+    s_x^\lambda(z)
+    \triangleq
+    1-\frac{1}{\lambda}
+    +
+    \frac{1}{\lambda}
+    \frac{\hat{\pi}^{\lambda}_z(x)}
+    {\hat{\pi}^{\lambda}(x)},
+    \label{eq:optimistic_kernel_definition}
+\end{align}
+with the ratio defined arbitrarily on $\hat{\pi}^{\lambda}$-null sets, and set
+\begin{align}
+    \cE_\lambda(x,y)(z)
+    =
+    y\,s_x^\lambda(z).
+    \label{eq:optimistic_estimator_definition}
+\end{align}
+For this estimator, the mean estimate is
+\begin{align}
+    \bar f_\lambda(z)
+     & \triangleq
+    \E_{X\sim\hat{\pi}^{\lambda}}
+    \left[
+        \cE_\lambda(X,f(X))(z)
+        \right]
+    \\
+     & =
+    \E_{X\sim\hat{\pi}^{\lambda}}
+    \left[
+        \left(1-\frac{1}{\lambda}\right)f(X)
+        +
+        \frac{1}{\lambda}
+        f\left((1-\lambda)X+\lambda z\right)
+        \right],
+    \label{eq:optimistic_mean_estimate}
+\end{align}
+where the second equality follows by the change of variables in the
+definition of $\hat{\pi}^{\lambda}_z$.
+
+\begin{proposition}[The optimistic kernel has non-positive bias]
+    \label{prop:optimistic_kernel_nonpositive_bias}
+    Let $f:\K\to[0,1]$ be convex.  With
+    $\hat{\pi}=\hat{\pi}^{\lambda}$ and
+    $\cE=\cE_\lambda$ as in
+    \eqref{eq:optimistic_kernel_definition}--\eqref{eq:optimistic_estimator_definition},
+    for every $\pi_\star\in\cP(\K)$,
+    \begin{align}
+        \Lambda_{\mathrm{bias},\pi}
+        \left(
+        \cE_\lambda,\hat{\pi}^{\lambda}
+        \middle\|
+        \pi_\star,f
+        \right)
+        \le 0.
+    \end{align}
+    Consequently,
+    \begin{align}
+        \Lambda_{\pi,\eta}
+        \left(
+        \hat{\pi}^{\lambda},\cE_\lambda
+        \middle\|
+        \pi_\star,f
+        \right)
+        \le
+        \frac{1}{\eta}
+        \Lambda_{\mathrm{var},\pi}
+        \left(
+        \cE_\lambda,\hat{\pi}^{\lambda};f
+        \right).
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    First, by convexity of $f$, for every $x,z\in\K$,
+    \begin{align}
+        f\left((1-\lambda)x+\lambda z\right)
+        \le
+        (1-\lambda)f(x)+\lambda f(z).
+    \end{align}
+    Therefore,
+    \begin{align}
+        \left(1-\frac{1}{\lambda}\right)f(x)
+        +
+        \frac{1}{\lambda}
+        f\left((1-\lambda)x+\lambda z\right)
+        \le
+        f(z),
+    \end{align}
+    and averaging over $X\sim\hat{\pi}^{\lambda}$ gives
+    \begin{align}
+        \bar f_\lambda(z)\le f(z),
+        \qquad z\in\K.
+        \label{eq:optimistic_underestimate}
+    \end{align}
+
+    Second, let $T\sim\pi$ and $X\sim\hat{\pi}^{\lambda}$ be independent.
+    Using \eqref{eq:optimistic_mean_estimate} and the stationarity identity
+    \eqref{eq:optimistic_stationarity},
+    \begin{align}
+        \langle \bar f_\lambda,\pi\rangle
+         & =
+        \left(1-\frac{1}{\lambda}\right)
+        \E\left[f(X)\right]
+        +
+        \frac{1}{\lambda}
+        \E\left[
+            f\left((1-\lambda)X+\lambda T\right)
+            \right]
+        \\
+         & =
+        \left(1-\frac{1}{\lambda}\right)
+        \langle f,\hat{\pi}^{\lambda}\rangle
+        +
+        \frac{1}{\lambda}
+        \langle f,\hat{\pi}^{\lambda}\rangle
+        =
+        \langle f,\hat{\pi}^{\lambda}\rangle.
+        \label{eq:optimistic_calibration}
+    \end{align}
+    Combining \eqref{eq:optimistic_underestimate} and
+    \eqref{eq:optimistic_calibration} with
+    \eqref{eq:Lambda_bias_definition}, we get
+    \begin{align}
+        \Lambda_{\mathrm{bias},\pi}
+        \left(
+        \cE_\lambda,\hat{\pi}^{\lambda}
+        \middle\|
+        \pi_\star,f
+        \right)
+         & =
+        \langle f,\hat{\pi}^{\lambda}\rangle
+        -
+        \langle \bar f_\lambda,\pi\rangle
+        +
+        \langle \bar f_\lambda-f,\pi_\star\rangle
+        \\
+         & =
+        \langle \bar f_\lambda-f,\pi_\star\rangle
+        \le 0,
+    \end{align}
+    since $\pi_\star$ is non-negative and integrates to one.  The final
+    display follows from the bias--variance decomposition of $\Lambda$.
+\end{proof}
+
+Thus, when \scewaalg uses the optimistic choice
+\begin{align}
+    \hat{\pi}_t=\hat{\pi}^{\lambda}[\pi_t],
+    \qquad
+    \cE_t=\cE_{\lambda}[\pi_t],
+\end{align}
+the regret is controlled only by the variance term:
+\begin{align}
+    R_T(\pi_\star)
+    \le
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \frac{1}{\eta}
+    \sum_{t=1}^T
+    \E\left[
+        \Lambda_{\mathrm{var},\pi_t}
+        \left(
+        \cE_{\lambda}[\pi_t],
+        \hat{\pi}^{\lambda}[\pi_t];
+        f_t
+        \right)
+        \right].
+\end{align}
+The rest of the analysis is therefore about bounding this variance term.
+In the next section, we study it for a generic pair of densities, with
+$q$ playing the role of the current exponential-weights density $\pi$ and
+$p$ playing the role of the optimistic playing density $\hat{\pi}^{\lambda}$.
+
 
 \newpage
 \section{The variance term $\Lambda_{\mathrm{var}}$}
 Define the shorthand $\cE^f_x = \cE(x, f(x))$.
-Recall the \cewaalg variance term defined as
+Recall the \scewaalg variance term defined as
 \begin{align}
     \Lambda_{\mathrm{var}, q}(\cE, p; f)
      & \triangleq
@@ -675,7 +1003,7 @@ which is approximately quadratic $\eta^2 u^2/2$ when $\eta u$ is small.
     \begin{align}
         \Lambda_{\mathrm{var}, q}(\cE, p; f) & =
         \E\left[
-            \phi_\eta(\cE_{f, X}(T))
+            \phi_\eta(\cE_X^f(T))
             \right]\,.
         \label{eq:Lambda_in_terms_of_phi}
     \end{align}
@@ -685,16 +1013,16 @@ The proof is deferred to \cref{proof:Lambda_in_terms_of_phi}.
 To make progress, we need to specify the estimator $\cE$ and the policy $p$, we do that through a kernel-based construction method of \cite{bubeck2016kernelbasedmethodsbanditconvex}.
 
 \paragraph{The policy.}
-The policy is easy.
-We choose the policy $p$ as the distribution of the random variable $X$ defined as
+Let $\lambda \in (0,1)$ be a free parameter.
+We choose the policy $p$ as the law of the random vector
 \begin{align}
-    X = \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\,,
+    X \triangleq \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\,,
 \end{align}
 where $T_k$ are i.i.d. samples from $q$.
 
 \paragraph{The estimator.}
+\marginpar{We use multiple notations to refer to same densities: $p_X=p$ and $p_T=p_{T_0}=q$.}
 The estimator is more involved.
-To define the estimator, first we need the density of $X$, which we show by $p_X = \frac{d \PP_X}{d \mu}$.
 Let
 \begin{align}
     r(x, t) & \triangleq  \frac{p_{X, T_0}(x, t)}{p_{T_0}(t) p_X(x)}\,, \quad\text{and}\quad
@@ -703,23 +1031,24 @@ Let
 and using those quantities, we define the estimator as
 \begin{align}
     \cE_x^f(t) & \triangleq f(x) s_x^\lambda(t)\,.
+    \label{eq:the-optimistic-estimator-definition}
 \end{align}
 
 The next lemma shows that for this choice of estimator (or basically any multiplicative estimator), the variance term is maximized when $f(x) = 1$ for all $x$, which is a consequence of strong convexity of the function $x \mapsto e^{-x} + x - 1$ and the fact that it is minimized at $x=0$.
 \begin{lemma}[The worst case is $f \equiv 1$]
     \label{lem:appendix_f_one_reduction}
-    It holds that
+    For $\cE$ defined as in \eqref{eq:the-optimistic-estimator-definition}, for every $f:\K\to[0,1]$,
     \begin{align}
         \sup_{f: \K \to [0,1]}
-        \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+        \Lambda_{\mathrm{var}, q}(\cE, p_X; f)
         \leq
-        \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; 1)\,.
+        \Lambda_{\mathrm{var}, q}(\cE, p_X; 1)\,.
     \end{align}
 \end{lemma}
 The proof is deferred to \cref{proof:appendix_f_one_reduction}, and note that \textbf{even convexity of the loss functions is not needed for this reduction}.
 This is very convenient because using Proposition~\eqref{prop:Lambda_in_terms_of_phi}, we have
 \begin{align}
-    \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; 1)
+    \Lambda_{\mathrm{var}, q}(\cE, p_X; 1)
      & =
     \E\left[
         \phi_\eta(\cE_X^1(T))
@@ -970,7 +1299,7 @@ We first study (ii).
 \subsection{Paying log factors through $f_a$ via reduction to tail bounds}
 \label{sec:log_factor_reduction_to_tail}
 The next result shows that if $q$ is Laplace in dimension one, then we can still get the desired $\tilde{O}(\eta^2)$ bound by paying a logarithmic factor.
-This also shows that $f_a$-divergence is crucial and one would loose a lot (literally infinite)
+This also shows that $f_a$-divergence is crucial and one would lose a lot (literally infinite)
 if simply using the $\chi^2$-divergence as a surrogate for $f_a$-divergence.
 We prove this through a sequence of lemmas that reduce the problem of bounding $D_{f_a}(\PP_{X, T_0} || \PP_X \otimes \PP_{T_0})$ to bounding the tail probability of $R_0$.
 Recall
@@ -1021,6 +1350,7 @@ The next result shows that how a tail bound on $R_0$ implies a bound on $D_{f_a}
 \end{lemma}
 The proof is deferred to \cref{proof:log_factor_tail_to_divergence}.
 
+\marginpar{Basically we are almost sure that $R_0$ has a Pareto tail.}
 Now, it is clear that if we can show the tail bound in \eqref{eq:log_factor_R0_tail} for $R_0$, then we get the desired $\tilde{O}(\eta^2)$ bound on the variance term.
 We first do it for the Laplace distribution, and then we show that the same tail bound holds for a general log-concave distribution, in 1 dimension.
 
@@ -1034,7 +1364,6 @@ First, define
 \end{align}
 Note that $X' \stackrel{d.}{\equiv} X$ and $X' \perp T_0$.
 Let $T \stackrel{i.i.d.}{\sim} T_0$; the following identity for $R_0$ plays a crucial role in the analysis:
-\marginpar{The self-identical decomposition of $X$ is essential for this identity.}
 \begin{align}
     R_0
      & =
@@ -1247,7 +1576,7 @@ We now show that how the tail bounds on $R_0$ can be established in the 1-dimens
         -\frac{s-t}{1-\lambda}
         \right)
         \d s    \\
-         & \geq
+         & =
         \frac{1}{2}
         \int_t^{\infty}
         \exp\left(
@@ -1471,6 +1800,22 @@ The proof is deferred to \cref{proof:log_concave_log_factor}.
 \end{lemma}
 
 \begin{proof}
+    Let
+    \begin{align}
+        S_d(L)=\sum_{j=0}^d\frac{L^j}{j!}.
+    \end{align}
+    The result is trivial for $L\le d$, since
+    \begin{align}
+        \E\left[
+            \min\left\{e^{V(Y)},e^L\right\}
+            \right]
+        \le e^L
+        \le 2 S_d(L),
+    \end{align}
+    where the last inequality is the standard Poisson-tail estimate
+    $e^L\le 2\sum_{j=0}^d L^j/j!$ for $L\le d$.
+
+    We now consider $L>d$.
     After translating, assume that the minimum of $V$ is attained at $0$.
     For $s\ge0$, define
     \begin{align}
@@ -1490,23 +1835,10 @@ The proof is deferred to \cref{proof:log_concave_log_factor}.
         \qquad 0<s\le t.
         \label{eq:sublevel_volume_ratio_monotone}
     \end{align}
-    Let
+    First, by integration by parts, we have
     \begin{align}
-        S_d(L)=\sum_{j=0}^d\frac{L^j}{j!}.
-    \end{align}
-    If $L\le d$, then
-    \begin{align}
-        \E\left[
-            \min\left\{e^{V(Y)},e^L\right\}
-            \right]
-        \le e^L
-        \le C S_d(L),
-    \end{align}
-    where the last inequality is the standard Poisson-tail estimate
-    $e^L\le C\sum_{j=0}^d L^j/j!$ for $L\le d$.
-
-    We now consider $L>d$. First, by integration by parts, we have
-    \begin{align}
+        1
+        \geq
         \int_{K_L} h(x)\d x
          & =
         \|h\|_\infty
@@ -1518,29 +1850,24 @@ The proof is deferred to \cref{proof:log_concave_log_factor}.
         \|h\|_\infty
         \left(
         e^{-L}F(L)+\int_0^L e^{-s}F(s)\d s
-        \right).
-    \end{align}
-    Using \eqref{eq:sublevel_volume_ratio_monotone}, for $s\le L$,
-    \begin{align}
-        F(s)\ge \left(\frac{s}{L}\right)^d F(L).
-    \end{align}
-    Therefore,
-    \begin{align}
-        1
-        \ge
-        \int_{K_L} h(x)\d x
-        \ge
+        \right)                        \\
+         & \geq
+        \|h\|_\infty
+        \left(
+        e^{-L}F(L)+\int_0^L e^{-s} \left(\frac{s}{L}\right)^d  F(L)\d s
+        \right)                        \\
+         & =
         \|h\|_\infty
         \frac{F(L)}{L^d}
         \left(
-        e^{-L}L^d+\int_0^L e^{-s}s^d\d s
-        \right).
-    \end{align}
-    Since
-    \begin{align}
-        e^{-L}L^d+\int_0^L e^{-s}s^d\d s
-        =
-        d\int_0^L e^{-s}s^{d-1}\d s,
+        L^de^{-L}+\int_0^L e^{-s} s^d\d s
+        \right)                        \\
+         & =
+        \|h\|_\infty
+        \frac{F(L)}{L^d}
+        \left(
+        d \int_0^L e^{-s} s^{d-1}\d s
+        \right)\,,
     \end{align}
     and since $L>d$, the last integral is at least a numerical constant times
     $d!$. Thus
@@ -1561,8 +1888,7 @@ The proof is deferred to \cref{proof:log_concave_log_factor}.
          & =
         \|h\|_\infty
         \int_L^\infty e^{-s}\d F(s)
-        \\
-         & \le
+        \le
         \|h\|_\infty
         \frac{F(L)}{L^d}
         d\int_L^\infty e^{-s}s^{d-1}\d s.
@@ -1796,6 +2122,530 @@ The proof is deferred to \cref{proof:log_concave_log_factor}.
         \frac{1}{j!}
         \log^j\left(\frac{e}{a}\right)\,.
     \end{align}
+\end{proof}
+
+The natural question is whether the $d$-logarithm factor is real or an artifact of the proof.
+\begin{theorem}[Product Laplace forces the Gamma factor]
+    \label{thm:product_laplace_gamma_lower}
+    Fix $\lambda\in(0,1)$. For each $d\ge1$, let
+    \[
+        \ell(t)=\frac12 e^{-|t|},\qquad t\in\R,
+        \qquad
+        q_d(t)=\prod_{i=1}^d \ell(t_i),
+        \qquad t=(t_1,\ldots,t_d)\in\R^d .
+    \]
+    Let $T_0,T_1,\ldots$ be i.i.d. samples from $q_d$, and define
+    \[
+        X=\lambda\sum_{k=0}^{\infty}(1-\lambda)^kT_k .
+    \]
+    Let
+    \[
+        P=P_{X,T_0},
+        \qquad
+        Q=P_X\otimes P_{T_0},
+        \qquad
+        R=\frac{dP}{dQ}.
+    \]
+    For $a>0$, define
+    \[
+        f_a(u)=e^{-a(u-1)}+a(u-1)-1,\qquad u\ge0,
+    \]
+    and
+    \[
+        D_{f_a}(P\|Q)=\E_Q[f_a(R)].
+    \]
+    Then there exist constants
+    \[
+        A_\lambda>0,\qquad
+        \tau_\lambda<\infty,\qquad
+        \beta_\lambda>0,
+    \]
+    depending only on $\lambda$, with $A_\lambda e^{\tau_\lambda}\ge2$, such that the following holds.
+    With the universal constant $c_0=e^{-1}/8$, for every $d\ge1$ and every
+    \[
+        0<a\le (A_\lambda e^{\tau_\lambda})^{-d},
+    \]
+    we have
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_0
+        \left(\frac{\beta_\lambda A_\lambda}{2}\right)^d
+        a^2
+        \sum_{j=0}^d
+        \frac{L_a^j}{j!},
+    \]
+    where
+    \[
+        L_a
+        =
+        \log\left(
+        \frac{1}{a(A_\lambda e^{\tau_\lambda})^d}
+        \right).
+    \]
+    Consequently, for each fixed $\lambda\in(0,1)$ and $d\ge1$, there exist constants
+    $c_{\lambda,d}>0$ and $a_{\lambda,d}\in(0,1)$ such that for all
+    $0<a\le a_{\lambda,d}$,
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_{\lambda,d}
+        a^2
+        \sum_{j=0}^d
+        \frac{\log^j(1/a)}{j!}.
+    \]
+    In particular,
+    \[
+        D_{f_a}(P\|Q)
+        =
+        \Omega_{\lambda,d}
+        \left(
+        a^2\frac{\log^d(1/a)}{d!}
+        \right)
+        \qquad\text{as }a\downarrow0.
+    \]
+\end{theorem}
+
+\begin{proof}
+    The proof isolates the source of the $d$ logarithms.  In one dimension,
+    if the first Laplace sample is large and positive while the remaining
+    contribution is bounded, then the likelihood ratio grows like $e^t$.
+    In $d$ dimensions this effect tensorizes, so the likelihood ratio grows
+    like $\exp(\sum_i t_i)$.  The Laplace density contributes
+    $\exp(-\sum_i t_i)$, and truncating at height $1/a$ leaves exactly a
+    Gamma-tail polynomial.
+
+    \paragraph{Step 1: the one-dimensional bad event.}
+    Let $L_0,L_1,\ldots$ be i.i.d. $\mathrm{Laplace}(0,1)$ random variables, and define
+    \[
+        X_\lambda
+        =
+        \lambda\sum_{k=0}^{\infty}(1-\lambda)^kL_k,
+        \qquad
+        X_\lambda'
+        =
+        \lambda\sum_{k=1}^{\infty}(1-\lambda)^{k-1}L_k .
+    \]
+    Let $p_\lambda$ be the density of $X_\lambda$. Then
+    $X_\lambda'\stackrel{d}{=}X_\lambda$, $X_\lambda'\perp L_0$, and
+    \[
+        X_\lambda=\lambda L_0+(1-\lambda)X_\lambda'.
+    \]
+    Therefore, at a point of the form
+    \[
+        X_\lambda=\lambda t+(1-\lambda)z,
+        \qquad
+        L_0=t,
+        \qquad
+        X_\lambda'=z,
+    \]
+    the one-dimensional likelihood ratio is
+    \[
+        r_\lambda(t,z)
+        =
+        \frac{1}{1-\lambda}
+        \frac{p_\lambda(z)}
+        {p_\lambda(\lambda t+(1-\lambda)z)}.
+        \label{eq:product_laplace_one_dim_ratio}
+    \]
+
+    We now prove that this ratio is exponentially large when $t$ is large
+    and $z$ is bounded.  Write
+    \[
+        Z_\lambda
+        =
+        \lambda\sum_{k=1}^{\infty}(1-\lambda)^kL_k,
+        \qquad
+        X_\lambda=\lambda L_0+Z_\lambda.
+    \]
+    If
+    \[
+        q_\lambda(u)=\frac{1}{2\lambda}e^{-|u|/\lambda}
+    \]
+    is the density of $\lambda L_0$, then
+    \[
+        p_\lambda=q_\lambda*p_{Z_\lambda}.
+    \]
+    Define
+    \[
+        C_\lambda
+        =
+        \E\left[e^{|Z_\lambda|/\lambda}\right].
+    \]
+    This constant is finite, since
+    \[
+        \frac{|Z_\lambda|}{\lambda}
+        \le
+        \sum_{k=1}^{\infty}(1-\lambda)^k|L_k|,
+    \]
+    and hence, using $\E[e^{\alpha |L_0|}]=(1-\alpha)^{-1}$ for
+    $0\le\alpha<1$,
+    \[
+        C_\lambda
+        \le
+        \prod_{k=1}^{\infty}
+        \E\left[e^{(1-\lambda)^k|L_k|}\right]
+        =
+        \prod_{k=1}^{\infty}
+        \frac{1}{1-(1-\lambda)^k}
+        <\infty.
+    \]
+    Consequently, for every $x\ge0$,
+    \[
+        p_\lambda(x)
+        =
+        \int_\R
+        \frac{1}{2\lambda}e^{-|x-z|/\lambda}
+        p_{Z_\lambda}(z)\,dz
+        \le
+        \frac{C_\lambda}{2\lambda}e^{-x/\lambda}.
+        \label{eq:product_laplace_density_tail}
+    \]
+    Since $p_\lambda$ is positive and continuous, also define
+    \[
+        m_\lambda
+        =
+        \inf_{|z|\le1}p_\lambda(z)
+        >
+        0.
+    \]
+
+    Now fix $|z|\le1$ and $t\ge(1-\lambda)/\lambda$. Then
+    $\lambda t+(1-\lambda)z\ge0$, so \eqref{eq:product_laplace_density_tail} gives
+    \[
+        p_\lambda(\lambda t+(1-\lambda)z)
+        \le
+        \frac{C_\lambda}{2\lambda}
+        \exp\left(
+        -t-\frac{1-\lambda}{\lambda}z
+        \right)
+        \le
+        \frac{C_\lambda}{2\lambda}
+        \exp\left(
+        -t+\frac{1-\lambda}{\lambda}
+        \right).
+    \]
+    Substituting this into \eqref{eq:product_laplace_one_dim_ratio} yields
+    \[
+        r_\lambda(t,z)
+        \ge
+        \frac{2\lambda m_\lambda}{(1-\lambda)C_\lambda}
+        \exp\left(-\frac{1-\lambda}{\lambda}\right)e^t .
+    \]
+    Set
+    \[
+        A_\lambda
+        =
+        \frac{2\lambda m_\lambda}{(1-\lambda)C_\lambda}
+        \exp\left(-\frac{1-\lambda}{\lambda}\right).
+    \]
+    Choose $\tau_\lambda<\infty$ large enough that
+    \[
+        \tau_\lambda\ge\frac{1-\lambda}{\lambda}
+        \qquad\text{and}\qquad
+        A_\lambda e^{\tau_\lambda}\ge2.
+    \]
+    Then
+    \[
+        r_\lambda(t,z)\ge A_\lambda e^t,
+        \qquad
+        t\ge\tau_\lambda,\quad |z|\le1.
+        \label{eq:product_laplace_one_dim_ratio_lower}
+    \]
+    Finally define
+    \[
+        \beta_\lambda
+        =
+        \PP(|X_\lambda'|\le1)
+        =
+        \int_{-1}^1 p_\lambda(z)\,dz
+        >
+        0.
+    \]
+
+    \paragraph{Step 2: tensorize the bad event.}
+    Return to dimension $d$. Define
+    \[
+        X'
+        =
+        \lambda\sum_{k=1}^{\infty}(1-\lambda)^{k-1}T_k.
+    \]
+    Then $X'\stackrel{d}{=}X$, $X'\perp T_0$, and
+    \[
+        X=\lambda T_0+(1-\lambda)X'.
+    \]
+    Under $P=P_{X,T_0}$, write
+    \[
+        R_0=R(X,T_0)=\frac{dP}{dQ}(X,T_0).
+    \]
+    Since $q_d$ is a product distribution and the construction of $X$ is coordinatewise,
+    the density of $X$ factorizes as
+    \[
+        p_X(x)=\prod_{i=1}^d p_\lambda(x_i).
+    \]
+    Therefore,
+    \[
+        R_0
+        =
+        \prod_{i=1}^d
+        r_\lambda(T_{0,i},X_i').
+        \label{eq:product_laplace_ratio_tensorization}
+    \]
+
+    Consider the event
+    \[
+        \mathcal G
+        =
+        \left\{
+        |X_i'|\le1 \text{ and } T_{0,i}\ge\tau_\lambda
+        \text{ for every } i=1,\ldots,d
+        \right\}.
+    \]
+    On this event, \eqref{eq:product_laplace_one_dim_ratio_lower} and
+    \eqref{eq:product_laplace_ratio_tensorization} imply
+    \[
+        R_0
+        \ge
+        A_\lambda^d
+        \exp\left(\sum_{i=1}^d T_{0,i}\right).
+        \label{eq:product_laplace_R0_large}
+    \]
+    Moreover, since $A_\lambda e^{\tau_\lambda}\ge2$, the same event implies
+    \[
+        R_0
+        \ge
+        (A_\lambda e^{\tau_\lambda})^d
+        \ge2.
+        \label{eq:product_laplace_R0_at_least_two}
+    \]
+
+    \paragraph{Step 3: turn the bad event into an $f_a$-divergence lower bound.}
+    We first record an elementary lower bound on the generator.  For every
+    $a\in(0,1]$ and every $u\ge2$,
+    \[
+        \frac{f_a(u)}{u}
+        \ge
+        c_0 a^2\min\left\{u,\frac1a\right\},
+        \qquad
+        c_0=\frac{e^{-1}}{8}.
+        \label{eq:product_laplace_generator_lower}
+    \]
+    To prove this, let $s=a(u-1)$. If $s\le1$, then
+    \[
+        e^{-s}+s-1\ge \frac{e^{-1}}{2}s^2,
+    \]
+    and since $u\ge2$,
+    \[
+        \frac{(u-1)^2}{u}\ge \frac{u}{4}.
+    \]
+    Hence
+    \[
+        \frac{f_a(u)}{u}
+        \ge
+        \frac{e^{-1}}{8}a^2u
+        \ge
+        \frac{e^{-1}}{8}a^2\min\left\{u,\frac1a\right\}.
+    \]
+    If $s>1$, then it is enough to prove a lower bound of order $a$.
+    When $1<s\le2$,
+    \[
+        f_a(u)=e^{-s}+s-1\ge e^{-1},
+        \qquad
+        u=\frac{s+a}{a}\le \frac{3}{a},
+    \]
+    so $f_a(u)/u\ge e^{-1}a/3$. When $s\ge2$,
+    \[
+        f_a(u)=e^{-s}+s-1\ge s-1\ge \frac{s}{2},
+        \qquad
+        u=\frac{s+a}{a}\le \frac{3s}{2a},
+    \]
+    so $f_a(u)/u\ge a/3$. This proves
+    \eqref{eq:product_laplace_generator_lower}.
+
+    Since $R=dP/dQ$, the change of measure identity gives
+    \[
+        D_{f_a}(P\|Q)
+        =
+        \E_Q[f_a(R)]
+        =
+        \E_P\left[\frac{f_a(R_0)}{R_0}\right].
+    \]
+    By the assumption $a\le(A_\lambda e^{\tau_\lambda})^{-d}$ and the fact
+    $A_\lambda e^{\tau_\lambda}\ge2$, we have $a\le1$. Therefore, using
+    \eqref{eq:product_laplace_generator_lower} on the event $\mathcal G$,
+    where $R_0\ge2$, gives
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_0a^2
+        \E_P\left[
+            \min\left\{R_0,\frac1a\right\}
+            \mathbf{1}_{\mathcal G}
+            \right].
+    \]
+    Using \eqref{eq:product_laplace_R0_large}, and using the independence of
+    $X'$ and $T_0$, we get
+    \[
+        \begin{aligned}
+            D_{f_a}(P\|Q)
+             & \ge
+            c_0a^2\beta_\lambda^d
+            \int_{[\tau_\lambda,\infty)^d}
+            \min\left\{
+            A_\lambda^d
+            \exp\left(\sum_{i=1}^d t_i\right),
+            \frac1a
+            \right\}
+            \prod_{i=1}^d
+            \left(\frac12 e^{-t_i}\right)
+            dt_i .
+        \end{aligned}
+        \label{eq:product_laplace_integral_lower}
+    \]
+
+    It remains only to evaluate the integral in
+    \eqref{eq:product_laplace_integral_lower}. Set
+    \[
+        L_a
+        =
+        \log\left(
+        \frac{1}{a(A_\lambda e^{\tau_\lambda})^d}
+        \right).
+    \]
+    The assumption on $a$ gives $L_a\ge0$.  Put
+    \[
+        t_i=\tau_\lambda+u_i,
+        \qquad
+        u_i\ge0,
+        \qquad
+        S=\sum_{i=1}^d u_i.
+    \]
+    Then the integral in \eqref{eq:product_laplace_integral_lower} equals
+    \[
+        \begin{aligned}
+            I_a
+             & =
+            2^{-d}
+            \int_{\R_+^d}
+            \min\left\{
+            A_\lambda^d e^{d\tau_\lambda}e^S,
+            \frac1a
+            \right\}
+            e^{-d\tau_\lambda}e^{-S}
+            du
+            \\
+             & =
+            2^{-d}
+            \left[
+                A_\lambda^d
+                \operatorname{vol}\{u\in\R_+^d:S\le L_a\}
+                +
+                \frac{e^{-d\tau_\lambda}}{a}
+                \int_{\{u\in\R_+^d:S>L_a\}} e^{-S}\,du
+                \right].
+        \end{aligned}
+    \]
+    The first term is a simplex volume:
+    \[
+        \operatorname{vol}\{u\in\R_+^d:S\le L_a\}
+        =
+        \frac{L_a^d}{d!}.
+    \]
+    For the second term, using the Gamma tail identity,
+    \[
+        \int_{\{u\in\R_+^d:S>L_a\}} e^{-S}\,du
+        =
+        \int_{L_a}^{\infty}
+        e^{-s}\frac{s^{d-1}}{(d-1)!}\,ds
+        =
+        e^{-L_a}\sum_{j=0}^{d-1}\frac{L_a^j}{j!}.
+    \]
+    Since
+    \[
+        e^{-L_a}=a(A_\lambda e^{\tau_\lambda})^d,
+    \]
+    we obtain
+    \[
+        \frac{e^{-d\tau_\lambda}}{a}
+        e^{-L_a}
+        =
+        A_\lambda^d.
+    \]
+    Hence
+    \[
+        I_a
+        =
+        2^{-d}A_\lambda^d
+        \sum_{j=0}^d
+        \frac{L_a^j}{j!}.
+    \]
+    Plugging this value of $I_a$ into
+    \eqref{eq:product_laplace_integral_lower} gives
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_0
+        \left(\frac{\beta_\lambda A_\lambda}{2}\right)^d
+        a^2
+        \sum_{j=0}^d
+        \frac{L_a^j}{j!},
+    \]
+    which proves the main lower bound.
+
+    \paragraph{Step 4: derive the asymptotic form.}
+    For fixed $\lambda$ and $d$,
+    \[
+        L_a
+        =
+        \log(1/a)
+        -
+        d\log(A_\lambda e^{\tau_\lambda}).
+    \]
+    Therefore, if
+    \[
+        0<a\le
+        a_{\lambda,d}
+        \triangleq
+        (A_\lambda e^{\tau_\lambda})^{-2d},
+    \]
+    then
+    \[
+        L_a\ge \frac12\log(1/a).
+    \]
+    Consequently,
+    \[
+        \sum_{j=0}^d\frac{L_a^j}{j!}
+        \ge
+        2^{-d}
+        \sum_{j=0}^d
+        \frac{\log^j(1/a)}{j!}.
+    \]
+    Absorbing the fixed factor
+    \[
+        c_0
+        \left(\frac{\beta_\lambda A_\lambda}{2}\right)^d
+        2^{-d}
+    \]
+    into $c_{\lambda,d}$ gives
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_{\lambda,d}
+        a^2
+        \sum_{j=0}^d
+        \frac{\log^j(1/a)}{j!}
+    \]
+    for all $0<a\le a_{\lambda,d}$. The leading term in the sum is
+    $\log^d(1/a)/d!$, which gives
+    \[
+        D_{f_a}(P\|Q)
+        =
+        \Omega_{\lambda,d}
+        \left(
+        a^2\frac{\log^d(1/a)}{d!}
+        \right)
+        \qquad\text{as }a\downarrow0.
+    \]
 \end{proof}
 
 
