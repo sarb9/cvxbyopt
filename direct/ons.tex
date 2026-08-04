@@ -243,19 +243,6 @@ first two Gaussian score identities define
 \end{align}
 These are the gradient and Hessian, with respect to $\mu$, of
 $\E[e(\mu+\Sigma^{1/2}Z)]$.  In particular, $H(\mu,\Sigma)\succeq0$.
-% \begin{remark}
-% Although $e$ is nonsmooth, if $e$
-% is smooth, Gaussian integration by parts also gives
-% \begin{align}
-%     g(\mu,\Sigma)=\E[\nabla e(X)],
-%     \qquad
-%     H(\mu,\Sigma)=\E[\nabla^2e(X)].
-%     \label{eq:ibp-coefficients}
-% \end{align}
-% The score formulation remains valid for the nonsmooth extension and is the
-% one used by the algorithm.
-% \end{remark}
-
 The degree-two Hermite projection of $e$ in
 $L^2(\N(\mu,\Sigma))$ is
 \begin{align}
@@ -264,8 +251,6 @@ $L^2(\N(\mu,\Sigma))$ is
     +\frac12\normm{x-\mu}{H}^2.
     \label{eq:hermite-projection}
 \end{align}
-Thus $q_t$ below is its centred, curvature-damped version.
-
 Conditionally on $\F_{t-1}$, abbreviate
 \begin{align}
     g_t=g(\mu_t,\Sigma_t),
@@ -2566,10 +2551,46 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         =r_tf(A_t)+\frac2\eps(r_t-1)
         \leq\frac{3r_t}{\eps}.
     \]
-    Moreover, $r_t\leq1+2\pi(X_t-\mu_t)$, so
-    \eqref{eq:gaussian-minkowski} implies
-    $\E_t[r_t^4]\leq C$.
-
+    Moreover, by \eqref{eq:v-relation-to-minkowski},
+    \[
+        r_t
+        =
+        1+v(X_t)
+        \leq
+        1+2\pi(X_t-\mu_t).
+    \]
+    Let $W_t=X_t-\mu_t$. Conditionally on $\F_{t-1}$,
+    $W_t\sim\N(0,\Sigma_t)$, and, since $t\leq\tau$,
+    $\Sigma_t\preceq2\sigma^2I_d$. Write
+    $m_t=\E_t[\pi(W_t)]\leq1$. By
+    \eqref{eq:gaussian-minkowski}, for every $s\geq1$,
+    \begin{align}
+        \Pp_t\bigl(\pi(W_t)>s\bigr)
+        \leq
+        \Pp_t\bigl(\pi(W_t)>m_t+s-1\bigr)
+        \leq
+        \exp\left(-\frac{(s-1)^2}{4\sigma^2}\right).
+    \end{align}
+    Integrating this tail and using $\sigma\leq1$ gives
+    \begin{align}
+        \E_t[\pi(W_t)^4]
+         & =
+        \int_0^\infty
+        4s^3\Pp_t\bigl(\pi(W_t)>s\bigr)\,ds
+        \leq
+        1+
+        \int_1^\infty
+        4s^3
+        \exp\left(-\frac{(s-1)^2}{4\sigma^2}\right)\,ds
+        \leq C.
+    \end{align}
+    Consequently, using $(a+b)^4\leq8(a^4+b^4)$,
+    \[
+        \E_t[r_t^4]
+        \leq
+        8+128\E_t[\pi(W_t)^4]
+        \leq C.
+    \]
     Let $\mathcal A_t=\{|G_t|\leq K\sqrt\ell\}$,
     where $K$ is a sufficiently large universal constant. On $\mathcal A_t$,
     \begin{align}
@@ -2583,33 +2604,48 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     On the complement, since $G_t$ is determined by $X_t$ conditional on
     $\F_{t-1}$, \eqref{eq:Y2-conditional-simple} and Cauchy--Schwarz give
     \begin{align}
-         & \E_t\left[
+        \E_t\left[
             Y_t^2(1+G_t^4)\1\{\mathcal A_t^c\}
             \right]
-        \nonumber     \\
-         & \qquad\leq
+         & \leq
         \frac{C}{\eps^2}
         \E_t\left[
             r_t^2(1+G_t^4)\1\{\mathcal A_t^c\}
             \right]
-        \nonumber     \\
-         & \qquad\leq
+        \nonumber \\
+         & \leq
         \frac{C}{\eps^2}
         \E_t[r_t^4]^{1/2}
         \E_t\left[
             (1+G_t^4)^2
             \1\{|G_t|>K\sqrt\ell\}
             \right]^{1/2}
-        \nonumber     \\
-         & \qquad\leq
+        \nonumber \\
+         & \leq
         \frac{C}{\eps^2}e^{-cK^2\ell}
         \leq e^{-4\ell}.
         \label{eq:score-tail-simple}
     \end{align}
-    Here the penultimate inequality is the standard Gaussian tail estimate,
-    and the last uses
+    Here the last inequality uses
     $\eps^{-1}\leq\sqrt n\leq e^{\ell/C_0}$ after choosing $K$ sufficiently
-    large. Combining
+    large,
+    and the penultimate inequality uses $G_t$'s conditional Gaussianity.
+    Indeed, since $G_t$ is conditionally standard Gaussian, another
+    application of Cauchy--Schwarz and the Gaussian tail bound gives, with
+    $a=K\sqrt\ell$,
+    \begin{align}
+         & \E_t\left[
+            (1+G_t^4)^2\1\{|G_t|>a\}
+            \right]^{1/2}
+        \leq
+        \E_t[(1+G_t^4)^4]^{1/4}
+        \Pp_t(|G_t|>a)^{1/4}
+        \leq
+        Ce^{-a^2/8}
+        =
+        Ce^{-K^2\ell/8}.
+    \end{align}
+    Combining
     \eqref{eq:score-central-simple} and
     \eqref{eq:score-tail-simple} proves both claims.
 \end{proof}
@@ -2800,14 +2836,9 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \end{align}
     which proves \eqref{eq:gradient-energy}.
 
-    We now prove \eqref{eq:H-concentration}.  Let
-    \begin{align}
-        M_\tau
-        =
-        \sum_{t=1}^{\tau}(\widehat H_t-H_t).
-    \end{align}
-    We first record a deterministic range for the relevant metrics.  The
-    largest-eigenvalue recursion in the proof of \cref{lem:trace} gives
+    We now prove \eqref{eq:H-concentration}.
+    We first record a deterministic range for the relevant metrics.
+    The largest-eigenvalue recursion in the proof of \cref{lem:trace} gives
     \begin{align}
         \lambda_{\max}(\overline\Sigma_t^{-1})
         \leq
@@ -2824,6 +2855,8 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         I_d
         \preceq
         \frac{1}{2\sigma^2}I_d
+        =
+        \frac{1}{2} \overline\Sigma_1^{-1}
         \preceq
         \frac12\overline\Sigma_t^{-1}
         \preceq
@@ -2839,7 +2872,7 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     Secondly, for $t=\tau+1$, the fact that $\overline\Sigma_{\tau+1}^{-1}\succeq\sigma^{-2}I_d$ and \eqref{eq:check-spectrum-2}
     give
     \begin{align}
-        \frac{\lambda_{\max}(\overline\Sigma_{\tau+1}^{-1})}{\lambda_{\min}(\overline\Sigma_{\tau+1}^{-1})}
+        \kappa(\overline\Sigma_{\tau+1}^{-1})
         \leq \frac{
             e^{C\ell}
         }{
@@ -2848,30 +2881,21 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \leq \Gamma\,.
     \end{align}
     Let $\mathcal U$ be a $(64\Gamma)^{-1}$-net of
-    $\mathbb S^{d-1}$.  It may be chosen so that
+    $\mathbb S^{d-1}$.
+    By the standard volumetric bound for Euclidean covering numbers
+    \cite[Corollary~4.2.13]{vershynin2018high}, it may be chosen so that
     \begin{align}
         \log|\mathcal U|
-        \leq
-        d\log(1+128\Gamma)
+        \leq d\log(1+128\Gamma)
         \leq Cd\ell.
         \label{eq:H-net-cardinality}
-    \end{align}
-    Let $b_j=2^j$, and let $J$ be the smallest integer such that
-    $b_J\geq\Gamma$. Then $J\leq C\ell$.
-    Let
-    \begin{align}
-        \rho
-        =
-        \log\frac{128|\mathcal U|(J+1)}{\delta}
-        \leq Cd\ell.
-        \label{eq:H-union-logarithm}
     \end{align}
     Fix $u\in\mathcal U$ and define
     \begin{align}
         a_{t,u}
         =
         u^\top\Sigma_t^{-1}u,
-        \qquad
+        \qquad\text{and}\qquad
         G_{t,u}
         =
         \ip{
@@ -2895,8 +2919,8 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \label{eq:H-direction}
     \end{align}
     We first control
-    $Y_t^2(G_{t,u}^2-1)^2$
-    for every $u\in\mathcal U$ simultaneously, outside an event of probability $\delta/64$.
+    $\sum_{t=1}^{\tau} Y_t^2(G_{t,u}^2-1)^2$
+    for every $u\in\mathcal U$, outside an event of probability $\delta/64$.
     Let
     \begin{align}
         \mathcal C_t
@@ -2913,14 +2937,12 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \end{align}
     Since $G_{t,u}^2\leq\norm{Z_t}^2$, we have
     \begin{align}
-        0\leq W_{t,u}\leq L_H,
-        \qquad
-        L_H=\frac{C\ell^2(d+\ell)^2}{\eps^2}\,.
+        0\leq W_{t,u}\leq \Lambda,
+        \qquad\text{where}\quad
+        \Lambda=\frac{C\ell^2(d+\ell)^2}{\eps^2}\,.
         \label{eq:H-score-energy-increment}
     \end{align}
-    Let $R_{t,u}=W_{t,u}-\E_t[W_{t,u}]$.
-    Since $\1\{t\leq\tau\}$ is $\mathcal F_{t-1}$-measurable,
-    $(R_{t,u})_{t=1}^n$ is a martingale difference sequence.
+    Let $R_{t,u}=W_{t,u}-\E_t[W_{t,u}]$ which is a martingale difference sequence.
     Moreover,
     \begin{align}
         \sum_{t=1}^n
@@ -2928,11 +2950,11 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \leq
         \sum_{t=1}^n\E_t[W_{t,u}^2]
         \leq
-        L_H\sum_{t=1}^n\E_t[W_{t,u}]
+        \Lambda\sum_{t=1}^n\E_t[W_{t,u}]
         =
-        L_H\sum_{t=1}^{\tau}\E_t[W_{t,u}]
+        \Lambda\sum_{t=1}^{\tau}\E_t[W_{t,u}]
         \leq
-        CL_H\ell^2n.
+        C\Lambda\ell^2n.
     \end{align}
     where the last inequality follows from
     \cref{lem:gaussian-score-localisation} and
@@ -2951,16 +2973,25 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \leq C\ell^2n.
         \label{eq:H-score-energy-mean}
     \end{align}
-    The preceding bounds show that
+    Now we are in a position to apply Freedman's inequality \eqref{eq:freedman} to the martingale difference sequence $(R_{t,u})_{t=1}^n$ as
     \begin{align}
         |R_{t,u}|
-        \leq L_H,         \qquad \text{and}\qquad
+        \leq \Lambda,         \qquad \text{and}\qquad
         \sum_{t=1}^n\E_t[R_{t,u}^2]
-        \leq CL_H\ell^2n.
+        \leq C\Lambda\ell^2n.
     \end{align}
-    Set $\alpha=\frac{\delta}{64|\mathcal U|}$.
+    Let $J = \lceil \log_2(\Gamma) \rceil$
+    and
+    \begin{align}
+        \alpha=\frac{\delta}{64|\mathcal U|}\,,
+        \qquad\text{and}\qquad
+        \rho
+        =
+        \log\frac{128|\mathcal U|(J+1)}{\delta}
+        \leq Cd\ell.
+    \end{align}
     For each fixed $u\in\mathcal U$, Freedman's inequality
-    \eqref{eq:freedman}, applied with $b=L_H$, and $s^2=CL_H\ell^2n$, gives, with probability at least $1-\alpha$,
+    \eqref{eq:freedman}, applied with $b=\Lambda$, and $s^2=C\Lambda\ell^2n$, gives, with probability at least $1-\alpha$,
     \begin{align}
         \left|
         \sum_{t=1}^nR_{t,u}
@@ -2968,17 +2999,17 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
          & \leq
         C\left(
         \sqrt{
-            L_H\ell^2n
+            \Lambda\ell^2n
             \log\frac{2}{\alpha}
         }
         +
-        L_H\log\frac{2}{\alpha}
+        \Lambda\log\frac{2}{\alpha}
         \right)
         \leq
         C\left(
-        \sqrt{L_H\ell^2n\rho}
+        \sqrt{\Lambda\ell^2n\rho}
         +
-        L_H\rho
+        \Lambda\rho
         \right),
         \label{eq:H-score-energy-freedman}
     \end{align}
@@ -2996,9 +3027,9 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
          & \leq
         C\ell^2n
         +
-        C\sqrt{L_H\ell^2n\rho}
+        C\sqrt{\Lambda\ell^2n\rho}
         +
-        CL_H\rho            \\
+        C\Lambda\rho        \\
          & \leq
         C\ell^2n
         \left(
@@ -3037,7 +3068,7 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \end{align}
     simultaneously for every $u\in\mathcal U$.
 
-    We now apply the self-normalised martingale inequality.  Define
+    Define
     \begin{align}
         Q_{t,u}
         =
@@ -3048,6 +3079,12 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         Q_{t,u}-\E_t[Q_{t,u}],
         \qquad\text{and}\qquad
         a_u^\star=\max_{t\leq\tau}a_{t,u}.
+    \end{align}
+    Let
+    \begin{align}
+        M_\tau
+        =
+        \sum_{t=1}^{\tau}(\widehat H_t-H_t).
     \end{align}
     Since $\E_t[\widehat H_t]=H_t$, we have
     $\sum_{t=1}^nD_{t,u} = u^\top M_\tau u$.
@@ -3076,17 +3113,23 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         C(a_u^\star)^2\ell^2n.
         \label{eq:H-directional-predictable}
     \end{align}
-    The elementary centring inequality used in \eqref{eq:D-to-Q}
-    therefore yields
+    Therefore, combining \eqref{eq:H-directional-realised} and
+    \eqref{eq:H-directional-predictable} gives
     \begin{align}
         \sum_{t=1}^n
         \left(
         D_{t,u}^2+\E_t[D_{t,u}^2]
         \right)
         \leq
+        \sum_{t=1}^n
+        \left(
+        Q_{t,u}^2+\E_t[Q_{t,u}^2]
+        \right)
+        \leq
         C(a_u^\star)^2\ell^2n.
         \label{eq:H-directional-self-normaliser}
     \end{align}
+    Let $b_j=2^j$.
     For every $u\in\mathcal U$, choose the unique $j$ such that
     \begin{align}
         b_{j-1}<a_u^\star\leq b_j.
@@ -3104,19 +3147,28 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \right)
         \leq Cb_j^2\ell^2n
         \right)
-        \leq 2e^{-c\rho}.
+        \leq
+        2\exp\left(
+        -\frac{C^2 b_j^2 \ell^2 n \rho}{C b_j^2 \ell^2 n}
+        \right)
+        \leq 2e^{-\rho}.
     \end{align}
-    A union bound over $u\in\mathcal U$ and $0\leq j\leq J$
-    shows that, outside an event of probability $\delta/64$,
+    A union bound over $u\in\mathcal U$ and $0\leq j\leq J$ therefore has failure probability
+    at most
+    \begin{align}
+        2|\mathcal U|(J+1)e^{-\rho}
+        \leq \frac{\delta}{64}.
+    \end{align}
+    Therefore, outside an event of probability $\delta/64$,
     \begin{align}
         |u^\top M_\tau u|
         \leq
         C a_u^\star\ell\sqrt{n\rho}
         \leq
-        \alpha_H
+        \Xi
         \max_{t\leq\tau}u^\top\Sigma_t^{-1}u,
-        \qquad
-        \alpha_H=C\ell^{3/2}\sqrt{dn},
+        \qquad\text{where}\quad
+        \Xi =C\ell^{3/2}\sqrt{dn},
         \label{eq:H-net}
     \end{align}
     simultaneously for every $u\in\mathcal U$.
@@ -3145,21 +3197,16 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \begin{align}
         |u^\top M_\tau u|
         \leq
-        \alpha_H
+        \Xi
         \max_{t\leq\tau}u^\top\Sigma_t^{-1}u
         \leq
-        \alpha_Hu^\top Au
+        \Xi u^\top Au
         \qquad(u\in\mathcal U).
         \label{eq:H-net-relative}
     \end{align}
-    Moreover, scaling does not change the condition number, so the
-    terminal condition-number bound gives
-    $\kappa(A)
-        =
-        \kappa(\overline\Sigma_{\tau+1}^{-1})
-        \leq\Gamma$.
-    Let
-    $r=\frac{1}{64\Gamma}$.
+    Moreover, scaling does not change the condition number, so we have
+    $\kappa(A) = \kappa(\overline\Sigma_{\tau+1}^{-1}) \leq\Gamma$.
+    Let $r=\frac{1}{64\Gamma}$.
     Fix $v\in\mathbb S^{d-1}$ and choose $u\in\mathcal U$ such that
     $\norm{u-v}\leq r$. Since $M_\tau$ is symmetric and
     $\norm{u}=\norm{v}=1$,
@@ -3181,11 +3228,11 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \begin{align}
         |v^\top M_\tau v|
         \leq
-        \alpha_Hu^\top Au
+        \Xi u^\top Au
         +
         2r\norm{M_\tau}_{\op}
         \leq
-        \alpha_H\lambda_{\max}(A)
+        \Xi \lambda_{\max}(A)
         +
         2r\norm{M_\tau}_{\op}.
     \end{align}
@@ -3194,11 +3241,11 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \begin{align}
         \norm{M_\tau}_{\op}
         \leq
-        \alpha_H\lambda_{\max}(A)
+        \Xi \lambda_{\max}(A)
         +
         2r\norm{M_\tau}_{\op}
         \leq
-        2\alpha_H\lambda_{\max}(A),
+        2\Xi \lambda_{\max}(A),
         \label{eq:H-operator-bound}
     \end{align}
     where the last inequality uses $2r\leq1/2$.
@@ -3222,19 +3269,19 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \begin{align}
         |v^\top M_\tau v|
          & \leq
-        \alpha_Hu^\top Au
+        \Xi u^\top Au
         +
-        2r\norm{M_\tau}_{\op}       \\
+        2r\norm{M_\tau}_{\op}   \\
          & \leq
-        \alpha_Hv^\top Av
+        \Xi v^\top Av
         +
-        2\alpha_Hr\lambda_{\max}(A)
+        2\Xi r\lambda_{\max}(A)
         +
-        4\alpha_Hr\lambda_{\max}(A) \\
+        4\Xi r\lambda_{\max}(A) \\
          & =
-        \alpha_Hv^\top Av
+        \Xi v^\top Av
         +
-        6\alpha_Hr\lambda_{\max}(A).
+        6\Xi r\lambda_{\max}(A).
     \end{align}
     Since $\kappa(A)\leq\Gamma$ and $\norm{v}=1$,
     \begin{align}
@@ -3258,21 +3305,21 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \begin{align}
         |v^\top M_\tau v|
         \leq
-        2\alpha_Hv^\top Av.
+        2\Xi v^\top Av.
     \end{align}
-    Since this holds for every $v\in\mathbb S^{d-1}$, homogeneity gives
+    Since this holds for every $v\in\mathbb S^{d-1}$, we have
     \begin{align}
-        -2\alpha_HA
+        -2\Xi A
         \preceq
         M_\tau
         \preceq
-        2\alpha_HA.
+        2\Xi A.
     \end{align}
     Recalling that
     \begin{align}
         A=\frac32\overline\Sigma_{\tau+1}^{-1},
         \qquad
-        \alpha_H=C\ell^{3/2}\sqrt{dn},
+        \Xi =C\ell^{3/2}\sqrt{dn},
         \qquad
         M_\tau=\sum_{t=1}^{\tau}(\widehat H_t-H_t),
     \end{align}
