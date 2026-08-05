@@ -281,8 +281,8 @@ $\E[e(\mu+\Sigma^{1/2}Z)]$.  In particular, $H(\mu,\Sigma)\succeq0$.
     By \cref{lem:convex-hessian-measure}
     $D^2r$ is a positive-semidefinite matrix-valued Radon measure.
     Since
-    $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$, we may test $D^2r$ against the
-    Gaussian density.
+    $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$, the pairing of $D^2r$ with
+    the Gaussian density is therefore well defined.
     The definition of distributional
     derivatives gives
     \begin{align}
@@ -867,16 +867,18 @@ $\sigma M\sqrt{2d}=1$.
         \int_{\R^d}\gamma_t(x)\,D^2v(dx)
         \right) \\
          & \leq
-        \epsilon\tr\left(
+        \eps\tr\left(
         \Sigma_t
         \int_{\R^d}\gamma_t(x)\,D^2e(dx)
         \right)
         =
-        \epsilon\tr(\Sigma_tH_t).
+        \eps\tr(\Sigma_tH_t).
         \ineqlabel{eq:v-first-moment-checkpiont-1}
     \end{align}
-    The first equality follows from weak integration by parts.  The inequality
-    uses \eqref{eq:extension-curvature}, while the final equality follows from
+    The first equality follows from the divergence calculation in the proof
+    of \cref{lem:regret-switch}, applied to $v$, together with
+    \eqref{eq:gaussian-hessian-average}.  The inequality uses
+    \eqref{eq:extension-curvature}, and the final equality again follows from
     \eqref{eq:gaussian-hessian-average}.
 
     Next, we control the second term through a tail bound on $v(X_t)$.
@@ -1341,10 +1343,51 @@ radius
 
 \section{Proof of the direct Bregman bracket}
 \label{app:bracket}
+\paragraph{Quadratic forms against matrix measures.}
+Let $M$ be a positive-semidefinite matrix-valued Radon measure and let
+$\nu=\tr M$ be its trace measure.  By the Radon--Nikodym theorem, there is a
+measurable matrix-valued function $Q$ such that
+\begin{align}
+    M(dz)=Q(z)\nu(dz),
+    \qquad
+    Q(z)\succeq0,
+    \qquad
+    \tr Q(z)=1
+    \quad\text{for $\nu$-almost every }z.
+    \label{eq:matrix-measure-polar}
+\end{align}
+Therefore, for a nonnegative measurable function $\rho$ and a measurable vector field
+$b$, we use the notation
+\begin{align}
+    \int_B \rho(z)b(z)^\top M(dz)b(z)
+    \triangleq
+    \int_B
+    \rho(z)b(z)^\top Q(z)b(z)\,\nu(dz).
+    \label{eq:matrix-measure-quadratic-form}
+\end{align}
+In particular, this integral is nonnegative, possibly with value $+\infty$.
+
+\begin{lemma}[Averaged Bregman curvature]
+    \label{lem:averaged-bregman-curvature}
+    Let $h:\R^d\to\R$ be convex and Lipschitz, let $a\in\R^d$, and let
+    $W\sim\N(0,I_d)$.  For $s\in(0,1]$, let $p_s$ denote the density of
+    \begin{align}
+        Z_s=(1-s)a+sW.
+    \end{align}
+    Then
+    \begin{align}
+        \E[D_h(a\,\|\,W)]
+        =
+        \int_0^1\frac1s
+        \int_{\R^d}
+        p_s(z)(z-a)^\top D^2h(dz)(z-a)\,ds.
+        \label{eq:averaged-bregman-curvature}
+    \end{align}
+\end{lemma}
+
 
 \begin{proof}[Proof of \cref{prop:bracket}]
-    It is enough to prove the claim for a smooth $e$; the general case follows by
-    the mollification argument in \cref{app:gaussian-identities}.  Put
+    Put
     \begin{align}
         a=\Sigma^{-1/2}(x-\mu),
         \qquad
