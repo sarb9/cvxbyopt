@@ -35,6 +35,7 @@
 \newcommand{\K}{\mathcal K}
 \newcommand{\F}{\mathcal F}
 \newcommand{\N}{\mathcal N}
+\newcommand{\T}{\mathcal T}
 \newcommand{\tr}{\operatorname{tr}}
 \newcommand{\Lip}{\operatorname{Lip}}
 \newcommand{\op}{\mathrm{op}}
@@ -69,10 +70,10 @@
     between the quadratic curvature and the Bregman divergence of the extension.
     Stationarity then keeps the iterates in the region where this comparison is
     valid.  For a rounded convex body $\K$, the regret is
-    \[
+    \begin{align}
         O\!\left(d^2 M\sqrt n\,
         \log^4\!\frac{nd}{\delta}\right)
-    \]
+    \end{align}
     with probability at least $1-\delta$, where $M$ is the spherical mean of
     the Minkowski functional, truncated below by $d^{-1/2}$.  In L\"owner
     position this is $\widetilde O(d^{3/2}\sqrt n)$.
@@ -163,6 +164,17 @@ the result is
 \end{align}
 The rounding in \eqref{eq:rounding} implies that $\pi$ is $1$-Lipschitz.
 
+Write $\gamma_{\mu,\Sigma}$ for the density of
+$\N(\mu,\Sigma)$, so that
+\begin{align}
+    \gamma_{\mu,\Sigma}(x)
+    =
+    \frac{1}{(2\pi)^{d/2}\det(\Sigma)^{1/2}}
+    \exp\left(
+    -\frac12(x-\mu)^\top\Sigma^{-1}(x-\mu)
+    \right).
+\end{align}
+
 \subsection{A queryable convex extension}
 
 Fix $\eps\in(0,1/2]$ and write
@@ -206,25 +218,25 @@ Its basic properties are recorded together because all of them will be used.
 
 \begin{proof}
     Let
-    \[
+    \begin{align}
         e_0(x)=\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
         +\frac{1-\eps}{\eps}v(x).
-    \]
+    \end{align}
     By \citet[Proposition~3.23]{lattimore2026bandit}, $e_0$ is convex.  Since
     $e=e_0+(1+\eps)v/\eps$ and $v$ is convex, $e$ is convex and
-    \[
+    \begin{align}
         \nabla^2e\succeq\frac{1+\eps}{\eps}\nabla^2v
         \succeq\frac1\eps\nabla^2v.
-    \]
+    \end{align}
     For completeness, \citet[Proposition~3.20]{lattimore2026bandit}, applied to
     $f|_{\K_\eps}$ with inner radius $1-\eps$, radial penalty $2/\eps$, and
     $\Lip_{\K_\eps}(f)\leq1/\eps$, gives \eqref{eq:extension-lipschitz}.
     Equality on $\K_\eps$ is immediate.  If
     $\pi_\eps(x)>1$, then
-    \[
+    \begin{align}
         e(x)-e\!\left(\frac{x}{\pi_\eps(x)}\right)
         =v(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)+\frac{2}{\eps}v(x)\geq0,
-    \]
+    \end{align}
     which proves \eqref{eq:extension-radial}.  The last claim follows because
     $x/\pi_\eps(x)\in\K_\eps$.
 \end{proof}
@@ -369,16 +381,14 @@ where $C_0$ is a sufficiently large universal constant.
 
 The proof rests on an exact identity for the direct Hermite coefficients and
 a local comparison between its two curvature terms.  For a convex Lipschitz
-function $e$, let
+function $e$, and a Lebesgue-almost every $z$, the Bregman divergence is
 \begin{align}
     D_e(x\,\|\,z)
     =e(x)-e(z)-\ip{\nabla e(z)}{x-z}.
     \label{eq:bregman}
 \end{align}
-The gradient exists for Lebesgue-almost every $z$, which is enough under a
-nondegenerate Gaussian.
 
-\begin{lemma}[Regret switching]
+\begin{lemma}
     \label{lem:regret-switch}
     Let $X\sim\N(\mu,\Sigma)$ and let $g,H$ be defined by
     \eqref{eq:g-definition}--\eqref{eq:H-definition}.  For every $x\in\R^d$,
@@ -387,7 +397,143 @@ nondegenerate Gaussian.
         =\tr(H\Sigma)+\ip{g}{\mu-x}-\E[D_e(x\,\|\,X)].
         \label{eq:regret-switch}
     \end{align}
-    Consequently, for
+\end{lemma}
+\begin{proof}
+    Since every function of at most polynomial growth induces a tempered
+    distribution, Lipschitzness of $e$ implies that $e$ induces a tempered
+    distribution $\T_e\in\mathcal S'(\R^d)$ via
+    \begin{align}
+        \langle \T_e,\varphi\rangle
+        =
+        \int_{\R^d}e(x)\varphi(x)\,dx,
+        \qquad\text{where }\quad
+        \varphi\in\mathcal S(\R^d).
+    \end{align}
+    Also note that $\gamma \triangleq \gamma_{\mu,\Sigma}$ is a Schwartz function, so $\T_e$ can be paired with it.
+
+    We next identify $g$.
+    Observe that \eqref{eq:g-definition} can be written coordinatewise as
+    \begin{align}
+        g_i
+        =
+        \int_{\R^d}
+        e(x)
+        \bigl[\Sigma^{-1}(x-\mu)\bigr]_i
+        \gamma(x)\,dx
+        =
+        -\int_{\R^d}
+        e(x)
+        \partial_i
+        \gamma(x)\,dx
+        =
+        \int_{\R^d}
+        \partial_i e(x)
+        \gamma(x)\,dx
+        =
+        \E[\partial_i e(X)]
+        .
+        \label{eq:g-density-form}
+    \end{align}
+    Since $e$ is Lipschitz, it is differentiable Lebesgue-almost everywhere,
+    and its almost-everywhere partial derivatives are bounded by $\Lip(e)$
+    and represent its weak derivatives.
+    We define $\nabla e$ arbitrarily on the exceptional null set.
+    Applying this identity in every coordinate yields $g=\E[\nabla e(X)]$.
+
+    We now identify the trace term.  From \eqref{eq:H-definition} and
+    cyclicity of the trace,
+    \begin{align}
+        \tr(H\Sigma)
+         & =
+        \E\left[
+            e(X)
+            \tr\left(
+            \Sigma^{-1/2}(ZZ^\top-I_d)
+            \Sigma^{-1/2}\Sigma
+            \right)
+            \right]
+        =
+        \E\left[e(X)\tr(ZZ^\top-I_d)\right]
+        =
+        \E\left[e(X)(\|Z\|^2-d)\right].
+    \end{align}
+    Since $Z=\Sigma^{-1/2}(X-\mu)$, it follows that
+    \begin{align}
+        \tr(H\Sigma)
+        =
+        \int_{\R^d}
+        e(x)
+        \left(
+        (x-\mu)^\top\Sigma^{-1}(x-\mu)-d
+        \right)
+        \gamma(x)\,dx.
+        \label{eq:H-trace-density-form}
+    \end{align}
+    Consider the vector field $F(x)=(x-\mu)\gamma(x)$, which is a
+    Schwartz vector field because it is a polynomial times a Gaussian density.
+    Using $\nabla\gamma(x) = -\Sigma^{-1}(x-\mu)\gamma(x)$, its divergence is
+    \begin{align}
+        \operatorname{div}F(x)
+        =
+        \sum_{i=1}^d
+        \partial_i\bigl((x_i-\mu_i)\gamma(x)\bigr)
+        =
+        d\gamma(x)+(x-\mu)^\top\nabla\gamma(x)
+        =
+        \left(
+        d-(x-\mu)^\top\Sigma^{-1}(x-\mu)
+        \right)\gamma(x).
+    \end{align}
+    Hence, \eqref{eq:H-trace-density-form} can be rewritten as
+    \begin{align}
+        \tr(H\Sigma)
+        =
+        -\int_{\R^d}e(x)\operatorname{div}F(x)\,dx
+        =
+        \int_{\R^d}\ip{\nabla e(x)}{F(x)}\,dx
+        =
+        \int_{\R^d}
+        \ip{\nabla e(x)}{x-\mu}\gamma(x)\,dx,
+    \end{align}
+    where the second equality is the weak integration by parts formula for tempered distributions and Schwartz test functions.
+    Therefore,
+    $\tr(H\Sigma)
+        =
+        \E\left[\ip{\nabla e(X)}{X-\mu}\right]$.
+
+    It remains to substitute these two identities into the definition of the
+    Bregman divergence.
+    At every such differentiability point,
+    \begin{align}
+        e(X)-e(x)
+        =
+        \ip{\nabla e(X)}{X-x}
+        -
+        D_e(x\,\|\,X).
+        \label{eq:bregman-rearrangement}
+    \end{align}
+    Splitting
+    $X-x=(X-\mu)+(\mu-x)$
+    in \eqref{eq:bregman-rearrangement} and taking expectations gives
+    \begin{align}
+        \E[e(X)]-e(x)
+         & =
+        \E\left[\ip{\nabla e(X)}{X-\mu}\right]
+        +
+        \ip{\E[\nabla e(X)]}{\mu-x}
+        -
+        \E[D_e(x\,\|\,X)] \\
+         & =
+        \tr(H\Sigma)
+        +
+        \ip{g}{\mu-x}
+        -
+        \E[D_e(x\,\|\,X)],
+    \end{align}
+    which is \eqref{eq:regret-switch}.
+\end{proof}
+\begin{corollary}[Regret switching]
+    For
     $q(x)=\ip{g}{x-\mu}+\frac\lambda2\normm{x-\mu}{H}^2$,
     \begin{align}
         q(x)
@@ -397,19 +543,10 @@ nondegenerate Gaussian.
         -\E[D_e(x\,\|\,X)].
         \label{eq:q-regret-switch}
     \end{align}
-\end{lemma}
-
-\begin{proof}
-    At every differentiability point of $e$,
-    \[
-        e(X)-e(x)=\ip{\nabla e(X)}{X-x}-D_e(x\,\|\,X).
-    \]
-    Split $X-x=(X-\mu)+(\mu-x)$ and use Gaussian integration by parts:
-    $\E\ip{\nabla e(X)}{X-\mu}=\tr(H\Sigma)$ and
-    $\E[\nabla e(X)]=g$.  Approximation by compact mollification justifies the
-    same calculation for a nonsmooth $e$; details are in
-    \cref{app:gaussian-identities}.
-\end{proof}
+\end{corollary}
+Adding $\lambda\normm{x-\mu}{H}^2/2$ to both sides
+of \cref{lem:regret-switch}
+proves \eqref{eq:q-regret-switch}.
 
 The following proposition replaces the lower bound supplied by optimistic
 smoothing in the usual analysis.
@@ -702,17 +839,17 @@ $\sigma M\sqrt{2d}=1$.
     Combining
     \cref{eq:v-second-moment-checkpiont,eq:v-first-moment-checkpiont-1,eq:v-second-moment-checkpiont-2}
     gives
-    \[
+    \begin{align}
         \E_t[v(X_t)^2]
         \leq C\ell\left(\epsilon\tr(\Sigma_tH_t)+e^{-\ell}\right).
-    \]
+    \end{align}
     Together with \eqref{eq:Y2-to-v2},
-    \[
+    \begin{align}
         \E_t[Y_t^2]
         \leq
         C+\frac{C\ell}{\epsilon}\tr(\Sigma_tH_t)
         +\frac{C\ell e^{-\ell}}{\epsilon^2}.
-    \]
+    \end{align}
     Summing over $t \leq \tau$ and using the fact that $\tau \leq n$ gives
     \begin{align}
         \sum_{t=1}^{\tau} \E_t[Y_t^2]
@@ -1116,45 +1253,6 @@ radius
 \end{proof}
 
 \appendix
-
-\section{Gaussian identities and mollification}
-\label{app:gaussian-identities}
-
-\begin{lemma}
-    \label{lem:gaussian-identities}
-    Let $e:\R^d\to\R$ be convex and Lipschitz.  The map
-    \begin{align}
-        \mu\longmapsto \E[e(\mu+\Sigma^{1/2}Z)]
-    \end{align}
-    is smooth, and its first two derivatives are given by
-    \eqref{eq:g-definition}--\eqref{eq:H-definition}.  Its Hessian is positive
-    semidefinite.  Moreover, \eqref{eq:ibp-coefficients} holds whenever $e$ is
-    twice differentiable, and holds in the limiting distributional sense in
-    general.
-\end{lemma}
-
-\begin{proof}
-    The Lipschitz property gives at most linear growth, so one may differentiate
-    the Gaussian density under the integral.  Its first two derivatives with
-    respect to the mean are
-    \begin{align}
-        \Sigma^{-1/2}Z
-        \quad\text{and}\quad
-        \Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2},
-    \end{align}
-    which proves the score formulas.  Convexity is preserved by convolution, so
-    the second derivative is positive semidefinite.
-
-    For the integration-by-parts identities, first convolve $e$ with the compactly
-    supported mollifier of \citet[Proposition~3.24]{lattimore2026bandit}.  The
-    result is smooth, convex and has the same Lipschitz constant.  The usual
-    Gaussian integration-by-parts calculation applies.  As the mollification
-    radius tends to zero, the functions converge locally uniformly and their
-    gradients converge at every differentiability point of $e$.  The score
-    formulas give convergence of the averaged Hessians, while bounded gradients
-    give dominated convergence for the first-order terms.  This also justifies
-    \eqref{eq:regret-switch} and all later uses of distributional Hessians.
-\end{proof}
 
 \section{Proof of the direct Bregman bracket}
 \label{app:bracket}
@@ -2546,19 +2644,19 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \label{eq:Y2-conditional-simple}
     \end{align}
     where we used
-    \[
+    \begin{align}
         0\leq e(X_t)
         =r_tf(A_t)+\frac2\eps(r_t-1)
         \leq\frac{3r_t}{\eps}.
-    \]
+    \end{align}
     Moreover, by \eqref{eq:v-relation-to-minkowski},
-    \[
+    \begin{align}
         r_t
         =
         1+v(X_t)
         \leq
         1+2\pi(X_t-\mu_t).
-    \]
+    \end{align}
     Let $W_t=X_t-\mu_t$. Conditionally on $\F_{t-1}$,
     $W_t\sim\N(0,\Sigma_t)$, and, since $t\leq\tau$,
     $\Sigma_t\preceq2\sigma^2I_d$. Write
@@ -2585,12 +2683,12 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \leq C.
     \end{align}
     Consequently, using $(a+b)^4\leq8(a^4+b^4)$,
-    \[
+    \begin{align}
         \E_t[r_t^4]
         \leq
         8+128\E_t[\pi(W_t)^4]
         \leq C.
-    \]
+    \end{align}
     Let $\mathcal A_t=\{|G_t|\leq K\sqrt\ell\}$,
     where $K$ is a sufficiently large universal constant. On $\mathcal A_t$,
     \begin{align}
