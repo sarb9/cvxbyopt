@@ -209,24 +209,22 @@ Its basic properties are recorded together because all of them will be used.
         \quad\text{for all }x\in\R^d,
         \label{eq:extension-radial}
     \end{align}
-    and, in the sense of distributional Hessians,
+    and, in the sense of positive-semidefinite matrix-valued Radon measures,
     \begin{align}
-        \nabla^2 e\succeq\frac1\eps\nabla^2v.
+        D^2e\succeq\frac1\eps D^2v.
         \label{eq:extension-curvature}
     \end{align}
 \end{lemma}
 
 \begin{proof}
     Let
-    \begin{align}
-        e_0(x)=\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
-        +\frac{1-\eps}{\eps}v(x).
-    \end{align}
+    $e_0(x)=\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
+        +\frac{1-\eps}{\eps}v(x)$.
     By \citet[Proposition~3.23]{lattimore2026bandit}, $e_0$ is convex.  Since
     $e=e_0+(1+\eps)v/\eps$ and $v$ is convex, $e$ is convex and
     \begin{align}
-        \nabla^2e\succeq\frac{1+\eps}{\eps}\nabla^2v
-        \succeq\frac1\eps\nabla^2v.
+        D^2e\succeq\frac{1+\eps}{\eps}D^2v
+        \succeq\frac1\eps D^2v.
     \end{align}
     For completeness, \citet[Proposition~3.20]{lattimore2026bandit}, applied to
     $f|_{\K_\eps}$ with inner radius $1-\eps$, radial penalty $2/\eps$, and
@@ -255,6 +253,79 @@ first two Gaussian score identities define
 \end{align}
 These are the gradient and Hessian, with respect to $\mu$, of
 $\E[e(\mu+\Sigma^{1/2}Z)]$.  In particular, $H(\mu,\Sigma)\succeq0$.
+\begin{lemma}[Hessian measure of a convex function]
+    \label{lem:convex-hessian-measure}
+    Let $r:\R^d\to\R$ be convex and Lipschitz.
+    Then the distributional Hessian $D^2r$ is a positive-semidefinite
+    matrix-valued Radon measure.
+\end{lemma}
+\begin{proof}
+    This is standard; see \citet[Section~6.3]{evansgariepy2015measure}.
+\end{proof}
+\begin{lemma}[Gaussian averaging of the Hessian measure]
+    \label{lem:gaussian-hessian-average}
+    Let $r:\R^d\to\R$ be convex and Lipschitz, let
+    $X=\mu+\Sigma^{1/2}Z$, where $Z\sim\N(0,I_d)$ and $\Sigma\succ0$, and
+    let $\gamma_{\mu,\Sigma}$ be the density of $X$.  Then
+    \begin{align}
+        \E\left[
+            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
+            \right]
+        =
+        \int_{\R^d}
+        \gamma_{\mu,\Sigma}(x)\,D^2r(dx).
+        \label{eq:gaussian-hessian-average}
+    \end{align}
+\end{lemma}
+\begin{proof}
+    By \cref{lem:convex-hessian-measure}
+    $D^2r$ is a positive-semidefinite matrix-valued Radon measure.
+    Since
+    $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$, we may test $D^2r$ against the
+    Gaussian density.
+    The definition of distributional
+    derivatives gives
+    \begin{align}
+        \int_{\R^d}\gamma_{\mu,\Sigma}(x)\,D^2r(dx)
+        =
+        \left\langle D^2r,\gamma_{\mu,\Sigma}\right\rangle
+        =
+        \left\langle r,\nabla^2\gamma_{\mu,\Sigma}\right\rangle.
+        \label{eq:hessian-measure-pairing}
+    \end{align}
+    Direct differentiation of the Gaussian density gives
+    \begin{align}
+        \nabla^2\gamma_{\mu,\Sigma}(x)
+        =
+        \left(
+        \Sigma^{-1}(x-\mu)(x-\mu)^\top\Sigma^{-1}
+        -
+        \Sigma^{-1}
+        \right)
+        \gamma_{\mu,\Sigma}(x).
+    \end{align}
+    Therefore, using $X=\mu+\Sigma^{1/2}Z$,
+    \begin{align}
+        \left\langle r,\nabla^2\gamma_{\mu,\Sigma}\right\rangle
+         & =
+        \int_{\R^d}
+        r(x)
+        \left(
+        \Sigma^{-1}(x-\mu)(x-\mu)^\top\Sigma^{-1}
+        -
+        \Sigma^{-1}
+        \right)
+        \gamma_{\mu,\Sigma}(x)\,dx \\
+         & =
+        \E\left[
+            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
+            \right].
+    \end{align}
+    Combining this with \eqref{eq:hessian-measure-pairing} proves the claim.
+\end{proof}
+
+
+
 The degree-two Hermite projection of $e$ in
 $L^2(\N(\mu,\Sigma))$ is
 \begin{align}
@@ -783,16 +854,30 @@ $\sigma M\sqrt{2d}=1$.
          & \leq a\E_t[v(X_t)] + \E_t[v(X_t)^2 \mathbf{1}\{v(X_t) > a\}]\,.
         \ineqlabel{eq:v-second-moment-checkpiont}
     \end{align}
-    To control the first term, we use the convexity of $v$, the fact that $v(\mu_t) = 0$,
-    and Gaussian integration by parts to get
+    To control the first term, let
+    $\gamma_t=\gamma_{\mu_t,\Sigma_t}$ denote the conditional density of
+    $X_t$.  Convexity of $v$ and $v(\mu_t)=0$ give
     \begin{align}
         \E_t[v(X_t)]
-        \leq \E_t[\langle \nabla v(X_t), X_t - \mu_t \rangle]
-        = \tr(\Sigma_t \E_t[\nabla^2 v(X_t)])
-        \leq \epsilon \tr(\Sigma_t H_t)
+         & \leq
+        \E_t\left[\ip{\nabla v(X_t)}{X_t-\mu_t}\right]
+        =
+        \tr\left(
+        \Sigma_t
+        \int_{\R^d}\gamma_t(x)\,D^2v(dx)
+        \right) \\
+         & \leq
+        \epsilon\tr\left(
+        \Sigma_t
+        \int_{\R^d}\gamma_t(x)\,D^2e(dx)
+        \right)
+        =
+        \epsilon\tr(\Sigma_tH_t).
         \ineqlabel{eq:v-first-moment-checkpiont-1}
     \end{align}
-    where the last inequality uses \eqref{eq:extension-curvature}.
+    The first equality follows from weak integration by parts.  The inequality
+    uses \eqref{eq:extension-curvature}, while the final equality follows from
+    \eqref{eq:gaussian-hessian-average}.
 
     Next, we control the second term through a tail bound on $v(X_t)$.
     By subadditivity of $\pi$ and the fact that $\pi(\mu_t)\leq 1-\epsilon$,
@@ -3476,6 +3561,12 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     \newblock \emph{High-Dimensional Probability: An Introduction with
         Applications in Data Science}.
     \newblock Cambridge University Press, 2018.
+
+
+    \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
+    Lawrence C. Evans and Ronald F. Gariepy.
+    \newblock \emph{Measure Theory and Fine Properties of Functions}.
+    \newblock Revised edition, CRC Press, 2015.
 
 \end{thebibliography}
 
