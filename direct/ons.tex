@@ -6,6 +6,7 @@
 \usepackage[round]{natbib}
 \usepackage{float}
 \usepackage{xcolor}
+\usepackage{todonotes}
 \usepackage{aliascnt}
 \usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black,hypertexnames=false]{hyperref}
 \usepackage[capitalise,noabbrev]{cleveref}
@@ -47,6 +48,7 @@
 \newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
 \newcommand{\norm}[1]{\left\lVert #1\right\rVert}
 \newcommand{\normm}[2]{\left\lVert #1\right\rVert_{#2}}
+\newcommand{\alireza}[1]{\todo[color=blue!20,size=\tiny]{Alireza: #1}}
 
 \floatstyle{ruled}
 \newfloat{algorithm}{tbp}{loa}
@@ -173,7 +175,7 @@ are defined as
 where $\varphi$ is the Gaussian density $\gamma_{\mu,\Sigma}$ for our purposes,
 which is a Schwartz function.
 The crucial fact here is that if $h$ is convex, then $D^2h$ is a positive-semidefinite matrix-valued \textit{tempered} Radon measure and the Gaussian density $\gamma_{\mu,\Sigma}$ is a Schwartz function, so the pairing $\langle D^2h,\gamma_{\mu,\Sigma}\rangle$ is well-defined and yields a positive-semidefinite matrix.
-\footnote{This possibly needs more explanations and citations.}
+\alireza{This possibly needs more explanations and citations.}
 
 \subsection{A queryable convex extension}
 
@@ -288,7 +290,7 @@ Through defining the inner product $\ip{r}{s}_{L^2(\N(\mu,\Sigma))}=\E[r(X)s(X)]
     $H = \langle D^2e, \gamma_{\mu,\Sigma}\rangle$.
 \end{lemma}
 \begin{proof}
-    We need a proof, although we don't really need the \textit{projection} property.\footnote{
+    We need a proof, although we don't really need the \textit{projection} property.\alireza{
         Technically we can drop this lemma and just say that we define
         $\mathcal P_{\mu,\Sigma}e(x)$ as such without any justification.
         But it is nice to have a lemma that says that this is indeed the Hermite projection.
@@ -320,10 +322,10 @@ The resulting feedback can be converted into the one-sample value
 \end{align}
 Let $q_t \triangleq \cP_{\mu_t,\Sigma_t} e - \E_t[e(X_t)]$
 \footnote{
-    The reason for dropping the constant term $\E_t[e(X_t)]$ is that it does not affect the Newton step.
+    We drop the constant term $\E_t[e(X_t)]$ as it does not affect the Newton step.
 }
 which gives
-\footnote{
+\alireza{
     There is also the sudden presence of the damping parameter $\lambda$ in the definition of $q_t$,
     which should be explained. I think it is better to translate this quantity into somewhere else in the algorithm and the analysis to make the story more coherent.
 }
@@ -341,31 +343,31 @@ The main observation is that $g_t$ and $H_t$ can be estimated from the single pa
 More precisely, define
 \begin{align}
     \hat{q}_t(x)
-    =
+    \triangleq
     \ip{\hat{g}_t}{x-\mu_t}
     +
     \frac\lambda2(x-\mu_t)^\top\hat{H}_t(x-\mu_t)\,,
 \end{align}
-where
+where for $Z_t\triangleq\Sigma_t^{-1/2}(X_t-\mu_t)$, we define
 \begin{align}
     \widehat g_t
-     & = - \nabla \gamma_{\mu_t,\Sigma_t}(X_t)
+     & \triangleq - Y_t \nabla \gamma_{\mu_t,\Sigma_t}(X_t)
     =
     Y_t\Sigma_t^{-1/2}Z_t,
      &
-    \widehat H_t= \nabla^2 \gamma_{\mu_t,\Sigma_t}(X_t)
+    \widehat H_t \triangleq Y_t \nabla^2 \gamma_{\mu_t,\Sigma_t}(X_t)
      & =Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}\,,
     \label{eq:sampled-hermite-coefficients}
 \end{align}
-then from integration by parts\footnote{More explanation needed here.} we get
+then from integration by parts\alireza{More explanation needed here.} we get
 \begin{align}
     g_t = \langle De, \gamma_{\mu_t,\Sigma_t}\rangle
     = - \langle e, \nabla \gamma_{\mu_t,\Sigma_t}\rangle
-    = \E_t[\widehat g_t\mid X_t],
+    = \E_t[\widehat g_t],
     \quad\text{and}\quad
     H_t = \langle D^2e, \gamma_{\mu_t,\Sigma_t}\rangle
     = \langle e, \nabla^2 \gamma_{\mu_t,\Sigma_t}\rangle
-    = \E_t[\widehat H_t\mid X_t],
+    = \E_t[\widehat H_t],
     \label{eq:sampled-hermite-unbiasedness}
 \end{align}
 we get $\E_t[\hat{q}_t\mid X_t]=q_t$.
@@ -381,13 +383,13 @@ then completing the square gives the equivalent forms
     \right\}
     =\argmin_{\mu\in\K_\eps}
     \normm{\mu-(\mu_t-\eta\Sigma_{t+1}\widehat g_t)}
-    {(\Sigma_t^{-1}+\lambda\eta\widehat H_t)^{-1}}^2.
+    {\Sigma_t^{-1}+\lambda\eta\widehat H_t}^2.
     \label{eq:projected-ons-update}
 \end{align}
 It should be clear from the update why the bias term $\E_t[e(X_t)]$ is dropped from $q_t$
-as it does not affect the Newton step.\footnote{More explanations here.}
-\begin{algorithm}[H]
-    \caption{Direct Hermite--ONS}
+as it does not affect the Newton step.\alireza{More explanations here.}
+\begin{algorithm}[!t]
+    \caption{Direct Hermite--ONS algorithm}
     \label{alg:direct-hermite}
     \small
     \begin{tabbing}
@@ -398,10 +400,13 @@ as it does not affect the Newton step.\footnote{More explanations here.}
         \>Sample $X_t\sim\N(\mu_t,\Sigma_t)$\\
         \>Play $A_t=X_t/\pi_\eps(X_t)$ and observe $f(A_t)+\xi_t$\\
         \>Form $Y_t$, $\widehat g_t$, and $\widehat H_t$ as in
-        \eqref{eq:Y} and \eqref{eq:sampled-hermite-coefficients} and set $V_{t+1}=\Sigma_t^{-1}+\lambda\eta\widehat H_t$\\
-        \>\textbf{if} $V_{t+1}\succ0$:\\
-        \>\>Set $\Sigma_{t+1}=V_{t+1}^{-1}$ and update
+        \eqref{eq:Y} and \eqref{eq:sampled-hermite-coefficients}\\
+        %  and set $V_{t+1}=\Sigma_t^{-1}+\lambda\eta\widehat H_t$\\
+        \>\textbf{if} $\Sigma_t^{-1}+\lambda\eta\widehat H_t\succ0$:\\
+        \>\>Set $\Sigma_{t+1}=(\Sigma_t^{-1}+\lambda\eta\widehat H_t)^{-1}$ and update
         $\mu_{t+1}$ as in \eqref{eq:projected-ons-update}\\
+        \>\textbf{else}:\\
+        \>\>Set $\Sigma_{t+1}=\Sigma_t$ and $\mu_{t+1}=\mu_{t}$ \qquad\textit{\(\triangleright\) The algorithm has failed.}\\
         \textbf{end for}
     \end{tabbing}
 \end{algorithm}
@@ -438,6 +443,7 @@ where $C_0$ is a sufficiently large universal constant.
     \end{align}
     with probability at least $1-\delta$.
 \end{theorem}
+\alireza{Proof should be verified.}
 
 \begin{corollary}
     \label{cor:loewner}
@@ -459,9 +465,9 @@ where $C_0$ is a sufficiently large universal constant.
     \eqref{eq:main-regret}.
 \end{proof}
 
-\section{The deterministic comparison}
-\label{sec:comparison}
-
+\section{Analysis}
+\label{sec:analysis}
+We fix a time step $t$ and drop the subscript $t$ from the notation in this section.
 The proof rests on an exact identity for the direct Hermite coefficients and
 a local comparison between its two curvature terms.  For a convex Lipschitz
 function $e$, and a Lebesgue-almost every $z$, the Bregman divergence is
@@ -473,131 +479,17 @@ function $e$, and a Lebesgue-almost every $z$, the Bregman divergence is
 
 \begin{lemma}
     \label{lem:regret-switch}
-    Let $X\sim\N(\mu,\Sigma)$ and let $g,H$ be defined by
-    \eqref{eq:g-definition}--\eqref{eq:H-definition}.  For every $x\in\R^d$,
+    Let $X\sim\N(\mu,\Sigma)$, then for every $x\in\R^d$,
     \begin{align}
         \E[e(X)]-e(x)
-        =\tr(H\Sigma)+\ip{g}{\mu-x}-\E[D_e(x\,\|\,X)].
+        =\tr(H\Sigma)+\ip{g}{\mu-x}-\E[D_e(x\,\|\,X)]\,,
         \label{eq:regret-switch}
     \end{align}
+    where $g=\langle De,\gamma_{\mu,\Sigma}\rangle$ and
+    $H=\langle D^2e,\gamma_{\mu,\Sigma}\rangle$.
 \end{lemma}
 \begin{proof}
-    Since every function of at most polynomial growth induces a tempered
-    distribution, Lipschitzness of $e$ implies that $e$ induces a tempered
-    distribution $\T_e\in\mathcal S'(\R^d)$ via
-    \begin{align}
-        \langle \T_e,\varphi\rangle
-        =
-        \int_{\R^d}e(x)\varphi(x)\,dx,
-        \qquad\text{where }\quad
-        \varphi\in\mathcal S(\R^d).
-    \end{align}
-    Also note that $\gamma \triangleq \gamma_{\mu,\Sigma}$ is a Schwartz function, so $\T_e$ can be paired with it.
-
-    We next identify $g$.
-    Observe that \eqref{eq:g-definition} can be written coordinatewise as
-    \begin{align}
-        g_i
-        =
-        \int_{\R^d}
-        e(x)
-        \bigl[\Sigma^{-1}(x-\mu)\bigr]_i
-        \gamma(x)\,dx
-        =
-        -\int_{\R^d}
-        e(x)
-        \partial_i
-        \gamma(x)\,dx
-        =
-        \int_{\R^d}
-        \partial_i e(x)
-        \gamma(x)\,dx
-        =
-        \E[\partial_i e(X)]
-        .
-        \label{eq:g-density-form}
-    \end{align}
-    Since $e$ is Lipschitz, it is differentiable Lebesgue-almost everywhere,
-    and its almost-everywhere partial derivatives are bounded by $\Lip(e)$
-    and represent its weak derivatives.
-    We define $\nabla e$ arbitrarily on the exceptional null set.
-    Applying this identity in every coordinate yields $g=\E[\nabla e(X)]$.
-
-    We now identify the trace term.  From \eqref{eq:H-definition} and
-    cyclicity of the trace,
-    \begin{align}
-        \tr(H\Sigma)
-         & =
-        \E\left[
-            e(X)
-            \tr\left(
-            \Sigma^{-1/2}(ZZ^\top-I_d)
-            \Sigma^{-1/2}\Sigma
-            \right)
-            \right]
-        =
-        \E\left[e(X)\tr(ZZ^\top-I_d)\right]
-        =
-        \E\left[e(X)(\|Z\|^2-d)\right].
-    \end{align}
-    Since $Z=\Sigma^{-1/2}(X-\mu)$, it follows that
-    \begin{align}
-        \tr(H\Sigma)
-        =
-        \int_{\R^d}
-        e(x)
-        \left(
-        (x-\mu)^\top\Sigma^{-1}(x-\mu)-d
-        \right)
-        \gamma(x)\,dx.
-        \label{eq:H-trace-density-form}
-    \end{align}
-    Consider the vector field $F(x)=(x-\mu)\gamma(x)$, which is a
-    Schwartz vector field because it is a polynomial times a Gaussian density.
-    Using $\nabla\gamma(x) = -\Sigma^{-1}(x-\mu)\gamma(x)$, its divergence is
-    \begin{align}
-        \operatorname{div}F(x)
-        =
-        \sum_{i=1}^d
-        \partial_i\bigl((x_i-\mu_i)\gamma(x)\bigr)
-        =
-        d\gamma(x)+(x-\mu)^\top\nabla\gamma(x)
-        =
-        \left(
-        d-(x-\mu)^\top\Sigma^{-1}(x-\mu)
-        \right)\gamma(x).
-    \end{align}
-    Hence, \eqref{eq:H-trace-density-form} can be rewritten as
-    \begin{align}
-        \tr(H\Sigma)
-        =
-        -\int_{\R^d}e(x)\operatorname{div}F(x)\,dx
-        =
-        \int_{\R^d}\ip{\nabla e(x)}{F(x)}\,dx
-        =
-        \int_{\R^d}
-        \ip{\nabla e(x)}{x-\mu}\gamma(x)\,dx,
-    \end{align}
-    where the second equality is the weak integration by parts formula for tempered distributions and Schwartz test functions.
-    Therefore,
-    $\tr(H\Sigma)
-        =
-        \E\left[\ip{\nabla e(X)}{X-\mu}\right]$.
-
-    It remains to substitute these two identities into the definition of the
-    Bregman divergence.
-    At every such differentiability point,
-    \begin{align}
-        e(X)-e(x)
-        =
-        \ip{\nabla e(X)}{X-x}
-        -
-        D_e(x\,\|\,X).
-        \label{eq:bregman-rearrangement}
-    \end{align}
-    Splitting
-    $X-x=(X-\mu)+(\mu-x)$
-    in \eqref{eq:bregman-rearrangement} and taking expectations gives
+    Splitting $X-x=(X-\mu)+(\mu-x)$ in a rearrangement of \eqref{eq:bregman} and taking expectations gives
     \begin{align}
         \E[e(X)]-e(x)
          & =
@@ -605,49 +497,102 @@ function $e$, and a Lebesgue-almost every $z$, the Bregman divergence is
         +
         \ip{\E[\nabla e(X)]}{\mu-x}
         -
-        \E[D_e(x\,\|\,X)] \\
-         & =
-        \tr(H\Sigma)
-        +
-        \ip{g}{\mu-x}
-        -
-        \E[D_e(x\,\|\,X)],
+        \E[D_e(x\,\|\,X)]\,,
     \end{align}
-    which is \eqref{eq:regret-switch}.
+    and the proof is completed by showing that $g=\E[\nabla e(X)]$ and
+    $\tr(H\Sigma)=\E[\ip{\nabla e(X)}{X-\mu}]$.
+
+    Since $e$ is Lipschitz, it is differentiable Lebesgue-almost everywhere,
+    and its almost-everywhere partial derivatives are bounded by $\Lip(e)$
+    and represent its weak derivatives.
+    Applying this identity in every coordinate yields $g=\E[\nabla e(X)]$,
+    which proves the first identity.
+
+    We next identify the trace term. Since
+    $H=\langle D^2e,\gamma_{\mu,\Sigma}\rangle$,
+    distributional integration by parts gives
+    \begin{align}
+        \tr(H\Sigma)
+        =
+        \sum_{i,j=1}^d
+        \Sigma_{ij}
+        \left\langle
+        \partial_{ij}e,
+        \gamma_{\mu,\Sigma}
+        \right\rangle
+        =
+        -\sum_{i,j=1}^d
+        \Sigma_{ij}
+        \left\langle
+        \partial_i e,
+        \partial_j\gamma_{\mu,\Sigma}
+        \right\rangle
+        =
+        -\int_{\R^d}
+        \left\langle
+        \nabla e(x),
+        \Sigma\nabla\gamma_{\mu,\Sigma}(x)
+        \right\rangle
+        \,dx.
+    \end{align}
+    The Gaussian score identity
+    $\Sigma\nabla\gamma_{\mu,\Sigma}(x)
+        =
+        -(x-\mu)\gamma_{\mu,\Sigma}(x)$
+    therefore yields
+    \begin{align}
+        \tr(H\Sigma)
+         & =
+        \int_{\R^d}
+        \left\langle
+        \nabla e(x),
+        x-\mu
+        \right\rangle
+        \gamma_{\mu,\Sigma}(x)\,dx
+        =
+        \E\left[
+            \left\langle
+            \nabla e(X),
+            X-\mu
+            \right\rangle
+            \right].
+        \qedhere
+    \end{align}
 \end{proof}
+
 \begin{corollary}[Regret switching]
+    \label{cor:regret-switch}
     For
     $q(x)=\ip{g}{x-\mu}+\frac\lambda2\normm{x-\mu}{H}^2$,
     \begin{align}
-        q(x)
-        =-\bigl(\E[e(X)]-e(x)\bigr)
-        +\tr(H\Sigma)
-        +\frac\lambda2\normm{x-\mu}{H}^2
-        -\E[D_e(x\,\|\,X)].
+        q(\mu) - q(x)
+        =\bigl(\E[e(X)]-e(x)\bigr)
+        -\tr(H\Sigma)
+        -\frac\lambda2\normm{x-\mu}{H}^2
+        +\E[D_e(x\,\|\,X)].
         \label{eq:q-regret-switch}
     \end{align}
 \end{corollary}
 Adding $\lambda\normm{x-\mu}{H}^2/2$ to both sides
-of \cref{lem:regret-switch}
-proves \eqref{eq:q-regret-switch}.
-
+of \eqref{eq:regret-switch} and the definition of $q$ proves \cref{cor:regret-switch}.
+The left-hand side of \eqref{eq:q-regret-switch} can be seen as \textit{deterministic quadratic regret} $q(\mu) - q(x)$, while the right-hand side is the actual regret term $\E[e(X)]-e(x)$.
 The following proposition replaces the lower bound supplied by optimistic
 smoothing in the usual analysis.
 
-\begin{proposition}[Direct Bregman bracket]
+\begin{proposition}
     \label{prop:bracket}
-    There are universal constants $c_0,C>0$ such that the following holds.  Let
-    $e:\R^d\to\R$ be convex and $L$-Lipschitz, let
-    $X\sim\N(\mu,\Sigma)$, and let $H$ be given by \eqref{eq:H-definition}.  If
-    $\beta\in(0,1/2)$, $0<\lambda\leq1/8$, and
+    Let
+    $e:\R^d\to\R$ be convex and $L$-Lipschitz and $X\sim\N(\mu,\Sigma)$.
+    Then there exist universal constants $c_0,C>0$ such that
+    for any $\beta\in(0,1/2)$, $0<\lambda\leq1/8$ and $x\in\R^d$ satisfying
     \begin{align}
-        \lambda\left(d+\log\frac2\beta\right) & \leq c_0,
-        \label{eq:bracket-dimension}                      \\
+        \lambda\left(d+\log\frac2\beta\right) \leq c_0,
+        \qquad\text{and}\qquad
         \lambda\normm{\mu-x}{\Sigma^{-1}}
-        \sqrt{\log\frac2\beta}                & \leq c_0,
+        \sqrt{\log\frac2\beta}                \leq c_0,
         \label{eq:bracket-focus}
     \end{align}
-    then
+    it holds that
     \begin{align}
         \frac\lambda2\normm{\mu-x}{H}^2
         -\E[D_e(x\,\|\,X)]
@@ -667,73 +612,116 @@ dominate a constant fraction of the standard Gaussian law.  This pays for the
 comparator curvature.  One remaining part is bounded by $\tr(H\Sigma)$, while
 the Gaussian tail is controlled using Lipschitzness.
 
-We also record the elementary ONS calculation underlying
-\eqref{eq:projected-ons-update}.
-
+\subsection*{Online Newton Step}
 \begin{lemma}[Projected ONS]
     \label{lem:ons-step}
-    On any active round with $V_{t+1}\succ0$ in
+    On any round with $\Sigma_{t+1}\succ0$ in
     \cref{alg:direct-hermite}, every $x\in\K_\eps$ satisfies
     \begin{align}
-        \frac12\normm{\mu_{t+1}-x}{\Sigma_{t+1}^{-1}}^2
-        -\frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2
+        \frac12
+        \left(\normm{\mu_{t+1}-x}{\Sigma_{t+1}^{-1}}^2
+        -\normm{\mu_t-x}{\Sigma_t^{-1}}^2\right)
         \leq
-        \eta\widehat q_t(x)
-        +\frac{\eta^2}{2}\normm{\widehat g_t}{\Sigma_{t+1}}^2.
+        \eta\left(
+        \widehat q_t(x)
+        -
+        \widehat q_t(\mu)
+        \right)
+        +\frac{\eta^2}{2}\normm{\widehat g_t}{\Sigma_{t+1}}^2
+        \,.
         \label{eq:ons-step}
     \end{align}
 \end{lemma}
-
 \begin{proof}
-    The metric projection and $x\in\K_\eps$ give
+    Since $\mu_{t+1}$ is the projection of $\mu_t-\eta\Sigma_{t+1}\widehat g_t$ onto
+    $\K_\eps$ we have
     \begin{align}
         \frac12\normm{\mu_{t+1}-x}{\Sigma_{t+1}^{-1}}^2
          & \leq
-        \frac12\normm{\mu_t-\eta\Sigma_{t+1}\widehat g_t-x}
-        {\Sigma_{t+1}^{-1}}^2                       \\
-         & =\frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2
+        \frac12\normm{
+            x - (
+            \mu_t - \eta\Sigma_{t+1}\widehat g_t)
+        }
+        {\Sigma_{t+1}^{-1}}^2
+        =
+        \frac12\normm{\mu_t-x}{\Sigma_{t+1}^{-1}}^2
+        +
+        \frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}^{-1}}^2
+        + \eta\ip{\widehat g_t}{x-\mu_t}
+        \\
+         &
+        =\frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2
         +\eta\ip{\widehat g_t}{x-\mu_t}
         +\frac{\lambda\eta}{2}(x-\mu_t)^\top\widehat H_t(x-\mu_t)
-        +\frac{\eta^2}{2}\normm{\widehat g_t}{\Sigma_{t+1}}^2,
+        +\frac{\eta^2}{2}\normm{\widehat g_t}{\Sigma_{t+1}}^2
+        \\
+         & =
+        \frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2
+        % +\eta\ip{\widehat g_t}{x-\mu_t}
+        % +\frac{\lambda\eta}{2}(x-\mu_t)^\top\widehat H_t(x-\mu_t)
+        +\frac{\eta^2}{2}\normm{\widehat g_t}{\Sigma_{t+1}}^2
+        -
+        \eta\left(
+        \widehat q_t(\mu)
+        -
+        \widehat q_t(x)
+        \right)\,,
     \end{align}
     which is \eqref{eq:ons-step}.
 \end{proof}
 
 \section{Stochastic control}
 \label{sec:stochastic-control}
-
-For the remainder of the proof we work in the nontrivial regime
-$\eps=\eps_0\leq1/2$ and fix the parameters in
-\eqref{eq:parameters-one}--\eqref{eq:parameters-two}.  Constants are chosen in
-the order $c_\lambda$, $c_\eta$, $C_\eps$, and finally $C_0$.  This convention
-lets us suppress elementary numerical conditions from the statements below.
-
-The random Hessian estimate is indefinite, so $\Sigma_t$ need not decrease.
+The random Hessian estimate $\hat{H}_t$ is indefinite, so $\Sigma_t$ need not decrease.
 Introduce the predictable covariance
 \begin{align}
-    \overline\Sigma_1^{-1}=\Sigma_1^{-1},
+    \overline\Sigma_1^{-1}=\Sigma_1^{-1} = \sigma^{-2}I_d,
     \qquad
     \overline\Sigma_{t+1}^{-1}
     =\overline\Sigma_t^{-1}+\lambda\eta H_t.
     \label{eq:predictable-covariance}
 \end{align}
 Since $H_t\succeq0$, the matrices $\overline\Sigma_t$ decrease.
-
-\subsection{The trace budget}
-
+We introduce the following stopping time with respect to $(\mathcal F_t)$:
+\begin{align}
+    \tau
+    =
+    \min\left(
+    \left\{
+    t \in [n]:
+    \frac12 \overline\Sigma_{t+1}^{-1}
+    \preceq
+    \Sigma_t^{-1}+\lambda\eta\widehat H_t
+    \preceq
+    \frac32 \overline\Sigma_{t+1}^{-1}
+    \text{ fails}
+    \right\}
+    \cup\{n\}
+    \right).
+    \label{eq:stopping-time}
+\end{align}
+Thus $\tau$ is the first failed covariance update, or $n$ if no update fails.
+By minimality and the equality $\Sigma_1^{-1}=\overline\Sigma_1^{-1}$,
+\begin{align}
+    \frac12\overline\Sigma_t^{-1}
+    \preceq\Sigma_t^{-1}
+    \preceq\frac32\overline\Sigma_t^{-1}
+    \qquad(1\leq t\leq\tau).
+    \label{eq:trace-covariance-comparison}
+\end{align}
 \begin{lemma}
     \label{lem:trace}
-    Let $\tau\leq n$ be a stopping time such that
+    It holds that
     \begin{align}
-        \frac12\overline\Sigma_t^{-1}
-        \preceq\Sigma_t^{-1}
-        \preceq\frac32\overline\Sigma_t^{-1}
-        \quad\text{for }t\leq\tau.
-        \label{eq:covariance-comparison}
+        \|\overline\Sigma_{t+1}^{-1}\|_{\op}^{\frac12}
+        \leq
+        \sigma^{-1}+t\lambda\eta\Lip(e)
+        \qquad(1\leq t\leq \tau),
+        \label{eq:predictable-spectrum}
     \end{align}
-    Then
+    and
     \begin{align}
-        \eta\sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
+        \eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
         \leq
         \frac{Cd}{\lambda}
         \log\left(1+C\tau\lambda\eta\Lip(e)\sigma\right)
@@ -741,47 +729,139 @@ Since $H_t\succeq0$, the matrices $\overline\Sigma_t$ decrease.
         \label{eq:trace-budget}
     \end{align}
 \end{lemma}
-
 \begin{proof}
-    The comparison assumption implies
-    $\Sigma_t\preceq2\overline\Sigma_t$.
-    For a unit vector $u$, Gaussian
-    integration by parts and \eqref{eq:covariance-comparison} give
+    Let $L=\Lip(e)$.
+    To prove \eqref{eq:predictable-spectrum}, write
     \begin{align}
-        u^\top\overline\Sigma_t^{1/2}H_t\overline\Sigma_t^{1/2}u
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
+        =
+        \norm{\overline\Sigma_{t}^{-1} + \lambda\eta H_t}_{\op}
+        \leq
+        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \lambda\eta\norm{H_t}_{\op}\,.
+    \end{align}
+    Next, distributional integration by parts for every $v\in\mathbb{S}_1^d$ gives
+    \begin{align}
+        \norm{H_t}_{\op}
+         & =
+        \sup_{\|v\|=1} v^\top H_t v
+        =
+        \sup_{\|v\|=1}
+        \int_{\R^d}e(x) D^2_v\gamma_{\mu_t,\Sigma_t}(x)\,dx
+        =
+        \sup_{\|v\|=1}
+        -\int_{\R^d}\partial_ve(x)\,
+        \partial_v\gamma_{\mu_t,\Sigma_t}(x)\,dx
+        \\
+         & =
+        \sup_{\|v\|=1}
+        \E_t\left[
+            \ip{\nabla e(X_t)}{v}
+            \ip{\Sigma_t^{-1}(X_t-\mu_t)}{v}
+            \right]
+        \leq
+        \sup_{\|v\|=1}
+        L \|v\|_{\Sigma_t^{-1}}
+        =
+        L \norm{\Sigma_t^{-1}}_{\op}^{1/2},
+        \label{eq:H-quadratic-bound}
+    \end{align}
+    where the inequality is by Cauchy--Schwarz and the Lipschitz property of $e$.
+    Plugging this bound into the previous inequality gives
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
          & \leq
-        C\Lip(e)\norm{\overline\Sigma_t^{1/2}u}
-        \leq C\Lip(e)\sigma.
+        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \lambda\eta L \norm{\Sigma_t^{-1}}_{\op}^{1/2}
+        \leq
+        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \sqrt{\frac{3}{2}}\lambda\eta L\norm{\overline\Sigma_{t}^{-1}}_{\op}^{1/2}
+        \leq
+        \left(\norm{\overline\Sigma_{t}^{-1}}_{\op}^{1/2} + \lambda\eta L\right)^2\,,
+        \label{eq:predictable-spectrum-bound}
+    \end{align}
+    where the second inequality uses \eqref{eq:trace-covariance-comparison}.
+    Now, by taking square roots and iterating, we get
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}^{1/2}
+        \leq
+        \norm{\overline\Sigma_1^{-1}}_{\op}^{1/2} + t\lambda\eta L
+        = \sigma^{-1}+t\lambda\eta L,
+    \end{align}
+    which proves \eqref{eq:predictable-spectrum}.
+
+
+    We next prove \eqref{eq:trace-budget}.  Starting from its left-hand side
+    and using cyclicity of the trace gives
+    \begin{align}
+        \eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
+        =
+        \frac1\lambda\sum_{t=1}^{\tau}
+        \tr\left(
+        \lambda\eta\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}
+        \right).
+        \label{eq:normalised-trace-sum}
+    \end{align}
+    For every $t\leq\tau$ and every unit vector $u$, the same integration by
+    parts estimate used above, followed by
+    \eqref{eq:trace-covariance-comparison}, gives
+    \begin{align}
+        u^\top\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}u
+         & \leq
+        L\norm{\overline\Sigma_t^{1/2}u}
+        \sqrt{u^\top\overline\Sigma_t^{1/2}
+            \Sigma_t^{-1}\overline\Sigma_t^{1/2}u}
+        \leq
+        \sqrt{\frac32}\,L
+        \norm{\overline\Sigma_t^{1/2}u}
+        \leq
+        \sqrt{\frac32}\,L\sigma.
         \label{eq:normalised-H}
     \end{align}
-    The parameters ensure that every eigenvalue of
-    $\lambda\eta\overline\Sigma_t^{1/2}H_t\overline\Sigma_t^{1/2}$ is at most
-    $1$.  Hence $\log(1+s)\geq s/2$ gives
+    The last inequality uses
+    $\overline\Sigma_t\preceq\overline\Sigma_1=\sigma^2I_d$.
+    Hence the eigenvalues of
+    $\lambda\eta\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}$
+    belong to $[0,1]$, by the parameter choice in \eqref{eq:parameters-one}--\eqref{eq:parameters-two}.
+    Returning to
+    \eqref{eq:normalised-trace-sum} and applying
+    $s\leq2\log(1+s)$ to these eigenvalues, we obtain
     \begin{align}
-        \eta\tr(H_t\Sigma_t)
-        \leq\frac4\lambda
+        \eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
+         & \leq
+        \frac2\lambda\sum_{t=1}^{\tau}
+        \log\det\left(
+        I_d+\lambda\eta\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}
+        \right)                        \\
+         & =
+        \frac2\lambda\sum_{t=1}^{\tau}
         \log\frac{\det(\overline\Sigma_{t+1}^{-1})}
-        {\det(\overline\Sigma_t^{-1})}.
-        \label{eq:trace-one-step}
-    \end{align}
-    For another unit vector $u$,
-    \begin{align}
-        u^\top H_tu
-        \leq C\Lip(e)\sqrt{u^\top\Sigma_t^{-1}u}
-        \leq C\Lip(e)
-        \sqrt{\lambda_{\max}(\overline\Sigma_t^{-1})}.
-    \end{align}
-    It follows that
-    \begin{align}
-        \sqrt{\lambda_{\max}(\overline\Sigma_{t+1}^{-1})}
+        {\det(\overline\Sigma_t^{-1})} \\
+         & =
+        \frac2\lambda
+        \log\frac{\det(\overline\Sigma_{\tau+1}^{-1})}
+        {\det(\overline\Sigma_1^{-1})} \\
+         & \leq
+        \frac{2d}{\lambda}
+        \log\left(
+        \sigma^2\norm{\overline\Sigma_{\tau+1}^{-1}}_{\op}
+        \right)                        \\
+         & =
+        \frac{4d}{\lambda}
+        \log\left(
+        \sigma\norm{\overline\Sigma_{\tau+1}^{-1}}_{\op}^{1/2}
+        \right)                        \\
+         & \leq
+        \frac{4d}{\lambda}
+        \log\left(1+\tau\lambda\eta L\sigma\right)
         \leq
-        \sqrt{\lambda_{\max}(\overline\Sigma_t^{-1})}
-        +C\lambda\eta\Lip(e).
+        \frac{Cd\ell}{\lambda}\,,
     \end{align}
-    Iterating from $\overline\Sigma_1^{-1}=\sigma^{-2}I_d$, summing
-    \eqref{eq:trace-one-step}, and bounding the terminal determinant by its
-    largest eigenvalue proves the first inequality.  The second follows from the
-    parameter choice and \eqref{eq:extension-lipschitz}.
+    where the penultimate inequality
+    uses \eqref{eq:predictable-spectrum}, and the last follows from
+    \eqref{eq:parameters-one}--\eqref{eq:parameters-two},
+    \eqref{eq:extension-lipschitz}, and $\tau\leq n$.
 \end{proof}
 
 \subsection{The extension controls the feedback}
@@ -810,8 +890,15 @@ $\sigma M\sqrt{2d}=1$.
 
 \begin{lemma}
     \label{lem:feedback}
-    Let $\tau\leq n$ be a stopping time on which
-    \eqref{eq:covariance-comparison} holds.  Then
+    Let $\tau\leq n$ be a stopping time such that
+    \begin{align}
+        \frac12\overline\Sigma_t^{-1}
+        \preceq\Sigma_t^{-1}
+        \preceq\frac32\overline\Sigma_t^{-1}
+        \qquad(t\leq\tau).
+        \label{eq:covariance-comparison}
+    \end{align}
+    Then
     \begin{align}
         \sum_{t=1}^{\tau}\E_t[Y_t^2]\leq Cn.
         \label{eq:predictable-Y2}
@@ -944,6 +1031,16 @@ $\sigma M\sqrt{2d}=1$.
         C+\frac{C\ell}{\epsilon}\tr(\Sigma_tH_t)
         +\frac{C\ell e^{-\ell}}{\epsilon^2}.
     \end{align}
+    On the stopped interval, \eqref{eq:covariance-comparison} gives
+    $\Sigma_t\preceq2\overline\Sigma_t$.  Applying \cref{lem:trace}
+    therefore yields
+    \begin{align}
+        \eta\sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
+        \leq
+        2\eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
+        \leq\frac{Cd\ell}{\lambda}.
+        \label{eq:feedback-stopped-trace}
+    \end{align}
     Summing over $t \leq \tau$ and using the fact that $\tau \leq n$ gives
     \begin{align}
         \sum_{t=1}^{\tau} \E_t[Y_t^2]
@@ -952,7 +1049,8 @@ $\sigma M\sqrt{2d}=1$.
         \leq Cn,
         \label{eq:predictable-Y2-checkpoint}
     \end{align}
-    where the penultimate inequality follows from \cref{lem:trace}, while the last inequality uses
+    where the penultimate inequality follows from
+    \eqref{eq:feedback-stopped-trace}, while the last inequality uses
     $\frac{d\ell^2}{\lambda\eta\eps}\leq n$ and $\frac{\ell e^{-\ell}}{\eps^2}\leq1$.
     This proves \eqref{eq:predictable-Y2}.
 
@@ -1257,9 +1355,17 @@ radius
         \leq Cdn\ell.
         \label{eq:next-gradient-energy}
     \end{align}
+    Also, covariance comparison and \cref{lem:trace} give
+    \begin{align}
+        \eta\sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
+        \leq
+        2\eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
+        \leq\frac{Cd\ell}{\lambda}.
+        \label{eq:stability-stopped-trace}
+    \end{align}
 
     Sum \eqref{eq:ons-step}, use \eqref{eq:q-upper}, and then apply
-    \cref{lem:trace,prop:concentration} together with
+    \eqref{eq:stability-stopped-trace}, \cref{prop:concentration}, and
     \eqref{eq:bracket-tail-sum} and \eqref{eq:next-gradient-energy}.  This gives
     \begin{align}
         \frac12\normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
@@ -1299,6 +1405,15 @@ radius
         \bigl(\widehat q_t(x_\star)-q_t(x_\star)\bigr)\right|+C.
         \label{eq:regret-decomposition}
     \end{align}
+    On the stability event, where $\tau=n$,
+    \eqref{eq:comparison-preserved} and \cref{lem:trace} imply
+    \begin{align}
+        \sum_{t=1}^n\tr(H_t\Sigma_t)
+        \leq
+        2\sum_{t=1}^n\tr(H_t\overline\Sigma_t)
+        \leq\frac{Cd\ell}{\lambda\eta}.
+        \label{eq:regret-trace-budget}
+    \end{align}
     The four nonconstant terms are bounded respectively by
     \begin{align}
         C d^2M\sqrt n,
@@ -1311,7 +1426,7 @@ radius
         \label{eq:four-budgets}
     \end{align}
     Here we used $\norm{x_\star}\leq2d$,
-    \cref{lem:trace,prop:concentration}, and
+    \eqref{eq:regret-trace-budget}, \cref{prop:concentration}, and
     \eqref{eq:next-gradient-energy}.  Since $M\geq d^{-1/2}$, the right-hand side
     of \eqref{eq:regret-decomposition} is at most
     $Cd^2M\ell^3\sqrt n$.
@@ -1346,16 +1461,99 @@ radius
     which proves the theorem.
 \end{proof}
 
-\appendix
+\newpage
+\begin{thebibliography}{9}
+    \raggedright
 
-\section{Proof of the direct Bregman bracket}
+    \bibitem[Freedman(1975)]{freedman1975tail}
+    David A. Freedman.
+    \newblock On tail probabilities for martingales.
+    \newblock \emph{The Annals of Probability}, 3(1):100--118, 1975.
+
+    \bibitem[Lattimore(2026)]{lattimore2026bandit}
+    Tor Lattimore.
+    \newblock \emph{Bandit Convex Optimisation}.
+    \newblock Cambridge University Press, 2026.
+    \newblock \href{https://doi.org/10.1017/9781009607551}{doi:10.1017/9781009607551}.
+
+    \bibitem[Lattimore and Gy\"orgy(2023)]{lattimore2023second}
+    Tor Lattimore and Andr\'as Gy\"orgy.
+    \newblock A second-order method for stochastic bandit convex optimisation.
+    \newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
+    volume 195 of \emph{Proceedings of Machine Learning Research}, pages
+    2067--2094, 2023.
+
+    \bibitem[Vershynin(2018)]{vershynin2018high}
+    Roman Vershynin.
+    \newblock \emph{High-Dimensional Probability: An Introduction with
+        Applications in Data Science}.
+    \newblock Cambridge University Press, 2018.
+
+
+    \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
+    Lawrence C. Evans and Ronald F. Gariepy.
+    \newblock \emph{Measure Theory and Fine Properties of Functions}.
+    \newblock Revised edition, CRC Press, 2015.
+
+\end{thebibliography}
+
+\newpage
+\appendix
+\section{Hessian Measures}
+First we record the standard fact that the distributional Hessian of a convex function is a positive-semidefinite matrix-valued Radon measure.
+\begin{lemma}[Hessian measure of a convex function]
+    \label{lem:convex-hessian-measure}
+    Let $r:\R^d\to\R$ be convex and Lipschitz.
+    Then the distributional Hessian $D^2r$ is a positive-semidefinite
+    matrix-valued Radon measure.
+\end{lemma}
+\begin{proof}
+    This is standard; see \citet[Section~6.3]{evansgariepy2015measure}.
+\end{proof}
+Next lemma gives the Gaussian averaging identity for the Hessian measure, which is the key to the direct Hermite coefficients.
+\begin{lemma}[Gaussian averaging of the Hessian measure]
+    \label{lem:gaussian-hessian-average}
+    Let $r:\R^d\to\R$ be convex and Lipschitz, let
+    $X=\mu+\Sigma^{1/2}Z$, where $Z\sim\N(0,I_d)$ and $\Sigma\succ0$, and
+    let $\gamma_{\mu,\Sigma}$ be the density of $X$.  Then
+    \begin{align}
+        \langle D^2r,\gamma_{\mu,\Sigma}\rangle
+        =
+        \int_{\R^d}
+        \gamma_{\mu,\Sigma}(x)\,D^2r(dx)
+        =
+        \E\left[
+            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
+            \right].
+        \label{eq:gaussian-hessian-average}
+    \end{align}
+\end{lemma}
+\begin{proof}
+    By \cref{lem:convex-hessian-measure}
+    $D^2r$ is a positive-semidefinite matrix-valued Radon measure.
+    Since $r$ is Lipschitz, $D^2r \in \mathcal S'(\R^d)$ is a tempered distribution,
+    and the Gaussian density $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$ is a Schwartz function,
+    which means that $\langle D^2r,\gamma_{\mu,\Sigma}\rangle < \infty$ and
+    \begin{align}
+        \langle D^2r,\gamma_{\mu,\Sigma}\rangle
+        =
+        \langle r,D^2\gamma_{\mu,\Sigma}\rangle
+        =
+        \E\left[
+            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
+            \right],
+    \end{align}
+    where the first equality is integration by parts applied twice.
+\end{proof}
+
+\section{Proof \cref{prop:bracket}}
 \label{app:bracket}
-\paragraph{Quadratic forms against matrix measures.}
 Let $M$ be a positive-semidefinite matrix-valued Radon measure and let
 $\nu=\tr M$ be its trace measure.
 Positivity implies that every entry of $M$ is absolutely continuous with
-respect to $\nu$.  Hence, by the Radon--Nikodym theorem, there is a
-measurable matrix-valued function $Q$ such that
+respect to $\nu$.\alireza{Needs proof or citation.}
+Hence, by the Radon--Nikodym theorem, there is a
+measurable matrix-valued function $Q$ such that\alireza{Needs proof.}
 \begin{align}
     M(dz)=Q(z)\nu(dz),
     \qquad
@@ -1378,176 +1576,249 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
 
 \begin{lemma}[Averaged Bregman curvature]
     \label{lem:averaged-bregman-curvature}
-    Let $h:\R^d\to\R$ be convex and Lipschitz, let $a\in\R^d$, and let
-    $Z\sim\N(0,I_d)$.  For $s\in(0,1]$, let $p_s$ denote the density of
-    \begin{align}
-        Z_s=(1-s)a+sZ.
-    \end{align}
+    Let $h:\R^d\to\R$ be convex and Lipschitz, let $\bar{x}\in\R^d$, and let
+    $Z\sim\N(0,I_d)$.  For $s\in(0,1]$, let $p_s$ denote the density of $Z_s=(1-s)\bar{x}+sZ$.
     Then
     \begin{align}
-        \E[D_h(a\,\|\,Z)]
+        \E[D_h(\bar{x}\,\|\,Z)]
         =
         \int_0^1\frac1s
         \int_{\R^d}
-        p_s(z)(z-a)^\top D^2h(dz)(z-a)\,ds.
+        p_s(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})\,ds.
         \label{eq:averaged-bregman-curvature}
     \end{align}
 \end{lemma}
+\begin{proof}
+    TODO. It is just FTC.
+\end{proof}
 
 
 \begin{proof}[Proof of \cref{prop:bracket}]
-    Let
+    First, we switch to the standardized case by defining
     \begin{align}
-        a=\Sigma^{-\frac12}(x-\mu),
+        \bar{x}=\Sigma^{-\frac12}(x-\mu),
         \qquad
-        h(z)=e(\mu+\Sigma^{1/2}z).
+        h(z)=e(\mu+\Sigma^{1/2}z),
+        \quad\text{and}
+        \quad
+        Z=\Sigma^{-\frac12}(X - \mu) \sim \N(0,I_d)\,.
     \end{align}
-    Write $X=\mu+\Sigma^{1/2}Z$, where $Z\sim\N(0,I_d)$.  Let
-    $\gamma=\gamma_{0,I_d}$ and, for $V\succ0$, let
-    $\gamma_V=\gamma_{0,V}$.  For $s\in(0,1]$, let $p_s$ denote the density
-    of $(1-s)a+sZ$.
-    The function $h$ is convex and Lipschitz, so $D^2h$
-    is a positive-semidefinite matrix-valued Radon measure by
-    \cref{lem:convex-hessian-measure}.
-    Since $\Sigma^{\frac12}a=x-\mu$, the chain rule at
+    Finally, since $\Sigma^{\frac12}\bar{x}=x-\mu$, the chain rule at
     differentiability points of $e$ gives
+    $D_h(\bar{x}\,\|\,Z)=D_e(x\,\|\,X)$
+    almost surely.
+
+    The plan is to define a set $\mathcal A\subset \R^d$ and control the integrals over $\mathcal A$ and $\mathcal A^c$ separately.
+    To this end, write
     \begin{align}
-        D_h(a\,\|\,Z)=D_e(x\,\|\,X)
-        \qquad\text{almost surely}.
-        \label{eq:standardized-bregman}
-    \end{align}
-    Applying \eqref{eq:gaussian-hessian-average} to $h$ under the standard
-    Gaussian gives
-    \begin{align}
-        \int_{\R^d}\gamma(z)\,D^2h(dz)
-         & =
-        \E\left[h(Z)(ZZ^\top-I_d)\right]
+        \normm{\mu-x}{H}^2
         =
-        \Sigma^{\frac12}H\Sigma^{\frac12}.
-        \label{eq:standardized-hessian-measure}
-    \end{align}
-    Consequently,
-    \begin{align}
-        \int_{\R^d}\gamma(z)a^\top D^2h(dz)a
+        \bar{x}^\top \Sigma^{\frac12}H\Sigma^{\frac12}\bar{x}
          & =
-        a^\top \Sigma^{\frac12}H\Sigma^{\frac12}a
+        \int_{\R^d}\gamma(z)\bar{x}^\top D^2h(dz)\bar{x}
         =
-        \normm{\mu-x}{H}^2,
-        \label{eq:standardized-comparator-curvature} \\
-        \int_{\R^d}\gamma(z)\,\tr(D^2h)(dz)
-         & =
-        \tr(\Sigma^{\frac12}H\Sigma^{\frac12})
-        =
-        \tr(H\Sigma).
-        \label{eq:standardized-trace-curvature}
+        \int_{\mathcal A}\gamma(z)\bar{x}^\top D^2h(dz)\bar{x}
+        +
+        \int_{\mathcal A^c}\gamma(z)\bar{x}^\top D^2h(dz)\bar{x}
+        \label{eq:standardized-comparator-curvature}
     \end{align}
-    If $a=0$, the left-hand side of \eqref{eq:bracket} is nonpositive, so
-    assume from now on that $a\neq0$.  By
-    \cref{lem:averaged-bregman-curvature},
+    In step 1, we upper bound the integral over $\mathcal A$ by the sum of expected Bregman divergence $\E[D_e(x\,\|\,X)]$ and a trace term $\tr(H\Sigma)$.
+    In step 2, we upper bound the integral over $\mathcal A^c$ by a tail term that is small under the assumptions of the proposition.
+    \paragraph{Step 1.}
+    Let $\gamma=\gamma_{0,I_d}$ and $\gamma_V=\gamma_{0,V}$ for $V\succ0$.
+    For $s\in(0,1]$ by \cref{lem:averaged-bregman-curvature},
+    we have
     \begin{align}
-        \E[D_h(a\,\|\,Z)]
+        \E[D_e(x\,\|\,X)]
+        =
+        \E[D_h(\bar{x}\,\|\,Z)]
         =
         \int_0^1\frac1s
         \int_{\R^d}
-        p_s(z)(z-a)^\top D^2h(dz)(z-a)\,ds.
+        p_s(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})\,ds\,,
         \label{eq:bregman-density}
     \end{align}
-
-    Define
+    where $p_s$ denotes the density of $(1-s)\bar{x}+sZ$.
+    Define the set\footnote{
+        If $\bar{x}=0$, then the left-hand side of \eqref{eq:bracket} is nonpositive, so the inequality holds trivially.
+    }
     \begin{align}
         \mathcal A=\left\{z:
         \norm{z}^2\leq2d\log2+4\log\frac2\beta,
         \quad
-        \left|\ip{a/\norm a}{z}\right|^2
+        \left|\ip{\frac{\bar{x}}{\norm{\bar{x}}}}{z}\right|^2
         \leq4\log\frac{2\sqrt2}{\beta}
         \right\}.
         \label{eq:A}
     \end{align}
-    Since $sZ+(1-s)a\sim\N((1-s)a,s^2I_d)$,
+    \paragraph{Step 1.1.}
+    Next we show that $\frac12\gamma(z)\leq p_s(z)$ for $s\in[1-2\lambda,1]$ and $z\in\mathcal A$.
+    Since $sZ+(1-s)\bar{x}\sim\N((1-s)\bar{x},s^2I_d)$,
+    we have
     \begin{align}
         \log\frac{p_s(z)}{\gamma(z)}
-        =-d\log s
+         & =-d\log s
         -\frac{1-s^2}{2s^2}\norm{z}^2
-        +\frac{1-s}{s^2}\ip{a}{z}
-        -\frac{(1-s)^2}{2s^2}\norm{a}^2.
+        +\frac{1-s}{s^2}\ip{\bar{x}}{z}
+        -\frac{(1-s)^2}{2s^2}\norm{\bar{x}}^2\,.
         \label{eq:density-ratio}
     \end{align}
-    For $s\in[1-2\lambda,1]$, the remaining terms in
-    \eqref{eq:density-ratio} can lower the log-density ratio by at most
+    For $s\in[1-2\lambda,1]$, the assumption $\lambda\leq1/8$ implies $s\geq\frac34$, and $0\leq1-s\leq2\lambda$.
+    Consequently,
     \begin{align}
-        4\lambda\norm{z}^2,
-        \qquad
-        4\lambda|\ip{a}{z}|,
-        \qquad
-        4\lambda^2\norm{a}^2.
+        \frac{1-s^2}{2s^2}
+        \leq
+        \frac{1-s}{s^2}
+        \leq
+        \frac{2\lambda}{(3/4)^2}
+        =
+        \frac{32}{9}\lambda
+        \leq4\lambda,
+        \quad\text{and}\quad
+        \frac{(1-s)^2}{2s^2}
+        \leq
+        \frac{(2\lambda)^2}{2(3/4)^2}
+        =
+        \frac{32}{9}\lambda^2
+        \leq4\lambda^2.
     \end{align}
-    On $\mathcal A$, the hypotheses imply
+    Moreover, $-d\log s\geq0$. Therefore,
+    \eqref{eq:density-ratio} yields
     \begin{align}
-        \lambda\norm{z}^2\leq Cc_0,
-        \qquad
-        \lambda|\ip{a}{z}|\leq Cc_0,
-        \qquad
-        \lambda^2\norm{a}^2\leq Cc_0^2.
+        \log\frac{p_s(z)}{\gamma(z)}
+        \geq
+        -4\lambda\norm{z}^2
+        -4\lambda\left|\ip{\bar{x}}{z}\right|
+        -4\lambda^2\norm{\bar{x}}^2.
+        \label{eq:density-ratio-lower}
     \end{align}
-    Taking $c_0$ sufficiently small therefore gives
+    % Write $\ell_\beta=\log(2/\beta)$.
+    % Since $\beta<1/2$, we have $\ell_\beta\geq\log4$.
+    Now suppose for $z\in\mathcal A$, then
+    together with the first condition in \eqref{eq:bracket-focus} we have
     \begin{align}
-        p_s(z)\geq\frac12\gamma(z)
-        \quad\text{for }s\in[1-2\lambda,1],\ z\in\mathcal A.
-        \label{eq:density-domination}
+        \lambda\norm{z}^2
+         & \leq
+        \lambda\left(
+        2d\log2+4\log\left(\frac2\beta\right)
+        \right)
+        \leq
+        4\lambda\left(d+\log\left(\frac2\beta\right)\right)
+        \leq
+        4c_0\,,
+        \label{ineq:lambda-z-squared-bound}
     \end{align}
+    and, again, from $z\in\mathcal A$ we get
+    \begin{align}
+        \lambda\left|\ip{\bar{x}}{z}\right|
+        \leq
+        2\lambda\norm{\bar{x}}
+        \sqrt{\log\frac{2\sqrt2}{\beta}}
+        \leq
+        2\lambda\norm{\bar{x}}
+        \sqrt{
+            \log\left(
+            \frac{2}{\beta}
+            \right)
+            +\frac12\log2
+        }
+        \leq
+        \sqrt5\,
+        \lambda\norm{\bar{x}}\sqrt{\log\left(\frac{2}{\beta}\right)}
+        \leq
+        \sqrt5\,c_0,
+    \end{align}
+    where in the penultimate inequality we used $
+        \frac12\log2
+        \leq \frac14\log\left(\frac{2}{\beta}\right)$ since $\beta<1/2$.
+    The last inequality also gives
+    $\lambda^2\norm{\bar{x}}^2
+        \leq
+        \frac{c_0^2}{\log\left(\frac{2}{\beta}\right)}
+        \leq
+        \frac{c_0^2}{\log4}$.
+    Substituting these three bounds into
+    \eqref{eq:density-ratio-lower} gives
+    \begin{align}
+        \log\frac{p_s(z)}{\gamma(z)}
+        \geq
+        -(16+4\sqrt5)c_0
+        -\frac{4c_0^2}{\log4}
+        \geq
+        \log\frac12\,,
+    \end{align}
+    where the last inequality holds for sufficiently small $c_0>0$, for example, $c_0\leq1/40$.
+    Therefore, have established
+    $p_s(z)
+        \geq
+        \frac12\gamma(z)$
+    for all
+    $s\in[1-2\lambda,1]$
+    and
+    $z\in\mathcal A$.
+
+    \paragraph{Step 1.2.}
     Since the measure integrand in \eqref{eq:bregman-density} is
     nonnegative, we may restrict both integrals to
-    $s\in[1-2\lambda,1]$ and $z\in\mathcal A$.  Using
-    \eqref{eq:density-domination} and
-    $-\log(1-2\lambda)\geq2\lambda$ gives
+    $s\in[1-2\lambda,1]$ and $z\in\mathcal A$,
+    which together with $-\log(1-2\lambda)\geq2\lambda$ gives
     \begin{align}
-        \E[D_h(a\,\|\,Z)]
-        \geq
+        \E[D_h(\bar{x}\,\|\,Z)]
+         & \geq
+        \int_{1-2\lambda}^1\frac1s
+        \int_{\mathcal A}
+        p_s(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})\,ds
+        \\
+         & \geq
+        \frac12
+        \int_{1-2\lambda}^1\frac{ds}{s}
+        \int_{\mathcal A}
+        \gamma(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})
+        \\
+         & =
+        \frac{-\log(1-2\lambda)}{2}
+        \int_{\mathcal A}
+        \gamma(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})
+        \\
+         & \geq
         \lambda
         \int_{\mathcal A}
-        \gamma(z)(z-a)^\top D^2h(dz)(z-a).
+        \gamma(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x}).
         \label{eq:bregman-lower}
     \end{align}
     Apply \eqref{eq:matrix-measure-polar} to $D^2h$ and write
-    \begin{align}
-        \nu=\tr(D^2h),
-        \qquad
-        D^2h(dz)=Q(z)\nu(dz),
-    \end{align}
+    $\nu=\tr(D^2h)$, and $D^2h(dz)=Q(z)\nu(dz)$,
     where $Q(z)\succeq0$ and $\tr Q(z)=1$ for $\nu$-almost every $z$.
-    For every positive-semidefinite matrix $G$,
+    For every positive-semidefinite matrix $G$, by the triangle inequality we have
     \begin{align}
-        \frac12a^\top Ga
+        \frac12\bar{x}^\top G\bar{x}
         \leq
-        (z-a)^\top G(z-a)+z^\top Gz.
+        (z-\bar{x})^\top G(z-\bar{x})+z^\top Gz.
     \end{align}
     Applying this inequality to $G=Q(z)$, multiplying by
     $\lambda\gamma(z)$, and integrating over $\mathcal A$ gives
     \begin{align}
         \frac\lambda2
         \int_{\mathcal A}
-        \gamma(z)a^\top D^2h(dz)a
+        \gamma(z)\bar{x}^\top D^2h(dz)\bar{x}
         \leq{} &
         \lambda
         \int_{\mathcal A}
-        \gamma(z)(z-a)^\top D^2h(dz)(z-a)
+        \gamma(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})
         +
         \lambda
         \int_{\mathcal A}
         \gamma(z)z^\top D^2h(dz)z.
     \end{align}
-    By \eqref{eq:bregman-lower}, the first term on the right is at most
-    $\E[D_h(a\,\|\,Z)]$.
     Moreover, for $\nu$-almost every $z$,
-    \begin{align}
-        z^\top Q(z)z
+    $z^\top Q(z)z
         \leq
         \norm{z}^2\tr Q(z)
         =
-        \norm{z}^2.
-    \end{align}
-    On $\mathcal A$, decreasing $c_0$ if necessary gives
-    $\lambda\norm{z}^2\leq1/16$.  Hence
+        \norm{z}^2.$
+    On $\mathcal A$, \eqref{ineq:lambda-z-squared-bound}
+    and letting $c_0=\frac{1}{64}$ gives $\lambda\norm{z}^2\leq1/16$.
+    Hence,
     \begin{align}
         \lambda
         \int_{\mathcal A}
@@ -1560,107 +1831,83 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \int_{\R^d}\gamma(z)\tr(D^2h)(dz)
         =
         \frac1{16}\tr(H\Sigma),
+        \label{eq:trace-upper-bound}
     \end{align}
-    where the last equality is
-    \eqref{eq:standardized-trace-curvature}.
-
-    Combining these estimates, splitting the comparator-curvature integral
-    over $\mathcal A$ and $\mathcal A^c$, and using
-    \cref{eq:standardized-bregman,eq:standardized-comparator-curvature}
-    gives
+    where the last equality is followed from
     \begin{align}
-        \frac\lambda2\normm{\mu-x}{H}^2
-        -
-        \E[D_e(x\,\|\,X)]
-        \leq{} &
-        \frac1{16}\tr(H\Sigma)
-        +
-        \frac\lambda2
-        \int_{\mathcal A^c}
-        \gamma(z)a^\top D^2h(dz)a.
-        \label{eq:bracket-tail-reduction}
+        \int_{\R^d}\gamma(z)\,\tr(D^2h)(dz)
+        %  & =
+        % \tr(\langle D^2h, \gamma\rangle)
+        =
+        \tr(\langle h, D^2\gamma\rangle)
+        =
+        \tr\left(\E\left[h(Z)(ZZ^\top-I_d)\right]\right)
+        =
+        \tr(\Sigma^{\frac12}H\Sigma^{\frac12})
+        =
+        \tr(H\Sigma).
+        \label{eq:standardized-trace-curvature}
     \end{align}
-    % For every positive semidefinite matrix $G$,
-    % $\frac12\normm{a}{G}^2\leq\normm{z-a}{G}^2+\normm{z}{G}^2$.
-    % Consequently,
-    % \begin{align}
-    %     \frac\lambda2\int_{\mathcal A}
-    %     \normm{a}{\nabla^2h(z)}^2\gamma(z)\,dz
-    %      & \leq \E[D_h(a\,\|\,Z)]
-    %     +\lambda\int_{\mathcal A}
-    %     \normm{z}{\nabla^2h(z)}^2\gamma(z)\,dz.
-    % \end{align}
-    % On $\mathcal A$,
-    % \begin{align}
-    %     \lambda\normm{z}{\nabla^2h(z)}^2
-    %     \leq\lambda\norm{z}^2\tr(\nabla^2h(z))
-    %     \leq\frac1{16}\tr(\nabla^2h(z)),
-    % \end{align}
-    % where the last inequality follows from the preceding display after decreasing
-    % $c_0$ once more.  Thus the last integral is at most
-    % $\frac1{16}\tr(\E[\nabla^2h(W)])$.
+    Finally, combining \cref{eq:bregman-lower,eq:bregman-lower,eq:trace-upper-bound} we obtain
+    \begin{align}
+        \frac\lambda2
+        \int_{\mathcal A}
+        \gamma(z)\bar{x}^\top D^2h(dz)\bar{x}
+        \leq
+        \E[D_h(\bar{x}\,\|\,Z)]
+        +
+        \frac1{16}\tr(H\Sigma)\,,
+    \end{align}
+    which concludes step 1.
 
-    % It remains to bound the curvature on $\mathcal A^c$.  If
-    % $u=a/\norm a$, direct comparison of Gaussian densities gives
-    % \begin{align}
-    %     \gamma(z)\1\left\{\norm z^2>
-    %     2d\log2+4\log\frac2\beta\right\}
-    %      & \leq\frac\beta2\gamma_{2I_d}(z),
-    %     \label{eq:radial-tail}                      \\
-    %     \gamma(z)\1\left\{|\ip{u}{z}|^2>
-    %     4\log\frac{2\sqrt2}{\beta}\right\}
-    %      & \leq\frac\beta2\gamma_{I_d+uu^\top}(z).
-    %     \label{eq:directional-tail}
-    % \end{align}
+    \paragraph{Step 2.}
     It remains to bound the curvature measure on $\mathcal A^c$.  Set
     \begin{align}
-        u=\frac{a}{\norm a},
+        u=\frac{\bar{x}}{\norm{\bar{x}}},
         \qquad
-        \mu_a:=a^\top D^2h\,a.
+        D^2_{\bar{x}}\triangleq\bar{x}^\top D^2h\,\bar{x}.
     \end{align}
-    Since $D^2h$ is positive semidefinite, $\mu_a$ is a nonnegative Radon
+    Since $D^2h$ is positive semidefinite, $D^2_{\bar{x}}$ is a nonnegative Radon
     measure.
-
     Direct comparison of Gaussian densities gives
     \begin{align}
         \gamma(z)\1\left\{\norm z^2>
         2d\log2+4\log\frac2\beta\right\}
-         & \leq
-        \frac\beta2\gamma_{2I_d}(z),
-        \label{eq:radial-tail} \\
+        \leq
+        \frac\beta2\gamma_{2I_d}(z)\,\,\,\text{and}\,\,\,
         \gamma(z)\1\left\{|\ip{u}{z}|^2>
         4\log\frac{2\sqrt2}{\beta}\right\}
-         & \leq
+        \leq
         \frac\beta2\gamma_{I_d+uu^\top}(z).
         \label{eq:directional-tail}
     \end{align}
     Since $\mathcal A^c$ is contained in the union of the two events above
-    and $\mu_a$ is nonnegative, integrating these inequalities gives
+    and $D^2_{\bar{x}}$ is nonnegative, integrating these inequalities gives
     \begin{align}
-        \int_{\mathcal A^c}\gamma(z)\,\mu_a(dz)
+        \int_{\mathcal A^c}\gamma(z)\,D^2_{\bar{x}}(dz)
         \leq
         \frac\beta2
         \left(
-        \int_{\R^d}\gamma_{2I_d}(z)\,\mu_a(dz)
+        \int_{\R^d}\gamma_{2I_d}(z)\,D^2_{\bar{x}}(dz)
         +
-        \int_{\R^d}\gamma_{I_d+uu^\top}(z)\,\mu_a(dz)
+        \int_{\R^d}\gamma_{I_d+uu^\top}(z)\,D^2_{\bar{x}}(dz)
         \right).
         \label{eq:tail-curvature-domination}
     \end{align}
     We next bound each integral on the right-hand side of
     \eqref{eq:tail-curvature-domination}.  Fix $V\in\{2I_d,I_d+uu^\top\}$.
-    Since $\mu_a=a^\top D^2h\,a$, distributional integration by parts against the Schwartz function
+    Since $D^2_{\bar{x}}=\bar{x}^\top D^2h\,\bar{x}$, distributional integration by parts against the Schwartz function
     $\gamma_V$ gives
     \begin{align}
-        \int_{\R^d}\gamma_V(z)\,\mu_a(dz)
+        \int_{\R^d}\gamma_V(z)\,D^2_{\bar{x}}(dz)
          & =
         -\int_{\R^d}
-        \ip{\nabla h(z)}{a}
-        \ip{\nabla\gamma_V(z)}{a}\,dz
+        \ip{\nabla h(z)}{\bar{x}}
+        \ip{\nabla\gamma_V(z)}{\bar{x}}\,dz
         =
         \int_{\R^d}
-        \ip{\nabla h(z)}{a}
-        \ip{V^{-1}a}{z}
+        \ip{\nabla h(z)}{\bar{x}}
+        \ip{V^{-1}\bar{x}}{z}
         \gamma_V(z)\,dz,
         \label{eq:wider-gaussian-ibp}
     \end{align}
@@ -1668,126 +1915,100 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     $\nabla\gamma_V(z)=-V^{-1}z\,\gamma_V(z)$.
     At every differentiability point of $e$, the chain rule gives
     \begin{align}
-        \ip{\nabla h(z)}{a}
+        \ip{\nabla h(z)}{\bar{x}}
          & =
         \ip{\nabla e(\mu+\Sigma^{1/2}z)}
-        {\Sigma^{1/2}a}
+        {\Sigma^{1/2}\bar{x}}
         =
         \ip{\nabla e(\mu+\Sigma^{1/2}z)}
         {x-\mu}.
     \end{align}
     Since $e$ is $L$-Lipschitz, it follows that
     \begin{align}
-        \left|\ip{\nabla h(z)}{a}\right|
+        \left|\ip{\nabla h(z)}{\bar{x}}\right|
         \leq
         L\norm{x-\mu}
         \qquad\text{for almost every }z.
     \end{align}
     Therefore,
     \begin{align}
-        \int_{\R^d}\gamma_V(z)\,\mu_a(dz)
+        \int_{\R^d}\gamma_V(z)\,D^2_{\bar{x}}(dz)
          & \leq
         L\norm{x-\mu}
         \int_{\R^d}
-        \left|\ip{V^{-1}a}{z}\right|
+        \left|\ip{V^{-1}\bar{x}}{z}\right|
         \gamma_V(z)\,dz
         =
         L\norm{x-\mu}
         \sqrt{\frac{2}{\pi}}
-        \sqrt{a^\top V^{-1}a}.
+        \sqrt{\bar{x}^\top V^{-1}\bar{x}}.
         \label{eq:wider-gaussian-bound}
     \end{align}
     % For either $C=2I_d$ or $C=I_d+uu^\top$, Gaussian integration by parts gives
     % \begin{align}
-    %     \int\normm{a}{\nabla^2h(z)}^2\gamma_C(z)\,dz
-    %      & =\int\ip{a}{\nabla h(z)}\ip{C^{-1}a}{z}\gamma_C(z)\,dz
+    %     \int\normm{\bar{x}}{\nabla^2h(z)}^2\gamma_C(z)\,dz
+    %      & =\int\ip{\bar{x}}{\nabla h(z)}\ip{C^{-1}\bar{x}}{z}\gamma_C(z)\,dz
     %     \nonumber                                                 \\
-    %      & \leq\frac{L}{\sqrt\pi}\norm{\mu-x}\norm a.
+    %      & \leq\frac{L}{\sqrt\pi}\norm{\mu-x}\norm{\bar{x}}.
     %     \label{eq:wider-gaussian}
     % \end{align}
-    % Here $|\ip{a}{\nabla h(z)}|\leq L\norm{\mu-x}$ and
-    % $a^\top C^{-1}a=\norm a^2/2$ for both choices of $C$.  Combining
+    % Here $|\ip{\bar{x}}{\nabla h(z)}|\leq L\norm{\mu-x}$ and
+    % $\bar{x}^\top C^{-1}\bar{x}=\norm{\bar{x}}^2/2$ for both choices of $C$.  Combining
     % \eqref{eq:radial-tail}--\eqref{eq:wider-gaussian} shows that the contribution
     % of $\mathcal A^c$ to
-    % $\frac\lambda2\normm{a}{\E[\nabla^2h(W)]}^2$ is at most
+    % $\frac\lambda2\normm{\bar{x}}{\E[\nabla^2h(W)]}^2$ is at most
     % \begin{align}
-    %     C\lambda L\beta\norm{\mu-x}\norm a.
+    %     C\lambda L\beta\norm{\mu-x}\norm{\bar{x}}.
     % \end{align}
     For $V=2I_d$, we have
-    \begin{align}
-        a^\top V^{-1}a
-        =
-        \frac12\norm a^2.
-    \end{align}
+    $\bar{x}^\top V^{-1}\bar{x}=\frac12\norm{\bar{x}}^2$.
     For $V=I_d+uu^\top$, since $\norm u=1$,
     we have
     $V^{-1}
         =
         I_d-\frac12uu^\top$.
-    Moreover, $a=\norm a\,u$, and therefore
-    \begin{align}
-        a^\top V^{-1}a
-         & =
-        a^\top
-        \left(I_d-\frac12uu^\top\right)a
-        =
-        \frac12\norm a^2.
-    \end{align}
+    Moreover, $\bar{x}=\norm{\bar{x}}\,u$, and therefore
+    $\bar{x}^\top V^{-1}\bar{x}=
+        \bar{x}^\top
+        \left(I_d-\frac12uu^\top\right)\bar{x}
+        =\frac12\norm{\bar{x}}^2$.
     Thus, for either
     $V\in\{2I_d,I_d+uu^\top\}$,
     we have
-    $\sqrt{a^\top V^{-1}a} = \frac{\norm a}{\sqrt2}$.
+    $\sqrt{\bar{x}^\top V^{-1}\bar{x}} = \frac{\norm{\bar{x}}}{\sqrt2}$.
     Substituting this into \eqref{eq:wider-gaussian-bound} gives
     \begin{align}
-        \int_{\R^d}\gamma_V(z)\,\mu_a(dz)
+        \int_{\R^d}\gamma_V(z)\,D^2_{\bar{x}}(dz)
         \leq
         \frac{L}{\sqrt\pi}
-        \norm{x-\mu}\norm a.
+        \norm{x-\mu}\norm{\bar{x}}.
         \label{eq:wider-gaussian}
     \end{align}
     Combining \eqref{eq:tail-curvature-domination} and
     \eqref{eq:wider-gaussian} now yields
     \begin{align}
-        \int_{\mathcal A^c}\gamma(z)\,\mu_a(dz)
+        \int_{\mathcal A^c}\gamma(z)\,D^2_{\bar{x}}(dz)
         \leq
         \frac{\beta L}{\sqrt\pi}
-        \norm{x-\mu}\norm a.
+        \norm{x-\mu}\norm{\bar{x}}.
         \label{eq:tail-curvature-bound}
     \end{align}
-    By the definition of $\mu_a$, \eqref{eq:bracket-tail-reduction} and
-    \eqref{eq:tail-curvature-bound} give
-    \begin{align}
-        \frac\lambda2\normm{\mu-x}{H}^2
-        -
-        \E[D_e(x\,\|\,X)]
-         & \leq
-        \frac1{16}\tr(H\Sigma)
-        +
-        \frac\lambda2
-        \int_{\mathcal A^c}\gamma(z)\,\mu_a(dz)
-        \leq
-        \frac1{16}\tr(H\Sigma)
-        +
-        \frac{\lambda L\beta}{2\sqrt\pi}
-        \norm{\mu-x}\norm a.
-    \end{align}
-    Finally, the definition of $a$ gives
-    $\norm a^2
-        =
-        \normm{\mu-x}{\Sigma^{-1}}^2$.
-    Consequently,
-    \begin{align}
-        \frac\lambda2\normm{\mu-x}{H}^2
-        -
-        \E[D_e(x\,\|\,X)]
-        \leq
-        \frac1{16}\tr(H\Sigma)
-        +
-        \frac{\lambda L\beta}{2\sqrt\pi}
-        \norm{\mu-x}
-        \normm{\mu-x}{\Sigma^{-1}}.
-    \end{align}
-    Since $1/(2\sqrt\pi)$ is a universal constant, this proves
+    Finally, the definition of $\bar{x}$ gives
+    $\norm{\bar{x}}^2=\normm{\mu-x}{\Sigma^{-1}}^2$,
+    completing the second step.
+    % Consequently,
+    % \begin{align}
+    %     \frac\lambda2\normm{\mu-x}{H}^2
+    %     -
+    %     \E[D_e(x\,\|\,X)]
+    %     \leq
+    %     \frac1{16}\tr(H\Sigma)
+    %     +
+    %     \frac{\lambda L\beta}{2\sqrt\pi}
+    %     \norm{\mu-x}
+    %     \normm{\mu-x}{\Sigma^{-1}}.
+    % \end{align}
+    % Since $1/(2\sqrt\pi)$ is a universal constant, this proves
     \eqref{eq:bracket}.
 \end{proof}
 
@@ -2854,8 +3075,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         n e^{-3\ell}\max\{1,\lambda^{-1}\}\leq1.
         \label{eq:check-clipping}
     \end{align}
-    For the first line, use covariance comparison and the largest-eigenvalue
-    recursion in \cref{lem:trace}; for the other two, use
+    For the first line, use covariance comparison and
+    \eqref{eq:predictable-spectrum}; for the other two, use
     \eqref{eq:Y-subexponential} and $1/\eps\leq\sqrt n$.  The definition of
     $\ell$ makes the final inequalities valid after increasing $C_0$.
 
@@ -3345,7 +3566,7 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
 
     We now prove \eqref{eq:H-concentration}.
     We first record a deterministic range for the relevant metrics.
-    The largest-eigenvalue recursion in the proof of \cref{lem:trace} gives
+    The spectral estimate \eqref{eq:predictable-spectrum} gives
     \begin{align}
         \lambda_{\max}(\overline\Sigma_t^{-1})
         \leq
@@ -3859,113 +4080,8 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
     self-normalised Hessian bound. This completes the proof.
 \end{proof}
 
-\section{Hessian Measures}
-First we record the standard fact that the distributional Hessian of a convex function is a positive-semidefinite matrix-valued Radon measure.
-\begin{lemma}[Hessian measure of a convex function]
-    \label{lem:convex-hessian-measure}
-    Let $r:\R^d\to\R$ be convex and Lipschitz.
-    Then the distributional Hessian $D^2r$ is a positive-semidefinite
-    matrix-valued Radon measure.
-\end{lemma}
-\begin{proof}
-    This is standard; see \citet[Section~6.3]{evansgariepy2015measure}.
-\end{proof}
-Next lemma gives the Gaussian averaging identity for the Hessian measure, which is the key to the direct Hermite coefficients.
-\begin{lemma}[Gaussian averaging of the Hessian measure]
-    \label{lem:gaussian-hessian-average}
-    Let $r:\R^d\to\R$ be convex and Lipschitz, let
-    $X=\mu+\Sigma^{1/2}Z$, where $Z\sim\N(0,I_d)$ and $\Sigma\succ0$, and
-    let $\gamma_{\mu,\Sigma}$ be the density of $X$.  Then
-    \begin{align}
-        \E\left[
-            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
-            \right]
-        =
-        \int_{\R^d}
-        \gamma_{\mu,\Sigma}(x)\,D^2r(dx).
-        \label{eq:gaussian-hessian-average}
-    \end{align}
-\end{lemma}
-\begin{proof}
-    By \cref{lem:convex-hessian-measure}
-    $D^2r$ is a positive-semidefinite matrix-valued Radon measure.
-    Since $r$ is Lipschitz, $D^2r \in \mathcal S'(\R^d)$ is a tempered distribution,
-    and the Gaussian density $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$ is a Schwartz function,
-    which means that the pairing $\langle D^2r,\gamma_{\mu,\Sigma}\rangle$ is well-defined.
-    The definition of distributional derivatives gives
-    \begin{align}
-        \int_{\R^d}\gamma_{\mu,\Sigma}(x)\,D^2r(dx)
-        =
-        \left\langle D^2r,\gamma_{\mu,\Sigma}\right\rangle
-        =
-        \left\langle r,\nabla^2\gamma_{\mu,\Sigma}\right\rangle.
-        \label{eq:hessian-measure-pairing}
-    \end{align}
-    Direct differentiation of the Gaussian density gives
-    \begin{align}
-        \nabla^2\gamma_{\mu,\Sigma}(x)
-        =
-        \left(
-        \Sigma^{-1}(x-\mu)(x-\mu)^\top\Sigma^{-1}
-        -
-        \Sigma^{-1}
-        \right)
-        \gamma_{\mu,\Sigma}(x).
-    \end{align}
-    Therefore, using $X=\mu+\Sigma^{1/2}Z$,
-    \begin{align}
-        \left\langle r,\nabla^2\gamma_{\mu,\Sigma}\right\rangle
-         & =
-        \int_{\R^d}
-        r(x)
-        \left(
-        \Sigma^{-1}(x-\mu)(x-\mu)^\top\Sigma^{-1}
-        -
-        \Sigma^{-1}
-        \right)
-        \gamma_{\mu,\Sigma}(x)\,dx \\
-         & =
-        \E\left[
-            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
-            \right].
-    \end{align}
-    Combining this with \eqref{eq:hessian-measure-pairing} proves the claim.
-\end{proof}
 
 
-\begin{thebibliography}{9}
-    \raggedright
 
-    \bibitem[Freedman(1975)]{freedman1975tail}
-    David A. Freedman.
-    \newblock On tail probabilities for martingales.
-    \newblock \emph{The Annals of Probability}, 3(1):100--118, 1975.
-
-    \bibitem[Lattimore(2026)]{lattimore2026bandit}
-    Tor Lattimore.
-    \newblock \emph{Bandit Convex Optimisation}.
-    \newblock Cambridge University Press, 2026.
-    \newblock \href{https://doi.org/10.1017/9781009607551}{doi:10.1017/9781009607551}.
-
-    \bibitem[Lattimore and Gy\"orgy(2023)]{lattimore2023second}
-    Tor Lattimore and Andr\'as Gy\"orgy.
-    \newblock A second-order method for stochastic bandit convex optimisation.
-    \newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
-    volume 195 of \emph{Proceedings of Machine Learning Research}, pages
-    2067--2094, 2023.
-
-    \bibitem[Vershynin(2018)]{vershynin2018high}
-    Roman Vershynin.
-    \newblock \emph{High-Dimensional Probability: An Introduction with
-        Applications in Data Science}.
-    \newblock Cambridge University Press, 2018.
-
-
-    \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
-    Lawrence C. Evans and Ronald F. Gariepy.
-    \newblock \emph{Measure Theory and Fine Properties of Functions}.
-    \newblock Revised edition, CRC Press, 2015.
-
-\end{thebibliography}
 
 \end{document}
