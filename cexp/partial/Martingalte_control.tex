@@ -1,0 +1,260 @@
+
+\subsection{The martingale control}
+\label{sec:martingale_interpretation_f_alpha_budget}
+
+The previous subsection shows that, on a focus region \(F_L\), log-concavity of the core \(p\)
+gives a deterministic bound on \(r(x,z)\), and hence on
+\[
+    \bar{s}_x(z)=\frac{r(x,z)-1}{\lambda}.
+\]
+This boundedness is useful for standard concentration arguments. There is also a more intrinsic
+reason why the same \(f_\alpha\)-quantity appears in the analysis: it is the natural compensator for
+the random multiplicative change of the exponential-weights density.
+
+Consider the actual algorithmic trajectory. Let \(q_u\) be the \cewaalg density before round \(u\),
+let \(p_u\) be its core, and let \(r_u\) be the corresponding relative density. Also write
+\[
+    \E_{u-1}[\cdot]
+    \triangleq
+    \E[\cdot\mid \cG_{u-1}],
+\]
+where \(\cG_{u-1}\) is the history before round \(u\). Conditionally on \(\cG_{u-1}\), the objects
+\(q_u,p_u,r_u\), and the loss \(\ell_u\), are fixed, while \(A_u\sim p_u\) is random.
+
+For a fixed point \(z\in\K\), the estimated loss used by \scewaalg is
+\begin{align}
+    \hf_u(z)
+    =
+    \ell_u(A_u)\bar{s}_{u,A_u}(z)
+    =
+    \frac{\ell_u(A_u)}{\lambda}
+    \bigl(r_u(A_u,z)-1\bigr).
+    \label{eq:martingale_hf_recentered}
+\end{align}
+Define its predictable part by
+\begin{align}
+    \bar{\ell}_u(z)
+    \triangleq
+    \E_{u-1}[\hf_u(z)].
+    \label{eq:bar_ell_predictable_estimator}
+\end{align}
+This is the recentered version of the optimistic loss \(\tilde{\ell}_u\). Indeed, since
+\[
+    \tilde{\ell}_u(z)
+    =
+    \E_{A_u\sim p_u}[\ell_u(A_u)s_{u,A_u}(z)]
+\]
+and
+\[
+    \hf_u(z)
+    =
+    \ell_u(A_u)(s_{u,A_u}(z)-1),
+\]
+we have
+\begin{align}
+    \bar{\ell}_u(z)
+    =
+    \tilde{\ell}_u(z)-\langle \ell_u,p_u\rangle .
+    \label{eq:bar_ell_tilde_ell_relation}
+\end{align}
+The difference between \(\bar{\ell}_u\) and \(\tilde{\ell}_u\) is a scalar independent of \(z\), so it
+does not affect the normalized exponential-weights update.
+
+Now decompose the exponential weight at \(z\) as
+\begin{align}
+    \exp\left(
+    -\eta\sum_{u=1}^s \hf_u(z)
+    \right)
+    =
+    \underbrace{
+        \exp\left(
+        -\eta\sum_{u=1}^s \bar{\ell}_u(z)
+        \right)
+    }_{\text{predictable part}}
+    \underbrace{
+        \exp\left(
+        -\eta\sum_{u=1}^s
+        \bigl(\hf_u(z)-\bar{\ell}_u(z)\bigr)
+        \right)
+    }_{\text{martingale multiplier}}.
+    \label{eq:martingale_weight_decomposition_bar_ell}
+\end{align}
+The first factor is what the update would look like if we replaced the random one-point estimator by
+its conditional mean. The second factor is the random error. The dangerous case is when
+\[
+    \sum_{u=1}^s
+    \bigl(\hf_u(z)-\bar{\ell}_u(z)\bigr)
+\]
+is negative, because then the exponential weight at \(z\) is multiplied upward.
+
+Let
+\begin{align}
+    \alpha=\frac{\eta}{\lambda},
+    \qquad
+    f_\alpha(r)=e^{-\alpha(r-1)}+\alpha(r-1)-1.
+\end{align}
+The next proposition says that the upward fluctuation in
+\eqref{eq:martingale_weight_decomposition_bar_ell} is paid for by the same \(f_\alpha\)-budget that
+appears in the variance bound.
+
+\begin{proposition}[Pointwise martingale compensator]
+    \label{prop:pointwise_martingale_compensator_bar_ell}
+    Fix \(z\in\K\), and define
+    \begin{align}
+        \Gamma_s(z)
+        \triangleq
+        \sum_{u=1}^s
+        \E_{u-1}\left[
+            f_\alpha(r_u(A_u,z))
+            \right].
+        \label{eq:Gamma_pointwise_f_alpha_budget}
+    \end{align}
+    Then
+    \begin{align}
+        M_s(z)
+        \triangleq
+        \exp\left(
+        -\eta\sum_{u=1}^s
+        \bigl(\hf_u(z)-\bar{\ell}_u(z)\bigr)
+        -
+        \Gamma_s(z)
+        \right)
+        \label{eq:pointwise_f_alpha_supermartingale}
+    \end{align}
+    is a non-negative supermartingale. Consequently, for every \(\delta\in(0,1)\), with probability
+    at least \(1-\delta\),
+    \begin{align}
+        -\eta\sum_{u=1}^s
+        \bigl(\hf_u(z)-\bar{\ell}_u(z)\bigr)
+        \le
+        \Gamma_s(z)+\log\frac1\delta
+        \label{eq:pointwise_exponent_bound_no_alpha_loss}
+    \end{align}
+    simultaneously for all \(s\ge1\).
+\end{proposition}
+
+\begin{proof}
+    Fix \(u\) and condition on \(\cG_{u-1}\). Write
+    \[
+        \rho=r_u(A_u,z),
+        \qquad
+        W=\ell_u(A_u)(\rho-1).
+    \]
+    Then
+    \[
+        \hf_u(z)=\frac{1}{\lambda}W,
+        \qquad
+        \bar{\ell}_u(z)=\frac{1}{\lambda}\E_{u-1}[W].
+    \]
+    Hence
+    \[
+        \eta\bigl(\hf_u(z)-\bar{\ell}_u(z)\bigr)
+        =
+        \alpha\bigl(W-\E_{u-1}[W]\bigr).
+    \]
+    Let
+    \[
+        \phi_\alpha(v)=e^{-\alpha v}+\alpha v-1.
+    \]
+    Since \(0\le \ell_u(A_u)\le1\), the contraction inequality used in
+    \cref{proof:appendix_f_one_reduction} gives
+    \begin{align}
+        \phi_\alpha(W)
+        =
+        \phi_\alpha\left(\ell_u(A_u)(\rho-1)\right)
+        \le
+        \phi_\alpha(\rho-1)
+        =
+        f_\alpha(\rho).
+        \label{eq:phi_contraction_for_pointwise_martingale}
+    \end{align}
+    Therefore,
+    \begin{align}
+        \E_{u-1}\left[
+            \exp\left(
+            -\eta(\hf_u(z)-\bar{\ell}_u(z))
+            \right)
+            \right]
+         & =
+        \E_{u-1}\left[
+            \exp\left(
+            -\alpha(W-\E_{u-1}[W])
+            \right)
+            \right]
+        \\
+         & =
+        e^{\alpha \E_{u-1}[W]}
+        \left(
+        1-\alpha\E_{u-1}[W]
+        +
+        \E_{u-1}[\phi_\alpha(W)]
+        \right)
+        \\
+         & \le
+        e^{\alpha \E_{u-1}[W]}
+        \left(
+        1-\alpha\E_{u-1}[W]
+        +
+        \E_{u-1}[f_\alpha(\rho)]
+        \right)
+        \\
+         & \le
+        \exp\left(
+        \E_{u-1}[f_\alpha(\rho)]
+        \right),
+    \end{align}
+    where the last step uses \(1+x\le e^x\). This proves the supermartingale property by iteration.
+    The high-probability statement follows from Ville's inequality.
+\end{proof}
+
+Combining \eqref{eq:martingale_weight_decomposition_bar_ell} with
+\eqref{eq:pointwise_exponent_bound_no_alpha_loss}, for a fixed \(z\), with probability at least
+\(1-\delta\), simultaneously over \(s\),
+\begin{align}
+    \exp\left(
+    -\eta\sum_{u=1}^s \hf_u(z)
+    \right)
+    \le
+    \exp\left(
+    -\eta\sum_{u=1}^s \bar{\ell}_u(z)
+    \right)
+    \exp\left(
+    \Gamma_s(z)+\log\frac1\delta
+    \right).
+    \label{eq:actual_weight_controlled_by_predictable_weight}
+\end{align}
+This is the useful form of the statement. It should be read as a bound on the random
+\emph{multiplicative change of the density}, not primarily as a bound on the cumulative estimator
+itself. If one divides \eqref{eq:pointwise_exponent_bound_no_alpha_loss} by \(\eta\), or equivalently
+works with the unscaled variable
+\[
+    \ell_u(A_u)(r_u(A_u,z)-1),
+\]
+then one obtains a term of order \(\eta^{-1}\log(1/\delta)\), or \(\alpha^{-1}\log(1/\delta)\).
+That form is usually too crude to be the final high-probability regret argument.
+
+The point of the proposition is instead conceptual and structural: the same quantity that controls
+the variance term also controls the upward spikes of the exponential-weights density. Indeed, if
+\(T_0^{(u)}\sim q_u\) is independent of \(A_u\sim p_u\), then averaging the one-step budget over
+\(z\sim q_u\) gives
+\begin{align}
+    \E_{T_0^{(u)}\sim q_u}
+    \E_{A_u\sim p_u}
+    \left[
+    f_\alpha(r_u(A_u,T_0^{(u)}))
+    \right]
+    =
+    D_{f_\alpha}
+    \left(
+    \PP_{A_u,T_0^{(u)}}
+    \middle\|
+    \PP_{A_u}\otimes \PP_{T_0^{(u)}}
+    \right)
+    =
+    I_{f_\alpha}(A_u;T_0^{(u)}).
+    \label{eq:pointwise_budget_averages_to_variance}
+\end{align}
+Thus the \(f_\alpha\)-divergence has two interpretations. Averaged over \(z\sim q_u\), it is exactly
+the variance term in the expected regret bound. Pointwise in \(z\), it is the exponential compensator
+for negative estimator fluctuations, which are precisely the fluctuations that make the density at
+\(z\) grow.

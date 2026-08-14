@@ -1,0 +1,523 @@
+The natural question is whether the $d$-logarithm factor is real or an artifact of the proof.
+\begin{theorem}[Product Laplace forces the Gamma factor]
+    \label{thm:product_laplace_gamma_lower}
+    Fix $\lambda\in(0,1)$. For each $d\ge1$, let
+    \[
+        \ell(t)=\frac12 e^{-|t|},\qquad t\in\R,
+        \qquad
+        q_d(t)=\prod_{i=1}^d \ell(t_i),
+        \qquad t=(t_1,\ldots,t_d)\in\R^d .
+    \]
+    Let $T_0,T_1,\ldots$ be i.i.d. samples from $q_d$, and define
+    \[
+        X=\lambda\sum_{k=0}^{\infty}(1-\lambda)^kT_k .
+    \]
+    Let
+    \[
+        P=P_{X,T_0},
+        \qquad
+        Q=P_X\otimes P_{T_0},
+        \qquad
+        R=\frac{dP}{dQ}.
+    \]
+    For $a>0$, define
+    \[
+        f_a(u)=e^{-a(u-1)}+a(u-1)-1,\qquad u\ge0,
+    \]
+    and
+    \[
+        D_{f_a}(P\|Q)=\E_Q[f_a(R)].
+    \]
+    Then there exist constants
+    \[
+        A_\lambda>0,\qquad
+        \tau_\lambda<\infty,\qquad
+        \beta_\lambda>0,
+    \]
+    depending only on $\lambda$, with $A_\lambda e^{\tau_\lambda}\ge2$, such that the following holds.
+    With the universal constant $c_0=e^{-1}/8$, for every $d\ge1$ and every
+    \[
+        0<a\le (A_\lambda e^{\tau_\lambda})^{-d},
+    \]
+    we have
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_0
+        \left(\frac{\beta_\lambda A_\lambda}{2}\right)^d
+        a^2
+        \sum_{j=0}^d
+        \frac{L_a^j}{j!},
+    \]
+    where
+    \[
+        L_a
+        =
+        \log\left(
+        \frac{1}{a(A_\lambda e^{\tau_\lambda})^d}
+        \right).
+    \]
+    Consequently, for each fixed $\lambda\in(0,1)$ and $d\ge1$, there exist constants
+    $c_{\lambda,d}>0$ and $a_{\lambda,d}\in(0,1)$ such that for all
+    $0<a\le a_{\lambda,d}$,
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_{\lambda,d}
+        a^2
+        \sum_{j=0}^d
+        \frac{\log^j(1/a)}{j!}.
+    \]
+    In particular,
+    \[
+        D_{f_a}(P\|Q)
+        =
+        \Omega_{\lambda,d}
+        \left(
+        a^2\frac{\log^d(1/a)}{d!}
+        \right)
+        \qquad\text{as }a\downarrow0.
+    \]
+\end{theorem}
+
+\begin{proof}
+    The proof isolates the source of the $d$ logarithms.  In one dimension,
+    if the first Laplace sample is large and positive while the remaining
+    contribution is bounded, then the likelihood ratio grows like $e^t$.
+    In $d$ dimensions this effect tensorizes, so the likelihood ratio grows
+    like $\exp(\sum_i t_i)$.  The Laplace density contributes
+    $\exp(-\sum_i t_i)$, and truncating at height $1/a$ leaves exactly a
+    Gamma-tail polynomial.
+
+    \paragraph{Step 1: the one-dimensional bad event.}
+    Let $L_0,L_1,\ldots$ be i.i.d. $\mathrm{Laplace}(0,1)$ random variables, and define
+    \[
+        X_\lambda
+        =
+        \lambda\sum_{k=0}^{\infty}(1-\lambda)^kL_k,
+        \qquad
+        X_\lambda'
+        =
+        \lambda\sum_{k=1}^{\infty}(1-\lambda)^{k-1}L_k .
+    \]
+    Let $p_\lambda$ be the density of $X_\lambda$. Then
+    $X_\lambda'\stackrel{d}{=}X_\lambda$, $X_\lambda'\perp L_0$, and
+    \[
+        X_\lambda=\lambda L_0+(1-\lambda)X_\lambda'.
+    \]
+    Therefore, at a point of the form
+    \[
+        X_\lambda=\lambda t+(1-\lambda)z,
+        \qquad
+        L_0=t,
+        \qquad
+        X_\lambda'=z,
+    \]
+    the one-dimensional likelihood ratio is
+    \[
+        r_\lambda(t,z)
+        =
+        \frac{1}{1-\lambda}
+        \frac{p_\lambda(z)}
+        {p_\lambda(\lambda t+(1-\lambda)z)}.
+        \label{eq:product_laplace_one_dim_ratio}
+    \]
+
+    We now prove that this ratio is exponentially large when $t$ is large
+    and $z$ is bounded.  Write
+    \[
+        Z_\lambda
+        =
+        \lambda\sum_{k=1}^{\infty}(1-\lambda)^kL_k,
+        \qquad
+        X_\lambda=\lambda L_0+Z_\lambda.
+    \]
+    If
+    \[
+        q_\lambda(u)=\frac{1}{2\lambda}e^{-|u|/\lambda}
+    \]
+    is the density of $\lambda L_0$, then
+    \[
+        p_\lambda=q_\lambda*p_{Z_\lambda}.
+    \]
+    Define
+    \[
+        C_\lambda
+        =
+        \E\left[e^{|Z_\lambda|/\lambda}\right].
+    \]
+    This constant is finite, since
+    \[
+        \frac{|Z_\lambda|}{\lambda}
+        \le
+        \sum_{k=1}^{\infty}(1-\lambda)^k|L_k|,
+    \]
+    and hence, using $\E[e^{\alpha |L_0|}]=(1-\alpha)^{-1}$ for
+    $0\le\alpha<1$,
+    \[
+        C_\lambda
+        \le
+        \prod_{k=1}^{\infty}
+        \E\left[e^{(1-\lambda)^k|L_k|}\right]
+        =
+        \prod_{k=1}^{\infty}
+        \frac{1}{1-(1-\lambda)^k}
+        <\infty.
+    \]
+    Consequently, for every $x\ge0$,
+    \[
+        p_\lambda(x)
+        =
+        \int_\R
+        \frac{1}{2\lambda}e^{-|x-z|/\lambda}
+        p_{Z_\lambda}(z)\,dz
+        \le
+        \frac{C_\lambda}{2\lambda}e^{-x/\lambda}.
+        \label{eq:product_laplace_density_tail}
+    \]
+    Since $p_\lambda$ is positive and continuous, also define
+    \[
+        m_\lambda
+        =
+        \inf_{|z|\le1}p_\lambda(z)
+        >
+        0.
+    \]
+
+    Now fix $|z|\le1$ and $t\ge(1-\lambda)/\lambda$. Then
+    $\lambda t+(1-\lambda)z\ge0$, so \eqref{eq:product_laplace_density_tail} gives
+    \[
+        p_\lambda(\lambda t+(1-\lambda)z)
+        \le
+        \frac{C_\lambda}{2\lambda}
+        \exp\left(
+        -t-\frac{1-\lambda}{\lambda}z
+        \right)
+        \le
+        \frac{C_\lambda}{2\lambda}
+        \exp\left(
+        -t+\frac{1-\lambda}{\lambda}
+        \right).
+    \]
+    Substituting this into \eqref{eq:product_laplace_one_dim_ratio} yields
+    \[
+        r_\lambda(t,z)
+        \ge
+        \frac{2\lambda m_\lambda}{(1-\lambda)C_\lambda}
+        \exp\left(-\frac{1-\lambda}{\lambda}\right)e^t .
+    \]
+    Set
+    \[
+        A_\lambda
+        =
+        \frac{2\lambda m_\lambda}{(1-\lambda)C_\lambda}
+        \exp\left(-\frac{1-\lambda}{\lambda}\right).
+    \]
+    Choose $\tau_\lambda<\infty$ large enough that
+    \[
+        \tau_\lambda\ge\frac{1-\lambda}{\lambda}
+        \qquad\text{and}\qquad
+        A_\lambda e^{\tau_\lambda}\ge2.
+    \]
+    Then
+    \[
+        r_\lambda(t,z)\ge A_\lambda e^t,
+        \qquad
+        t\ge\tau_\lambda,\quad |z|\le1.
+        \label{eq:product_laplace_one_dim_ratio_lower}
+    \]
+    Finally define
+    \[
+        \beta_\lambda
+        =
+        \PP(|X_\lambda'|\le1)
+        =
+        \int_{-1}^1 p_\lambda(z)\,dz
+        >
+        0.
+    \]
+
+    \paragraph{Step 2: tensorize the bad event.}
+    Return to dimension $d$. Define
+    \[
+        X'
+        =
+        \lambda\sum_{k=1}^{\infty}(1-\lambda)^{k-1}T_k.
+    \]
+    Then $X'\stackrel{d}{=}X$, $X'\perp T_0$, and
+    \[
+        X=\lambda T_0+(1-\lambda)X'.
+    \]
+    Under $P=P_{X,T_0}$, write
+    \[
+        R_0=R(X,T_0)=\frac{dP}{dQ}(X,T_0).
+    \]
+    Since $q_d$ is a product distribution and the construction of $X$ is coordinatewise,
+    the density of $X$ factorizes as
+    \[
+        p_X(x)=\prod_{i=1}^d p_\lambda(x_i).
+    \]
+    Therefore,
+    \[
+        R_0
+        =
+        \prod_{i=1}^d
+        r_\lambda(T_{0,i},X_i').
+        \label{eq:product_laplace_ratio_tensorization}
+    \]
+
+    Consider the event
+    \[
+        \mathcal G
+        =
+        \left\{
+        |X_i'|\le1 \text{ and } T_{0,i}\ge\tau_\lambda
+        \text{ for every } i=1,\ldots,d
+        \right\}.
+    \]
+    On this event, \eqref{eq:product_laplace_one_dim_ratio_lower} and
+    \eqref{eq:product_laplace_ratio_tensorization} imply
+    \[
+        R_0
+        \ge
+        A_\lambda^d
+        \exp\left(\sum_{i=1}^d T_{0,i}\right).
+        \label{eq:product_laplace_R0_large}
+    \]
+    Moreover, since $A_\lambda e^{\tau_\lambda}\ge2$, the same event implies
+    \[
+        R_0
+        \ge
+        (A_\lambda e^{\tau_\lambda})^d
+        \ge2.
+        \label{eq:product_laplace_R0_at_least_two}
+    \]
+
+    \paragraph{Step 3: turn the bad event into an $f_a$-divergence lower bound.}
+    We first record an elementary lower bound on the generator.  For every
+    $a\in(0,1]$ and every $u\ge2$,
+    \[
+        \frac{f_a(u)}{u}
+        \ge
+        c_0 a^2\min\left\{u,\frac1a\right\},
+        \qquad
+        c_0=\frac{e^{-1}}{8}.
+        \label{eq:product_laplace_generator_lower}
+    \]
+    To prove this, let $s=a(u-1)$. If $s\le1$, then
+    \[
+        e^{-s}+s-1\ge \frac{e^{-1}}{2}s^2,
+    \]
+    and since $u\ge2$,
+    \[
+        \frac{(u-1)^2}{u}\ge \frac{u}{4}.
+    \]
+    Hence
+    \[
+        \frac{f_a(u)}{u}
+        \ge
+        \frac{e^{-1}}{8}a^2u
+        \ge
+        \frac{e^{-1}}{8}a^2\min\left\{u,\frac1a\right\}.
+    \]
+    If $s>1$, then it is enough to prove a lower bound of order $a$.
+    When $1<s\le2$,
+    \[
+        f_a(u)=e^{-s}+s-1\ge e^{-1},
+        \qquad
+        u=\frac{s+a}{a}\le \frac{3}{a},
+    \]
+    so $f_a(u)/u\ge e^{-1}a/3$. When $s\ge2$,
+    \[
+        f_a(u)=e^{-s}+s-1\ge s-1\ge \frac{s}{2},
+        \qquad
+        u=\frac{s+a}{a}\le \frac{3s}{2a},
+    \]
+    so $f_a(u)/u\ge a/3$. This proves
+    \eqref{eq:product_laplace_generator_lower}.
+
+    Since $R=dP/dQ$, the change of measure identity gives
+    \[
+        D_{f_a}(P\|Q)
+        =
+        \E_Q[f_a(R)]
+        =
+        \E_P\left[\frac{f_a(R_0)}{R_0}\right].
+    \]
+    By the assumption $a\le(A_\lambda e^{\tau_\lambda})^{-d}$ and the fact
+    $A_\lambda e^{\tau_\lambda}\ge2$, we have $a\le1$. Therefore, using
+    \eqref{eq:product_laplace_generator_lower} on the event $\mathcal G$,
+    where $R_0\ge2$, gives
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_0a^2
+        \E_P\left[
+            \min\left\{R_0,\frac1a\right\}
+            \mathbf{1}_{\mathcal G}
+            \right].
+    \]
+    Using \eqref{eq:product_laplace_R0_large}, and using the independence of
+    $X'$ and $T_0$, we get
+    \[
+        \begin{aligned}
+            D_{f_a}(P\|Q)
+             & \ge
+            c_0a^2\beta_\lambda^d
+            \int_{[\tau_\lambda,\infty)^d}
+            \min\left\{
+            A_\lambda^d
+            \exp\left(\sum_{i=1}^d t_i\right),
+            \frac1a
+            \right\}
+            \prod_{i=1}^d
+            \left(\frac12 e^{-t_i}\right)
+            dt_i .
+        \end{aligned}
+        \label{eq:product_laplace_integral_lower}
+    \]
+
+    It remains only to evaluate the integral in
+    \eqref{eq:product_laplace_integral_lower}. Set
+    \[
+        L_a
+        =
+        \log\left(
+        \frac{1}{a(A_\lambda e^{\tau_\lambda})^d}
+        \right).
+    \]
+    The assumption on $a$ gives $L_a\ge0$.  Put
+    \[
+        t_i=\tau_\lambda+u_i,
+        \qquad
+        u_i\ge0,
+        \qquad
+        S=\sum_{i=1}^d u_i.
+    \]
+    Then the integral in \eqref{eq:product_laplace_integral_lower} equals
+    \[
+        \begin{aligned}
+            I_a
+             & =
+            2^{-d}
+            \int_{\R_+^d}
+            \min\left\{
+            A_\lambda^d e^{d\tau_\lambda}e^S,
+            \frac1a
+            \right\}
+            e^{-d\tau_\lambda}e^{-S}
+            du
+            \\
+             & =
+            2^{-d}
+            \left[
+                A_\lambda^d
+                \operatorname{vol}\{u\in\R_+^d:S\le L_a\}
+                +
+                \frac{e^{-d\tau_\lambda}}{a}
+                \int_{\{u\in\R_+^d:S>L_a\}} e^{-S}\,du
+                \right].
+        \end{aligned}
+    \]
+    The first term is a simplex volume:
+    \[
+        \operatorname{vol}\{u\in\R_+^d:S\le L_a\}
+        =
+        \frac{L_a^d}{d!}.
+    \]
+    For the second term, using the Gamma tail identity,
+    \[
+        \int_{\{u\in\R_+^d:S>L_a\}} e^{-S}\,du
+        =
+        \int_{L_a}^{\infty}
+        e^{-s}\frac{s^{d-1}}{(d-1)!}\,ds
+        =
+        e^{-L_a}\sum_{j=0}^{d-1}\frac{L_a^j}{j!}.
+    \]
+    Since
+    \[
+        e^{-L_a}=a(A_\lambda e^{\tau_\lambda})^d,
+    \]
+    we obtain
+    \[
+        \frac{e^{-d\tau_\lambda}}{a}
+        e^{-L_a}
+        =
+        A_\lambda^d.
+    \]
+    Hence
+    \[
+        I_a
+        =
+        2^{-d}A_\lambda^d
+        \sum_{j=0}^d
+        \frac{L_a^j}{j!}.
+    \]
+    Plugging this value of $I_a$ into
+    \eqref{eq:product_laplace_integral_lower} gives
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_0
+        \left(\frac{\beta_\lambda A_\lambda}{2}\right)^d
+        a^2
+        \sum_{j=0}^d
+        \frac{L_a^j}{j!},
+    \]
+    which proves the main lower bound.
+
+    \paragraph{Step 4: derive the asymptotic form.}
+    For fixed $\lambda$ and $d$,
+    \[
+        L_a
+        =
+        \log(1/a)
+        -
+        d\log(A_\lambda e^{\tau_\lambda}).
+    \]
+    Therefore, if
+    \[
+        0<a\le
+        a_{\lambda,d}
+        \triangleq
+        (A_\lambda e^{\tau_\lambda})^{-2d},
+    \]
+    then
+    \[
+        L_a\ge \frac12\log(1/a).
+    \]
+    Consequently,
+    \[
+        \sum_{j=0}^d\frac{L_a^j}{j!}
+        \ge
+        2^{-d}
+        \sum_{j=0}^d
+        \frac{\log^j(1/a)}{j!}.
+    \]
+    Absorbing the fixed factor
+    \[
+        c_0
+        \left(\frac{\beta_\lambda A_\lambda}{2}\right)^d
+        2^{-d}
+    \]
+    into $c_{\lambda,d}$ gives
+    \[
+        D_{f_a}(P\|Q)
+        \ge
+        c_{\lambda,d}
+        a^2
+        \sum_{j=0}^d
+        \frac{\log^j(1/a)}{j!}
+    \]
+    for all $0<a\le a_{\lambda,d}$. The leading term in the sum is
+    $\log^d(1/a)/d!$, which gives
+    \[
+        D_{f_a}(P\|Q)
+        =
+        \Omega_{\lambda,d}
+        \left(
+        a^2\frac{\log^d(1/a)}{d!}
+        \right)
+        \qquad\text{as }a\downarrow0.
+    \]
+\end{proof}
