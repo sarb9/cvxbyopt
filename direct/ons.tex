@@ -29,7 +29,19 @@
 \Crefname{inequality}{Inequality}{Inequalities}
 \newcommand{\eqlabel}[1]{\label[equality]{#1}}
 \newcommand{\ineqlabel}[1]{\label[inequality]{#1}}
-
+\newcommand{\proofstep}[2]{%
+    \par\medskip
+    \noindent
+    \textcolor{blue!55!black}{\rule{2pt}{1.2em}}%
+    \hspace{0.6em}%
+    {\sffamily\bfseries\color{blue!55!black}Step #1}%
+    \quad
+    {\sffamily #2}%
+    \par\smallskip
+}
+\newcommand{\proofstepinline}[1]{%
+    {\sffamily\bfseries\color{blue!55!black}Step #1.}\enspace
+}
 \newcommand{\R}{\mathbb R}
 \newcommand{\E}{\mathbb E}
 \newcommand{\Pp}{\mathbb P}
@@ -114,8 +126,8 @@ predictable counterpart, and the second by using the extra curvature of the
 standard reinforced extension.
 
 The paper is organised as follows.  \Cref{sec:setting} introduces the problem,
-the extension and the algorithm.  The deterministic comparison behind the
-method is in \cref{sec:comparison}.  Trace, moment and concentration estimates
+the extension and the algorithm.
+Trace, moment and concentration estimates
 are collected in \cref{sec:stochastic-control}.  The stability statement and
 regret argument appear in \cref{sec:stability}, with the supporting proofs
 deferred to the appendices.
@@ -123,22 +135,24 @@ deferred to the appendices.
 \section{Problem formulation and algorithm}
 \label{sec:setting}
 
-For $r>0$, let $B_r=\{x\in\R^d:\norm{x}\leq r\}$.  Let
-$\K\subset\R^d$ be a convex body.  An affine preprocessing step puts the body
-in the position $B_1\subseteq\K\subseteq B_{2d}$.
+For $r>0$, let $\mathbb{B}_r=\{x\in\R^d:\norm{x}\leq r\}$
+and $\mathbb{S}_r=\{x\in\R^d:\norm{x}=r\}$ be the Euclidean ball and sphere of radius $r$.
+Let $\K\subset\R^d$ be a convex body.  An affine preprocessing step puts the body
+in the position $\mathbb{B}_1\subseteq\K\subseteq \mathbb{B}_{2d}$.
 The loss $f:\K\to[0,1]$ is convex and does not change with time.  In round
 $t$, the learner chooses $A_t\in\K$ and observes $f(A_t)+\xi_t$
 where $\xi_t$ is the noise in round $t$.
-The history at the end of round $t$ is denoted by $\F_t$.
-The noise is independent of the past\footnote{It is standard to convert this to conditional independence}
-and learner's randomness, and satisfies
+Let $\zeta_t$ be the randomness of the algorithm in round $t$ which it uses to make decisions, and let
+$\F_t=\sigma(\zeta_1,\xi_1,\ldots,\zeta_t,\xi_t)$ be the filtration at the end of round $t$,
+and $\E_t[\cdot]=\E[\cdot\mid\F_{t-1}]$ and $\Pp_t(\cdot)=\Pp(\cdot\mid\F_{t-1})$ be the conditional expectation and probability given the history.
+The noise is conditionally subgaussian, i.e., for all $t$,
 \begin{align}
-    \E[\xi_t]=0,
+    \E_t[\xi_t|\zeta_t]=0,
     \qquad
-    \E[\exp(\xi_t^2)]\leq2.
+    \E_t[\exp(\xi_t^2)|\zeta_t]\leq2.
     \label{eq:noise}
 \end{align}
-We bound the realized regret
+The quantity of interest is the realized (\textit{pseudo-})regret
 \begin{align}
     \operatorname{Reg}_n
     =\sum_{t=1}^n\left(f(A_t)-\inf_{x\in\K}f(x)\right).
@@ -146,23 +160,25 @@ We bound the realized regret
 \end{align}
 
 Let $\pi(x)=\inf\{r>0:x\in r\K\}$ be the Minkowski functional of $\K$ and let
-$U$ be uniform on the Euclidean unit sphere.  The only geometric parameter in
-the result is
+$U$ be uniform on the Euclidean unit sphere.
+The only geometric quantity in the result is
 \begin{align}
     M=\max\left\{\frac1{\sqrt d},\E[\pi(U)]\right\}.
     \label{eq:M}
 \end{align}
-The rounding  $B_1\subseteq\K$ implies that $\pi$ is $1$-Lipschitz.
+The rounding  $\mathbb{B}_1\subseteq\K$ implies that $\pi$ is $1$-Lipschitz.
 Write $\gamma_{\mu,\Sigma}$ for the density of
-$\N(\mu,\Sigma)$, for $\mu\in\R^d$ and $\Sigma\in\mathbb{S}_{++}^{d\times d}$.
+$\N(\mu,\Sigma)$, for $\mu\in\R^d$ and $\Sigma\in\R^{d\times d}$ symmetric positive semidefinite.
 
+\subsection{Distributional derivatives}
 A general convex function $h:\R^d\to\R$ may not be differentiable everywhere and
 its Hessian may not exist in the classical sense.
 Traditionally, this issue is handled through a mollification process: convolve $h$ with a smooth kernel to obtain a smooth approximation, and then take limits.
 However, we will take a different approach that avoids mollification and works directly with the original function $h$.
 We employ the theory of distributions, which allows us to define derivatives in a weak sense.
-Practically, we write $Dh$ and $D^2h$ for the first and second distributional derivatives of $h$, which
-are defined as
+Practically, first we recall the definition of the Schwartz space $\mathcal S(\R^d)$, which consists of smooth functions that decay faster than any polynomial at infinity, along with all their derivatives.
+We write $Dh$ and $D^2h$ for the first and second distributional derivatives of $h$, which
+are defined as linear functionals on the Schwartz space $\mathcal S(\R^d)$ of smooth rapidly decaying functions.
 \begin{align}
     \langle Dh,\varphi\rangle
      & =-\int_{\R^d}h(x)\nabla\varphi(x)\,dx,
@@ -175,7 +191,7 @@ are defined as
 where $\varphi$ is the Gaussian density $\gamma_{\mu,\Sigma}$ for our purposes,
 which is a Schwartz function.
 The crucial fact here is that if $h$ is convex, then $D^2h$ is a positive-semidefinite matrix-valued \textit{tempered} Radon measure and the Gaussian density $\gamma_{\mu,\Sigma}$ is a Schwartz function, so the pairing $\langle D^2h,\gamma_{\mu,\Sigma}\rangle$ is well-defined and yields a positive-semidefinite matrix.
-\alireza{This possibly needs more explanations and citations.}
+\alireza{This subsection needs more explanations and citations.}
 
 \subsection{A queryable convex extension}
 
@@ -185,47 +201,43 @@ Fix $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
      & =\max\left\{1,\frac{\pi(x)}{1-\eps}\right\}
     =\begin{cases}
          1               & \text{if }x\in\K_\eps, \\
-         \pi(x)/(1-\eps) & \text{otherwise}.
+         \pi(x)/(1-\eps) & \text{otherwise}\,,
      \end{cases}
+    \quad\text{and}\quad v(x)=\pi_\eps(x)-1\,.
     \label{eq:extension-notation}
 \end{align}
-Let $v(x)=\pi_\eps(x)-1$.
 We use the queryable extension from
 \citet[Eq.~(10.6)]{lattimore2026bandit} which is defined for all $x\in\R^d$ by
 \begin{align}
     e(x)
     =\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
-    +\frac{2}{\eps}(\pi_\eps(x)-1).
+    +\frac{2}{\eps}v(x).
     \label{eq:extension}
 \end{align}
-\begin{lemma}
+\begin{lemma}[{\citet[Proposition~3.23]{lattimore2026bandit}}]
     \label{lem:extension}
-    The function $e$ is convex, agrees with $f$ on $\K_\eps$, and
+    The function $\bar{e}:
+        x
+        \longmapsto
+        \pi_\eps(x)
+        f\!\left(\frac{x}{\pi_\eps(x)}\right)
+        +
+        \frac{1-\eps}{\eps}v(x)
+    $ is convex, agrees with $f$ on $\K_\eps$, and
     \begin{align}
-        \Lip(e)\leq\frac{3}{\eps(1-\eps)}\leq\frac6\eps.
-        \label{eq:extension-lipschitz}
+        \Lip(\bar e)\leq\frac{2}{\eps(1-\eps)}\,.
     \end{align}
     Moreover,
-    \begin{align}
-        e\!\left(\frac{x}{\pi_\eps(x)}\right)\leq e(x)
-        \quad\text{for all }x\in\R^d,
-        \label{eq:extension-radial}
-    \end{align}
-    Furthermore, the function $e$ is radially non-decreasing, i.e.,
-    \begin{align}
-        D^2e\succeq\frac1\eps D^2v.
-        \label{eq:extension-curvature}
-    \end{align}
+    $e\!\left(\frac{x}{\pi_\eps(x)}\right)\leq e(x)$
+    for all $x\in\R^d$.
 \end{lemma}
-\begin{proof}
-    For \eqref{eq:extension-lipschitz} and \eqref{eq:extension-radial}, see \citet[Proposition~3.22]{lattimore2026bandit}.
-    To prove \eqref{eq:extension-curvature}, let
-    $e_0(x)=\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
-        +\frac{1-\eps}{\eps}v(x)$
-    which is convex.
-    Since
-    $e=e_0+(1+\eps)v/\eps$ and $v$ is convex, $D^2e\succeq\frac{1+\eps}{\eps}D^2v \succeq \frac1\eps D^2v$.
-\end{proof}
+Now, observe that $e(x)=\bar e(x)+\frac{1+\eps}{\eps}v(x)$, so $e$ is also convex, agrees with $f$ on $\K_\eps$ since $v(x)=0$ for $x\in\K_\eps$.
+Moreover, $v$ is $1/(1-\eps)$-Lipschitz, so $e$ is also Lipschitz with
+\begin{align}
+    \Lip(e)\leq\frac{2}{\eps(1-\eps)}+\frac{1+\eps}{\eps}\cdot\frac{1}{1-\eps}\leq\frac{8}{\eps}\,,
+    \label{eq:extension-lipschitz}
+\end{align}
+when $\eps\in(0,1/2]$.
 
 \subsection{Gaussian $L^2$ projection and Hermite basis}
 \label{sec:hermite-projection}
@@ -259,20 +271,20 @@ each of which can be written uniquely as
     \label{eq:quadratic-polynomial}
 \end{align}
 It is easy to check that $\mathcal Q_2\subset L^2(\N(\mu,\Sigma))$.
-Through defining the inner product $\ip{r}{s}_{L^2(\N(\mu,\Sigma))}=\E[r(X)s(X)]$, the space $L^2(\N(\mu,\Sigma))$ becomes a Hilbert space, and we can define the Hermite projection of $e$ onto the space of quadratic polynomials as
+Through defining the inner product $\ip{r}{s}_{L^2(\N(\mu,\Sigma))}=\E[r(X)s(X)]$, the space $L^2(\N(\mu,\Sigma))$ becomes a Hilbert space, and we can define the projection of $e$ onto the space of quadratic polynomials as
 \begin{align}
     \mathcal P_{\mu,\Sigma}e
     =
     \argmin_{p\in\mathcal Q_2}
     \E\left[
         (e(X)-p(X))^2
-        \right].
+        \right]\,.
     \label{eq:hermite-best-approximation}
 \end{align}
 \begin{lemma}
     \label{lem:hermite-projection-convex}
     Let $e:\R^d\to\R$ be a Lipschitz convex function.
-    Then its Hermite projection $\mathcal P_{\mu,\Sigma}e$ is
+    Then its projection $\mathcal P_{\mu,\Sigma}e$ is
     \begin{align}
         \mathcal P_{\mu,\Sigma}e(x)
         =
@@ -288,6 +300,8 @@ Through defining the inner product $\ip{r}{s}_{L^2(\N(\mu,\Sigma))}=\E[r(X)s(X)]
     $g = \langle De, \gamma_{\mu,\Sigma}\rangle$,
     and
     $H = \langle D^2e, \gamma_{\mu,\Sigma}\rangle$.
+    \alireza{We might as well use $\langle e, D^2\gamma_{\mu,\Sigma}\rangle=\E[e(x)\nabla^2\gamma_{\mu,\Sigma}(x)]$
+        as the definition of $H$ and avoid the distributional derivative in the main paper.}
 \end{lemma}
 \begin{proof}
     We need a proof, although we don't really need the \textit{projection} property.\alireza{
@@ -304,12 +318,12 @@ Through defining the inner product $\ip{r}{s}_{L^2(\N(\mu,\Sigma))}=\E[r(X)s(X)]
 
 
 
-\subsection{The algorithm}
+\section{The algorithm}
 
 On an active round $t$, the learner samples
 $X_t\sim \N(\mu_t,\Sigma_t)$ and plays its radial contraction
 $A_t=X_t/\pi_\eps(X_t)\in\K$.
-The resulting feedback can be converted into the one-sample value
+The resulting feedback is $f(A_t) + \xi_t$ which is converted into the feedback from the queryable extension $e$ as
 \begin{align}
     Y_t
      & =
@@ -320,12 +334,9 @@ The resulting feedback can be converted into the one-sample value
     \E_t[Y_t\mid X_t]=e(X_t).
     \label{eq:Y}
 \end{align}
-Let $q_t \triangleq \cP_{\mu_t,\Sigma_t} e - \E_t[e(X_t)]$
-\footnote{
-    We drop the constant term $\E_t[e(X_t)]$ as it does not affect the Newton step.
-}
-which gives
+Let $\lambda \in (0,1)$ be a damping parameter and define the quadratic surrogate
 \alireza{
+    The connection to the previous section is not clear.
     There is also the sudden presence of the damping parameter $\lambda$ in the definition of $q_t$,
     which should be explained. I think it is better to translate this quantity into somewhere else in the algorithm and the analysis to make the story more coherent.
 }
@@ -339,6 +350,9 @@ which gives
     \qquad
     H_t\triangleq \langle D^2e,\gamma_{\mu_t,\Sigma_t}\rangle.
 \end{align}
+\alireza{
+    Again, $g_t$ and $H_t$ can be defined through expectations to avoid distributional notation in the main paper.
+}
 The main observation is that $g_t$ and $H_t$ can be estimated from the single pair $(X_t, Y_t)$.
 More precisely, define
 \begin{align}
@@ -359,7 +373,7 @@ where for $Z_t\triangleq\Sigma_t^{-1/2}(X_t-\mu_t)$, we define
      & =Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}\,,
     \label{eq:sampled-hermite-coefficients}
 \end{align}
-then from integration by parts\alireza{More explanation needed here.} we get
+then from distributional integration by parts\alireza{More explanation needed here.} we get
 \begin{align}
     g_t = \langle De, \gamma_{\mu_t,\Sigma_t}\rangle
     = - \langle e, \nabla \gamma_{\mu_t,\Sigma_t}\rangle
@@ -367,12 +381,13 @@ then from integration by parts\alireza{More explanation needed here.} we get
     \quad\text{and}\quad
     H_t = \langle D^2e, \gamma_{\mu_t,\Sigma_t}\rangle
     = \langle e, \nabla^2 \gamma_{\mu_t,\Sigma_t}\rangle
-    = \E_t[\widehat H_t],
+    = \E_t[\widehat H_t]\,,
     \label{eq:sampled-hermite-unbiasedness}
 \end{align}
-we get $\E_t[\hat{q}_t\mid X_t]=q_t$.
-The algorithm is just projected ONS applied to $\widehat q_t$.
-Indeed, if $\Sigma_t^{-1}+\lambda\eta\widehat H_t\succ0$,
+and more importantly, $\E_t[\hat{q}_t\mid X_t]=q_t$.
+
+The algorithm is just projected online newton steps (ONS) applied to quadratic estimates $\widehat q_t$.\alireza{explanation on ONS is needed.}
+If $\Sigma_t^{-1}+\lambda\eta\widehat H_t\succ0$,
 then completing the square gives the equivalent forms
 \begin{align}
     \mu_{t+1}
@@ -386,8 +401,8 @@ then completing the square gives the equivalent forms
     {\Sigma_t^{-1}+\lambda\eta\widehat H_t}^2.
     \label{eq:projected-ons-update}
 \end{align}
-It should be clear from the update why the bias term $\E_t[e(X_t)]$ is dropped from $q_t$
-as it does not affect the Newton step.\alireza{More explanations here.}
+\alireza{It should be clear from the update why the bias term $\E_t[e(X_t)]$ is dropped from $q_t$
+    as it does not affect the Newton step.}
 \begin{algorithm}[!t]
     \caption{Direct Hermite--ONS algorithm}
     \label{alg:direct-hermite}
@@ -466,10 +481,10 @@ where $C_0$ is a sufficiently large universal constant.
 
 \section{Analysis}
 \label{sec:analysis}
-We fix a time step $t$ and drop the subscript $t$ from the notation in this section.
-The proof rests on an exact identity for the direct Hermite coefficients and
-a local comparison between its two curvature terms.  For a convex Lipschitz
-function $e$, and a Lebesgue-almost every $z$, the Bregman divergence is
+\subsection{Regret switching}
+We fix a time step $t$ and drop the subscript $t$ from the notation in this subsection.
+The proof rests on relating the regret of the quadratic surrogate $q$ to the regret of the original loss $e$.
+For a convex Lipschitz function $e$, and a differentiable point $z$, the Bregman divergence is
 \begin{align}
     D_e(x\,\|\,z)
     =e(x)-e(z)-\ip{\nabla e(z)}{x-z}.
@@ -582,13 +597,12 @@ smoothing in the usual analysis.
     \label{prop:bracket}
     Let
     $e:\R^d\to\R$ be convex and $L$-Lipschitz and $X\sim\N(\mu,\Sigma)$.
-    Then there exist universal constants $c_0,C>0$ such that
-    for any $\beta\in(0,1/2)$, $0<\lambda\leq1/8$ and $x\in\R^d$ satisfying
+    Then for any $\beta\in(0,1/2]$ and $\lambda\in(0, 1/8]$
+    such that $\lambda\left(d+\log\frac2\beta\right) \leq \frac{1}{64}$,
+    for all $x\in\R^d$ satisfying
     \begin{align}
-        \lambda\left(d+\log\frac2\beta\right) \leq c_0,
-        \qquad\text{and}\qquad
         \lambda\normm{\mu-x}{\Sigma^{-1}}
-        \sqrt{\log\frac2\beta}                \leq c_0,
+        \sqrt{\log\frac2\beta}                \leq \frac{1}{64},
         \label{eq:bracket-focus}
     \end{align}
     it holds that
@@ -597,19 +611,19 @@ smoothing in the usual analysis.
         -\E[D_e(x\,\|\,X)]
         \leq
         \frac1{16}\tr(H\Sigma)
-        +C\lambda L\beta
+        +\frac{\lambda L\beta}{\sqrt{\pi}}
         \norm{\mu-x}\normm{\mu-x}{\Sigma^{-1}}.
         \label{eq:bracket}
     \end{align}
 \end{proposition}
-
-The proof is given in \cref{app:bracket}.  Its main idea is short.  After
-standardising the Gaussian, write the Bregman divergence as the curvature
-integrated along the segment from the comparator to the sample.  On a
-high-probability set, the laws of the last $O(\lambda)$ portion of this segment
-dominate a constant fraction of the standard Gaussian law.  This pays for the
-comparator curvature.  One remaining part is bounded by $\tr(H\Sigma)$, while
-the Gaussian tail is controlled using Lipschitzness.
+The proof is given in \cref{app:bracket}.
+% Its main idea is short.  After
+% standardising the Gaussian, write the Bregman divergence as the curvature
+% integrated along the segment from the comparator to the sample.
+% On a high-probability set, the laws of the last $O(\lambda)$ portion of this segment
+% dominate a constant fraction of the standard Gaussian law.  This pays for the
+% comparator curvature.  One remaining part is bounded by $\tr(H\Sigma)$, while
+% the Gaussian tail is controlled using Lipschitzness.
 
 \subsection{Online Newton Step}
 \begin{lemma}[Projected ONS]
@@ -711,11 +725,14 @@ By minimality and the equality $\Sigma_1^{-1}=\overline\Sigma_1^{-1}$,
 \end{align}
 \begin{lemma}
     \label{lem:trace}
-    It holds that
+    % Suppose that $\sqrt{\frac32} \lambda\eta \Lip(e) \sigma \leq1$.
+    Suppose that $\frac{c_\lambda c_\eta}{C_\eps C_0^6}\leq\frac{1}{8}$.
+    Then it holds that
     \begin{align}
         \|\overline\Sigma_{t+1}^{-1}\|_{\op}^{\frac12}
         \leq
-        \sigma^{-1}+t\lambda\eta\Lip(e)
+        \sigma^{-1}+t\,,
+        % \lambda\eta\Lip(e)
         \qquad(1\leq t\leq \tau_{\mathrm{cov}}),
         \label{eq:predictable-spectrum}
     \end{align}
@@ -723,180 +740,24 @@ By minimality and the equality $\Sigma_1^{-1}=\overline\Sigma_1^{-1}$,
     \begin{align}
         \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
         \tr(H_t\overline\Sigma_t)
-        \leq
-        \frac{Cd}{\lambda}
-        \log\left(1+C\tau_{\mathrm{cov}}\lambda\eta\Lip(e)\sigma\right)
-        \leq\frac{Cd\ell}{\lambda}.
+        \leq\frac{4d\log(1 + n)}{\lambda}.
         \label{eq:trace-budget}
     \end{align}
 \end{lemma}
-\begin{proof}
-    Let $L=\Lip(e)$.
-    To prove \eqref{eq:predictable-spectrum}, write
-    \begin{align}
-        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
-        =
-        \norm{\overline\Sigma_{t}^{-1} + \lambda\eta H_t}_{\op}
-        \leq
-        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \lambda\eta\norm{H_t}_{\op}\,.
-    \end{align}
-    Next, distributional integration by parts for every $v\in\mathbb{S}_1^d$ gives
-    \begin{align}
-        \norm{H_t}_{\op}
-         & =
-        \sup_{\|v\|=1} v^\top H_t v
-        =
-        \sup_{\|v\|=1}
-        \int_{\R^d}e(x) D^2_v\gamma_{\mu_t,\Sigma_t}(x)\,dx
-        =
-        \sup_{\|v\|=1}
-        -\int_{\R^d}\partial_ve(x)\,
-        \partial_v\gamma_{\mu_t,\Sigma_t}(x)\,dx
-        \\
-         & =
-        \sup_{\|v\|=1}
-        \E_t\left[
-            \ip{\nabla e(X_t)}{v}
-            \ip{\Sigma_t^{-1}(X_t-\mu_t)}{v}
-            \right]
-        \leq
-        \sup_{\|v\|=1}
-        L \|v\|_{\Sigma_t^{-1}}
-        =
-        L \norm{\Sigma_t^{-1}}_{\op}^{1/2},
-        \label{eq:H-quadratic-bound}
-    \end{align}
-    where the inequality is by Cauchy--Schwarz and the Lipschitz property of $e$.
-    Plugging this bound into the previous inequality gives
-    \begin{align}
-        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
-         & \leq
-        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \lambda\eta L \norm{\Sigma_t^{-1}}_{\op}^{1/2}
-        \leq
-        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \sqrt{\frac{3}{2}}\lambda\eta L\norm{\overline\Sigma_{t}^{-1}}_{\op}^{1/2}
-        \leq
-        \left(\norm{\overline\Sigma_{t}^{-1}}_{\op}^{1/2} + \lambda\eta L\right)^2\,,
-        \label{eq:predictable-spectrum-bound}
-    \end{align}
-    where the second inequality uses \eqref{eq:covariance-comparison}.
-    Now, by taking square roots and iterating, we get
-    \begin{align}
-        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}^{1/2}
-        \leq
-        \norm{\overline\Sigma_1^{-1}}_{\op}^{1/2} + t\lambda\eta L
-        = \sigma^{-1}+t\lambda\eta L,
-    \end{align}
-    which proves \eqref{eq:predictable-spectrum}.
-
-
-    We next prove \eqref{eq:trace-budget}.  Starting from its left-hand side
-    and using cyclicity of the trace gives
-    \begin{align}
-        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \tr(H_t\overline\Sigma_t)
-        =
-        \frac1\lambda\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \tr\left(
-        \lambda\eta\overline\Sigma_t^{1/2}H_t
-        \overline\Sigma_t^{1/2}
-        \right).
-        \label{eq:normalised-trace-sum}
-    \end{align}
-    For every $t\leq\tau_{\mathrm{cov}}$ and every unit vector $u$, the same integration by
-    parts estimate used above, followed by
-    \eqref{eq:covariance-comparison}, gives
-    \begin{align}
-        u^\top\overline\Sigma_t^{1/2}H_t
-        \overline\Sigma_t^{1/2}u
-         & \leq
-        L\norm{\overline\Sigma_t^{1/2}u}
-        \sqrt{u^\top\overline\Sigma_t^{1/2}
-            \Sigma_t^{-1}\overline\Sigma_t^{1/2}u}
-        \leq
-        \sqrt{\frac32}\,L
-        \norm{\overline\Sigma_t^{1/2}u}
-        \leq
-        \sqrt{\frac32}\,L\sigma.
-        \label{eq:normalised-H}
-    \end{align}
-    The last inequality uses
-    $\overline\Sigma_t\preceq\overline\Sigma_1=\sigma^2I_d$.
-    By \eqref{eq:parameters-one}--\eqref{eq:parameters-two} and
-    \eqref{eq:extension-lipschitz},
-    \begin{align}
-        \sqrt{\frac32}\lambda\eta L\sigma
-        \leq
-        \frac{C c_\lambda c_\eta}
-        {C_\eps d^3M^2\ell^6}
-        \leq1,
-    \end{align}
-    where the last inequality follows by taking $C_\eps$ sufficiently large.
-    Hence the normalized Hessian in \eqref{eq:normalised-trace-sum} has all
-    its eigenvalues in $[0,1]$.
-    Returning to
-    \eqref{eq:normalised-trace-sum} and applying
-    $s\leq2\log(1+s)$ to these eigenvalues, we obtain
-    \begin{align}
-        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \tr(H_t\overline\Sigma_t)
-         & \leq
-        \frac2\lambda\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \log\det\left(
-        I_d+\lambda\eta\overline\Sigma_t^{1/2}H_t
-        \overline\Sigma_t^{1/2}
-        \right)                        \\
-         & =
-        \frac2\lambda\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \log\frac{\det(\overline\Sigma_{t+1}^{-1})}
-        {\det(\overline\Sigma_t^{-1})} \\
-         & =
-        \frac2\lambda
-        \log\frac{\det(\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1})}
-        {\det(\overline\Sigma_1^{-1})} \\
-         & \leq
-        \frac{2d}{\lambda}
-        \log\left(
-        \sigma^2
-        \norm{\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1}}_{\op}
-        \right)                        \\
-         & =
-        \frac{4d}{\lambda}
-        \log\left(
-        \sigma
-        \norm{\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1}}_{\op}^{1/2}
-        \right)                        \\
-         & \leq
-        \frac{4d}{\lambda}
-        \log\left(1+\tau_{\mathrm{cov}}\lambda\eta L\sigma\right)
-        \leq
-        \frac{Cd\ell}{\lambda}\,,
-    \end{align}
-    where the penultimate inequality
-    uses \eqref{eq:predictable-spectrum}.  For the last inequality, the
-    preceding parameter calculation and $\tau_{\mathrm{cov}}\leq n$ give
-    \begin{align}
-        \log\left(1+\tau_{\mathrm{cov}}\lambda\eta L\sigma\right)
-        \leq\log(1+n)\leq\ell,
-    \end{align}
-    after increasing $C_0$.
-\end{proof}
-
-\subsection{The extension controls the feedback}
-
-The radial penalty in \eqref{eq:extension} is not only a device for querying
-outside $\K$.  Its curvature pays for the second moment introduced by the
-factor $\pi_\eps(X_t)$.
+The proof is in \cref{app:trace}.
 
 \begin{lemma}
     \label{lem:feedback}
+    Suppose that $C_0\geq 64$, $C_\eps> 2^{11}$, $c_\lambda c_\eta C_\eps> 2^{12}$, $\eps\leq 1/2$,
+    $\ell\geq 1$, and $\frac{c_\lambda c_\eta}{C_\eps C_0^6}\leq\frac{1}{8}$.
     It holds that
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Y_t^2]\leq Cn\,,
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Y_t^2]\leq 6n\,,
         \label{eq:predictable-Y2}
     \end{align}
     and with probability at least $1-\delta/8$,
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2 \leq Cn.
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2 \leq 8n.
         \label{eq:realised-Y2}
     \end{align}
 \end{lemma}
@@ -914,7 +775,7 @@ Let
 This point exists because $\K_\eps$ is a compact subset of
 $\operatorname{int}\K$, where the finite convex function $f$ is continuous.
 Moreover, $x/\pi_\eps(x)\in\K_\eps$ for every $x\in\R^d$, so agreement on
-$\K_\eps$ and \eqref{eq:extension-radial} show that $x_\star$ is a global
+$\K_\eps$ and \eqref{lem:extension} show that $x_\star$ is a global
 minimizer of $e$.  Consequently,
 \begin{align}
     \E_t[e(X_t)]-e(x_\star)\geq0.
@@ -936,8 +797,8 @@ and the stopping times
     \normm{\mu_{t+1}-x_\star}{\Sigma_{t+1}^{-1}}^2>B
     \right\}
     \cup\{n\}
-    \right),
-    \qquad
+    \right)
+    \qquad\text{and}\qquad
     \tau_{\mathrm{safe}}
     =
     \tau_{\mathrm{cov}}\wedge\tau_{\mathrm{focus}}.
@@ -1130,7 +991,7 @@ The proof is in \cref{app:stability}.
     \begin{align}
         f(A_t)=e(A_t)\leq e(X_t)
     \end{align}
-    by \eqref{eq:extension-radial}.  Since $f(A_t)\in[0,1]$, Azuma's
+    by \eqref{lem:extension}.  Since $f(A_t)\in[0,1]$, Azuma's
     inequality gives, with probability at least $1-\delta/2$,
     \begin{align}
         \sum_{t=1}^n
@@ -1326,7 +1187,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \end{align}
     In step 1, we upper bound the integral over $\mathcal A$ by the sum of expected Bregman divergence $\E[D_e(x\,\|\,X)]$ and a trace term $\tr(H\Sigma)$.
     In step 2, we upper bound the integral over $\mathcal A^c$ by a tail term that is small under the assumptions of the proposition.
-    \paragraph{Step 1.}
+
+    \proofstepinline{1}
     Let $\gamma=\gamma_{0,I_d}$ and $\gamma_V=\gamma_{0,V}$ for $V\succ0$.
     For $s\in(0,1]$ by \cref{lem:averaged-bregman-curvature},
     we have
@@ -1346,14 +1208,17 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     }
     \begin{align}
         \mathcal A=\left\{z:
-        \norm{z}^2\leq2d\log2+4\log\frac2\beta,
+        \norm{z}^2\leq2d\log2+4\log\frac2\beta
+        \quad
+        \text{and}
         \quad
         \left|\ip{\frac{\bar{x}}{\norm{\bar{x}}}}{z}\right|^2
         \leq4\log\frac{2\sqrt2}{\beta}
         \right\}.
         \label{eq:A}
     \end{align}
-    \paragraph{Step 1.1.}
+
+    \proofstepinline{1.1}
     Next we show that $\frac12\gamma(z)\leq p_s(z)$ for $s\in[1-2\lambda,1]$ and $z\in\mathcal A$.
     Since $sZ+(1-s)\bar{x}\sim\N((1-s)\bar{x},s^2I_d)$,
     we have
@@ -1394,10 +1259,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         -4\lambda^2\norm{\bar{x}}^2.
         \label{eq:density-ratio-lower}
     \end{align}
-    % Write $\ell_\beta=\log(2/\beta)$.
-    % Since $\beta<1/2$, we have $\ell_\beta\geq\log4$.
     Now suppose for $z\in\mathcal A$, then
-    together with the first condition in \eqref{eq:bracket-focus} we have
+    together with the assumption $\lambda\left(d+\log\frac2\beta\right)\leq \frac{1}{64}$ we have
     \begin{align}
         \lambda\norm{z}^2
          & \leq
@@ -1407,7 +1270,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq
         4\lambda\left(d+\log\left(\frac2\beta\right)\right)
         \leq
-        4c_0\,,
+        \frac{1}{16}\,,
         \label{ineq:lambda-z-squared-bound}
     \end{align}
     and, again, from $z\in\mathcal A$ we get
@@ -1428,29 +1291,28 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \sqrt5\,
         \lambda\norm{\bar{x}}\sqrt{\log\left(\frac{2}{\beta}\right)}
         \leq
-        \sqrt5\,c_0,
+        \frac{\sqrt5}{64}\,,
     \end{align}
     where in the penultimate inequality we used $
         \frac12\log2
-        \leq \frac14\log\left(\frac{2}{\beta}\right)$ since $\beta<1/2$.
+        \leq \frac14\log\left(\frac{2}{\beta}\right)$ since $\beta<1/2$,
+    and in the last inequality we used \eqref{eq:bracket-focus}.
     The last inequality also gives
     $\lambda^2\norm{\bar{x}}^2
         \leq
-        \frac{c_0^2}{\log\left(\frac{2}{\beta}\right)}
+        \frac{1}{2^{12} \log\left(\frac{2}{\beta}\right)}
         \leq
-        \frac{c_0^2}{\log4}$.
+        \frac{1}{2^{12} \log4}$.
     Substituting these three bounds into
     \eqref{eq:density-ratio-lower} gives
     \begin{align}
         \log\frac{p_s(z)}{\gamma(z)}
         \geq
-        -(16+4\sqrt5)c_0
-        -\frac{4c_0^2}{\log4}
+        -4\left(\frac{1}{16}+\frac{\sqrt5}{64}+\frac{1}{2^{12} \log4}\right)
         \geq
-        \log\frac12\,,
+        \log\frac12\,.
     \end{align}
-    where the last inequality holds for sufficiently small $c_0>0$, for example, $c_0\leq1/40$.
-    Therefore, have established
+    Therefore, we have established
     $p_s(z)
         \geq
         \frac12\gamma(z)$
@@ -1459,7 +1321,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     and
     $z\in\mathcal A$.
 
-    \paragraph{Step 1.2.}
+    \proofstepinline{1.2}
     Since the measure integrand in \eqref{eq:bregman-density} is
     nonnegative, we may restrict both integrals to
     $s\in[1-2\lambda,1]$ and $z\in\mathcal A$,
@@ -1559,10 +1421,11 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \E[D_h(\bar{x}\,\|\,Z)]
         +
         \frac1{16}\tr(H\Sigma)\,,
+        \label{eq:bracket-step1}
     \end{align}
     which concludes step 1.
 
-    \paragraph{Step 2.}
+    \proofstepinline{2}
     It remains to bound the curvature measure on $\mathcal A^c$.  Set
     \begin{align}
         u=\frac{\bar{x}}{\norm{\bar{x}}},
@@ -1570,7 +1433,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         D^2_{\bar{x}}\triangleq\bar{x}^\top D^2h\,\bar{x}.
     \end{align}
     Since $D^2h$ is positive semidefinite, $D^2_{\bar{x}}$ is a nonnegative Radon
-    measure.
+    measure.\alireza{we could've just used $D_{\bar{x}}^2$ from the beginning.}
     Direct comparison of Gaussian densities gives
     \begin{align}
         \gamma(z)\1\left\{\norm z^2>
@@ -1673,17 +1536,18 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     Combining \eqref{eq:tail-curvature-domination} and
     \eqref{eq:wider-gaussian} now yields
     \begin{align}
-        \int_{\mathcal A^c}\gamma(z)\,D^2_{\bar{x}}(dz)
+        \frac{\lambda}{2}\int_{\mathcal A^c}\gamma(z)\,D^2_{\bar{x}}(dz)
         \leq
-        \frac{\beta L}{\sqrt\pi}
+        \frac{\beta L \lambda}{2\sqrt\pi}
         \norm{x-\mu}\norm{\bar{x}}.
-        \label{eq:tail-curvature-bound}
+        \label{eq:bracket-step2}
     \end{align}
     Finally, the definition of $\bar{x}$ gives
     $\norm{\bar{x}}^2=\normm{\mu-x}{\Sigma^{-1}}^2$,
     completing the second step.
-    % Consequently,
-    % \begin{align}
+    Plugging \eqref{eq:bracket-step1} and \eqref{eq:bracket-step2}
+    into \eqref{eq:standardized-comparator-curvature}
+    completes the proof.
     %     \frac\lambda2\normm{\mu-x}{H}^2
     %     -
     %     \E[D_e(x\,\|\,X)]
@@ -1695,280 +1559,719 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     %     \normm{\mu-x}{\Sigma^{-1}}.
     % \end{align}
     % Since $1/(2\sqrt\pi)$ is a universal constant, this proves
-    \eqref{eq:bracket}.
+    % \eqref{eq:bracket}.
+\end{proof}
+
+\section{Proof of \cref{lem:trace}}
+\label{app:trace}
+
+\begin{proof}[Proof of \cref{lem:trace}]
+    Let $L=\Lip(e)$.
+    To prove \eqref{eq:predictable-spectrum}, write
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
+        =
+        \norm{\overline\Sigma_{t}^{-1} + \lambda\eta H_t}_{\op}
+        \leq
+        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \lambda\eta\norm{H_t}_{\op}\,.
+    \end{align}
+    Next, distributional integration by parts for every $v\in\mathbb{S}_1^d$ gives
+    \begin{align}
+        \norm{H_t}_{\op}
+         & =
+        \sup_{\|v\|=1} v^\top H_t v
+        =
+        \sup_{\|v\|=1}
+        \int_{\R^d}e(x) D^2_v\gamma_{\mu_t,\Sigma_t}(x)\,dx
+        =
+        \sup_{\|v\|=1}
+        -\int_{\R^d}\partial_ve(x)\,
+        \partial_v\gamma_{\mu_t,\Sigma_t}(x)\,dx
+        \\
+         & =
+        \sup_{\|v\|=1}
+        \E_t\left[
+            \ip{\nabla e(X_t)}{v}
+            \ip{\Sigma_t^{-1}(X_t-\mu_t)}{v}
+            \right]
+        \leq
+        \sup_{\|v\|=1}
+        L \|v\|_{\Sigma_t^{-1}}
+        =
+        L \norm{\Sigma_t^{-1}}_{\op}^{1/2},
+        \label{eq:H-quadratic-bound}
+    \end{align}
+    where the inequality is by Cauchy--Schwarz and the Lipschitz property of $e$.
+    Plugging this bound into the previous inequality gives
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
+         & \leq
+        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \lambda\eta L \norm{\Sigma_t^{-1}}_{\op}^{1/2}
+        \leq
+        \norm{\overline\Sigma_{t}^{-1}}_{\op} + \sqrt{\frac{3}{2}}\lambda\eta L\norm{\overline\Sigma_{t}^{-1}}_{\op}^{1/2}
+        \leq
+        \left(\norm{\overline\Sigma_{t}^{-1}}_{\op}^{1/2} + \lambda\eta L\right)^2\,,
+        \label{eq:predictable-spectrum-bound}
+    \end{align}
+    where the second inequality uses \eqref{eq:covariance-comparison}.
+    Now, by taking square roots and iterating, we get
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}^{1/2}
+        \leq
+        \norm{\overline\Sigma_1^{-1}}_{\op}^{1/2} + t\lambda\eta L
+        = \sigma^{-1}+t\lambda\eta L
+        \leq \sigma^{-1} + t \frac{c_\lambda}{d^{3/2}M\ell^2} \cdot \frac{c_\eta dM}{\sqrt n} \cdot \frac{8}{\eps}
+        \leq
+        \sigma^{-1} + 8t\cdot \frac{c_\lambda c_\eta}{C_\eps C_0^6}
+        \leq
+        \sigma^{-1} + t\,,
+    \end{align}
+    which proves \eqref{eq:predictable-spectrum}.
+
+
+    We next prove \eqref{eq:trace-budget}.  Starting from its left-hand side
+    and using cyclicity of the trace gives
+    \begin{align}
+        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\overline\Sigma_t)
+        =
+        \frac1\lambda\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr\left(
+        \lambda\eta\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}
+        \right).
+        \label{eq:normalised-trace-sum}
+    \end{align}
+    For every $t\leq\tau_{\mathrm{cov}}$ and every unit vector $u$, the same integration by
+    parts estimate used above, followed by
+    \eqref{eq:covariance-comparison}, gives
+    \begin{align}
+        u^\top\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}u
+         & \leq
+        L\norm{\overline\Sigma_t^{1/2}u}
+        \sqrt{u^\top\overline\Sigma_t^{1/2}
+            \Sigma_t^{-1}\overline\Sigma_t^{1/2}u}
+        \leq
+        \sqrt{\frac32}\,L
+        \norm{\overline\Sigma_t^{1/2}u}
+        \leq
+        \sqrt{\frac32}\,L\sigma.
+        \label{eq:normalised-H}
+    \end{align}
+    The last inequality uses
+    $\overline\Sigma_t\preceq\overline\Sigma_1=\sigma^2I_d$.
+    Therefore, by the lemma assumption
+    \begin{align}
+        \norm{\eta\lambda\overline\Sigma_t^{1/2}H_t\overline\Sigma_t^{1/2}}_{\op}
+        \leq
+        \sqrt{\frac32}\lambda\eta L\sigma
+        \leq
+        \sqrt{\frac32}\cdot\frac{c_\lambda}{d^{3/2}M\ell^2}\cdot\frac{c_\eta dM}{\sqrt n}\cdot\frac{8}{\eps}
+        \cdot\frac1{M\sqrt{2d}}
+        \leq
+        8\cdot \frac{c_\lambda c_\eta}{C_\eps C_0^6}
+        \leq
+        1\,.
+    \end{align}
+    Returning to
+    \eqref{eq:normalised-trace-sum} and applying
+    $s\leq2\log(1+s)$ to eigenvalues of $\lambda\eta\overline\Sigma_t^{1/2}H_t\overline\Sigma_t^{1/2}$
+    which are in $[0,1]$, we obtain
+    \begin{align}
+        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\overline\Sigma_t)
+         & \leq
+        \frac2\lambda\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \log\det\left(
+        I_d+\lambda\eta\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}
+        \right)                        \\
+         & =
+        \frac2\lambda\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \log\frac{\det(\overline\Sigma_{t+1}^{-1})}
+        {\det(\overline\Sigma_t^{-1})} \\
+         & =
+        \frac2\lambda
+        \log\frac{\det(\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1})}
+        {\det(\overline\Sigma_1^{-1})} \\
+         & \leq
+        \frac{2d}{\lambda}
+        \log\left(
+        \sigma^2
+        \norm{\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1}}_{\op}
+        \right)                        \\
+         & =
+        \frac{4d}{\lambda}
+        \log\left(
+        \sigma
+        \norm{\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1}}_{\op}^{1/2}
+        \right)                        \\
+         & \leq
+        \frac{4d}{\lambda}
+        \log\left(1+n\right)\,,
+    \end{align}
+    where the last inequality
+    uses \eqref{eq:predictable-spectrum},
+    $\sigma\leq1$, and $\tau_{\mathrm{cov}}\leq n$.
+    % Finally, by the lemma assumption and $\tau_{\mathrm{cov}}\leq n$ give
+    % \begin{align}
+    %     \log\left(1+\tau_{\mathrm{cov}}\lambda\eta L\sigma\right)
+    %     \leq\log(1+n)\,,
+    % \end{align}
+    % which proves \eqref{eq:trace-budget}.
 \end{proof}
 
 \section{Feedback control}
 \label{app:feedback}
-
-We first record an elementary Gaussian estimate.  If
-$W\sim\N(0,\Sigma)$ and $\Sigma\preceq2\sigma^2I_d$, then
-\begin{align}
-    \E[\pi(W)]
-    \leq\sqrt{2d} \sigma\,\E[\pi(U)]
-    \leq1,
-    \qquad
-    \Pp\bigl(\pi(W)>\E[\pi(W)]+s\bigr)
-    \leq e^{-s^2/(4\sigma^2)}.
-    \label{eq:gaussian-minkowski}
-\end{align}
-For the first inequality, augment $W$ by an independent Gaussian so that the
-sum has covariance $2\sigma^2I_d$, use Jensen's inequality for the convex
-function $\pi$, and then separate the radius and direction of the spherical
-Gaussian.  The second is Gaussian concentration, since $\pi$ is
-$1$-Lipschitz.  The final inequality in the first display uses
-$\sigma M\sqrt{2d}=1$.
-
 \begin{proof}[Proof of \cref{lem:feedback}]
-    Fix $t\leq\tau_{\mathrm{cov}}$.
-    First we reduce control of $\E_t[Y_t^2]$
-    to the control of $\E_t[v(X_t)^2]$.
-    To see this, write
+    Write
     \begin{align}
-        \E_t[Y_t^2 \mid X_t]
-         & = \E_t\left[\left(e(X_t) + \pi_\epsilon(X_t)\xi_t\right)^2 \mid X_t\right]
-        = e(X_t)^2 + \pi_\epsilon(X_t)^2\E_t\left[\xi_t^2 \mid X_t\right]
-        \leq e(X_t)^2 + \pi_\epsilon(X_t)^2\,,
+        r_t=\pi_\eps(X_t)=1+v(X_t),
+        \qquad
+        W_t=X_t-\mu_t.
     \end{align}
-    where the last inequality uses \eqref{eq:noise} and $u \leq e^u -1$.
-    Now note that $\pi_\epsilon(X_t) \leq 1 + v(X_t)$ and $e(X_t) \leq 1 + \frac{3}{\epsilon}v(X_t)$,
-    so continuing the above gives
+    \proofstepinline{1}
+    Starting from the predictable second moment and conditioning first on
+    $X_t$ gives
     \begin{align}
-        \E_t[Y_t^2]
-        \leq
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Y_t^2]
+         & =
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
         \E_t\left[
-            e(X_t)^2 + \pi_\epsilon(X_t)^2
+            \E_t\left[
+                \left(e(X_t)+r_t\xi_t\right)^2
+                \,\middle|\,X_t
+                \right]
             \right]
+        \nonumber                        \\
+         & \stackrel{\texttt{(a)}}{=}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t\left[
+            e(X_t)^2
+            +
+            r_t^2\E_t[\xi_t^2\mid X_t]
+            \right]
+        \nonumber                        \\
+         & \stackrel{\texttt{(b)}}{\leq}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t\left[
+            e(X_t)^2+r_t^2
+            \right]
+        \nonumber                        \\
+         & \stackrel{\texttt{(c)}}{\leq}
+        4n
+        +
+        \frac{32}{\eps^2}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t[v(X_t)^2].
+        \label{eq:feedback-start}
+    \end{align}
+    Here \texttt{(a)} uses \eqref{eq:noise},
+    and \texttt{(b)} follows from
+    $\E_t[\xi_t^2\mid X_t]
         \leq
-        C\left(1 + \frac{1}{\epsilon^2}
-        \E_t[v(X_t)^2]
-        \right).
-        \label{eq:Y2-to-v2}
+        \E_t[\exp(\xi_t^2)\mid X_t]-1
+        \leq1$.
+    For \texttt{(c)}, since $f\in[0,1]$ and $\eps\leq1/2$,
+    \begin{align}
+        0\leq e(X_t)
+         & =
+        r_tf(A_t)+\frac2\eps(r_t-1)
+        \leq
+        1+\frac3\eps v(X_t),
+    \end{align}
+    and therefore
+    \begin{align}
+        e(X_t)^2+r_t^2
+         & \leq
+        2+\frac{18}{\eps^2}v(X_t)^2
+        +2+2v(X_t)^2
+        \leq
+        4+\frac{32}{\eps^2}v(X_t)^2.
     \end{align}
 
-    Next let $a = C \ell$, and write
+    Next, let $a=16\sqrt{\ell}$,
+    then for every $t\leq\tau_{\mathrm{cov}}$,
     \begin{align}
         \E_t[v(X_t)^2]
-         & = \E_t[v(X_t)^2 \mathbf{1}\{v(X_t) \leq a\}]
-        + \E_t[v(X_t)^2 \mathbf{1}\{v(X_t) > a\}]                          \\
-         & \leq a\E_t[v(X_t)] + \E_t[v(X_t)^2 \mathbf{1}\{v(X_t) > a\}]\,.
-        \ineqlabel{eq:v-second-moment-checkpiont}
+         & =
+        \E_t\left[
+            v(X_t)^2\1\{v(X_t)\leq a\}
+            \right]
+        +
+        \E_t\left[
+            v(X_t)^2\1\{v(X_t)>a\}
+            \right]
+        \nonumber \\
+         & \leq
+        a\E_t[v(X_t)]
+        +
+        \E_t\left[
+            v(X_t)^2\1\{v(X_t)>a\}
+            \right].
+        \label{eq:feedback-v2-split}
     \end{align}
-    To control the first term, let
-    $\gamma_t=\gamma_{\mu_t,\Sigma_t}$ denote the conditional density of
-    $X_t$.  Convexity of $v$ and $v(\mu_t)=0$ give
+    Since $\mu_t\in\K_\eps$, we have $v(\mu_t)=0$.  Convexity of $v$ and
+    Gaussian integration by parts give
     \begin{align}
         \E_t[v(X_t)]
-         & \leq
-        \E_t\left[\ip{\nabla v(X_t)}{X_t-\mu_t}\right]
-        =
+         & \stackrel{\texttt{(a)}}{\leq}
+        \E_t\left[
+            \ip{\nabla v(X_t)}{X_t-\mu_t}
+            \right]
+        \nonumber                        \\
+         & \stackrel{\texttt{(b)}}{=}
+        -\int_{\R^d}
+        \ip{\nabla v(x)}
+        {\Sigma_t\nabla\gamma_{\mu_t,\Sigma_t}(x)}
+        \,dx
+        \nonumber                        \\
+         & =
+        \sum_{i,j=1}^d
+        (\Sigma_t)_{ij}
+        \left\langle
+        \partial_{ij}v,
+        \gamma_{\mu_t,\Sigma_t}
+        \right\rangle
+        \nonumber                        \\
+         & =
         \tr\left(
         \Sigma_t
-        \int_{\R^d}\gamma_t(x)\,D^2v(dx)
-        \right) \\
-         & \leq
-        \eps\tr\left(
-        \Sigma_t
-        \int_{\R^d}\gamma_t(x)\,D^2e(dx)
+        \left\langle
+        D^2v,\gamma_{\mu_t,\Sigma_t}
+        \right\rangle
         \right)
-        =
+        \nonumber                        \\
+         & \stackrel{\texttt{(c)}}{\leq}
         \eps\tr(\Sigma_tH_t).
-        \ineqlabel{eq:v-first-moment-checkpiont-1}
+        \label{eq:feedback-v-first-moment}
     \end{align}
-    The first equality follows from the divergence calculation in the proof
-    of \cref{lem:regret-switch}, applied to $v$, together with
-    \eqref{eq:gaussian-hessian-average}.  The inequality uses
-    \eqref{eq:extension-curvature}, and the final equality again follows from
-    \eqref{eq:gaussian-hessian-average}.
+    Here \texttt{(a)} is the supporting-hyperplane inequality at $X_t$,
+    \texttt{(b)} uses
+    $\Sigma_t\nabla\gamma_{\mu_t,\Sigma_t}(x)
+        =-(x-\mu_t)\gamma_{\mu_t,\Sigma_t}(x)$
+    and distributional integration by parts, and \texttt{(c)} uses
+    $e(x) = \bar{e}(x) + \frac{1}{\eps} v(x)$ which, since $\bar{e}$ is
+    convex and $v$ is convex, gives $D^2v \preceq \eps D^2e.$
 
-    Next, we control the second term through a tail bound on $v(X_t)$.
-    By subadditivity of $\pi$ and the fact that $\pi(\mu_t)\leq 1-\epsilon$,
+    It remains to bound the tail term in
+    \eqref{eq:feedback-v2-split},
+    which we do by proving a sub-Gaussian tail for $v(X_t)$.
+    By subadditivity of $\pi$, $\pi(\mu_t)\leq1-\eps$ since $\mu_t\in\K_\eps$, and $\eps\leq1/2$,
     \begin{align}
         v(X_t)
-        = \left(\frac{\pi(X_t)}{1 - \epsilon} - 1\right)_+
-        \leq \left(\frac{\pi(X_t - \mu_t) + \pi(\mu_t)}{1 - \epsilon} - 1\right)_+
-        \leq \left(\frac{\pi(X_t - \mu_t)}{1 - \epsilon}\right)_+
-        \leq 2\pi(X_t - \mu_t)\,,
-        \label{eq:v-relation-to-minkowski}
-    \end{align}
-    where the last inequality uses $\epsilon \leq 1/2$.
-    Now, note that conditional on $\F_{t-1}$ let $W_t = X_t - \mu_t \sim \N(0, \Sigma_t)$,
-    where $\Sigma_t \preceq 2\sigma^2 I_d$, and for $r > 4$ write
-    \begin{align}
-        \Pp_t(v(X_t) > r)
-         & \leq
-        \Pp_t(\pi(W_t) > \frac{r}{2})                                                             \\
          & =
-        \Pp_t\left(\pi(W_t) > \E_t[\pi(W_t)] + \left( \frac{r}{2} - \E_t[\pi(W_t)] \right)\right) \\
-         & \leq
-        \Pp_t\left(\pi(W_t) > \E_t[\pi(W_t)] + \left( \frac{r}{2} - 1 \right)\right)              \\
-         & \leq
-        \exp\left(-\frac{(r/2 - 1)^2}{4\sigma^2}\right)                                           \\
-         & \leq
-        \exp\left(-\frac{r^2}{64\sigma^2}\right)
+        \left(
+        \frac{\pi(X_t)}{1-\eps}-1
+        \right)_+
+        \leq
+        \left(
+        \frac{\pi(X_t - \mu_t) + \pi(\mu_t)}{1-\eps}-1
+        \right)_+
+        \leq
+        \frac{\pi(W_t)}{1-\eps}
+        \leq
+        2\pi(W_t).
+        \label{eq:feedback-v-minkowski}
     \end{align}
-    where the first inequality follows from \eqref{eq:v-relation-to-minkowski},
-    the second inequality uses $\E_t[\pi(W_t)] \leq 1$ from \eqref{eq:gaussian-minkowski},
-    the third inequality uses the Gaussian concentration bound in \eqref{eq:gaussian-minkowski},
-    and the last inequality uses $r/2 - 1 > r/4$ for $r > 4$.
-    Now, for $a = C \ell > 4$, we can use the above tail bound to control the second term:
+    On the stopped interval,
+    \eqref{eq:covariance-comparison} and monotonicity of
+    $\overline\Sigma_t$ give
+    $\Sigma_t
+        \preceq
+        2\overline\Sigma_t
+        \preceq
+        2\sigma^2I_d$.
+    Therefore, since $\pi$ is $1$-Lipschitz, by Gaussian concentration we have
     \begin{align}
-        \E_t[v(X_t)^2 \mathbf{1}\{v(X_t) > a\}]
-         & = a^2 \Pp_t(v(X_t) > a) + \int_a^\infty 2s \Pp_t(v(X_t) > s) ds            \\
-         & \leq a^2 e^{-a^2/(64\sigma^2)} + \int_a^\infty 2s e^{-s^2/(64\sigma^2)} ds \\
-         & = (a^2 + 64\sigma^2) e^{-a^2/(64\sigma^2)}                                 \\
-         & \leq (a^2 + 32) e^{-a^2/32} \leq e^{-\ell}\,,
-        \ineqlabel{eq:v-second-moment-checkpiont-2}
+        \Pp_t\left(
+        \pi(W_t)>
+        \E_t[\pi(W_t)]+s
+        \right)
+        \leq
+        \exp\left(-\frac{s^2}{2\|\Sigma_t\|_{\op}}\right)
+        \leq
+        \exp\left(-\frac{s^2}{4\sigma^2}\right).
+        \label{eq:feedback-minkowski-tail}
     \end{align}
-    where the penultimate inequality uses $\sigma^2 = 1/(2dM^2) \leq 1/2$ and the
-    last inequality uses $a = C \ell$ for a sufficiently large constant $C$.
-
-    Combining
-    \cref{eq:v-second-moment-checkpiont,eq:v-first-moment-checkpiont-1,eq:v-second-moment-checkpiont-2}
-    gives
+    Next, we bound the mean of $\pi(W_t)$.
+    Let $Q \sim \mathcal{N}(0, 2\sigma^2 I_d - \Sigma_t)$
+    so that $W_t + Q \sim \mathcal{N}(0, 2\sigma^2 I_d)$.
+    Then, for $Z \sim \mathcal{N}(0, I_d)$ and $U\sim \text{Unif}(\mathbb{S}_1^d)$, we have
+    \begin{align}
+        \E_t[\pi(W_t)]
+         & =
+        \E_t[\pi(\E[W_t+Q\mid W_t])]
+        \leq
+        \E_t[\pi(W_t + Q)] \\
+         & \leq
+        \sqrt{2}\sigma
+        \E_t[\pi(U)\cdot \|Z\|]
+        \leq
+        \sqrt{2d}\,\sigma\,\E[\pi(U)]
+        \leq
+        \sqrt{2d}\,\sigma M
+        =1.
+        \label{eq:feedback-minkowski-mean}
+    \end{align}
+    Since $M\geq d^{-1/2}$ and $\sigma M\sqrt{2d}=1$, we also have $\sigma^2\leq1/2$.
+    Hence, for every $s\geq4$,
+    \begin{align}
+        \Pp_t\left(
+        v(X_t)>s
+        \right)
+         & \leq
+        \Pp_t\left(
+        \pi(W_t)>\frac{s}{2}
+        \right)
+        \leq
+        \exp\left(
+        -\frac{(s/2-1)^2}{4\sigma^2}
+        \right)
+        \leq
+        \exp\left(-\frac{s^2}{32}\right)\,,
+        \label{eq:feedback-v-tail}
+    \end{align}
+    where the first inequality uses \eqref{eq:feedback-v-minkowski},
+    the second uses \eqref{eq:feedback-minkowski-tail} and
+    \eqref{eq:feedback-minkowski-mean}, and the last uses $\sigma^2\leq1/2$ and $s\geq4$.
+    Since $a=16\sqrt\ell\geq4$, integrating this tail gives
+    \begin{align}
+        \E_t\left[
+            v(X_t)^2\1\{v(X_t)>a\}
+            \right]
+         & =
+        a^2\Pp_t(v(X_t)>a)
+        +
+        \int_a^\infty
+        2s\Pp_t(v(X_t)>s)\,ds
+        \nonumber \\
+         & \leq
+        a^2e^{-a^2/32}
+        +
+        \int_a^\infty2se^{-s^2/32}\,ds
+        \nonumber \\
+         & =
+        (a^2+32)e^{-a^2/32}
+        =
+        (2^8\ell+32)e^{-8\ell}
+        \leq
+        e^{-\ell},
+        \label{eq:feedback-v-tail-moment}
+    \end{align}
+    where the last inequality holds for $\ell\geq1$.
+    Substituting
+    \eqref{eq:feedback-v-first-moment} and
+    \eqref{eq:feedback-v-tail-moment} into
+    \eqref{eq:feedback-v2-split} gives
     \begin{align}
         \E_t[v(X_t)^2]
-        \leq C\ell\left(\epsilon\tr(\Sigma_tH_t)+e^{-\ell}\right).
-    \end{align}
-    Together with \eqref{eq:Y2-to-v2},
-    \begin{align}
-        \E_t[Y_t^2]
         \leq
-        C+\frac{C\ell}{\epsilon}\tr(\Sigma_tH_t)
-        +\frac{C\ell e^{-\ell}}{\epsilon^2}.
+        16\eps\sqrt\ell\,
+        \tr(\Sigma_tH_t)
+        +
+        e^{-\ell}.
+        \label{eq:feedback-v2}
     \end{align}
-    On the stopped interval, \eqref{eq:covariance-comparison} gives
-    $\Sigma_t\preceq2\overline\Sigma_t$.  Thus \cref{lem:trace} gives
+    We now return to \eqref{eq:feedback-start}, which can be further bounded as
     \begin{align}
-        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}\tr(H_t\Sigma_t)
-        \leq
-        2\eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \tr(H_t\overline\Sigma_t)
-        \leq\frac{Cd\ell}{\lambda}.
-        \label{eq:feedback-stopped-trace}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Y_t^2]
+         & \stackrel{\texttt{(a)}}{\leq}
+        4n
+        +
+        \frac{32}{\eps^2}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t[v(X_t)^2]
+        \\
+         & \stackrel{\texttt{(b)}}{\leq}
+        4n
+        +
+        \frac{2^9\sqrt\ell}{\eps}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\Sigma_t)
+        +
+        \frac{32ne^{-\ell}}{\eps^2}
+        \\
+         & \stackrel{\texttt{(c)}}{\leq}
+        4n
+        +
+        \frac{2^{12}d\sqrt\ell\log(1+n)}
+        {\lambda\eta\eps}
+        +
+        \frac{32ne^{-\ell}}{\eps^2}
+        \\
+         & \stackrel{\texttt{(d)}}{\leq}
+        4n
+        +
+        \frac{2^{12}n\ell}
+        {c_\lambda c_\eta C_\eps \sqrt d\,M\,\ell^{3/2}}
+        +
+        n
+        \stackrel{\texttt{(e)}}{\leq}
+        6n
+        \,,
+        \label{eq:feedback-predictable-before-parameters}
     \end{align}
-    Summing over $t\leq\tau_{\mathrm{cov}}$ and using
-    $\tau_{\mathrm{cov}}\leq n$ gives
+    Here \texttt{(a)} is \eqref{eq:feedback-start}, and
+    \texttt{(b)} follows by applying \eqref{eq:feedback-v2} for each
+    $t\leq\tau_{\mathrm{cov}}$ and using $\tau_{\mathrm{cov}}\leq n$.
+    For \texttt{(c)}, the hypothesis of \cref{lem:trace} is satisfied by the
+    assumption of the present lemma;  thus, \eqref{eq:covariance-comparison}
+    and \eqref{eq:trace-budget} give
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}} \E_t[Y_t^2]
-        \leq Cn + \frac{C\ell}{\epsilon}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}} \tr(\Sigma_t H_t)
-        + \frac{Cn\ell e^{-\ell}}{\epsilon^2}
-        \leq Cn + \frac{Cd\ell^2}{\lambda\eta\epsilon} + \frac{Cn\ell e^{-\ell}}{\epsilon^2}
-        \leq Cn,
-        \label{eq:predictable-Y2-checkpoint}
-    \end{align}
-    where the penultimate inequality follows from
-    \eqref{eq:feedback-stopped-trace}.  The last inequality follows directly
-    from
-    \begin{align}
-        \frac{d\ell^2}{\lambda\eta\eps}
-         & =
-        \frac{n}{c_\lambda c_\eta C_\eps\sqrt dM}
-        \leq n,
-         &
-        \frac{\ell e^{-\ell}}{\eps^2}
-         & =
-        \frac{n e^{-\ell}}
-        {C_\eps^2d^4M^2\ell^7}
-        \leq1,
-    \end{align}
-    where we used $\sqrt dM\geq1$ and the definition of $\ell$, and chose
-    $C_\eps$ sufficiently large.
-    This proves \eqref{eq:predictable-Y2}.
-
-    It remains to prove \eqref{eq:realised-Y2}.  By \eqref{eq:Y},
-    \eqref{eq:v-relation-to-minkowski}, \eqref{eq:gaussian-minkowski}, and
-    \eqref{eq:noise}, a union bound gives an event $\mathcal E_{\mathrm{tr}}$
-    with probability at least $1-\delta/16$ on which
-    \begin{align}
-        |Y_t|\leq\frac{C\ell}{\eps}
-        \qquad(t\leq\tau_{\mathrm{cov}}).
-    \end{align}
-    Define the truncated variables
-    \begin{align}
-        Z_t
-        =
-        Y_t^2
-        \mathbf 1\!\left\{
-        |Y_t|\leq\frac{C\ell}{\eps}
-        \right\}
-    \end{align}
-    and the stopped, centred increments
-    $D_t
-        =
-        \mathbf 1\{t\leq\tau_{\mathrm{cov}}\}
-        \left(
-        Z_t-\E_t[Z_t]
-        \right)$.
-    Since $\mathbf 1\{t\leq\tau_{\mathrm{cov}}\}$ is $\F_{t-1}$-measurable,
-    $(D_t)$ is a martingale difference sequence.
-    Furthermore, $|D_t|\leq\frac{C\ell^2}{\eps^2}$ and
-    \begin{align}
-        \E_t[D_t^2]
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\Sigma_t)
          & \leq
-        \mathbf 1\{t\leq\tau_{\mathrm{cov}}\}\E_t[Z_t^2]
+        2\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\overline\Sigma_t)
         \leq
-        \frac{C\ell^2}{\eps^2}
-        \mathbf 1\{t\leq\tau_{\mathrm{cov}}\}\E_t[Z_t]
-        \leq
-        \frac{C\ell^2}{\eps^2}
-        \mathbf 1\{t\leq\tau_{\mathrm{cov}}\}\E_t[Y_t^2].
+        \frac{8d\log(1+n)}{\lambda\eta}.
+        \label{eq:feedback-trace}
     \end{align}
-    Hence, \eqref{eq:predictable-Y2} gives $\sum_{t=1}^n\E_t[D_t^2] \leq \frac{Cn\ell^2}{\eps^2}$.
-    Applying Freedman's inequality with failure probability $\delta/16$ and
-    using $\log(32/\delta)\leq C\ell$ gives
+    To justify \texttt{(d)} and \texttt{(e)}, the parameter definitions imply
     \begin{align}
-        \sum_{t=1}^nD_t
+        \frac{d\sqrt\ell\log(1+n)}
+        {\lambda\eta\eps}
+         & =
+        \frac{
+            n\log(1+n)
+        }{
+            c_\lambda c_\eta C_\eps
+            \sqrt d\,M\,\ell^{3/2}
+        }
         \leq
-        C\left(
-        \frac{\sqrt n\,\ell^{3/2}}{\eps}
-        +\frac{\ell^3}{\eps^2}
+        2^{-12}
+        n
+        ,\quad\text{and}\quad
+        \frac{e^{-\ell}}{\eps^2}
+        =
+        \frac{
+            ne^{-\ell}
+        }{
+            C_\eps^2d^4M^2\ell^8
+        }
+        \leq1.
+    \end{align}
+    Indeed,
+    $1<\log(1+n)\leq\ell$,
+    $\sqrt d\,M\geq1$,
+    $c_\lambda c_\eta C_\eps\geq 2^{12}$, and
+    $ne^{-\ell}\leq1$; the fixed choice of the universal constants absorbs
+    the remaining numerical factors.
+
+    \proofstepinline{2}
+    We next prove the realized bound.  Set
+    \begin{align}
+        B=\frac{32\ell}{\eps},
+        \qquad
+        \widetilde Y_t
+        =
+        Y_t\1\{|Y_t|\leq B\},
+        \qquad
+        \mathcal E_{\mathrm{tr}}
+        =
+        \left\{
+        |Y_t|\leq B
+        \text{ for every }t\leq\tau_{\mathrm{cov}}
+        \right\}.
+    \end{align}
+    Since $Y_t=\widetilde Y_t$ on $\mathcal E_{\mathrm{tr}}$,
+    \begin{align}
+        \Pp\left(
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2
+        >8n
+        \right)
+         & \leq
+        \Pp(\mathcal E_{\mathrm{tr}}^c)
+        +
+        \Pp\left(
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \widetilde Y_t^2
+        >8n
+        \right).
+        \label{eq:feedback-realised-start}
+    \end{align}
+
+    First, we bound the probability of the truncation event $\mathcal E_{\mathrm{tr}}$.
+    For $t\leq\tau_{\mathrm{cov}}$,
+    \eqref{eq:feedback-minkowski-mean},
+    \eqref{eq:feedback-minkowski-tail}, and
+    $\sigma^2\leq1/2$ give
+    $\Pp_t\left(
+        \pi(W_t)>1+2\sqrt\ell
+        \right)
+        \leq e^{-2\ell}$,
+    and the noise assumption gives
+    $\Pp_t\left(
+        |\xi_t|>\sqrt\ell
+        \,\middle|X_t
+        \right)
+        \leq
+        2e^{-\ell}$.
+    If neither event occurs, then
+    \eqref{eq:feedback-v-minkowski} yields
+    \begin{align}
+        r_t
+        =1+v(X_t)
+        \leq
+        1+2\pi(W_t)
+        \leq
+        3+4\sqrt\ell
+        \leq
+        7\sqrt\ell,
+    \end{align}
+    and therefore
+    \begin{align}
+        |Y_t|
+         & \leq
+        e(X_t)+r_t|\xi_t|
+        \leq
+        r_t\left(\frac3\eps+|\xi_t|\right)
+        \leq
+        7\sqrt\ell
+        \left(
+        \frac3\eps+\sqrt\ell
+        \right)
+        \leq
+        \frac{32\ell}{\eps}
+        =B.
+    \end{align}
+    Since $\1\{t\leq\tau_{\mathrm{cov}}\}$ is
+    $\F_{t-1}$-measurable, a union bound gives
+    \begin{align}
+        \Pp(\mathcal E_{\mathrm{tr}}^c)
+         & \leq
+        n\left(e^{-2\ell}+2e^{-\ell}\right)
+        \leq
+        3ne^{-\ell}
+        \leq
+        \frac{\delta}{16},
+        \label{eq:feedback-truncation-event}
+    \end{align}
+    where the last inequality uses
+    $\ell\geq\log(48n/\delta)$.
+
+    Next, we bound the second term in \eqref{eq:feedback-realised-start} using a Freedman inequality.
+    Define the martingale differences
+    \begin{align}
+        D_t
+        =
+        \1\{t\leq\tau_{\mathrm{cov}}\}
+        \left(
+        \widetilde Y_t^2
+        -
+        \E_t[\widetilde Y_t^2]
         \right).
     \end{align}
-    Therefore,
+    Then
+    $\E_t[D_t]
+        =0$,
+    $|D_t|\leq B^2$,
+    and, using $\widetilde Y_t^4\leq B^2\widetilde Y_t^2$,
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}Z_t
-         & =
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Z_t]
-        + \sum_{t=1}^nD_t
+        \sum_{t=1}^n\E_t[D_t^2]
+         & \leq
+        \sum_{t=1}^n
+        \1\{t\leq\tau_{\mathrm{cov}}\}
+        \E_t[\widetilde Y_t^4]
         \leq
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Y_t^2]
-        +C\left(
-        \frac{\sqrt n\,\ell^{3/2}}{\eps}
-        +\frac{\ell^3}{\eps^2}
-        \right)
-        \leq Cn,
+        B^2
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t[\widetilde Y_t^2]
+        \leq
+        B^2
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t[Y_t^2]
+        \leq
+        6nB^2.
+        \label{eq:feedback-freedman-variance}
     \end{align}
-    To verify the last inequality, observe that
+    Applying the Freedman inequality \cref{lem:freedman} with
     \begin{align}
-        \frac{\ell^3}{\eps^2}
-        =
-        \frac{n}{C_\eps^2d^4M^2\ell^5}
-        \leq n,
+        b=B^2,
+        \qquad
+        s^2=6nB^2,
+        \qquad
+        z=\sqrt{2\log\frac{32}{\delta}},
     \end{align}
-    where we used $M\geq d^{-1/2}$ and $\ell\geq1$.  The same bound gives
-    $\frac{\sqrt n\,\ell^{3/2}}{\eps}
+    and using $\log(32/\delta)\leq\ell$, we obtain, outside an event of
+    probability at most $\delta/16$,
+    \begin{align}
+        \sum_{t=1}^nD_t
+         & \leq
+        \sqrt2\,s z+bz^2
+        \leq
+        2B\sqrt{6n\ell}
+        +
+        2B^2\ell.
+        \label{eq:feedback-freedman}
+    \end{align}
+    Finally, the parameter definitions give
+    $\frac{\ell^3}{\eps^2}
         =
-        \sqrt{
-            n\frac{\ell^3}{\eps^2}
+        \frac{
+            n
+        }{
+            C_\eps^2d^4M^2\ell^5
         }
         \leq n$.
-    Together with \eqref{eq:predictable-Y2}, these two estimates prove the
-    last inequality above.
-    On $\mathcal E_{\mathrm{tr}}$, increasing the truncation constant if
-    necessary gives $Z_t=Y_t^2$ for every
-    $t\leq\tau_{\mathrm{cov}}$.
-    Intersecting this event with the Freedman event costs probability at most
-    $\delta/8$, and therefore
-    $\sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2\leq Cn$,
-    which proves \eqref{eq:realised-Y2}.
+    Hence, on event $\mathcal E_{\mathrm{tr}}$ and outside the Freedman event,
+    \begin{align}
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \widetilde Y_t^2
+         & =
+        \sum_{t=1}^n
+        \1\{t\leq\tau_{\mathrm{cov}}\}
+        \E_t[\widetilde Y_t^2]
+        +
+        \sum_{t=1}^nD_t
+        \leq
+        6n
+        +
+        2B\sqrt{6n\ell}
+        +
+        2B^2\ell
+        \\
+         &
+        \leq
+        6n
+        +
+        2^8\frac{\sqrt n \ell^{3/2}}{\eps}
+        +
+        2^{11}\frac{\ell^3}{\eps^2}
+        \leq
+        6n
+        +
+        \frac{2^8n}{C_\eps}
+        +
+        \frac{2^{11}n}{C_\eps}
+        \leq
+        8n\,,
+        \label{eq:feedback-truncated-sum}
+    \end{align}
+    where the last inequality uses $C_\eps\geq2^{11}$.
+    Combining
+    \eqref{eq:feedback-realised-start},
+    \eqref{eq:feedback-truncation-event}, and
+    \eqref{eq:feedback-truncated-sum} gives
+    \begin{align}
+        \Pp\left(
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2
+        >8n
+        \right)
+        \leq
+        \frac{\delta}{16}
+        +
+        \frac{\delta}{16}
+        =
+        \frac{\delta}{8}.
+    \end{align}
 \end{proof}
 
-\section{Stopped Hermite concentration}
+\section{Concentration}
 \label{app:concentration}
 Throughout this section, write $\tau=\tau_{\mathrm{safe}}$.
-
 The proof uses two scalar martingale inequalities.  The first one controls an
 unbounded martingale by the sum of its realised and predictable quadratic
 variations.
@@ -1978,8 +2281,8 @@ variations.
     Let $(D_t)_{t=1}^n$ be a square-integrable martingale-difference sequence, then for every $z,v>0$,
     \begin{align}
         \Pp\left(
-        \left|\sum_{t=1}^n D_t\right|\geq z,
-        \ \sum_{t=1}^n \left(D_t^2+\E_t[D_t^2]\right)\leq v
+        \left|\sum_{t=1}^n D_t\right|\geq z\quad\text{and}\quad
+        \sum_{t=1}^n \left(D_t^2+\E_t[D_t^2]\right)\leq v
         \right)
         \leq
         2\exp\left(-\frac{z^2}{2v}\right).
@@ -1987,19 +2290,23 @@ variations.
     \end{align}
 \end{lemma}
 
-We will also use the following standard scalar form of Freedman's inequality.
-If $(D_t)$ is a martingale-difference sequence, $|D_t|\leq b$, and
-$\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
-\begin{align}
-    \left|\sum_tD_t\right|
-    \leq
-    2\left(
-    s\sqrt{\log\frac2\alpha}
-    +b\log\frac2\alpha
-    \right).
-    \label{eq:freedman}
-\end{align}
-
+\begin{lemma}[Freedman's inequality]
+    \label{lem:freedman}
+    Let $(D_t)_{t=1}^n$ be a square-integrable
+    martingale-difference sequence. Then, for every $b,s,z>0$,
+    \begin{align}
+        \Pp\left(
+        \left|\sum_{t=1}^n D_t\right|
+        \geq \sqrt{2}s z+bz^2,
+        \quad
+        \sum_{t=1}^n\E_t[D_t^2]\leq s^2,
+        \quad
+        \max_{1\leq t\leq n}|D_t|\leq b
+        \right)
+        \leq
+        2\exp\left(-\frac{z^2}{2}\right).
+    \end{align}
+\end{lemma}
 
 \begin{lemma}[Weighted Gaussian score moments]
     \label{lem:gaussian-score-localisation}
@@ -2342,7 +2649,7 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \lambda_{\max}(\overline\Sigma_t^{-1})
         \leq
         \left(
-        \sigma^{-1}+Cn\lambda\eta\Lip(e)
+        \sigma^{-1} + t
         \right)^2
         \leq
         C(d+n^2)
@@ -2489,7 +2796,7 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \leq C\ell^2n.
         \label{eq:H-score-energy-mean}
     \end{align}
-    Now we are in a position to apply Freedman's inequality \eqref{eq:freedman} to the martingale difference sequence $(R_{t,u})_{t=1}^n$ as
+    Now we are in a position to apply Freedman's inequality \cref{lem:freedman} to the martingale difference sequence $(R_{t,u})_{t=1}^n$ as
     \begin{align}
         |R_{t,u}|
         \leq \Lambda,         \qquad \text{and}\qquad
@@ -2507,7 +2814,7 @@ $\sum_t\E_t[D_t^2]\leq s^2$, then, with probability at least $1-\alpha$,
         \leq Cd\ell.
     \end{align}
     For each fixed $u\in\mathcal U$, Freedman's inequality
-    \eqref{eq:freedman}, applied with $b=\Lambda$, and $s^2=C\Lambda\ell^2n$, gives, with probability at least $1-\alpha$,
+    \cref{lem:freedman}, applied with $b=\Lambda$, and $s^2=C\Lambda\ell^2n$, gives, with probability at least $1-\alpha$,
     \begin{align}
         \left|
         \sum_{t=1}^nR_{t,u}
