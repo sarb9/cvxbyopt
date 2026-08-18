@@ -318,4 +318,37 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
-.vscode
+## Local editor and operating-system files
+.DS_Store
+**/.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+## Python environments, caches, and build output
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+build/
+dist/
+*.egg-info/
+
+## Local environment files
+.env
+.env.*
+!.env.example
+
+## Local backup sources; compiled PDFs remain versionable
+backup/**
+!backup/**/*.pdf
+
+## Keep PDFs in the repository
+!*.pdf
+!**/*.pdf
