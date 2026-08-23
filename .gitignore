@@ -318,6 +318,7 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
+<<<<<<< HEAD
 ## Local editor and operating-system files
 .DS_Store
 **/.DS_Store
@@ -352,3 +353,6 @@ backup/**
 ## Keep PDFs in the repository
 !*.pdf
 !**/*.pdf
+=======
+.vscode
+>>>>>>> over/main
