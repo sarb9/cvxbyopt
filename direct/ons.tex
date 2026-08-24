@@ -861,15 +861,8 @@ stability and regret arguments.
         \label{eq:H-concentration}
     \end{align}
 \end{proposition}
-\alireza{Have to get back to pin down the constants here.}
 
 The proof is in \cref{app:concentration}.
-
-% \begin{proposition}
-%     \label{prop:stability}
-%     With probability at least $1-\delta/2$, $\tau_{\mathrm{safe}}=n$.
-% \end{proposition}
-% The proof is in \cref{app:stability}.
 
 \begin{proof}[Proof of \cref{thm:main}]
     Suppose that
@@ -1423,25 +1416,12 @@ The proof is in \cref{app:concentration}.
 \begin{thebibliography}{9}
     \raggedright
 
-    \bibitem[Bercu and Touati(2008)]{bercu2008exponential}
-    Bernard Bercu and Abderrahmen Touati.
-    \newblock Exponential inequalities for self-normalized martingales with applications.
-    \newblock \emph{The Annals of Applied Probability}, 18(5):1848--1869, 2008.
-    \newblock \href{https://doi.org/10.1214/07-AAP506}{doi:10.1214/07-AAP506}.
-
-    \bibitem[Dzhaparidze and van Zanten(2001)]{dzhaparidze2001bernstein}
-    K. Dzhaparidze and J. H. van Zanten.
-    \newblock On Bernstein-type inequalities for martingales.
-    \newblock \emph{Stochastic Processes and their Applications},
-    93(1):109--117, 2001.
-    \newblock \href{https://doi.org/10.1016/S0304-4149(00)00086-7}
-    {doi:10.1016/S0304-4149(00)00086-7}.
-
-    \bibitem[Freedman(1975)]{freedman1975tail}
-    David A. Freedman.
-    \newblock On tail probabilities for martingales.
-    \newblock \emph{The Annals of Probability}, 3(1):100--118, 1975.
-    \newblock \href{https://doi.org/10.1214/aop/1176996452}{doi:10.1214/aop/1176996452}.
+    \bibitem[Bercu et al.(2015)Bercu, Delyon, and Rio]{bercu2015concentration}
+    Bernard Bercu, Bernard Delyon, and Emmanuel Rio.
+    \newblock \emph{Concentration Inequalities for Sums and Martingales}.
+    \newblock SpringerBriefs in Mathematics. Springer, Cham, 2015.
+    \newblock \href{https://doi.org/10.1007/978-3-319-22099-4}
+    {doi:10.1007/978-3-319-22099-4}.
 
     \bibitem[Lattimore(2026)]{lattimore2026bandit}
     Tor Lattimore.
@@ -2610,6 +2590,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \begin{align}
         \sum_{t=1}^nD_t
          & \leq
+        sz+\frac{bz^2}{3}
+        \leq
         \sqrt2\,s z+bz^2
         \leq
         2B\sqrt{6n\ell}
@@ -2679,101 +2661,42 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \end{align}
 \end{proof}
 
-\section{Explicit sub-Gaussian moments}
-\label{app:sub-gaussian-moments}
-The following elementary bound converts a one-sided sub-Gaussian deviation
-estimate into an explicit fourth-moment bound.
-\begin{lemma}[Fourth moment of a nonnegative sub-Gaussian variable]
-    \label{lem:nonnegative-sub-gaussian-fourth-moment}
-    Let $m\geq0$ and $\alpha>0$. Let $X\geq0$ satisfy $\E[X]\leq m$, and suppose that
-    $X-\E[X]$ is $\alpha$-sub-Gaussian in the sense that
-    \begin{align}
-        \E\exp\left(\lambda(X-\E[X])\right)
-        \leq
-        \exp\left(\frac{\alpha^2\lambda^2}{2}\right),
-        \qquad \lambda\in\R.
-        \label{eq:scalar-sub-gaussian-mgf}
-    \end{align}
-    Then
-    \begin{align}
-        \left(\E[X^4]\right)^{1/4}
-        \leq
-        m+8^{1/4}\alpha.
-        \label{eq:scalar-sub-gaussian-fourth-moment}
-    \end{align}
-    In particular, if $m\leq1$ and $\alpha\leq1$, then
-    \begin{align}
-        \E[X^4]
-        \leq
-        \left(1+8^{1/4}\right)^4
-        <52.
-        \label{eq:scalar-sub-gaussian-fourth-moment-unit}
-    \end{align}
-\end{lemma}
-\begin{proof}
-    Let $V=(X-\E[X])_+$. Chernoff's inequality and
-    \eqref{eq:scalar-sub-gaussian-mgf} give
-    \begin{align}
-        \Pp(V>s)
-        \leq
-        \exp\left(-\frac{s^2}{2\alpha^2}\right),
-        \qquad s\geq0.
-    \end{align}
-    Hence
-    \begin{align}
-        \E[V^4]
-         & =
-        4\int_0^\infty s^3\Pp(V>s)\,ds
-        \leq
-        4\int_0^\infty
-        s^3\exp\left(-\frac{s^2}{2\alpha^2}\right)\,ds
-        =
-        8\alpha^4.
-    \end{align}
-    Since $X\leq m+V$, Minkowski's inequality gives
-    \begin{align}
-        \left(\E[X^4]\right)^{1/4}
-        \leq
-        m+\left(\E[V^4]\right)^{1/4}
-        \leq
-        m+8^{1/4}\alpha,
-    \end{align}
-    which proves \eqref{eq:scalar-sub-gaussian-fourth-moment}. The final claim
-    follows by setting $m=\alpha=1$.
-\end{proof}
-
 \section{Concentration}
 \label{app:concentration}
 Throughout this section, write $\tau=\tau_{\mathrm{safe}}$.
-The proof uses two scalar martingale inequalities.  The second one controls an
-unbounded martingale by the sum of its realised and predictable quadratic
-variations.
+Recall that
+\begin{align}
+    Z_t=\Sigma_t^{-1/2}(X_t-\mu_t).
+\end{align}
+Conditionally on $\F_{t-1}$, we therefore have
+$Z_t\sim\N(0,I_d)$.
 
-The following localized form of Freedman's inequality is a consequence of
-\citet[Theorem~3.3]{dzhaparidze2001bernstein}; see also
-\citet[Theorem~(1.6)]{freedman1975tail} for the bounded-increment version.
+The following two-sided form of Freedman's inequality follows from
+\citet[Theorem~3.10]{bercu2015concentration} applied to a martingale and its
+negative.
 \begin{lemma}[Freedman's inequality]
     \label{lem:freedman}
     Let $(D_t)_{t=1}^n$ be a square-integrable
-    martingale-difference sequence. Then, for every $b,s,z>0$,
+    martingale-difference sequence such that, for some $b>0$,
+    $|D_t|\leq b$ almost surely for every $t$. Then, for every $s,z>0$,
     \begin{align}
         \Pp\left(
         \left|\sum_{t=1}^n D_t\right|
-        \geq \sqrt{2}s z+bz^2,
+        \geq sz+\frac{bz^2}{3},
         \quad
-        \sum_{t=1}^n\E_t[D_t^2]\leq s^2,
-        \quad
-        \max_{1\leq t\leq n}|D_t|\leq b
+        \sum_{t=1}^n\E_t[D_t^2]\leq s^2
         \right)
         \leq
         2\exp\left(-\frac{z^2}{2}\right).
     \end{align}
 \end{lemma}
 
-The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
+The next lemma is the two-sided form of
+\citet[Theorem~3.26]{bercu2015concentration}.
 \begin{lemma}[Self-normalised martingale bound]
     \label{lem:self-normalised-martingale}
-    Let $(D_t)_{t=1}^n$ be a square-integrable martingale-difference sequence, then for every $z,v>0$,
+    Let $(D_t)_{t=1}^n$ be a square-integrable
+    martingale-difference sequence. Then, for every $z,v>0$,
     \begin{align}
         \Pp\left(
         \left|\sum_{t=1}^n D_t\right|\geq z\quad\text{and}\quad
@@ -2785,42 +2708,50 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
     \end{align}
 \end{lemma}
 
-
 \begin{lemma}[Weighted Gaussian score moments]
     \label{lem:gaussian-score-localisation}
-    Suppose that $t\leq\tau$, let $h_t$ be any
-    $\F_{t-1}$-measurable unit vector, and put
+    Suppose that $\sigma=(M\sqrt{2d})^{-1}$, $C_0\geq64$,
+    $C_\eps\geq1$, and $\eps=\eps_0\leq1/2$. Let $t\leq\tau$, let
+    $h_t$ be any $\F_{t-1}$-measurable unit vector, and put
     $G_t=\ip{h_t}{Z_t}$. Then
     \begin{align}
         \E_t\left[
             Y_t^2\left(
-            \frac{G_t^2}{\ell}
-            +\frac{G_t^4+1}{\ell^2}
-            \right)
+            G_t^2 + 1
+            \right)^2
             \right]
          & \leq
-        C\E_t[Y_t^2]+e^{-4\ell},
-        \quad\text{and}\quad
-        \E_t\left[
-            Y_t^2(G_t^2-1)^2
-            \right]
-        \leq
-        C\ell^2\E_t[Y_t^2]+e^{-4\ell}.
+        2^{14}\ell^2 \E_t[Y_t^2]+e^{-4\ell}.
         \label{eq:H-score-second-moment}
     \end{align}
 \end{lemma}
 \begin{proof}
+    Let
+    $\mathcal A_t
+        =
+        \{|G_t|\leq8\sqrt\ell\}$.
+    Splitting over $\mathcal A_t$ and its complement therefore gives
+    \begin{align}
+        \E_t\left[Y_t^2(G_t^2+1)^2\right]
+        \leq
+        2^{14}\ell^2\E_t[Y_t^2]
+        +\E_t\left[Y_t^2(G_t^2+1)^2\1_{\mathcal A_t^c}\right]\,,
+        \label{eq:score-localisation-split}
+    \end{align}
+    where the last inequality uses $(G_t^2+1)^2\leq2^{14}\ell^2$ on $\mathcal A_t$.
+
+    It remains to show that $T_t \triangleq \E_t\left[Y_t^2(G_t^2+1)^2\1_{\mathcal A_t^c}\right] \leq e^{-4\ell}$.
     Write $r_t=\pi_\eps(X_t)$.
     Since $Y_t=e(X_t)+r_t\xi_t$ we have
     \begin{align}
         \E_t[Y_t^2\mid X_t]
          & =
         e(X_t)^2
+        + 2e(X_t)r_t\E_t[\xi_t\mid X_t]
         +r_t^2\E_t[\xi_t^2\mid X_t]
         \\
          & \explan{=}{a}
         e(X_t)^2
-        + 2e(X_t)r_t\E_t[\xi_t\mid X_t]
         +r_t^2\E_t[\xi_t^2\mid X_t] \\
          & \explan{\leq}{b}
         \left(
@@ -2831,11 +2762,32 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
         \frac{10}{\eps^2}r_t^2,
         \label{eq:Y2-conditional-simple}
     \end{align}
-    where \reason{a} uses \eqref{eq:noise}, \reason{b} uses
+    where \reason{a} uses \eqref{eq:noise} and the tower property,
+    \reason{b} uses
     $\E_t[\xi_t^2\mid X_t]\leq \E_t[\exp(\xi_t^2) - 1\mid X_t]\leq 1$ and
-    \reason{c} uses the fact that $f\in[0,1]$.
+    \reason{c} uses $f\in[0,1]$, $r_t\geq1$, and $\eps\leq1/2$.
+    Now, since $G_t$ is determined by $X_t$ conditionally on $\F_{t-1}$,
+    \begin{align}
+        T_t
+        \leq
+        \frac{10}{\eps^2}
+        \E_t\left[
+            r_t^2(G_t^2+1)^2\1\{\mathcal A_t^c\}
+            \right]
+        \leq
+        \frac{10}{\eps^2}
+        \E_t[r_t^4]^{1/2}
+        \E_t\left[
+            (G_t^2+1)^4\1\{\mathcal A_t^c\}
+            \right]^{1/2}\,,
+        \label{eq:score-tail-factorisation}
+    \end{align}
+    where the first inequality follows by conditioning on $X_t$ and applying
+    \eqref{eq:Y2-conditional-simple}, while the second is Cauchy--Schwarz.
+    Next, we bound the two factors in \eqref{eq:score-tail-factorisation} in the order in which they appear.
 
-    Let $W_t=X_t-\mu_t$. Since $\pi$ is sub-additive, we have
+    To bound the first term $\E_t[r_t^4]^{1/2}$, we first show that $r_t$ is sub-Gaussian and hence has bounded moments.
+    Let $W_t=X_t-\mu_t$. Since $\pi$ is a norm, by the triangle inequality we have
     $\pi(X_t) \leq \pi(\mu_t) + \pi(X_t - \mu_t) \leq 1 - \eps + \pi(W_t)$, and therefore
     \begin{align}
         r_t
@@ -2847,137 +2799,154 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
             1 + \frac{\pi(X_t - \mu_t)}{1 - \eps} & \text{if }X_t\notin\K_\eps
         \end{cases}
         \leq
-        1 + 2\pi(W_t),
+        1 + 2\pi(W_t).
     \end{align}
-    Firstly, since $t\leq\tau_{\mathrm{safe}}$, we have $\Sigma_t\preceq 2\sigma^2I_d$.
-    Conditionally on $\F_{t-1}$, $W_t\sim\N(0,\Sigma_t)$, and let $\tilde Z \sim\N(0, 2\sigma^2I_d - \Sigma_t)$
-    and $Z \sim\N(0, 2\sigma^2I_d)$ be independent of $W_t$ and each other.
+    Since $t\leq\tau=\tau_{\mathrm{safe}}$, we have
+    $\Sigma_t\preceq 2\sigma^2I_d$. Conditionally on $\F_{t-1}$,
+    $W_t\sim\N(0,\Sigma_t)$. Let
+    $\tilde Z\sim\N(0,2\sigma^2I_d-\Sigma_t)$ and
+    $Z\sim\N(0,2\sigma^2I_d)$ be independent of $W_t$ and each other.
     Then, letting $U \sim \text{Unif}(\mathbb{S}_1^d)$ we have
     \begin{align}
         \E_t[\pi(W_t)]
          & =
         \E_t\left[\pi(\E_t[W_t + \tilde Z | W_t])\right]
-        \leq
+        \explan{\leq}{a}
         \E_t\left[\pi(W_t + \tilde Z)\right]
-        =
+        \explan{=}{b}
         \E_t\left[\pi(Z)\right] \\
-         & \leq
+         & =
         \E_t\left[\|Z\| \pi\left(\frac{Z}{\|Z\|}\right)\right]
-        \leq
+        \explan{=}{c}
+        \E_t[\|Z\|]\E_t[\pi(U)]
+        \explan{\leq}{d}
         \sqrt{\E_t\left[\|Z\|^2\right]} \E_t\left[\pi\left(U\right)\right]
         \leq
         \sigma \sqrt{2d} M
-        \leq 1\,.
+        \leq 1\,,
     \end{align}
-    Since $\pi$ is $1$-Lipschitz, conditional Gaussian concentration shows
-    that $\pi(W_t)-\E_t[\pi(W_t)]$ is $\alpha_t$-sub-Gaussian with
+    where \reason{a} and \reason{d} is Jensen's inequality, \reason{b} uses the fact that $W_t+\tilde Z$ has the same conditional law as $Z$, and \reason{c} uses the fact that the radius and direction of the isotropic Gaussian $Z$ are independent.
+    % The assumption $C_0\geq64$ and \eqref{eq:ell} give $\ell \geq 64\log128 >4,$where we used $n,d\geq1$ and $\delta<1/2$.\alireza{move to the table.}
+
+
+    For the first factor, let $\Delta_t=\pi(W_t)-\E_t[\pi(W_t)]$.
+    Since $\pi$ is $1$-Lipschitz, Gaussian concentration gives for every $s\geq0$,
     \begin{align}
+        \Pp_t(|\Delta_t|>s)
+        \leq
+        2\exp\left(-\frac{s^2}{2\alpha_t^2}\right)\,,
+        \qquad
+        \text{where}
+        \qquad
         \alpha_t^2
         =
         \|\Sigma_t\|_{\op}
         \leq
         2\sigma^2
+        =
+        \frac1{dM^2}
         \leq1.
+        \label{eq:score-sub-gaussian-tail}
     \end{align}
-    Applying \cref{lem:nonnegative-sub-gaussian-fourth-moment} to the
-    conditional law given $\F_{t-1}$ therefore gives
+    Consequently,
     \begin{align}
-        \left(\E_t[\pi(W_t)^4]\right)^{1/4}
+        \E_t[|\Delta_t|^4]
+        \explan{=}{a}
+        4\int_0^\infty
+        s^3\Pp_t(|\Delta_t|>s)\,ds
+        \explan{\leq}{b}
+        8\int_0^\infty
+        s^3\exp\left(-\frac{s^2}{2\alpha_t^2}\right)\,ds
+        =
+        16\alpha_t^4
         \leq
-        1+8^{1/4}\alpha_t
-        \leq
-        1+8^{1/4}.
+        16,
     \end{align}
-    Consequently, conditional Minkowski's inequality and
-    $r_t\leq1+2\pi(W_t)$ give
+    where \reason{a} is the layer-cake identity and \reason{b} uses
+    \eqref{eq:score-sub-gaussian-tail}.
+    Consequently, we have
     \begin{align}
-        \left(\E_t[r_t^4]\right)^{1/4}
+        \E_t[\pi(W_t)^4]^{1/4}
+        =
+        \E_t[\left(\E_t[\pi(W_t)] + \Delta_t\right)^4]^{1/4}
         \leq
-        1+2\left(\E_t[\pi(W_t)^4]\right)^{1/4}
+        \E_t[\pi(W_t)]
+        +\left(\E_t[|\Delta_t|^4]\right)^{1/4}
         \leq
-        3+2^{7/4},
+        3,
     \end{align}
-    and hence
+    where the first inequality is Minkowski's inequality for the $L^4$ norm
+    and the second uses $\E_t[\pi(W_t)]\leq1$ and $\left(\E_t[|\Delta_t|^4]\right)^{1/4}\leq2$.
+    Applying the Minkowski's inequality once more to
+    $r_t\leq1+2\pi(W_t)$ yields
     \begin{align}
-        \E_t[r_t^4]
-        \leq
-        \left(3+2^{7/4}\right)^4
-        <1640.
-    \end{align}
-    Let $\mathcal A_t=\{|G_t|\leq K\sqrt\ell\}$,
-    where $K$ is a sufficiently large universal constant. On $\mathcal A_t$,
-    \begin{align}
-        \frac{G_t^2}{\ell}
-        +\frac{G_t^4+1}{\ell^2}
-        \leq C,
-        \qquad
-        (G_t^2-1)^2\leq C\ell^2.
-        \label{eq:score-central-simple}
-    \end{align}
-    On the complement, since $G_t$ is determined by $X_t$ conditional on
-    $\F_{t-1}$, \eqref{eq:Y2-conditional-simple} and Cauchy--Schwarz give
-    \begin{align}
-        \E_t\left[
-            Y_t^2(1+G_t^4)\1\{\mathcal A_t^c\}
-            \right]
-         & \leq
-        \frac{C}{\eps^2}
-        \E_t\left[
-            r_t^2(1+G_t^4)\1\{\mathcal A_t^c\}
-            \right]
-        \nonumber \\
-         & \leq
-        \frac{C}{\eps^2}
         \E_t[r_t^4]^{1/2}
+        \leq
+        \left(\E_t[(1+2\pi(W_t))^4]^{1/4}\right)^2
+        \leq
+        \left(
+        1+2\left(\E_t[\pi(W_t)^4]\right)^{1/4}
+        \right)^2
+        \leq
+        49.
+        \label{eq:score-r-fourth-moment}
+    \end{align}
+    We next bound the Gaussian factor in
+    \eqref{eq:score-tail-factorisation}.
+    Another application of Cauchy--Schwarz therefore gives
+    \begin{align}
         \E_t\left[
-            (1+G_t^4)^2
-            \1\{|G_t|>K\sqrt\ell\}
+            (G_t^2+1)^4\1\{\mathcal A_t^c\}
             \right]^{1/2}
-        \nonumber \\
          & \leq
-        \frac{C}{\eps^2}e^{-cK^2\ell}
-        \leq e^{-4\ell}.
-        \label{eq:score-tail-simple}
+        \E_t[(G_t^2+1)^8]^{1/4}
+        \Pp_t(\mathcal A_t^c)^{1/4} \\
+         & \explan{\leq}{a}
+        \left(
+        2^7\left(\E_t[G_t^{16}]+1\right)
+        \cdot
+        2e^{-32\ell}
+        \right)^{1/4}               \\
+         & \explan{\leq}{b}
+        2^8e^{-8\ell}.
+        \label{eq:score-gaussian-tail}
     \end{align}
-    The penultimate inequality uses $G_t$'s conditional Gaussianity.  Indeed,
-    another application of Cauchy--Schwarz and the Gaussian tail bound gives,
-    with $a=K\sqrt\ell$,
+    where \reason{a} uses $(x+y)^8\leq2^7(x^8+y^8)$ for $x,y\geq0$
+    and the standard Gaussian tail bound since $G_t\sim\N(0,1)$,
+    and \reason{b} uses the equality is the Gaussian moment identity $\E_t[G_t^{16}]=15!!$
+    and $2^7(15!!+1) <2^{28}$.
+    Substituting \eqref{eq:score-r-fourth-moment} and
+    \eqref{eq:score-gaussian-tail} into
+    \eqref{eq:score-tail-factorisation} gives
     \begin{align}
-         & \E_t\left[
-            (1+G_t^4)^2\1\{|G_t|>a\}
-            \right]^{1/2}
-        \leq
-        \E_t[(1+G_t^4)^4]^{1/4}
-        \Pp_t(|G_t|>a)^{1/4}
-        \leq
-        Ce^{-a^2/8}
-        =
-        Ce^{-K^2\ell/8}.
+        T_t
+        <
+        10\cdot49\cdot2^8\,\eps^{-2}e^{-8\ell}
+        <
+        2^{17}\eps^{-2}e^{-8\ell}
+        \explan{\leq}{a}
+        2^{17}e^{-7\ell}
+        \explan{\leq}{b}
+        e^{-4\ell}
+        \label{eq:score-tail-before-parameters}
     \end{align}
-    For the last inequality in \eqref{eq:score-tail-simple}, the parameter
-    definitions give
-    \begin{align}
-        \eps^{-1}
-        =
-        \frac{\sqrt n}{C_\eps d^2M\ell^4}
-        \leq\sqrt n
-        \leq e^{\ell/C_0}.
-    \end{align}
-    Thus it follows by choosing $K$ sufficiently large.
-    Combining
-    \eqref{eq:score-central-simple} and
-    \eqref{eq:score-tail-simple} proves both claims.
+    where \reason{a} uses $\eps^{-2} \leq e^\ell$\alireza{Record this} and \reason{b} uses $2^{17}<e^{12}\leq e^{3\ell}$.
+    Substituting this bound into \eqref{eq:score-localisation-split} proves
+    \eqref{eq:H-score-second-moment}.
 \end{proof}
 
 \begin{proof}[Proof of \cref{prop:concentration}]
     We first prove \eqref{eq:q-concentration}.
-    To this end, define
+    To this end, let $t\leq\tau$ be a generic time step.
+    Define
     \begin{align}
         Q_t
-        =\1\{t\leq\tau\}\widehat q_t(x_\star),
-        \qquad
+        =\widehat q_t(x_\star),
+        \qquad\text{and}\qquad
         D_t
-        =Q_t-\E_t[Q_t]\,,
+        =Q_t-\E_t[Q_t]
+        =\widehat q_t(x_\star)-q_t(x_\star)
+        \,,
     \end{align}
     which is a martingale-difference sequence.
     The plan is to upper bound the quantity
@@ -2991,7 +2960,7 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
         \E_t[Q_t^2] - \E_t[Q_t]^2
         \right)
         \leq
-        C
+        2
         \sum_{t=1}^n
         \left(
         Q_t^2 + \E_t[Q_t^2]
@@ -3000,7 +2969,6 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
         \label{eq:D-to-Q}
     \end{align}
     and then apply \cref{lem:self-normalised-martingale} to bound $\left|\sum_{t=1}^\tau D_t\right| = \left|\sum_{t=1}^\tau (\widehat q_t(x_\star) - q_t(x_\star))\right|$.
-    Note that $\E_t[Q_t] = \1\{t\leq\tau\}q_t(x_\star)$.
 
     Define $R_t=\normm{x_\star-\mu_t}{\Sigma_t^{-1}}$.
     Define the $\F_{t-1}$-measurable unit vector $h_t$ by
@@ -3018,61 +2986,81 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
     definitions of $\widehat g_t$ and $\widehat H_t$ give
     \begin{align}
         Q_t
-        =Y_tL_t\1\{t\leq\tau\},
+        =Y_tL_t,
         \qquad\text{where}\quad
         L_t
         =R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1).
         \label{eq:q-score-representation}
     \end{align}
-    This identity remains valid when $R_t=0$, because both sides then vanish.
-    A useful inequality is
+    Since $R_t \leq 2\frac{b}{\lambda^2\ell}$ for $t\leq\tau$ by the focus condition \eqref{eq:safe-stopping-time}, we have
     \begin{align}
-        L_t^2 \1\{t\leq\tau\}
+        L_t^2
+         & =
+        \left(
+        R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1)
+        \right)^2
         \leq
-        \frac{C}{\lambda^2}
+        \left(
+        \frac{\sqrt{2b}}{\lambda \sqrt{\ell}}G_t+\frac{2b}{\lambda\ell}(G_t^2-1)
+        \right)^2
+        \leq
+        \frac{4b^2}{\lambda^2}
+        \left(
+        \frac{G_t}{\sqrt{\ell}} + \frac{G_t^2}{\ell} - \frac{1}{\ell}
+        \right)^2
+        \\
+         & \leq
+        \frac{12b^2}{\lambda^2}
         \left(
         \frac{G_t^2}{\ell}
-        +\frac{G_t^4+1}{\ell^2}
+        +\frac{G_t^4}{\ell^2}
+        +\frac{1}{\ell^2}
         \right)
+        =
+        \frac{12b^2}{\lambda^2}
+        \left(\frac12+\frac{3}{2\ell^2}(G_t^2+1)^2\right)
+        \,.
         \label{eq:q-score-square}
     \end{align}
-    which follows from the focus condition \eqref{eq:concentration-focus}
-    which ensures that $R_t\leq c/(\lambda\sqrt\ell)$ for $t\leq\tau$.
     We have
     \begin{align}
         \E_t[Q_t^2]
         \leq
-        \E_t[Y_t^2L_t^2\1\{t\leq\tau\}]
+        \E_t[Y_t^2L_t^2]
         \explan{\leq}{a}
-        \frac{C\1\{t\leq\tau\}}{\lambda^2}
+        \frac{12b^2}{\lambda^2}
         \E_t\left[Y_t^2 \left(
-            \frac{G_t^2}{\ell}
-            +\frac{G_t^4+1}{\ell^2}
+            \frac12+\frac{3}{2\ell^2}(G_t^2+1)^2
             \right)\right]
         \explan{\leq}{b}
-        \frac{C\1\{t\leq\tau\}}{\lambda^2}
-        \left(\E_t[Y_t^2]+1\right),
+        \frac{12b^2}{\lambda^2}
+        \left(
+        2^{15}\E_t[Y_t^2]+1
+        \right),
         \label{eq:q-predictable-second-moment}
     \end{align}
     where \reason{a} follows from \eqref{eq:q-score-square} and \reason{b} follows from \cref{lem:gaussian-score-localisation}
     and the fact that $\ell\geq 1$.
 
-    Let
-    $\mathcal E_G
-        =\left\{
-        \max_{t\leq\tau}|G_t|\leq K\sqrt\ell
-        \right\}$
-    where $K$ is a sufficiently large universal constant.
+    Let $\mathcal E_G=\left\{\max_{t\leq\tau}|G_t|\leq \sqrt\ell\right\}$.
     Since $G_t$ is conditionally standard Gaussian,
     \begin{align}
         \Pp(\mathcal E_G^c)
-        \leq2ne^{-K^2\ell/2}
-        \leq\frac{\delta}{64}.
+        \leq 2n\exp(-\ell/2)
+        = 2n\exp\left(
+        -
+        \frac{C_0}{2}
+        \log\left(
+            \frac{C_0nd}{\delta}
+            \right)
+        \right)
+        \leq \frac{\delta}{64}.
         \label{eq:q-gaussian-maximum}
     \end{align}
-    On $\mathcal E_G$, the focus condition \eqref{eq:concentration-focus} gives
+    \alireza{$C_0>64$}
+    On $\mathcal E_G$, the focus condition \eqref{eq:safe-stopping-time} gives
     \begin{align}
-        |L_t| \1\{t\leq \tau\} \leq |R_t||G_t| + \frac{\lambda R_t^2}{2}(|G_t^2| + 1)
+        |L_t| \leq |R_t||G_t| + \frac{\lambda R_t^2}{2}(|G_t^2| + 1)
         \leq
         \frac{C}{\lambda\sqrt\ell}K\sqrt\ell + \frac{\lambda}{2} \cdot \frac{C^2}{\lambda^2\ell}(K^2\ell + 1)
         \leq \frac{C}{\lambda}.
@@ -3082,15 +3070,15 @@ The next lemma is \citet[Theorem~2.1]{bercu2008exponential}.
     \begin{align}
         Q_t^2
         =
-        Y_t^2L_t^2\1\{t\leq\tau\}
+        Y_t^2L_t^2
         \leq
-        \frac{C\1\{t\leq\tau\}}{\lambda^2}
+        \frac{C}{\lambda^2}
         Y_t^2\,.
         \label{eq:q-realised-score-energy}
     \end{align}
     Let $\mathcal E_Y$ be the event from \cref{lem:feedback} on which
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2\leq Cn\,,
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2\leq 8n\,,
     \end{align}
     then, since $\tau\leq\tau_{\mathrm{cov}}$, on
     $\mathcal E_Y\cap\mathcal E_G$,
