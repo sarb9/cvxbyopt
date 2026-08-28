@@ -1,0 +1,31 @@
+
+
+
+\newpage
+\section{Ensuring log-concavity of p}
+There are various steps in the previous section, where one can get a bound on the variance term, which is effectively $\frac{1}{\eta^2}D_{f_\alpha}(\PP_{X,T_0}\|\PP_X\otimes\PP_{T_0})$ given \textit{some kind of information} about the law of $T$, which is $q$.
+For instance in \cref{theorem:log_concave_d_log_factor_factorial}, we showed a bound that needed $q$ to be log-concave.
+Or one could get a bound by departing from the step \cref{eq:laplace_log_factor_R0_integral_upper} in the proof of the 1d laplace, which will easily generalizes to higher dimensions.
+
+The outstanding question is
+\begin{center}
+    \textit{What can be ensured about $q$ that allows us to get a bound on the variance term?}
+\end{center}
+Note that $q$ is the exponential weights distribution on the set of historic estimated losses $\hf_t$, namely
+\begin{align}
+    q(t) = \frac{e^{-\eta \hf_t}}{\int_\K e^{-\eta \hf_s} ds}\,,
+\end{align}
+where $\hf_s = \cE_{X_s}^{\ell_s} = \cE(X_s, \ell_s(X_s))$ is the estimated loss in round $s$,
+after taking action $X_s$ and observing the loss $\ell_s(X_s)$.
+So, for instance, if the $\hf_t$ are convex functions of $t$, then $q$ is log-concave.
+
+However, our choice of the estimator $\cE_x^\ell(t) = \ell(x) s_x(t)$, where
+\begin{align}
+    s_x(t) = 1 + \frac{r(x,t) - 1}{\lambda},
+\end{align}
+where $r(x,t) = \frac{p(x|t)}{p(x)}$ is the likelihood ratio, and all quantities are defined with respect to the state of the world at time step $t$ (i.e., the distribution of $X_s$ and the conditional distribution of $X_s$ given $T=t$), does not necessarily give us convex $\hf_t$, although, the expectation of $\hf_t$ is the convex function $\tilde{\ell}_t = \E_{X_s}[\cE_{X_s}^{\ell_s}(t)]$.
+
+The first hope is that, even if each $\hf_t$ is not convex, after enough rounds, the exponential weights distribution $q$ which is based on the $\hf_t$ will be \textbf{roughly} log-concave, since it is based on the sum of many $\hf_t$.
+
+The reason for being \textbf{roughly} log-concave is that the proof of the log-concave case only needs the $p$ to be log-concave, and $p$ is the convolution of scaled versions of $q$, so even if $q$ is not exactly log-concave, but is close enough to a log-concave distribution, then $p$ might still be log-concave, and we can still get the desired bound on the variance term.
+

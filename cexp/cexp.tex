@@ -1,0 +1,3383 @@
+\documentclass{article}
+
+\textwidth=135mm
+\textheight=200mm
+\oddsidemargin=20mm
+\linespread{1.04}
+
+
+\title{\textsc{Continuous Exponential Weights}}
+\date{}
+\usepackage{marginnote}
+\reversemarginpar % switch default margin to the left
+\usepackage{framed}
+\usepackage{xcolor}
+\usepackage[hypertexnames=false]{hyperref} % add backlinks to the end of bibliography items
+\usepackage{nicefrac}
+\usepackage{pgfplots}
+\usepackage{floatrow}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage[plain]{algorithm}
+\lstset{emph={try,catch,throw,def,or,to,for,then,end,for,if,args,else,return},emphstyle=\color{blue!100!black}\textbf}
+\lstset{mathescape=true,escapechar=\&,numbers=left,xleftmargin=3mm,linewidth=0.47\textwidth,framextopmargin=0pt,framexbottommargin=0pt,aboveskip=-1pt,belowskip=-1pt}
+\usepackage{mdframed}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage[capitalise]{cleveref}
+\usepackage{autonum}
+\usepackage[bf]{caption}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{xspace}
+
+\setlength{\marginparwidth}{35mm}
+
+\definecolor{dkblue}{cmyk}{1,.54,.04,.19} 
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{optprob}[theorem]{Optimisation Problem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{plain}
+\newtheorem{exampleinner}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+% Boxed example environment with light gray background and shadow
+\mdfdefinestyle{examplestyle}{%
+    backgroundcolor=gray!10,
+    linewidth=0.5pt,
+    linecolor=gray!50,
+    shadow=true,
+    shadowsize=3pt,
+    shadowcolor=gray!30,
+    innertopmargin=8pt,
+    innerbottommargin=8pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+    skipabove=10pt,
+    skipbelow=10pt
+}
+\newenvironment{example}[1][]{%
+    \begin{mdframed}[style=examplestyle]%
+    \begin{exampleinner}[#1]%
+}{%
+    \end{exampleinner}%
+    \end{mdframed}%
+}
+
+
+\newcommand{\interior}{\operatorname{int}}
+\newcommand{\dom}[1]{\operatorname{dom}(#1)}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\R}{\mathbb R}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\Rd}{\mathbb{R}^d}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\ip}[1]{\langle #1 \rangle}
+\newcommand{\Reg}{\mathfrak{R}}
+\newcommand{\BReg}{\mathfrak{BR}}
+\newcommand{\norm}[1]{\Vert #1 \Vert}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\K}{\mathcal K}
+\newcommand{\cU}{\mathcal U}
+\newcommand{\cN}{\mathcal N}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\PP}{\mathbb P}
+\newcommand{\Var}{\mathbb V}
+\newcommand{\cE}{\mathcal E}
+\newcommand{\cK}{\mathcal K}
+\newcommand{\op}{\operatorname{op}}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cO}{\mathcal O}
+\newcommand{\cS}{\mathcal S}
+\newcommand{\cC}{\mathcal C}
+\newcommand{\cL}{\mathcal L}
+\newcommand{\cG}{\mathcal G}
+\newcommand{\cA}{\mathcal A}
+\newcommand{\cD}{\mathcal D}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\BS}{\mathbb S}
+\newcommand{\zeros}{ \bm 0}
+\newcommand{\bbP}{\mathbb P}
+\newcommand{\polylog}{\operatorname{polylog}}
+\newcommand{\poly}{\operatorname{poly}}
+\newcommand{\const}{\operatorname{const}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\ball}{\operatorname{ball}}
+\renewcommand{\d}[1]{\operatorname{d}\!#1}
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\abovelabel}[1]{\stackrel{\raisebox{0.5mm}{\textrm{\tiny \color{red} #1}}}}
+\newcommand{\ta}{\tilde{a}}
+\newcommand{\tpi}{\tilde{\pi}}
+\newcommand{\tp}{\tilde{p}}
+\newcommand{\tP}{P'}
+\newcommand{\tA}{A'}
+\newcommand{\fmd}{\texttt{MD}}
+\newcommand{\tfmd}{\widetilde{\texttt{MD}}}
+
+\newcommand{\mdalg}{\textsf{MD}\xspace}
+\newcommand{\cewaalg}{\textsf{CEWA}\xspace}
+\newcommand{\smdalg}{\textsf{SCMD}\xspace}
+\newcommand{\scewaalg}{\textsf{SCEWA}\xspace}
+\newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
+\newcommand{\olo}{\texttt{OLO}\xspace}
+\newcommand{\blo}{\texttt{BLO}\xspace}
+\newcommand{\bco}{\texttt{BCO}\xspace}
+\newcommand{\oco}{\texttt{OCO}\xspace}
+\newcommand{\hf}{\hat{\ell}\xspace}
+\newcommand{\he}{\hat{e}\xspace}
+
+
+    
+\begin{document}
+\maketitle
+
+In this note, we aim to improve the dimension dependence of bandit convex optimization (\bco).
+The main theoretical tool we use is the analysis of a continuous version of mirror descent (\mdalg).
+Then we move on to \bco.
+The current state of affairs can be summarized as follows:
+\begin{enumerate}
+    \item \oco\footnote{Online Convex Optimization} reduces to \olo\footnote{Online Linear Optimization}: $f(x) - f(x_\star) \leq \langle f'(x), x - x_\star \rangle$.
+    \item \textbf{Random} algs are \textit{suboptimal} for \texttt{OCO} and \textit{pointless} for \texttt{OLO}.
+    \item First order information, $f'(x)$, makes \texttt{BCO} as hard as \texttt{OLO}.
+    \item \textbf{Random} algs are \textit{necessary} for \texttt{BCO} and \texttt{BLO}.
+    \item \textbf{Random} algs are \textit{free} for \texttt{BLO}\footnote{Bandit Linear Optimization}
+    \item \textbf{Random} algs appear to be \textit{expensive} for \texttt{BCO}: upper bound is $d^{2.5}\sqrt{n}$ while lower bound is $d\sqrt{n}$.
+\end{enumerate}
+Our main goal here is to prove a $d^{1.5} \sqrt{n}$ regret upper bound for \bco,
+which partially closes the gap between the upper and lower bounds for \bco.
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Continuous exponential weights}
+We study a repeated game between a player and an adversary, which proceeds in $n$ rounds.
+Let $\K \subset \R^d$ be a compact convex subset with non-empty interior, and the set $\cF \subseteq \mathsf{C}(\K)$ be the class of continuous functions defined on $\K$.
+In each round $t \in [n]$, the player chooses an \textbf{action} $A_t \in \K$ (possibly randomly) and incurs a loss of $\ell_t(A_t)$, where $\ell_t \in \cF$ is a loss function chosen by the adversary, simultaneously with the player.
+Throughout this section, we study the \textit{full information} setting where the adversary reveals the whole loss function $\ell_t$ to the player at the end of each round.
+
+The player is allowed to randomize its actions, by choosing a distribution $\pi_t$ over $\K$ and sampling $A_t \sim \pi_t$.
+The distribution $\pi_t$ is called the \textbf{policy}.
+Precisely, in round $t$, the player chooses a distribution $\pi_t \in \mathsf{P}(\K)$ where
+$\mathsf{P}(\K)$ is the set of all probability measures supported on $\K$.
+The goal of the player is to minimize regret with respect to a comparator action $a_\star \in \K$, defined as
+\begin{align}
+    \Reg_n(a_\star) \triangleq \sum_{t=1}^{n} \ell_t(A_t) - \ell_t(a_\star)\,.
+\end{align}
+Note that $\Reg_n(a_\star)$ is a random variable,
+and the goal of the player is to minimize this quantity, either in expectation or with high probability.
+
+\subsection{The algorithm and its regret bound}
+The Continuous Exponential Weights Algorithm (\cewaalg), shown in \cref{alg:MD},
+is a natural extension of the discrete exponential weights algorithm to the continuous setting.
+\begin{algorithm}[H]
+    \begin{minipage}{12cm}
+        \begin{mdframed}
+            \begin{lstlisting}
+args: $\eta > 0,  \pi_1$
+for $t = 1$ to $n$:
+    Play $A_t \sim \pi_t$ and observe $\ell_t$
+    For $x \in \K$, let $\tpi_{t+1}(x) = \pi_t(x) \exp\left(-\eta \ell_t(x)\right)$
+    Set $\pi_{t+1}(x) = \frac{\tpi_{t+1}(x)}{\int_\K \tpi_{t+1}(y) d\mu(y)}$
+\end{lstlisting}
+            \caption{
+                \cewaalg algorithm.
+            }\label{alg:MD}
+        \end{mdframed}
+    \end{minipage}
+\end{algorithm}
+\noindent
+Before stating the regret bound for \cewaalg, we need to introduce some notations.
+Define the set of probability densities supported on $\K$ as
+\begin{align}
+    \cP(\K)
+    \triangleq
+    \left\{
+    p:\K\to\R_+
+    \;\middle|\;
+    \textit{measurable}, \int_\K p(x)\d\mu(x)=1
+    \right\}.
+\end{align}
+From now on, we will be mainly concerned with policies that are absolutely continuous with respect to the Lebesgue measure $\mu$ on $\K$, so that we can identify a policy $\pi$ with its density function,
+for which we abuse the notation and also write $\pi$ to denote the density function of the policy $\pi$.
+The \cewaalg algorithm is a special case of the mirror descent algorithm with \textbf{the negative entropy} as the potential function, which is defined as
+\begin{align}
+    H(v) \triangleq \int_{\K} v(x) \log v(x) - v(x) + 1 d\mu(x)\,, \qquad \text{with } 0\log 0 \triangleq 0\,,
+\end{align}
+for a measurable function $v:\K \to \R_+$.
+The Bregman divergence associated with the negative entropy is the generalized Kullback-Leibler divergence, defined as
+\begin{align}
+    D_H(p,q)
+    =
+    \int_\K p(x)\log\frac{p(x)}{q(x)} - p(x) + q(x)\d x\,,
+\end{align}
+for $p,q$ being two measurable functions from $\K$ to $\R_+$.
+For a probability density $p \in \cP(\K)$, and a loss function $\ell \in \cF$, define the dual pairing as
+\begin{align}
+    \langle \ell, p \rangle
+    =
+    \int_\K \ell(x) p(x) d\mu(x)\,,
+\end{align}
+which is always finite since $\ell$ is continuous on a compact set and $p$ is a probability density.
+Finally, for a comparator fixed policy $\pi_\star \in \cP(\K)$, define the \textbf{pseudo-regret} with respect to $\pi_\star$ as
+\begin{align}
+    \Reg_n(\pi_\star) \triangleq
+    \sum_{t=1}^{n} \langle \ell_t, \pi_t - \pi_\star \rangle\,.
+\end{align}
+
+The following theorem gives a regret bound for the regret of \cewaalg algorithm.
+Note that the comparator in the following regret bound is a density $\pi_\star$ instead of a point $a_\star$.
+However, these two types of comparators are essentially equivalent since the class of losses we study are continuous functions on a compact set, and the regret with respect to a Dirac measure $\delta_{a_\star}$ can be approximated arbitrarily well by the regret with respect to a density $\pi_\star$ that is supported on a small neighborhood of $a_\star$.
+\begin{theorem}\label{thm:MD}
+    Let $\pi_1 \in \cP(\K)$ be an arbitrary initial policy with $\pi_1>0$ everywhere on $\K$,
+    and $\pi_\star \in \cP(\K)$ be an arbitrary comparator policy,
+    such that $\pi_1 \ll \pi_\star$ (otherwise the upper bound is trivial).
+    Then the regret of \cewaalg with respect to $\pi_\star$ satisfies
+    \begin{align}
+        \Reg_n(\pi_\star)
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        +
+        \sum_{t=1}^{n} D_H(\pi_t, \tilde{\pi}_{t+1})
+        \right)\,.
+    \end{align}
+\end{theorem}
+
+\begin{proof}
+    We have
+    \begin{align}
+        \Reg_n(\pi_\star)
+         & =
+        \sum_{t=1}^{n} \langle \ell_t, \pi_t - \pi_\star \rangle \\
+         & =
+        \sum_{t=1}^{n}
+        \underbrace{\langle \ell_t, \pi_t - \pi_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stability}}
+        +
+        \underbrace{\langle \ell_t, \pi_{t+1} - \pi_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
+    \end{align}
+    It is standard that the normalized exponential update for $\pi_{t+1}$ can be equivalently written as the following optimization problem
+    \begin{align}
+        \pi_{t+1}
+         & =
+        \argmin_{\pi \in \cP(\K)}
+        \eta \langle \ell_t, \pi \rangle + D_H(\pi,\pi_t)\,,
+    \end{align}
+    then the first order optimality condition for this optimization problem gives us
+    \begin{align}
+         & \forall \bar{\pi} \in \cP(\K), \quad
+        \left\langle
+        \eta \ell_t + \log \pi_{t+1} - \log \pi_t,
+        \bar{\pi} - \pi_{t+1}
+        \right\rangle
+        \geq 0                                  \\
+        \Rightarrow
+         &
+        \texttt{tr}_t
+        =
+        \langle \ell_t, \pi_{t+1} - \pi_\star \rangle
+        \leq
+        \frac{1}{\eta}
+        \left\langle
+        \log \pi_{t+1} - \log \pi_t,
+        \pi_\star - \pi_{t+1}
+        \right\rangle\,.
+    \end{align}
+    The RHS in the last display can be written in terms of the Bregman divergences as
+    \begin{align}
+        \left\langle
+        \log \pi_{t+1} - \log \pi_t,
+        \pi_\star - \pi_{t+1}
+        \right\rangle
+         & =
+        D_H(\pi_\star, \pi_t)
+        -
+        D_H(\pi_{t+1}, \pi_t)
+        -
+        D_H(\pi_\star, \pi_{t+1})\,,
+    \end{align}
+    which gives us a bound on the tracking terms
+    \begin{align}
+        \sum_{t=1}^{n} \texttt{tr}_t
+         & =
+        \sum_{t=1}^{n}
+        \langle \ell_t, \pi_{t+1} - \pi_\star \rangle \\
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        \sum_{t=1}^{n}
+        D_H(\pi_\star, \pi_t)
+        -
+        D_H(\pi_\star, \pi_{t+1})
+        -
+        D_H(\pi_{t+1}, \pi_t)
+        \right)                                       \\
+         & =
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        -
+        \underbrace{D_H(\pi_\star, \pi_{n+1})}_{\geq 0}
+        -
+        \sum_{t=1}^{n} D_H(\pi_{t+1}, \pi_t)
+        \right)
+        \\
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        -
+        \sum_{t=1}^{n} D_H(\pi_{t+1}, \pi_t)
+        \right)
+        \,.
+    \end{align}
+    To analyze the stability term $\texttt{st}_t$,
+    note that $\textsf{CEWA}$ stores the latest loss in the unnormalized density $\tilde{\pi}_{t+1}$, as
+    \begin{align}
+        \log \tilde{\pi}_{t+1}
+        =
+        \log \pi_t - \eta \ell_t,
+        \qquad\text{so}\qquad
+        \ell_t
+        =
+        \frac{1}{\eta}
+        \left(
+        \log \pi_t - \log \tilde{\pi}_{t+1}
+        \right).
+    \end{align}
+    Therefore, the stability term can be written as
+    \begin{align}
+        \texttt{st}_t
+         & =
+        \langle \ell_t, \pi_t - \pi_{t+1} \rangle \\
+         & =
+        \frac{1}{\eta}
+        \left\langle
+        \log \pi_t - \log \tilde{\pi}_{t+1},
+        \pi_t - \pi_{t+1}
+        \right\rangle                             \\
+         & =
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_{t+1}, \pi_t)
+        +
+        D_H(\pi_t, \tilde{\pi}_{t+1})
+        -
+        D_H(\pi_{t+1}, \tilde{\pi}_{t+1})
+        \right).
+    \end{align}
+    Thus, by dropping the negative term $-D_H(\pi_{t+1}, \tilde{\pi}_{t+1})$,
+    we have proved the second inequality,
+    \begin{align}
+        \Reg_n(\pi_\star)
+         & \leq
+        \frac{1}{\eta}
+        \left(
+        D_H(\pi_\star, \pi_1)
+        +
+        \sum_{t=1}^{n} D_H(\pi_t, \tilde{\pi}_{t+1})
+        \right).
+    \end{align}
+\end{proof}
+
+\subsection{A discussion on generalization to unbounded losses}
+Since, $\cF \subseteq \mathsf{C}(\K)$ and continuous functions on compact sets are automatically bounded, the bilinear form $\langle f, p \rangle$ is finite for every $p \in \cP(\K)$.
+However, one might wonder about the \textbf{largest class of measurable loss functions} that are compatible with continuous exponential weights algorithm.
+Firstly, the next theorem characterizes the class of functions $v$ for which $H(v)$ is finite, i.e. $\dom{H}$.
+\begin{theorem}
+    \label{thm:negentropy-LlogLspace}
+    Define
+    \begin{align}
+        \Phi(x) \triangleq \begin{cases}
+                               (1+x) \log(1+x) - x & x \ge 0\,, \\
+                               +\infty             & x < 0\,.
+                           \end{cases}
+    \end{align}
+    Then, the domain of $H$ is given by
+    \begin{align}
+        \dom{H} = L\log\!L(\K) \triangleq \left\{v: \K \to \R_+ \middle| \text{measurable}, \int_\K \Phi(v(x))d\mu(x) < +\infty\right\}\,. \label{eq:LlogLspace_definition}
+    \end{align}
+\end{theorem}
+The $L\log\!L(\K)$ in \cref{eq:LlogLspace_definition} is the Orlicz space associated with the function $\Phi$.
+The dual space of $L\log\!L(\K)$ is the Orlicz space associated with the convex conjugate $\Phi^\star$ of $\Phi$, which is given by
+\begin{align}
+    \Phi^\star(x) = \begin{cases}
+                        e^x - x - 1, & x \ge 0  \\
+                        0,           & x < 0\,,
+                    \end{cases}
+\end{align}
+and
+\begin{align}
+    L\!\exp(\K) \triangleq \left\{f: \K \to \R \middle| \textit{measurable}, \int_\K \Phi^\star(f(x)) d\mu(x) < +\infty\right\}\,.
+\end{align}
+Then, the dual pairing (bilinear form) between functions $p \in L\!\log\!L(\K)$ and $f \in L\!\exp(\K)$ is finite and given by
+\begin{align}
+    \langle f, p \rangle \triangleq \int_\K f(x) p(x) d\mu(x) < +\infty\,.
+\end{align}
+The curious fact here is that the set $L\!\exp(\K)$ coincides with the set of measurable functions $f$ such that the denominator $\int_\K \exp(-\eta f(x)) d\mu(x)$ in the update rule of \cewaalg is finite for every $\eta > 0$.
+I still don't have a good intuition for why this is the case.
+
+
+
+\newpage
+\section{Stochastic continuous exponential weights}
+In this section, we study the bandit version of the online optimization problem.
+The main difference is that the player only observes the loss incurred by its action,
+namely $\ell_t(A_t)$, instead of the entire loss function $\ell_t$.
+\textbf{Unlike the full information setting, the sequence $\ell_t$ must be fixed before the game starts.}
+Essentially, \textit{the regret is not really well-defined if $\ell_t$ is chosen adaptively by the adversary after observing the previous actions of the player}\footnote{The adversary can decide to show only $\ell_t(\cdot)=1$ for $t\geq2$, if $a_1\neq a_\star$, and otherwise show $\ell_t(\cdot)=0$ for all $t$ when $a_1 = a_\star$, turning the whole game a trivial needle in a haystack problem.}.
+
+The main difficulty is that the player cannot form $\tpi_t$, since it does not observe the entire loss function $\ell_t$.
+The key idea is to use the sampled action $A_t$ together with the observed loss $\ell_t(A_t)$ to construct an \textit{estimated loss function} $\hf_t$.
+This is the first modification to the \cewaalg algorithm, leading to the Stochastic Exponential Weights Algorithm (\scewaalg) in \cref{alg:stochastic-cewa}.
+A second modification is that the algorithm need not play according to $\pi_t$ itself; instead it samples $A_t \sim \hat{\pi}_t$, where $\hat{\pi}_t$ is a distribution constructed from $\pi_t$.
+
+Philosophically, the resulting algorithm has very little in common with the mirror descent algorithm.
+Precisely, $\pi_t$ is not really playing the role of the `policy' in round $t$, but rather it plays the role of a `sufficient statistic' that summarizes the history of the game up to time $t$, and the player uses it to construct the \textit{playing policy} $\hat{\pi}_t$ and the \textit{estimator map} $\cE_t: \K \times \R \to \mathsf{C}(\K)$ that maps the observed action and loss to an estimated loss function $\hf_t$.
+
+\begin{algorithm}[h!]
+    \begin{minipage}{13cm}
+        \begin{mdframed}
+            \begin{lstlisting}
+args: $\eta > 0$, $\pi_1$
+for $t = 1$ to $n$:
+    Choose $\hat{\pi}_t$ and $\cE_t$ based on $\pi_t$
+    Play $A_t \sim \hat{\pi}_t$ and observe $Y_t = \ell_t(A_t)$
+    Set $\hf_t = \cE_t(A_t, Y_t)$
+    For $x \in \K$, let $\tpi_{t+1}(x) = \pi_t(x) \exp\left(-\eta \hf_t(x)\right)$
+    Set $\pi_{t+1}(x) = \frac{\tpi_{t+1}(y)}{\int_\K \tpi_{t+1}(y) d\mu(y)}$
+\end{lstlisting}
+            \caption{\scewaalg algorithm.}\label{alg:stochastic-cewa}
+        \end{mdframed}
+    \end{minipage}
+\end{algorithm}
+
+\begin{proposition}
+    \label{prop:cexp_regret_bound}
+    Let $\pi_1 \in \cP(\K)$ be an arbitrary initial policy,
+    and $\pi_\star \in \cP(\K)$ be an arbitrary comparator policy.
+    The expected-regret of \scewaalg with respect to $\pi_\star$ satisfies
+    \begin{align}
+        \E[
+            \Reg_T(\pi_\star)
+        ]
+         & \leq
+        \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+        +
+        \sum_{t=1}^T
+        \E\left[
+            \langle \ell_t,\hat{\pi}_t-\pi_\star\rangle
+            -
+            \langle \hf_t,\pi_t-\pi_\star\rangle
+            +
+            \frac{1}{\eta}
+            D_{H}
+            \left(
+            \pi_t,
+            \tilde{\pi}_{t+1}
+            \right)
+            \right].
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    Starting from the definition of regret, and using that conditionally on the past
+    $A_t\sim \hat{\pi}_t$, we can write
+    \begin{align}
+        \E[\Reg_T(\pi_\star)]
+         & =
+        \E\left[
+            \sum_{t=1}^T
+            \ell_t(A_t) - \ell_t(A_\star)
+            \right]
+         & (\text{where } A_\star \sim \pi_\star)
+        \\
+         & =
+        \E\left[
+            \sum_{t=1}^T
+            \langle \ell_t,\hat{\pi}_t-\pi_\star\rangle
+        \right]                                   \\
+         & =
+        \E\left[
+            \sum_{t=1}^T
+            \left(
+            \langle \ell_t,\hat{\pi}_t-\pi_\star\rangle
+            -
+            \langle \hf_t,\pi_t-\pi_\star\rangle
+            \right)
+            +
+            \sum_{t=1}^T
+            \langle \hf_t,\pi_t-\pi_\star\rangle
+            \right].
+    \end{align}
+    Applying \cref{thm:MD} with $\ell_t$ replaced by $\hf_t$, we get
+    \begin{align}
+        \sum_{t=1}^T
+        \langle \hf_t,\pi_t-\pi_\star\rangle
+         & \leq
+        \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+        +
+        \frac{1}{\eta}
+        \sum_{t=1}^T
+        D_H(\pi_t,\tilde{\pi}_{t+1}).
+    \end{align}
+    Plugging this into the previous display gives the result.
+\end{proof}
+
+By Fenchel duality for the negative entropy,
+\begin{align}
+    D_H(\pi_t,\tilde{\pi}_{t+1})
+     & =
+    D_{H^\star}
+    \left(
+    H'(\tilde{\pi}_{t+1}),
+    H'(\pi_t)
+    \right) =
+    D_{H^\star}
+    \left(
+    H'(\pi_t)-\eta \hf_t,
+    H'(\pi_t)
+    \right),
+\end{align}
+so another way to write the regret bound is
+\begin{align}
+    \E[\Reg_T(\pi_\star)]
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \sum_{t=1}^T
+    \E\left[
+        \langle \ell_t,\hat{\pi}_t-\pi_\star\rangle
+        -
+        \langle \hf_t,\pi_t-\pi_\star\rangle
+        +
+        \frac{1}{\eta}
+        D_{H^\star}
+        \left(
+        H'(\pi_t)-\eta \hf_t,
+        H'(\pi_t)
+        \right)
+        \right]\,,\label{eq:regret_bound_cexp_with_Bregman_divergence}
+\end{align}
+which has the benefit of isolating only the terms concerning time step $t$.
+
+\subsection{The one step complexity \texorpdfstring{$\Lambda$}{Lambda}}
+We still haven't answered the question of how to choose $\hat{\pi}_t$ and $\cE_t$ in \cref{alg:stochastic-cewa}.
+An answer to this question is given by the regret bound in \cref{prop:cexp_regret_bound}, which suggests that one should choose $\hat{\pi}_t$ and $\cE_t$ to minimize the one-step quantity
+\begin{align}
+    \E\left[
+        \langle \ell_t,\hat{\pi}_t-\pi_\star\rangle
+        -
+        \langle \hf_t,\pi_t-\pi_\star\rangle
+        +
+        \frac{1}{\eta}
+        D_{H^\star}
+        \left(
+        H'(\pi_t)-\eta \hf_t,
+        H'(\pi_t)
+        \right)
+        \right].
+\end{align}
+Note that when the learner is choosing the playing policy $\hat{\pi}_t$ and the estimator $\cE_t$, the learning rate $\eta$ and the current \cewaalg policy $\pi_t$ are given to the learner, while the loss function $\ell_t$ and the comparator policy $\pi_\star$ are unknown to the learner.
+Motivated by this observation, define the one step complexity as
+\begin{align}
+    \Lambda_{\pi,\eta}(\hat{\pi},\cE \| \pi_\star, \ell)
+    \triangleq
+    \frac{1}{\eta}
+    \E_{X\sim\hat{\pi}}\left[
+        \langle \ell,\delta_X-\pi_\star\rangle
+        -
+        \langle \cE_X^\ell,\pi-\pi_\star\rangle
+        +
+        \frac{1}{\eta}
+        D_{H^\star}
+        \left(
+        H'(\pi)-\eta \cE_X^\ell,
+        H'(\pi)
+        \right)
+        \right],
+\end{align}
+where the randomness is with respect to $X \sim \hat{\pi}$ and $\cE_X^\ell = \cE(X,\ell(X))$.
+The reason for the extra $\frac{1}{\eta}$ factor in the definition of $\Lambda$ will become clear shortly.
+
+Suppose that there exists a choice of $\hat{\pi}_t$ and $\cE_t$ such that $\Lambda_{\pi_t,\eta}(\hat{\pi}_t,\cE_t \| \pi_\star, \ell_t) \leq \Lambda_\star$ for every $t$, \textbf{and any $\eta>0$}, then the regret bound in \cref{prop:cexp_regret_bound} can be bounded as
+\begin{align}
+    \E[\Reg_T(\pi_\star)]
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \eta
+    \sum_{t=1}^T
+    \Lambda_{\pi_t,\eta}(\hat{\pi}_t,\cE_t \| \pi_\star, \ell_t) \\
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \eta T \Lambda_\star                                         \\
+     & \leq
+    2\sqrt{D_H(\pi_\star,\pi_1) \Lambda_\star T}\,,
+\end{align}
+where the last inequality is setting $\eta = \sqrt{\frac{D_H(\pi_\star,\pi_1)}{T\Lambda_\star}}$.
+Note that the extra $\frac{1}{\eta}$ factor in the definition of $\Lambda$ gives the correct scaling of $\Lambda$ for $O(\sqrt{T})$ regret bound.
+
+
+It can be the case that one can only ensure $\Lambda_{\pi_t,\eta}(\hat{\pi}_t,\cE_t \| \pi_\star, \ell_t) \leq \Lambda_\star L(\eta)$ where $L(\eta) = \polylog(1/\eta)$.
+In that case, the regret bound becomes
+\begin{align}
+    \E[\Reg_T(\pi_\star)]
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \eta T \Lambda_\star L(\eta) \\
+     & \leq
+    2\sqrt{D_H(\pi_\star,\pi_1) \Lambda_\star T} \sqrt{L\left(\sqrt{\frac{D_H(\pi_\star,\pi_1)}{T\Lambda_\star}}\right)}\,,
+\end{align}
+which is still $O(\sqrt{T})$ up to polylogarithmic factors, for essentially the same choice of $\eta$ as before.
+Further refinement in terms of the choice of $\eta$ might be possible depending on the exact form of $L(\eta)$.
+
+\subsection{From policy regret to point regret}
+\label{sec:policy_to_point_regret}
+The regret bound above is stated against a comparator density, while the usual \bco\ regret is stated
+against a fixed point $a_\star\in\K$.  We can pass from one to the other by smoothing the point
+comparator in a way that uses only convexity and boundedness of the losses.
+
+Fix $a_\star\in\K$ and a parameter $\rho\in(0,1)$.  Let $Z\sim \operatorname{Unif}(\K)$ and define
+\begin{align}
+    A_\star^\rho=(1-\rho)a_\star+\rho Z,
+    \qquad
+    \pi_\star^\rho = \cL(A_\star^\rho).
+\end{align}
+Since $\K$ is convex, $A_\star^\rho\in\K$ almost surely.  Moreover, for every convex
+$\ell:\K\to[0,1]$, convexity gives
+\begin{align}
+    \ell(A_\star^\rho)
+     & \leq
+    (1-\rho)\ell(a_\star)+\rho\ell(Z)
+    \leq
+    \ell(a_\star)+\rho .
+\end{align}
+Therefore, for any sequence of convex losses bounded in $[0,1]$,
+\begin{align}
+    \sum_{t=1}^T
+    \left(
+    \langle \ell_t,\pi_\star^\rho\rangle-
+    \ell_t(a_\star)
+    \right)
+    \leq
+    T\rho .
+    \label{eq:homothetic_comparator_bias}
+\end{align}
+Consequently, any expected policy-regret bound against $\pi_\star^\rho$ implies a point-regret bound via
+\begin{align}
+    \E[\Reg_T(a_\star)]
+    \leq
+    \E[\Reg_T(\pi_\star^\rho)] + T\rho .
+    \label{eq:point_regret_from_policy_regret}
+\end{align}
+
+It remains to control the initial entropy term.  If the initial policy is uniform on $\K$, then
+$\pi_\star^\rho$ is uniform on the homothetic copy $(1-\rho)a_\star+\rho\K$, and hence
+\begin{align}
+    \frac{d\pi_\star^\rho}{d\pi_1}(x)
+    =
+    \rho^{-d}\mathbf 1\{x\in (1-\rho)a_\star+\rho\K\}.
+\end{align}
+Thus, since both measures are probability measures and $D_H$ coincides with KL divergence on
+probability densities,
+\begin{align}
+    D_H(\pi_\star^\rho,\pi_1)
+    =
+    D_{\mathrm{KL}}(\pi_\star^\rho\|\pi_1)
+    =
+    d\log\frac{1}{\rho}.
+    \label{eq:homothetic_comparator_entropy_uniform}
+\end{align}
+More generally, if $\pi_1$ has density at least $c_0/\mathrm{vol}(\K)$ on $\K$ for some $c_0\in(0,1]$,
+then the same calculation gives
+\begin{align}
+    D_H(\pi_\star^\rho,\pi_1)
+    \leq
+    d\log\frac{1}{\rho}+
+    \log\frac{1}{c_0}.
+    \label{eq:homothetic_comparator_entropy_lower_bounded_prior}
+\end{align}
+
+Combining \eqref{eq:point_regret_from_policy_regret} with the variance bound above, suppose for instance
+that, along the algorithmic trajectory,
+\begin{align}
+    \Lambda^{\mathsf v}_{\pi_t,\eta}(\hat\pi_t,\cE_t\|\ell_t)
+    \leq
+    C d^2
+\end{align}
+for a universal constant $C$, in the relevant range of $\eta$.  Then
+\begin{align}
+    \E[\Reg_T(a_\star)]
+    \leq
+    \frac{D_H(\pi_\star^\rho,\pi_1)}{\eta}
+    +
+    C\eta T d^2
+    +
+    T\rho .
+    \label{eq:point_regret_smoothed_bound}
+\end{align}
+With $\pi_1=\operatorname{Unif}(\K)$, choosing $\rho=T^{-1/2}$ gives
+$D_H(\pi_\star^\rho,\pi_1)=\frac d2\log T$ and hence
+\begin{align}
+    \E[\Reg_T(a_\star)]
+     & \leq
+    \frac{d\log(\sqrt T)}{\eta}
+    +
+    C\eta T d^2
+    +
+    \sqrt T .
+\end{align}
+Optimizing the first two terms gives
+\begin{align}
+    \E[\Reg_T(a_\star)]
+    \leq
+    2\sqrt{C d^3 T\log(\sqrt T)}+
+    \sqrt T
+    =
+    \tilde O(d^{3/2}\sqrt T).
+    \label{eq:point_regret_final_d_32}
+\end{align}
+Thus the smoothing step costs only an additive $\sqrt T$, while the entropy term contributes a factor
+$d\log T$ rather than changing the polynomial dependence on $d$.
+
+
+\newpage
+\section{The convex losses and the optimistic kernel}
+In this section, we construct a specific choice of $\hat{\pi}_t$ and $\cE_t$,
+for the case where \textbf{the loss functions $\ell_t$ are convex and bounded}.
+Let
+\begin{align}
+    \cF_{\mathrm{cvx}} \triangleq \left\{f:\K\to[0, 1] \middle| \,\, f \text{ is convex}\right\}\,.
+\end{align}
+Let $\ell \in \cF_{\mathrm{cvx}}$, and divide the one step complexity $\Lambda_{\pi,\eta}(\hat{\pi},\cE \| \pi_\star, \ell)$ into a bias term and a variance term:
+\begin{align}
+    \Lambda_{\pi,\eta}(\hat{\pi},\cE \| \pi_\star,\ell)
+     & =
+    \underbrace{
+        \frac{1}{\eta}
+        \E_{X\sim\hat{\pi}}\left[
+            \langle \ell,\hat{\pi}-\pi_\star\rangle
+            -
+            \langle \cE_X^\ell,\pi-\pi_\star\rangle
+            \right]
+    }_{\triangleq \Lambda^{\mathsf{b}}_{\eta,\pi}(\cE,\hat{\pi}\| \pi_\star,\ell)}
+    +
+    \underbrace{
+        \frac{1}{\eta^2}
+        \E_{X\sim\hat{\pi}}\left[
+            D_{H^\star}
+            \left(
+            H'(\pi)-\eta \cE_X^\ell,
+            H'(\pi)
+            \right)
+            \right]
+    }_{\triangleq \Lambda^{\mathsf{v}}_{\eta,\pi}(\cE,\hat{\pi}\|\ell)}\,.
+\end{align}
+
+First, we restrict ourselves to the case where $\cE_X^\ell$ is \textit{multiplicative} in the observed loss $\ell(X)$, namely for every $x\in\K$ and $\ell\in\cF_{\mathrm{cvx}}$, let
+\begin{align}
+    \cE_x^\ell = \cE(x,\ell(x)) = \ell(x) (s_x - \mathbf{1})\,,
+\end{align}
+for some function $s_x:\K\to\cF$, where $\cF\subseteq\mathsf{C}(\K)$ is the class of \textit{estimated loss functions}.
+The reason for the extra $- \mathbf{1}$ term will be clear later in the analysis of the variance term.
+Note that $\cE_x^\ell$ is not necessarily a convex function.
+
+The goal of the learner with the choice of $\cE$ in round $t$ is to estimate the whole loss function $\ell_t$ from the single point observation $(A_t, \ell_t(A_t))$, in expectation over the randomness of $A_t$.
+This task is difficult in general, but such estimators are known for the case of $\ell$ being a linear function.
+In the next section, we explain how such an estimator can be constructed for the case of convex losses, by using the kernel-based construction method of \cite{bubeck2016kernelbasedmethodsbanditconvex}.
+It is important to note that the resulting estimator is not unbiased, but it is an \textit{optimistic} estimator, in the sense that it is a lower bound on the true loss function $\ell$.
+
+To ease the notation, we refer to $\hat{\pi} = p$ and $\pi = q$ in the rest of the section.
+
+\subsection{The optimistic kernel}
+Let $\pi \in \cP(\K)$ be a given policy, and $\lambda \in (0,1)$ be a free parameter.
+Define $\tilde{\ell}$ as
+\marginpar{We are hiding the dependence of $\tilde{\ell}$ on $\lambda$ and $p$ to ease the notation.}
+\begin{align}
+    \tilde{\ell}(t) \triangleq \E_{X\sim p}\left[
+        \left(1 - \frac{1}{\lambda}\right)\ell(X) + \frac{1}{\lambda} \ell\left((1-\lambda) X + \lambda t\right)
+        \right]\,.
+\end{align}
+First, we show that $\left(1 - \frac{1}{\lambda}\right)\ell(X) + \frac{1}{\lambda} \ell\left((1-\lambda) X + \lambda t\right)$ is a lower bound on $\ell(t)$ for every $t\in\K$.
+To see this, note that by convexity of $\ell$, we have
+\begin{align}
+    \ell((1-\lambda) X + \lambda t)
+     & \leq
+    (1-\lambda) \ell(X) + \lambda \ell(t)\,,
+\end{align}
+which gives us
+\begin{align}
+    \left( 1 - \frac{1}{\lambda}\right)\ell(X) + \frac{1}{\lambda} \ell\left((1-\lambda) X + \lambda t\right)
+     & \leq
+    \ell(t)\,,
+\end{align}
+which proves that $\tilde{\ell}(t) \leq \ell(t)$ for every $t\in\K$.
+Also note that $\tilde{\ell}$ is a convex function since it is a non-negative linear combination of convex functions;
+however, it is not necessarily bounded in $[0,1]$ even if $\ell$ is bounded in $[0,1]$.
+
+Next, we show that, for any $p \in \cP(\K)$, there exists an unbiased one-point estimator of $\tilde{\ell}$.
+Precisely, we show that there exists a function $s_x$ such that $\tilde{\ell}(t) = \E_{X\sim p}[\ell(X) s_X(t)]$ for every $t\in\K$.
+From the definition of $\tilde{\ell}$, we have
+\begin{align}
+    \tilde{\ell}(t)
+     & = \int_{\Rd}
+    p(x) \left[
+        \left(1 - \frac{1}{\lambda}\right) \ell(x)
+        + \frac{1}{\lambda} \ell\left(
+        (1-\lambda) x + \lambda t
+        \right)
+    \right]\,dx     \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \int_{\Rd}
+    p(x)
+    \ell(x)
+    dx
+    +
+    \frac{1}{\lambda}
+    \int_{\Rd}
+    p(x)
+    \ell\left(
+    (1-\lambda) x + \lambda t
+    \right) \,dx    \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \int_{\Rd}
+    p(x)
+    \ell(x)
+    dx
+    +
+    \frac{1}{\lambda (1-\lambda)^d}
+    \int_{\Rd}
+    p\left(
+    \frac{y - \lambda t}{1 - \lambda}
+    \right)
+    \ell(y) \,dy    \\
+     & =
+    \int_{\Rd}
+    p(x)
+    \ell(x)
+    \left(
+    1 - \frac{1}{\lambda}
+    +
+    \frac{1}{\lambda (1-\lambda)^d}
+    \cdot
+    p\left(
+    \frac{x - \lambda t}{1 - \lambda}
+    \right)
+    p(x)^{-1}
+    \right) \,dx\,,
+\end{align}
+where we have used the change of variable $y = (1-\lambda)x + \lambda t$ in the third equality.
+Therefore, let
+\begin{align}
+    s_x(t) \triangleq \left(1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}\right)\,,
+\end{align}
+which gives us
+\begin{align}
+    \tilde{\ell}(t) =  \E_{X\sim p}[\ell(X) s_X(t)]
+    = \E_{X\sim p}[\cE_X^\ell(t) + \ell(X)]
+    = \E_{X\sim p}[\cE_X^\ell(t)] - \langle \ell, p \rangle
+    \,,
+\end{align}
+for every $t\in\K$.
+
+By plugging in this choice into the definition of the bias term, we have
+\begin{align}
+    \Lambda^{\mathsf{b}}_{\eta,\pi}(\cE,\hat{\pi}\| \pi_\star,\ell)
+     & =
+    \frac{1}{\eta}
+    \E_{X\sim p}\left[
+        \langle \ell,\delta_X -\pi_\star\rangle
+        -
+        \langle \cE_X^\ell,q-\pi_\star\rangle
+    \right] \\
+     & =
+    \frac{1}{\eta}
+    \E_{X\sim p}\left[
+        \langle \ell,\delta_X -\pi_\star\rangle
+        -
+        \langle \ell(X) s_X - \ell(X)\cdot \mathbf{1},q-\pi_\star\rangle
+    \right] \\
+     & =
+    \frac{1}{\eta}
+    \E_{X\sim p}\left[
+        \langle \ell,\delta_X -\pi_\star\rangle
+        -
+        \langle \ell(X) s_X ,q-\pi_\star\rangle
+    \right] \\
+     & =
+    \frac{1}{\eta}
+    \left(
+    \langle \ell,p\rangle
+    -
+    \langle \tilde{\ell},q\rangle
+    +
+    \langle \tilde{\ell} - \ell, \pi_\star\rangle
+    \right) \\
+     & \leq
+    \frac{1}{\eta}
+    \left(
+    \langle \ell,p\rangle
+    -
+    \langle \tilde{\ell},q\rangle
+    \right)\,,
+\end{align}
+where the inequality follows from the fact that $\tilde{\ell} \leq \ell$ pointwise.
+
+Next, we show a choice of $p$ that makes the upper bound on the bias term vanish,
+and thus the bias term itself will be non-positive.
+Precisely, we show that if $p$ is the law of the random vector
+\begin{align}
+    X \triangleq \lambda \sum_{k=0}^\infty (1-\lambda)^k T_k\,,
+\end{align}
+where $T_k$ are i.i.d. samples from $q$, then
+\begin{align}
+    \langle \ell,p\rangle
+     & =
+    \langle \tilde{\ell},q\rangle\,.
+    \label{eq:core_vanishes_bias}
+\end{align}
+The law of the random vector $X$, which we denote by $p$, is also called the \textit{core} of the distribution $q$ with parameter $\lambda$.
+To see why \cref{eq:core_vanishes_bias} holds, write
+\begin{align}
+    \langle \tilde{\ell},q\rangle
+     & =
+    \int_{\Rd}
+    \tilde{\ell}(t) q(t) \d t \\
+     & =
+    \int_{\Rd}
+    \left(
+    \int_{\Rd}
+    p(x) \left[
+        \left(1 - \frac{1}{\lambda}\right)\ell(x) + \frac{1}{\lambda} \ell\left((1-\lambda) x + \lambda t\right)
+        \right] \d x
+    \right)
+    q(t) \d t                 \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \int_{\Rd}
+    p(x)
+    \ell(x) \d x
+    + \frac{1}{\lambda}
+    \int_{\Rd}
+    \int_{\Rd}
+    p(x) q(t)
+    \ell\left((1-\lambda) x + \lambda t\right)
+    \d t \d x                 \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \langle \ell,p\rangle
+    +
+    \frac{1}{\lambda}
+    \E_{X\sim p,\,T\sim q}
+    \left[
+        \ell\left((1-\lambda)X+\lambda T\right)
+    \right]                   \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \langle \ell,p\rangle
+    +
+    \frac{1}{\lambda}
+    \E
+    \left[
+        \ell
+        \left(
+        \lambda T+\lambda\sum_{k=0}^{\infty}(1-\lambda)^{k+1}T_k
+        \right)
+    \right]                   \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \langle \ell,p\rangle
+    +
+    \frac{1}{\lambda}
+    \E
+    \left[
+        \ell
+        \left(
+        \lambda\sum_{k=0}^{\infty}(1-\lambda)^k T'_k
+        \right)
+    \right]                   \\
+     & =
+    \left(1 - \frac{1}{\lambda}\right)
+    \langle \ell,p\rangle
+    +
+    \frac{1}{\lambda}
+    \langle \ell,p\rangle     \\
+     & =
+    \langle \ell,p\rangle\,,
+\end{align}
+where we used the fact that if $T\sim q$ is independent of
+$X\sim p$, then $(1-\lambda)X+\lambda T\sim p$ by the distributional identity
+\begin{align}
+    (1-\lambda)X+\lambda T
+    \stackrel{d}{=}
+    \lambda\sum_{k=0}^{\infty}(1-\lambda)^k T'_k\,,
+\end{align}
+where $(T'_k)_{k\geq0}$ are again i.i.d. samples from $q$.
+
+Therefore, with this choice of $p$, the bias term $\Lambda^{\mathsf{b}}_{\eta,q}(\cE,p\| \pi_\star,\ell)$ vanishes, and we are left with only the variance term as
+\begin{align}
+    \Lambda_{q,\eta}(p,\cE \| \pi_\star,\ell)
+     & =
+    \Lambda^{\mathsf{b}}_{\eta,q}(\cE,p\| \pi_\star,\ell)
+    +
+    \Lambda^{\mathsf{v}}_{\eta,q}(\cE,p\|\ell)
+    \\
+     & \leq
+    \Lambda^{\mathsf{v}}_{\eta,q}(\cE,p\|\ell)\,,
+\end{align}
+which is independent of the comparator policy $\pi_\star$.
+
+
+
+\newpage
+\section{From variance to $f$-divergence}
+Throughout this section we fix the estimator $\cE$ and the policy $p$ as defined in the previous section, and we want to upper bound the variance term $\Lambda^{\mathsf{v}}_{\eta,q}(\cE,p\|\ell)$ uniformly over $\ell \in \cF_{\mathrm{cvx}}$.
+Recall the \scewaalg variance term defined as
+\begin{align}
+    \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \ell)
+     & =
+    \frac{1}{\eta^2}
+    \E_{X\sim p}\left[
+        D_{H^\star}\left(
+        H'(q) - \eta \cE^\ell_X, H'(q)
+        \right)
+        \right]
+    \,.
+\end{align}
+In terms of $\eta$ dependency, we need a $\polylog(\frac{1}{\eta})$ upper bound on this quantity to get a $\tilde{O}(\sqrt{T})$ regret bound.
+
+
+First, we write the variance in a simpler form.
+For $\eta \ge 0, u \in \R$, define
+\begin{align}
+    \phi_\eta(u) \triangleq e^{-\eta u} + \eta u - 1\,,
+\end{align}
+which is approximately quadratic $\eta^2 u^2/2$ when $\eta u$ is small.
+\begin{lemma}
+    \label{prop:Lambda_in_terms_of_phi}
+    Let $X \sim p$ and $T \sim q$, then
+    \begin{align}
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \ell) & =
+        \frac{1}{\eta^2}
+        \E\left[
+            \phi_\eta(\cE_X^\ell(T))
+            \right]\,.
+        \label{eq:Lambda_in_terms_of_phi}
+    \end{align}
+\end{lemma}
+The proof is deferred to \cref{proof:Lambda_in_terms_of_phi}.
+
+The next lemma shows that for this choice of estimator (or basically any multiplicative estimator), the variance term is maximized when $\ell(x) = 1$ for all $x$, which is a consequence of strong convexity of the function $x \mapsto e^{-x} + x - 1$ and the fact that it is minimized at $x=0$.
+\begin{proposition}[The worst case is $\ell \equiv 1$]
+    \label{lem:appendix_f_one_reduction}
+    We have
+    \begin{align}
+        \sup_{\ell: \K \to [0,1]}
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \ell)
+        \leq
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| 1)\,.
+    \end{align}
+\end{proposition}
+The proof is deferred to \cref{proof:appendix_f_one_reduction}, and note that \textbf{even convexity of the loss functions is not needed for this reduction}.
+This is very convenient because using \cref{prop:Lambda_in_terms_of_phi}, we have
+\begin{align}
+    \sup_{\ell: \K \to [0,1]}
+    \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p_X\| \ell)
+     & =
+    \frac{1}{\eta^2}
+    \E\left[
+        \phi_\eta(\cE_X^1(T))
+        \right]
+    =
+    \frac{1}{\eta^2}
+    \E\left[
+        \phi_\eta(s_X(T) - 1)
+        \right]
+    \,. \label{eq:variance_reduction_to_f_one}
+\end{align}
+
+\subsection{The relative density $R$ and the $f$-divergence}
+Next, we show that $s_x(t)$ can be written in terms of the relative density $r(x,t)$ defined as
+\marginpar{We use multiple notations to refer to same densities: $p_X=p$ and $p_T=p_{T_0}=q$.}
+\begin{align}
+    r(x, t) & \triangleq  \frac{p_{X, T_0}(x, t)}{p_{T_0}(t) p_X(x)}\,, \quad\text{then}\quad
+    s_x(t) = 1 + \frac{r(x, t) - 1}{\lambda}\,.
+    \label{eq:s_in_terms_of_r}
+\end{align}
+To this end, write
+\begin{align}
+    X
+    =
+    \lambda T_0 + (1-\lambda)X',
+    \qquad
+    X' \stackrel{d}{=} X,
+    \qquad
+    X' \perp T_0 .
+\end{align}
+\marginpar{We implicitly extend all densities to $\Rd$ by zero extension.}
+Therefore, conditionally on $T_0=t$, the density of $X$ is
+\begin{align}
+    p_{X \mid T_0=t}(x)
+    =
+    \frac{1}{(1-\lambda)^d}
+    p\left(
+    \frac{x-\lambda t}{1-\lambda}
+    \right)\,.
+\end{align}
+Thus, starting from the definition of $s_x(t)$, we can write
+\begin{align}
+    s_x(t)
+     & =
+    1 - \frac{1}{\lambda} + \frac{1}{\lambda (1-\lambda)^d} \cdot p\left(\frac{x - \lambda t}{1 - \lambda}\right) p(x)^{-1}
+    \\
+     & =
+    1 - \frac{1}{\lambda} + \frac{1}{\lambda} \frac{p_{X|T_0=t}(x)}{p(x)}
+    \\
+     & =
+    1 - \frac{1}{\lambda} + \frac{1}{\lambda} \frac{p_{X, T_0}(x, t)}{p_X(x) p_{T_0}(t)}
+    \\
+     & =
+    1-\frac{1}{\lambda}
+    +
+    \frac{1}{\lambda} r(x,t)
+    =
+    1+\frac{r(x,t)-1}{\lambda}\,,
+\end{align}
+which proves \cref{eq:s_in_terms_of_r}.
+
+Motivated by this we define two related random variables $R$ and $R_0$ as
+\begin{align}
+    R   \triangleq r(X, T) = \frac{p_{X, T_0}(X, T)}{p_X(X) p_{T_0}(T)}\,,
+    \qquad
+    R_0 \triangleq r(X, T_0) = \frac{p_{X, T_0}(X, T_0)}{p_X(X) p_{T_0}(T_0)}\,,
+\end{align}
+where $T \sim q$ is a fresh independent sample from $q$.
+Observe that $R$ and $R_0$ satisfy the size biasing relation $\E[g(R_0)] = \E[g(R) R]$ for every measurable function $g$.
+
+Let
+\begin{align}
+    \alpha = \frac{\eta}{\lambda}\,, \qquad \text{and}\qquad f_\alpha(u) = \phi_\alpha(u-1)\,,
+\end{align}
+and note that $f_\alpha$ is a standard $f$-divergence generator, i.e. it is convex and satisfies $f_\alpha(1)=f_\alpha'(1)=0$.
+The next proposition shows that the variance term can be written in terms of the $f$-divergence generated by $f_\alpha$.
+\begin{proposition}
+    \label{prop:f_eta_lambda_properties}
+    We have
+    \begin{align}
+        \sup_{\ell: \K \to [0,1]}
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p_X\| \ell)
+         & =\frac{1}{\eta^2}
+        \E\left[ f_{\alpha}(R) \right]
+        \,.
+        \label{eq:phi_eta_f_divergence_relation}
+    \end{align}
+\end{proposition}
+The proof is deferred to \cref{proof:f_eta_lambda_properties}.
+Therefore, everything boils down to
+\begin{align}
+    \sup_{\ell: \K \to [0,1]}
+    \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p_X\| \ell)
+     & =
+    \frac{1}{\eta^2} D_{f_{\alpha}}(\PP_{X, T_0} || \PP_X \otimes \PP_{T_0})\,.
+\end{align}
+The question, then, is how close $\PP_{X, T_0}$ and $\PP_X \otimes \PP_{T_0}$ are in terms of $f_{\alpha}$-divergence.
+We need them to become closer at a rate of $\alpha^2 \polylog(\frac{1}{\alpha})$.
+
+We can pause here to write the expected regret of the \scewaalg algorithm with the optimistic kernel and
+policy $p$, using \cref{eq:regret_bound_cexp_with_Bregman_divergence}, as
+\begin{align}
+    \E[\Reg_T(\pi_\star)]
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \E\left[
+        \sum_{t=1}^T
+        \E\left[
+            \langle \ell_t,\hat{\pi}_t-\pi_\star\rangle
+            -
+            \langle \hf_t,\pi_t-\pi_\star\rangle
+            +
+            \frac{1}{\eta}
+            D_{H^\star}
+            \left(
+            H'(\pi_t)-\eta \hf_t,
+            H'(\pi_t)
+            \right)
+            \middle|
+            \pi_t
+            \right]
+        \right]
+    \\
+     & =
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \E\left[
+        \sum_{t=1}^T
+        \eta
+        \Lambda_{\pi_t,\eta}(\hat{\pi}_t,\cE_t \| \pi_\star, \ell_t)
+        \right]
+    \\
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \E\left[
+        \sum_{t=1}^T
+        \eta
+        \Lambda^{\mathsf{v}}_{\pi_t, \eta}(\hat{\pi}_t, \cE_t \| \ell_t)
+        \right]
+    \label{eq:regret_bound_cexp_variance_only}
+    \\
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \E\left[
+        \sum_{t=1}^T
+        \eta
+        \Lambda^{\mathsf{v}}_{\pi_t, \eta}(\hat{\pi}_t, \cE_t \| \mathbf{1})
+        \right]
+    \\
+     & =
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \frac{1}{\eta}
+    \E\left[
+    \sum_{t=1}^T
+    D_{f_{\alpha}}(\PP_{A_t, T_0^{(t)}} || \PP_{A_t} \otimes \PP_{T_0^{(t)}})
+    \right]
+    \\
+     & =
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \frac{1}{\eta}
+    \E\left[
+    \sum_{t=1}^T
+    I_{f_{\alpha}}(A_t; T_0^{(t)})
+    \right]\,.
+\end{align}
+
+
+
+\newpage
+\section{Bounding the information term}
+In this section, we explore ways to upper bound $D_{f_{\alpha}}(\PP_{X, T_0} || \PP_X \otimes \PP_{T_0})$.
+The objective is to find the right set of assumptions on $q=\PP_{T_0}$ (that can be ensured throughout the algorithmic trajectory whp) that lead to the desired $\alpha^2 \polylog(\frac{1}{\alpha})$ bound.
+
+\subsection{The KL route}
+The next proposition shows that $\PP_{X, T_0}$ and $\PP_X \otimes \PP_{T_0}$ are actually very close in terms of KL divergence.
+\begin{proposition}
+    \label{prop:appendix_exact_kl_mi}
+    It holds that
+    \begin{align}
+        D_{\mathrm{KL}}(\PP_{X,T_0}\,\|\,\PP_X \otimes \PP_{T_0})
+        = d\log\left(\frac{1}{1-\lambda}\right).
+        \label{eq:appendix_exact_kl_mi}
+    \end{align}
+\end{proposition}
+The proof is deferred to \cref{proof:appendix_exact_kl_mi}.
+Note that the bound in \eqref{eq:appendix_exact_kl_mi} is essentially a constant when $\lambda=\tilde{\Theta}(1/d)$,
+which says that these two distributions are very similar, at least in terms of KL divergence.
+
+\noindent
+While the KL bound is a constant, \textbf{it doesn't give the $\alpha^2$ scaling} that we need,
+but it gives a blueprint
+\begin{align}
+    D_{f_{\eta, \lambda}}(\PP_{X, T_0} || \PP_X \otimes \PP_{T_0})
+     & \stackrel{(?)}{\lesssim}
+    \alpha^2 \polylog(\frac{1}{\alpha}) \cdot \poly(\frac{1}{\lambda}) \cdot D_{\mathrm{KL}}(\PP_{X,T_0}\,\|\,\PP_X \otimes \PP_{T_0})\,.
+    \label{eq:blueprint}
+\end{align}
+To make the comparison more meaningful, we multiply the KL generator by a factor of $\alpha^2$ which gives
+\begin{align}
+    k_\alpha(u) = \alpha^2 \left(u\log(u) - (u - 1)\right)\,,
+\end{align}
+which matches the value of $f_\alpha$ and its first and second derivatives at $u=1$:
+\begin{align}
+    f_\alpha(1)   & = k_\alpha(1) = 0\,,          \\
+    f_\alpha'(1)  & = k_\alpha'(1) = 0\,,         \\
+    f_\alpha''(1) & = k_\alpha''(1) = \alpha^2\,.
+\end{align}
+We get the desired bound if we can show that
+\begin{align}
+    \E\left[
+        f_\alpha(R)
+        \right]
+    \stackrel{(?)}{\lesssim}
+    \polylog(\frac{1}{\alpha}) \cdot \poly(\frac{1}{\lambda}) \cdot
+    \E\left[k_\alpha(R)\right]\,.
+\end{align}
+This inequality is not true in general, so answering this question requires a better understanding of the distribution of $R$.
+
+\subsection{The chi-squared route}
+Every $f$-divergence in its natural form (after affine transformation) is positive, convex and satisfies $g(1) = 0$, so it is upper bounded by its second order Taylor expansion around $1$.
+Basically,
+\begin{align}
+    g(u) & \leq \frac{g''(1)}{2} (u - 1)^2 + O((u - 1)^3)\,,
+\end{align}
+where $(u-1)^2$ is the generator of the $\chi^2$-divergence.
+As long as one can show that $R$ is concentrated around $1$, then the higher order terms are negligible, and the $f$-divergence can be upper bounded by a constant times the $\chi^2$-divergence, which is in turn upper bounded by a constant times $\E[R^2] - 1$.
+
+Motivated by this, we show that a bound on $\E[R^2]$ suffices.
+\begin{proposition}
+    \label{prop:appendix_f_chi_squared_bound}
+    For every $\alpha > 0$ and every $u \geq 0$, we have
+    \begin{align}
+        D_{f_{\alpha}}(\PP_{X, T_0}\|\PP_X \otimes \PP_{T_0}) & \leq
+        \frac{1}{2}
+        e^{\alpha}
+        \alpha^2
+        D_{\chi^2}(\PP_{X, T_0}\|\PP_X \otimes \PP_{T_0})\,.
+    \end{align}
+\end{proposition}
+\begin{proof}
+    Observe that by Taylor's theorem with Lagrange remainder, for every $u \geq 0$, we have
+    \begin{align}
+        f_\alpha(u) = \phi_\alpha(u-1) & \leq \frac{\alpha^2}{2} (u - 1)^2 e^{-\alpha(u'-1)}\,, \qquad\text{for some } u' \in [0, u]\,.
+    \end{align}
+    Since $\alpha > 0$, we have $e^{-\alpha(u'-1)} \leq e^{\alpha}$, so
+    \begin{align}
+        \phi_\alpha(u-1) & \leq \frac{\alpha^2}{2} e^{\alpha} (u - 1)^2\,.
+        \label{eq:f_eta_lambda_chi_squared_bound}
+    \end{align}
+    Using this we get a bound in terms of $\chi^2$-divergence as
+    \begin{align}
+        f_{\alpha}(R) & =
+        \phi_\alpha(R - 1)
+        \leq
+        \frac{1}{2}
+        \alpha^2
+        e^{\alpha}
+        (R - 1)^2\,,
+    \end{align}
+    integrating both sides gives the desired bound.
+\end{proof}
+How loose is the bound?
+The larger $u'$ is, the looser the bound is, and $u'$ can be as large as $R$, which can be arbitrarily large.
+
+The next result shows that the exact quadratic scaling
+of $D_{f_\alpha}(P\|Q)$ in $\alpha$ as $\alpha \downarrow 0$ holds if and only if $D_{\chi^2}(P\|Q)<\infty$.
+\begin{proposition}
+    \label{prop:exact_quadratic_forces_chi2}
+    For every two densities $P$ and $Q$ such that $P \ll Q$, we have
+    \begin{align}
+        \liminf_{\alpha\downarrow0}
+        \frac{1}{\alpha^2}
+        D_{f_{\alpha}}(P\|Q)
+        =
+        \frac{1}{2}
+        \chi^2(P\|Q)\,.
+    \end{align}
+\end{proposition}
+\begin{proof}
+    For every fixed $u\ge0$,
+    \begin{align}
+        \lim_{\alpha\downarrow0}
+        \frac{\phi_\alpha(u-1)}{\alpha^2}
+        =
+        \lim_{\alpha\downarrow0}
+        \frac{e^{-\alpha(u-1)} - 1 + \alpha(u-1)}{\alpha^2}
+        =
+        \frac12(u-1)^2\,.
+    \end{align}
+    Hence,
+    \begin{align}
+        \liminf_{\alpha \downarrow 0}
+        \frac{D_{f_{\alpha}}(P\|Q)}{\alpha^2}
+        =
+        \liminf_{\alpha\downarrow0}
+        \E\left[
+            \frac{\phi_{\alpha}(R-1)}{\alpha^2}
+            \right]
+        \geq
+        \E\left[
+            \liminf_{\alpha\downarrow0}
+            \frac{\phi_{\alpha}(R-1)}{\alpha^2}
+            \right]
+        =
+        \E\left[\frac{(R-1)^2}{2}\right]\,,
+    \end{align}
+    where the inequality follows from Fatou's lemma.
+    For the upper bound, from \cref{eq:f_eta_lambda_chi_squared_bound} we have
+    \begin{align}
+        \phi_\alpha(u-1)
+        \le
+        \frac12 e^{\alpha} \alpha^2(u-1)^2,
+        \qquad u\ge0.
+    \end{align}
+    Therefore, we have
+    \begin{align}
+        \lim_{\alpha\downarrow0}
+        \frac{1}{\alpha^2}
+        D_{f_\alpha}(P\|Q)
+         & =
+        \lim_{\alpha\downarrow0}
+        \frac{1}{\alpha^2}
+        \E\left[
+            \phi_\alpha(R-1)
+            \right]
+        \le
+        \lim_{\alpha\downarrow0}
+        \frac{1}{2 e^{\alpha}}
+        \E[(R-1)^2]
+        =
+        \frac12 \E[(R-1)^2]\,.
+    \end{align}
+    and rearranging and taking limit gives the result.
+\end{proof}
+
+Perhaps the most interesting fact about chi-squared reduction is that it gives the desired result
+if one just assumes that all iterates $\pi_t$ are Gaussian:
+\begin{theorem}
+    \label{thm:gaussian_chi_squared_control}
+    Assume that $q=\cN(m,\Sigma)$ on $\Rd$, where $\Sigma \succ 0$.
+    Then $X$ is Gaussian and
+    $X
+        \sim
+        \cN\left(
+        m,
+        \frac{\lambda}{2-\lambda}\Sigma
+        \right)$.
+    Moreover,
+    \begin{align}
+        D_{\chi^2}
+        \left(
+        \PP_{X,T_0}
+        \middle\|
+        \PP_X\otimes\PP_{T_0}
+        \right)
+        =
+        \frac{1}{(1-\lambda)^{2d}}-1.
+        \label{eq:gaussian_chi_squared_explicit}
+    \end{align}
+\end{theorem}
+\noindent
+The proof is somewhat classical and is dropped for now.
+
+In particular, taking $\alpha=\eta/\lambda$ and $\lambda=1/d$ gives
+\begin{align}
+    \sup_{\ell:\K\to[0,1]}
+    \Lambda^{\mathsf{v}}_{\eta,q}(\cE,p_X\|\ell)
+     & \le
+    \frac{e^{\eta/\lambda}}{2\lambda^2}
+    \left(
+    \frac{1}{(1-\lambda)^{2d}}-1
+    \right) \\
+     & =
+    \frac12 e^{\eta d} d^2
+    \left(
+    \frac{1}{(1-\frac{1}{d})^{2d}}-1
+    \right) \\
+     & \leq
+    \frac{2e-1}{2} e^{\eta d} d^2\,,
+\end{align}
+which by putting into \cref{eq:regret_bound_cexp_variance_only} gives
+\begin{align}
+    \E[\Reg_T(\pi_\star)]
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \E\left[
+        \sum_{t=1}^T
+        \eta
+        \Lambda^{\mathsf{v}}_{\pi_t, \eta}(\hat{\pi}_t, \cE_t \| \ell_t)
+        \right]
+    \\
+     & \leq
+    \frac{1}{\eta}D_H(\pi_\star,\pi_1)
+    +
+    \frac{2e-1}{2} T\eta e^{\eta d} d^2\,,
+\end{align}
+which by choosing $\eta = \sqrt{\frac{2D_H(\pi_\star,\pi_1)}{(2e-1)Td^2}}$ gives
+\begin{align}
+    \E[\Reg_T(\pi_\star)]
+     & \leq
+    \sqrt{2(2e-1)D_H(\pi_\star,\pi_1)Td^2} \cdot e^{\sqrt{\frac{2D_H(\pi_\star,\pi_1)}{(2e-1)T}}}\,,
+\end{align}
+which is the desired $O(d^{1.5}\sqrt{T})$ bound we're looking for, when $T$ is large enough.
+
+\subsubsection{Laplace and infinite $\E[R^2]$}
+We will see now that if $q$ is Laplace in \textbf{dimension one}, then $\E[R^2]$ is infinite.
+\begin{theorem}
+    \label{prop:laplace_infinite_second_moment}
+    Assume $d=1$, and let $q(t)=\frac12 e^{-|t|}$,
+    i.e., $T\sim \mathrm{Laplace}(0,1)$.
+    Then
+    \begin{align}
+        \E[R_0] = \E[R^2]=\infty\,,
+    \end{align}
+    for every $\lambda \in (0,1)$.
+\end{theorem}
+The proof is deferred to \cref{proof:laplace_infinite_second_moment}.
+Together with \cref{prop:exact_quadratic_forces_chi2}, this shows that
+\begin{align}
+    \lim_{\alpha\downarrow0}
+    \frac{1}{\alpha^2}
+    D_{f_\alpha}(\PP_{X, T_0} || \PP_X \otimes \PP_{T_0})
+    =
+    \infty\,,
+\end{align}
+\paragraph{Lesson:}
+it is impossible to get exact $\alpha^2$ scaling of the variance term for a general (not necessarily compactly supported) log-concave $q$ (e.g., Laplace).
+
+\newpage
+\section{Extension and quadratic approximation}
+We saw in \cref{thm:gaussian_chi_squared_control} that if $q$ is Gaussian, then we get the desired scaling of the variance term.
+This really motivates the idea of using Gaussian kernels, which basically means that both $q$ and $p$ are Gaussian, and the algorithm plays a Gaussian random point at each round.
+
+The first serious problem is that of compact support: $\K$ is compact, but Gaussian distributions are not, so the algorithm might play points outside $\K$ with non-negligible probability, which means that the loss is not defined at those points, and the algorithm cannot actually play those points.
+The idea is to define an extended loss $e:\Rd \to \R$, which is equal to $\ell$ on $(1-\varepsilon)\K$, and is convex.
+
+The discussion of how to construct such an extension is almost orthogonal to the main thread here,
+so we make an alternative assumption that the loss functions $\ell_t$ are defined on the whole $\Rd$, are convex, and are bounded in $[0,1]$ inside $\K$, attaining their minimum inside $\K$, and are $L$-Lipschitz on $\Rd$.
+So the algorithm can play a point $X \in \Rd$ for which it suffers $e(X)$, which is well-defined for every $X$.
+
+The regret is defined as usual as
+\begin{align}
+    \Reg_n(x_\star) = \sum_{t=1}^n e_t(X_t) - e_t(x_\star)\,.
+\end{align}
+The major goal we pursue here is to fully get rid of the optimistic kernel analysis.
+
+\subsection{Quadratic projection}
+Fix a generic round $t$.
+The algorithm plays $X \sim p = \cN(\mu, \Sigma)$.
+For simplicity, suppose that $e \in \cC^2(\Rd)$.
+Define the following quantities:
+\begin{align}
+    A \triangleq \E[e(X)]\,, \qquad
+    g \triangleq \E\left[\nabla e(X)\right]\,, \qquad\text{and}\qquad
+    H \triangleq \E\left[\nabla^2 e(X)\right]\,.
+\end{align}
+Then, the degree-two Gaussian Hermite projection of $e$ under $\cN(\mu, \Sigma)$ is given by
+\begin{align}
+    q(x) \triangleq \left(A - \frac{\tr(H\Sigma)}{2}\right) + \langle g, x-\mu\rangle + \frac{1}{2}\|x-\mu\|^2_{H}\,.
+\end{align}
+
+Note that $q$ matches the first and second moments of $e$ under $\cN(\mu, \Sigma)$:
+\begin{align}
+    \E[q(X)]           = A\,, \qquad
+    \E[\nabla q(X)]    = g\,, \qquad\text{and}\qquad
+    \E[\nabla^2 q(X)]  = H\,.
+\end{align}
+Moreover,
+\begin{align}
+    \E[q(X)] - q(\mu) = \frac{\E[\|X-\mu\|^2_H]}{2} = \frac{\tr(H\Sigma)}{2}\,.
+\end{align}
+
+\subsubsection{Switching the regret}
+Convexity of $e$ gives
+\begin{align}
+    \E[e(X)] - e(x_\star)
+     & =
+    \E\left[\langle \nabla e(X), X - \mu\rangle\right] + \langle g, \mu - x_\star\rangle
+    - \E[D_e(x_\star \| X)]
+    \\
+     & =
+    \tr(H\Sigma) + \langle g, \mu - x_\star\rangle - \E[D_e(x_\star \| X)]
+    \\
+     & =
+    q(\mu) - q(x_\star) + \tr(H\Sigma) + \frac12 \|x_\star - \mu\|^2_H - \E[D_e(x_\star \| X)]
+    \,,
+    \label{eq:quadratic_regret_switch}
+\end{align}
+where the first equality follows from Gaussian integration by parts,
+and the second equality follows from the definition of $q$.
+
+\subsubsection{The projected ONS algorithm}
+The setting studied in this section is the following: at each round $t$, the algorithm plays $X_t \sim \cN(\mu_t, \Sigma_t)$, and observes the full loss function $e_t$.
+The algorithm then computes the Hermite projection $q_t$ of $e_t$ under $\cN(\mu_t, \Sigma_t)$, and updates $\mu_{t+1}$ and $\Sigma_{t+1}$ using the Online Newton Step algorithm on the sequence of quadratics $q_t$.
+It will be convenient to allow for a damping factor $\lambda > 0$ in the update of $\Sigma_t$, which leads us to define the quadratics
+\begin{align}
+    q^\lambda(x) \triangleq \left(A - \frac{\lambda \tr(H\Sigma)}{2}\right) + \langle g, x-\mu\rangle + \frac{\lambda}{2}\|x-\mu\|^2_{H}\,.
+\end{align}
+\begin{algorithm}[h!]
+    \begin{minipage}{13cm}
+        \begin{mdframed}
+            \begin{lstlisting}
+args: $\eta, \lambda, \Sigma_1^{-1} \succ 0, \mu_1 \in \cK$
+for $t = 1$ to $n$:
+    Play $X_t \sim \cN(\mu_t, \Sigma_t)$
+    Observe the full loss function $e_t$ and incur loss $e_t(X_t)$
+    Compute $g_t = \E[\nabla e_t(X_t)]$ and $H_t = \E[\nabla^2 e_t(X_t)]$
+    Update $\Sigma_{t+1}^{-1} = \Sigma_t^{-1} + \lambda \eta H_t$
+    Update $\mu_{t+1} = \argmin_{\mu \in \cK} \| \mu - (\mu_t - \eta \Sigma_{t+1} g_t) \|_{\Sigma_{t+1}^{-1}}$
+\end{lstlisting}
+            \caption{Hermite-ONS algorithm.}\label{alg:HermiteOnlineNewtonStep}
+        \end{mdframed}
+    \end{minipage}
+\end{algorithm}
+
+\begin{proposition}
+    \label{prop:hermite-ons:master}
+    Suppose that each $e_t:\R^d\to\R$ is convex and twice differentiable.
+    Then for every $x\in\cK$,
+    \begin{align}
+        \E\left[
+            \sum_{t=1}^{n}
+            e_t(X_t) - e_t(x)
+            \right]
+        \leq
+         & \frac{1}{2\eta}
+        \left[
+        \norm{\mu_1-x}_{\Sigma_1^{-1}}^2
+        -
+        \norm{\mu_{n+1}-x}_{\Sigma_{n+1}^{-1}}^2
+        \right]
+        +\frac{\eta}{2}\sum_{t=1}^n\norm{g_t}_{\Sigma_{t+1}}^2
+        \\
+         &
+        +\sum_{t=1}^n\tr(H_t\Sigma_t)
+        +\frac{\lambda}{2}\sum_{t=1}^n\norm{x-\mu_t}_{H_t}^2
+        - \sum_{t=1}^n \E[D_{e_t}(x\|X_t)].
+        \label{eq:hermite-ons:master}
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    From \cref{eq:quadratic_regret_switch}, we have
+    \begin{align}
+        \E_{t-1}[e_t(X_t)]-e_t(x)
+         & =
+        q_t^\lambda(\mu_t)-q_t^\lambda(x)
+        +\tr(H_t\Sigma_t)
+        +\frac{\lambda}{2}\norm{x-\mu_t}_{H_t}^2
+        - \E_{t-1}[D_{e_t}(x\|X_t)].
+    \end{align}
+    Applying the standard ONS calculation to the quadratics $q_t^\lambda$ gives
+    \begin{align}
+        \frac12 \|\mu_{t+1}-x\|_{\Sigma_{t+1}^{-1}}^2
+         & \leq
+        \frac12 \|x - (\mu_t - \eta \Sigma_{t+1} g_t)\|_{\Sigma_{t+1}^{-1}}^2
+        \\
+         & =
+        \frac12 \|x - \mu_t\|_{\Sigma_{t+1}^{-1}}^2
+        + \frac{\eta^2}{2}\|g_t\|_{\Sigma_{t+1}}^2
+        + \eta \langle g_t, x - \mu_t\rangle
+        \\
+         & =
+        \frac12 \|x - \mu_t\|_{\Sigma_{t}^{-1}}^2
+        + \frac{\eta^2}{2}\|g_t\|_{\Sigma_{t+1}}^2
+        + \eta \langle g_t, x - \mu_t\rangle
+        + \frac{\lambda \eta}{2}\|x - \mu_t\|_{H_t}^2
+        \\
+         & =
+        \frac12 \|x - \mu_t\|_{\Sigma_{t}^{-1}}^2
+        + \frac{\eta^2}{2}\|g_t\|_{\Sigma_{t+1}}^2
+        - \eta \left(q_t^\lambda(\mu_t)-q_t^\lambda(x)\right) .\label{eq:alternative-form}
+    \end{align}
+    Summing over $t$ and rearranging gives
+    \begin{align}
+        \sum_{t=1}^n\left(q_t^\lambda(\mu_t)-q_t^\lambda(x)\right)
+        \leq
+        \frac{1}{2\eta}
+        \left[
+        \norm{\mu_1-x}_{\Sigma_1^{-1}}^2
+        - \norm{\mu_{n+1}-x}_{\Sigma_{n+1}^{-1}}^2
+        \right]
+        +\frac{\eta}{2}\sum_{t=1}^n\norm{g_t}_{\Sigma_{t+1}}^2 .
+        \label{eq:hermite-ons:qreg}
+    \end{align}
+\end{proof}
+Let's pretend that projection step is not active, then
+\begin{align}
+    \frac{1}{2}\| \mu_{t+1}-x\|_{\Sigma_{t+1}^{-1}}^2
+    - \frac{1}{2} \| \mu_t-x\|_{\Sigma_{t}^{-1}}^2
+     & =
+    \frac{\eta^2}{2} \|g_t\|_{\Sigma_{t+1}}^2
+    - \eta \langle g_t, \mu_t-x\rangle
+    + \frac{\lambda \eta}{2} \|x-\mu_t\|_{H_t}^2\,,
+\end{align}
+this kinda wraps up what happens in the quadratic world, while the convex world evolves as
+\begin{align}
+    \E_{t-1}[e_t(X_t)] - e_t(x)
+     & =
+    \tr(\Sigma_t H_t)
+    + \langle g_t, \mu_t-x\rangle
+    - \E_{t-1}[D_{e_t}(x\|X_t)]\,.
+\end{align}
+The curious thing is that the $\langle g_t, \mu_t-x\rangle$ term is present in both worlds,
+and if it's large (positive), then the quadratic world is happy, but the convex world is unhappy, and vice versa.
+Combining the two gives
+\begin{align}
+    \E_{t-1}[e_t(X_t)] - e_t(x)
+     & =
+    \frac{1}{2\eta}
+    \left[
+    \| \mu_t-x\|_{\Sigma_{t}^{-1}}^2
+    - \| \mu_{t+1}-x\|_{\Sigma_{t+1}^{-1}}^2
+    \right]                                          \\
+     & +\tr(\Sigma_t H_t)
+    + \frac{\eta}{2} \|g_t\|_{\Sigma_{t+1}}^2        \\
+     & + \left[\frac{\lambda}{2} \|x-\mu_t\|_{H_t}^2
+    - \E_{t-1}[D_{e_t}(x\|X_t)]\right]\,.
+\end{align}
+The last bracket is mostly where the problem lies, and we need to find a way to control it.
+
+
+\paragraph{Paying for $\|x - \mu_t\|_{H_t}^2$ with Bregman.}
+\begin{proposition}[Direct control of the Bregman bracket]
+    \label{prop:hermite-ons:bracket}
+    Fix $x\in\R^d$, $\delta\in(0,1]$, and $0<\lambda\leq1/8$.
+    Suppose that
+    \begin{align}
+        \lambda
+        \left(
+        2d\log 2+4\log\frac{2}{\delta}
+        \right)
+         & \leq \frac{\log 2}{12},
+        \label{eq:hermite-ons:bracket-dimension}
+        \\
+        \lambda
+        \|\mu-x\|_{\Sigma^{-1}}
+        \sqrt{\log\frac{2\sqrt{2}}{\delta}}
+         & \leq \frac{\log 2}{24}.
+        \label{eq:hermite-ons:bracket-focus}
+    \end{align}
+    Then
+    \begin{align}
+        \frac{\lambda}{2}\|\mu-x\|_H^2
+        -\E[D_e(x\|X)]
+        \leq{} &
+        (1-4\lambda)\tr(H\Sigma)
+        +
+        \frac{\lambda L\delta}{2\sqrt{\pi}}
+        \|\mu-x\|
+        \|\mu-x\|_{\Sigma^{-1}}.
+        \label{eq:hermite-ons:bracket}
+    \end{align}
+    If, in addition, $\mu,x\in\cK$ and
+    $\operatorname{diam}(\cK)\leq D$, then the last term in
+    \eqref{eq:hermite-ons:bracket} is at most
+    \begin{align}
+        \frac{LD\delta\log 2}
+        {48\sqrt{\pi\log(2\sqrt{2}/\delta)}}.
+        \label{eq:hermite-ons:bracket-bounded-error}
+    \end{align}
+\end{proposition}
+\begin{proof}
+    The claim is immediate when $\mu=x$, because the first term on the
+    left-hand side of \eqref{eq:hermite-ons:bracket} is then zero.
+    Assume henceforth that $\mu\neq x$.
+
+    We first transform the problem so that the Gaussian is standard.
+    Define
+    \[
+        a=\Sigma^{-1/2}(\mu-x),
+        \qquad
+        f(z)=e(\mu+\Sigma^{1/2}z),
+    \]
+    and let $W\sim\cN(0,I_d)$, coupled with $X$ through
+    \[
+        X=\mu+\Sigma^{1/2}W.
+    \]
+    Under this transformation, the sample $X$ becomes $W$, while the
+    comparator $x$ becomes $-a$. Consequently,
+    \begin{align}
+        D_f(-a\|W)
+         & =D_e(x\|X),
+        \label{eq:bracket-whitening-bregman}
+        \\
+        \|a\|_{\E[\nabla^2f(W)]}^2
+         & =\|\mu-x\|_H^2,
+        \label{eq:bracket-whitening-focus}
+        \\
+        \E[\tr(\nabla^2f(W))]
+         & =\tr(H\Sigma).
+        \label{eq:bracket-whitening-trace}
+    \end{align}
+
+    The Bregman divergence can be written as the curvature accumulated
+    along the segment from $-a$ to $W$. Taylor's formula gives
+    \begin{align}
+        D_f(-a\|W)
+        =
+        \int_0^1
+        s\,
+        \|W+a\|_{\nabla^2f(sW-(1-s)a)}^2
+        \,ds.
+        \label{eq:bracket-bregman-integral}
+    \end{align}
+    For $s\in(0,1]$, let $p_s$ denote the density of
+    $sW-(1-s)a$. Making the change of variables
+    \[
+        z=sW-(1-s)a,
+        \qquad
+        W+a=\frac{z+a}{s},
+    \]
+    in \eqref{eq:bracket-bregman-integral} yields
+    \begin{align}
+        \E[D_f(-a\|W)]
+        =
+        \int_0^1\frac{1}{s}
+        \int_{\R^d}
+        \|z+a\|_{\nabla^2f(z)}^2
+        p_s(z)\,dz\,ds.
+        \label{eq:bracket-density-integral}
+    \end{align}
+
+    We will use only the last $2\lambda$ portion of the segment,
+    corresponding to $s\in[1-2\lambda,1]$. On this portion, the
+    density $p_s$ is comparable with the standard Gaussian density on
+    a suitable set.
+
+    Let $\varphi$ denote the standard Gaussian density. Since
+    \[
+        sW-(1-s)a\sim\cN(-(1-s)a,s^2I_d),
+    \]
+    a direct calculation gives
+    \begin{align}
+        \log\frac{p_s(z)}{\varphi(z)}
+        ={} &
+        -d\log s
+        -\frac{1-s^2}{2s^2}\|z\|^2
+        -\frac{1-s}{s^2}\langle a,z\rangle
+        -\frac{(1-s)^2}{2s^2}\|a\|^2.
+        \label{eq:bracket-density-ratio}
+    \end{align}
+    If $s\in[1-2\lambda,1]$, then $\lambda\leq1/8$ implies
+    \begin{align}
+        \frac{1-s^2}{2s^2}\leq4\lambda,
+        \qquad
+        \frac{1-s}{s^2}\leq4\lambda,
+        \qquad
+        \frac{(1-s)^2}{2s^2}\leq4\lambda^2.
+    \end{align}
+    Since $-d\log s\geq0$, we therefore obtain
+    \begin{align}
+        \log\frac{p_s(z)}{\varphi(z)}
+        \geq
+        -4\lambda\|z\|^2
+        -4\lambda|\langle a,z\rangle|
+        -4\lambda^2\|a\|^2.
+        \label{eq:bracket-density-ratio-lower}
+    \end{align}
+
+    Define
+    \begin{align}
+        \mathcal A
+        =
+        \left\{
+        z\in\R^d:
+        \begin{array}{l}
+            \displaystyle
+            \|z\|^2
+            \leq
+            2d\log 2+4\log\frac{2}{\delta},
+            \\[0.2cm]
+            \displaystyle
+            \left|
+            \left\langle\frac{a}{\|a\|},z\right\rangle
+            \right|^2
+            \leq
+            4\log\frac{2\sqrt{2}}{\delta}
+        \end{array}
+        \right\}.
+        \label{eq:bracket-set}
+    \end{align}
+    For $z\in\mathcal A$, condition
+    \eqref{eq:hermite-ons:bracket-dimension} gives
+    \begin{align}
+        4\lambda\|z\|^2
+        \leq
+        \frac{\log2}{3}.
+    \end{align}
+    Similarly, by \eqref{eq:hermite-ons:bracket-focus},
+    \begin{align}
+        4\lambda|\langle a,z\rangle|
+         & \leq
+        8\lambda\|a\|
+        \sqrt{\log\frac{2\sqrt2}{\delta}}
+        \leq
+        \frac{\log2}{3}.
+    \end{align}
+    Finally,
+    \begin{align}
+        4\lambda^2\|a\|^2
+         & \leq
+        \frac{(\log2)^2}
+        {144\log(2\sqrt2/\delta)}
+        \leq
+        \frac{\log2}{144}.
+    \end{align}
+    The sum of these three upper bounds is smaller than $\log2$.
+    Hence \eqref{eq:bracket-density-ratio-lower} implies
+    \begin{align}
+        p_s(z)\geq\frac12\varphi(z)
+        \qquad
+        \text{for every }
+        s\in[1-2\lambda,1],\ z\in\mathcal A.
+        \label{eq:bracket-density-comparison}
+    \end{align}
+
+    We may now return to the Bregman divergence. Restricting
+    \eqref{eq:bracket-density-integral} to
+    $s\in[1-2\lambda,1]$ and $z\in\mathcal A$, and then using
+    \eqref{eq:bracket-density-comparison}, gives
+    \begin{align}
+        \E[D_f(-a\|W)]
+         & \geq
+        \frac12
+        \int_{1-2\lambda}^1\frac{1}{s}\,ds
+        \int_{\mathcal A}
+        \|z+a\|_{\nabla^2f(z)}^2
+        \varphi(z)\,dz
+        \nonumber \\
+         & \geq
+        \lambda
+        \int_{\mathcal A}
+        \|z+a\|_{\nabla^2f(z)}^2
+        \varphi(z)\,dz,
+        \label{eq:bracket-bregman-lower}
+    \end{align}
+    where the last inequality follows from
+    $-\log(1-2\lambda)\geq2\lambda$.
+
+    We next relate the direction $a$ appearing in the focus term to
+    the direction $z+a$ appearing in the Bregman term. Since
+    $a=(z+a)-z$, for every positive semidefinite matrix $M$,
+    \begin{align}
+        \frac{\lambda}{2}\|a\|_M^2
+        \leq
+        \lambda\|z+a\|_M^2
+        +
+        \lambda\|z\|_M^2.
+        \label{eq:bracket-vector-comparison}
+    \end{align}
+    The first term on the right-hand side is paid by
+    \eqref{eq:bracket-bregman-lower}. The second is paid by the trace.
+    Indeed, on $\mathcal A$,
+    \begin{align}
+        \lambda\|z\|_{\nabla^2f(z)}^2
+         & \leq
+        \lambda\|z\|^2\tr(\nabla^2f(z))
+        \nonumber \\
+         & \leq
+        (1-4\lambda)\tr(\nabla^2f(z)).
+        \label{eq:bracket-trace-pays}
+    \end{align}
+    To see the last inequality, note that
+    \eqref{eq:hermite-ons:bracket-dimension} gives
+    \[
+        \lambda\|z\|^2
+        \leq\frac{\log2}{12},
+    \]
+    whereas $\lambda\leq1/8$ gives $1-4\lambda\geq1/2$.
+
+    Combining
+    \eqref{eq:bracket-bregman-lower}--%
+    \eqref{eq:bracket-trace-pays}, and using
+    $\nabla^2f(z)\succeq0$, gives
+    \begin{align}
+         & \E[D_f(-a\|W)]
+        +(1-4\lambda)\E[\tr(\nabla^2f(W))]
+        \nonumber         \\
+         & \qquad\geq
+        \frac{\lambda}{2}
+        \int_{\mathcal A}
+        \|a\|_{\nabla^2f(z)}^2
+        \varphi(z)\,dz.
+        \label{eq:bracket-inside-set}
+    \end{align}
+
+    It remains to control the curvature coming from $\mathcal A^c$.
+    Write $u=a/\|a\|$, and let $\varphi_C$ denote the density of
+    $\cN(0,C)$. The thresholds defining $\mathcal A$ were chosen so
+    that the standard Gaussian density on each part of
+    $\mathcal A^c$ is dominated by a wider Gaussian density. More
+    precisely,
+    \begin{align}
+        \varphi(z)
+        \mathbf 1
+        \left\{
+        \|z\|^2>
+        2d\log 2+4\log\frac{2}{\delta}
+        \right\}
+         & \leq
+        \frac{\delta}{2}\varphi_{2I_d}(z),
+        \label{eq:bracket-radial-tail}
+        \\
+        \varphi(z)
+        \mathbf 1
+        \left\{
+        |\langle u,z\rangle|^2>
+        4\log\frac{2\sqrt{2}}{\delta}
+        \right\}
+         & \leq
+        \frac{\delta}{2}\varphi_{I_d+uu^\top}(z).
+        \label{eq:bracket-directional-tail}
+    \end{align}
+    Indeed,
+    \begin{align}
+        \frac{\varphi(z)}{\varphi_{2I_d}(z)}
+         & =
+        2^{d/2}\exp\left(-\frac{\|z\|^2}{4}\right),
+        \\
+        \frac{\varphi(z)}{\varphi_{I_d+uu^\top}(z)}
+         & =
+        \sqrt2
+        \exp\left(-\frac{\langle u,z\rangle^2}{4}\right),
+    \end{align}
+    and the bounds in
+    \eqref{eq:bracket-radial-tail}--%
+    \eqref{eq:bracket-directional-tail} follow by substituting the
+    corresponding thresholds.
+
+    We now bound the average curvature under either of these wider
+    Gaussians. Lipschitzness of $e$ implies
+    \begin{align}
+        |\langle a,\nabla f(z)\rangle|
+         & =
+        |\langle\mu-x,
+        \nabla e(\mu+\Sigma^{1/2}z)\rangle|
+        \leq
+        L\|\mu-x\|.
+        \label{eq:bracket-directional-lipschitz}
+    \end{align}
+    For $C=2I_d$ and $C=I_d+uu^\top$, Gaussian integration by parts
+    therefore gives
+    \begin{align}
+        \int_{\R^d}
+        \|a\|_{\nabla^2f(z)}^2
+        \varphi_C(z)\,dz
+         & =
+        \int_{\R^d}
+        \langle a,\nabla f(z)\rangle
+        \langle C^{-1}a,z\rangle
+        \varphi_C(z)\,dz
+        \nonumber \\
+         & \leq
+        L\|\mu-x\|
+        \sqrt{\frac{2}{\pi}}
+        \sqrt{a^\top C^{-1}a}
+        \nonumber \\
+         & =
+        \frac{L}{\sqrt\pi}
+        \|\mu-x\|\|a\|.
+        \label{eq:bracket-tail-curvature}
+    \end{align}
+    In the last equality we used
+    \[
+        a^\top C^{-1}a=\frac12\|a\|^2
+    \]
+    for both choices of $C$. The integration-by-parts identity may
+    be justified by first inserting a compactly supported cutoff and
+    then letting the cutoff radius tend to infinity.
+
+    Since $\mathcal A^c$ is contained in the union of the two events
+    in \eqref{eq:bracket-radial-tail} and
+    \eqref{eq:bracket-directional-tail}, the preceding bounds imply
+    \begin{align}
+        \int_{\mathcal A^c}
+        \|a\|_{\nabla^2f(z)}^2
+        \varphi(z)\,dz
+        \leq
+        \frac{L\delta}{\sqrt\pi}
+        \|\mu-x\|\|a\|.
+        \label{eq:bracket-outside-set}
+    \end{align}
+
+    Finally, \eqref{eq:bracket-inside-set} can be written as
+    \begin{align}
+         & \E[D_f(-a\|W)]
+        +(1-4\lambda)\E[\tr(\nabla^2f(W))]
+        \nonumber         \\
+         & \qquad\geq
+        \frac{\lambda}{2}
+        \E\!\left[\|a\|_{\nabla^2f(W)}^2\right]
+        -
+        \frac{\lambda}{2}
+        \int_{\mathcal A^c}
+        \|a\|_{\nabla^2f(z)}^2
+        \varphi(z)\,dz.
+    \end{align}
+    Applying \eqref{eq:bracket-outside-set} and then undoing the
+    change of coordinates using
+    \eqref{eq:bracket-whitening-bregman}--%
+    \eqref{eq:bracket-whitening-trace}, we obtain
+    \begin{align}
+        \E[D_e(x\|X)]
+        +(1-4\lambda)\tr(H\Sigma)
+        \geq
+        \frac{\lambda}{2}\|\mu-x\|_H^2
+        -
+        \frac{\lambda L\delta}{2\sqrt\pi}
+        \|\mu-x\|
+        \|\mu-x\|_{\Sigma^{-1}}.
+    \end{align}
+    Rearranging proves \eqref{eq:hermite-ons:bracket}.
+
+    If, in addition, $\mu,x\in\mathcal K$ and
+    $\operatorname{diam}(\mathcal K)\leq D$, then
+    $\|\mu-x\|\leq D$. Moreover,
+    \eqref{eq:hermite-ons:bracket-focus} gives
+    \begin{align}
+        \lambda\|\mu-x\|_{\Sigma^{-1}}
+        \leq
+        \frac{\log2}
+        {24\sqrt{\log(2\sqrt2/\delta)}}.
+    \end{align}
+    Substituting these two bounds into the error term gives
+    \eqref{eq:hermite-ons:bracket-bounded-error}.
+\end{proof}
+
+% \begin{proof}
+%     The result is immediate when $\mu=x$. Suppose henceforth that
+%     $\mu\neq x$. Define
+%     \[
+%         a=\Sigma^{-1/2}(\mu-x),
+%         \qquad
+%         f(z)=e(\mu+\Sigma^{1/2}z),
+%     \]
+%     and let $W\sim\cN(0,I_d)$, coupled with $X$ through
+%     $X=\mu+\Sigma^{1/2}W$. Then
+%     \begin{align}
+%         D_f(-a\|W) & =D_e(x\|X),
+%         \label{eq:bracket-whitening-bregman}
+%         \\
+%         \|a\|_{\E[\nabla^2f(W)]}^2
+%                    & =\|\mu-x\|_H^2,
+%         \label{eq:bracket-whitening-focus}
+%         \\
+%         \E[\tr(\nabla^2f(W))]
+%                    & =\tr(H\Sigma).
+%         \label{eq:bracket-whitening-trace}
+%     \end{align}
+
+%     Taylor's formula for the Bregman divergence gives
+%     \begin{align}
+%         D_f(-a\|W)
+%         =
+%         \int_0^1
+%         s\,
+%         \|W+a\|_{\nabla^2f(sW - (1 - s)a)}^2
+%         \,ds.
+%         \label{eq:bracket-bregman-integral}
+%     \end{align}
+%     For $s\in(0,1]$, let $p_s$ denote the density of $sW-(1-s)a$.
+%     Changing variables in \eqref{eq:bracket-bregman-integral} yields
+%     \begin{align}
+%         \E[D_f(-a\|W)]
+%         =
+%         \int_0^1\frac{1}{s}
+%         \int_{\R^d}
+%         \|z+a\|_{\nabla^2f(z)}^2
+%         p_s(z)\,dz\,ds.
+%         \label{eq:bracket-density-integral}
+%     \end{align}
+%     Let $\varphi$ denote the standard Gaussian density.
+%     Direct calculation gives
+%     \begin{align}
+%         \log\frac{p_s(z)}{\varphi(z)}
+%         ={} &
+%         -d\log s
+%         -\frac{1-s^2}{2s^2}\|z\|^2
+%         -\frac{1-s}{s^2}\langle a,z\rangle
+%         -\frac{(1-s)^2}{2s^2}\|a\|^2.
+%         \label{eq:bracket-density-ratio}
+%     \end{align}
+%     If $s\in[1-2\lambda,1]$, then $\lambda\leq1/8$ implies
+%     \begin{align}
+%         \frac{1-s^2}{2s^2}\leq4\lambda,
+%         \qquad
+%         \frac{1-s}{s^2}\leq4\lambda,
+%         \qquad
+%         \frac{(1-s)^2}{2s^2}\leq4\lambda^2.
+%     \end{align}
+%     Therefore,
+%     \begin{align}
+%         \log\frac{p_s(z)}{\varphi(z)}
+%         \geq
+%         -4\lambda\|z\|^2
+%         -4\lambda|\langle a,z\rangle|
+%         -4\lambda^2\|a\|^2.
+%         \label{eq:bracket-density-ratio-lower}
+%     \end{align}
+
+%     Define the set
+%     \begin{align}
+%         \mathcal A
+%         =
+%         \left\{
+%         z\in\R^d:
+%         \begin{array}{l}
+%             \displaystyle
+%             \|z\|^2
+%             \leq
+%             2d\log 2+4\log\frac{2}{\delta},
+%             \\[0.2cm]
+%             \displaystyle
+%             \left|
+%             \left\langle\frac{a}{\|a\|},z\right\rangle
+%             \right|^2
+%             \leq
+%             4\log\frac{2\sqrt{2}}{\delta}
+%         \end{array}
+%         \right\}.
+%         \label{eq:bracket-set}
+%     \end{align}
+%     For $z\in\mathcal A$, the first two terms on the right-hand side
+%     are each at least $-\log(2)/3$ by
+%     \eqref{eq:hermite-ons:bracket-dimension} and
+%     \eqref{eq:hermite-ons:bracket-focus}. Moreover,
+%     \begin{align}
+%         4\lambda^2\|a\|^2
+%          & \leq
+%         \frac{(\log 2)^2}
+%         {144\log(2\sqrt{2}/\delta)}
+%         \leq
+%         \frac{\log 2}{144}.
+%     \end{align}
+%     Hence
+%     \begin{align}
+%         p_s(z)\geq\frac12\varphi(z)
+%         \qquad
+%         \text{for every }
+%         s\in[1-2\lambda,1],\ z\in\mathcal A.
+%         \label{eq:bracket-density-comparison}
+%     \end{align}
+%     It follows from \eqref{eq:bracket-density-integral} and
+%     $-\log(1-2\lambda)\geq2\lambda$ that
+%     \begin{align}
+%         \E[D_f(-a\|W)]
+%         \geq
+%         \lambda
+%         \int_{\mathcal A}
+%         \|z+a\|_{\nabla^2f(z)}^2
+%         \varphi(z)\,dz.
+%         \label{eq:bracket-bregman-lower}
+%     \end{align}
+
+%     For every positive semidefinite matrix $M$,
+%     \begin{align}
+%         \frac{\lambda}{2}\|a\|_M^2
+%         \leq
+%         \lambda\|z+a\|_M^2+\lambda\|z\|_M^2.
+%         \label{eq:bracket-vector-comparison}
+%     \end{align}
+%     On $\mathcal A$,
+%     \begin{align}
+%         \lambda\|z\|_{\nabla^2f(z)}^2
+%          & \leq
+%         \lambda\|z\|^2\tr(\nabla^2f(z))
+%         \nonumber \\
+%          & \leq
+%         (1-4\lambda)\tr(\nabla^2f(z)),
+%         \label{eq:bracket-trace-pays}
+%     \end{align}
+%     where the last inequality follows from
+%     \eqref{eq:hermite-ons:bracket-dimension} and $\lambda\leq1/8$.
+%     Combining \eqref{eq:bracket-bregman-lower}--%
+%     \eqref{eq:bracket-trace-pays} and using convexity of $f$ gives
+%     \begin{align}
+%          & \E[D_f(-a\|W)]
+%         +(1-4\lambda)\E[\tr(\nabla^2f(W))]
+%         \nonumber         \\
+%          & \qquad\geq
+%         \frac{\lambda}{2}
+%         \int_{\mathcal A}
+%         \|a\|_{\nabla^2f(z)}^2
+%         \varphi(z)\,dz.
+%         \label{eq:bracket-inside-set}
+%     \end{align}
+
+%     It remains to control the curvature on $\mathcal A^c$.
+%     Write $u=a/\|a\|$, and let $\varphi_C$ denote the density of
+%     $\cN(0,C)$. The definitions in \eqref{eq:bracket-set} give the
+%     pointwise comparisons
+%     \begin{align}
+%         \varphi(z)
+%         \mathbf 1
+%         \left\{
+%         \|z\|^2>
+%         2d\log 2+4\log\frac{2}{\delta}
+%         \right\}
+%          & \leq
+%         \frac{\delta}{2}\varphi_{2I_d}(z),
+%         \label{eq:bracket-radial-tail}
+%         \\
+%         \varphi(z)
+%         \mathbf 1
+%         \left\{
+%         |\langle u,z\rangle|^2>
+%         4\log\frac{2\sqrt{2}}{\delta}
+%         \right\}
+%          & \leq
+%         \frac{\delta}{2}\varphi_{I_d+uu^\top}(z).
+%         \label{eq:bracket-directional-tail}
+%     \end{align}
+%     Indeed,
+%     \begin{align}
+%         \frac{\varphi(z)}{\varphi_{2I_d}(z)}
+%          & =
+%         2^{d/2}\exp\left(-\frac{\|z\|^2}{4}\right),
+%         \\
+%         \frac{\varphi(z)}{\varphi_{I_d+uu^\top}(z)}
+%          & =
+%         \sqrt{2}\exp\left(-\frac{\langle u,z\rangle^2}{4}\right).
+%     \end{align}
+
+%     Moreover, Lipschitzness of $e$ implies
+%     \begin{align}
+%         |\langle a,\nabla f(z)\rangle|
+%         =
+%         |\langle\mu-x,\nabla e(\mu+\Sigma^{1/2}z)\rangle|
+%         \leq L\|\mu-x\|
+%         \label{eq:bracket-directional-lipschitz}
+%     \end{align}
+%     for every $z\in\R^d$.
+%     For $C=2I_d$ and $C=I_d+uu^\top$, Gaussian integration by parts
+%     and \eqref{eq:bracket-directional-lipschitz} give
+%     \begin{align}
+%         \int_{\R^d}
+%         \|a\|_{\nabla^2f(z)}^2
+%         \varphi_C(z)\,dz
+%          & =
+%         \int_{\R^d}
+%         \langle a,\nabla f(z)\rangle
+%         \langle C^{-1}a,z\rangle
+%         \varphi_C(z)\,dz
+%         \nonumber \\
+%          & \leq
+%         L\|\mu-x\|
+%         \sqrt{\frac{2}{\pi}}
+%         \sqrt{a^\top C^{-1}a}
+%         \nonumber \\
+%          & =
+%         \frac{L}{\sqrt{\pi}}
+%         \|\mu-x\|\|a\|.
+%         \label{eq:bracket-tail-curvature}
+%     \end{align}
+%     The integration-by-parts identity can be justified by first
+%     inserting a compactly supported cutoff and then taking its limit.
+%     Since $\mathcal A^c$ is contained in the union of the two events
+%     in \eqref{eq:bracket-radial-tail} and
+%     \eqref{eq:bracket-directional-tail}, we conclude that
+%     \begin{align}
+%         \int_{\mathcal A^c}
+%         \|a\|_{\nabla^2f(z)}^2
+%         \varphi(z)\,dz
+%         \leq
+%         \frac{L\delta}{\sqrt{\pi}}
+%         \|\mu-x\|\|a\|.
+%         \label{eq:bracket-outside-set}
+%     \end{align}
+
+%     Combining \eqref{eq:bracket-inside-set} and
+%     \eqref{eq:bracket-outside-set}, and using
+%     \eqref{eq:bracket-whitening-bregman}--%
+%     \eqref{eq:bracket-whitening-trace}, gives
+%     \begin{align}
+%         \E[D_e(x\|X)]
+%         +(1-4\lambda)\tr(H\Sigma)
+%         \geq
+%         \frac{\lambda}{2}\|\mu-x\|_H^2
+%         -
+%         \frac{\lambda L\delta}{2\sqrt{\pi}}
+%         \|\mu-x\|
+%         \|\mu-x\|_{\Sigma^{-1}},
+%     \end{align}
+%     which is equivalent to \eqref{eq:hermite-ons:bracket}.
+
+%     Finally, if $\|\mu-x\|\leq D$, then
+%     \eqref{eq:hermite-ons:bracket-focus} gives
+%     \begin{align}
+%         \lambda\|\mu-x\|_{\Sigma^{-1}}
+%         \leq
+%         \frac{\log 2}
+%         {24\sqrt{\log(2\sqrt{2}/\delta)}}.
+%     \end{align}
+%     Substitution into the error term proves
+%     \eqref{eq:hermite-ons:bracket-bounded-error}.
+% \end{proof}
+
+\paragraph{Controlling the trace term.}
+The covariance update continually shrinks $\Sigma_t$. The following
+result shows that the total curvature encountered during this shrinkage
+is controlled by the increase of $\det(\Sigma_t^{-1})$.
+
+\begin{proposition}[Trace budget]
+    \label{prop:hermite-ons:trace-budget}
+    Suppose that each $e_t:\R^d\to\R$ is convex, twice continuously
+    differentiable, and $L$-Lipschitz. Let
+    \[
+        X_t\sim\cN(\mu_t,\Sigma_t),
+        \qquad
+        H_t=\E[\nabla^2e_t(X_t)],
+    \]
+    and suppose that
+    \[
+        \Sigma_{t+1}^{-1}
+        =
+        \Sigma_t^{-1}+\lambda\eta H_t,
+        \qquad
+        \Sigma_1=\sigma^2I_d.
+    \]
+    If
+    \begin{align}
+        \lambda\eta L\sigma\sqrt{\frac{2}{\pi}}\leq1,
+        \label{eq:hermite-ons:trace-step-size}
+    \end{align}
+    then
+    \begin{align}
+        \eta\sum_{t=1}^n\tr(H_t\Sigma_t)
+        \leq
+        \frac{4d}{\lambda}
+        \log\left(
+        1+\frac{n\lambda\eta L\sigma}{\sqrt{2\pi}}
+        \right).
+        \label{eq:hermite-ons:trace-budget}
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    Since $H_t\succeq0$, the covariance matrices decrease:
+    \[
+        \Sigma_t\preceq\Sigma_1=\sigma^2I_d.
+    \]
+    We first compare $\tr(H_t\Sigma_t)$ with the increase of
+    $\log\det(\Sigma_t^{-1})$.
+
+    Let $Z\sim\cN(0,I_d)$, so that
+    $X_t=\mu_t+\Sigma_t^{1/2}Z$. For every unit vector $v$, Gaussian
+    integration by parts gives
+    \begin{align}
+        v^\top\Sigma_t^{1/2}H_t\Sigma_t^{1/2}v
+        =
+        \E\left[
+            \left\langle
+            \nabla e_t(X_t),\Sigma_t^{1/2}v
+            \right\rangle
+            \langle v,Z\rangle
+            \right].
+    \end{align}
+    Since $\|\nabla e_t(X_t)\|\leq L$,
+    \begin{align}
+        v^\top\Sigma_t^{1/2}H_t\Sigma_t^{1/2}v
+         & \leq
+        L\|\Sigma_t^{1/2}v\|
+        \E|\langle v,Z\rangle|
+        \nonumber \\
+         & \leq
+        L\sigma\sqrt{\frac{2}{\pi}}.
+        \label{eq:hermite-ons:normalized-hessian}
+    \end{align}
+    Thus, by \eqref{eq:hermite-ons:trace-step-size}, every eigenvalue
+    of
+    \[
+        \lambda\eta
+        \Sigma_t^{1/2}H_t\Sigma_t^{1/2}
+    \]
+    belongs to $[0,1]$. Using $\log(1+u)\geq u/2$ on this interval,
+    \begin{align}
+        \log\frac{\det(\Sigma_{t+1}^{-1})}
+        {\det(\Sigma_t^{-1})}
+         & =
+        \log\det\left(
+        I_d+\lambda\eta
+        \Sigma_t^{1/2}H_t\Sigma_t^{1/2}
+        \right)
+        \nonumber \\
+         & \geq
+        \frac{\lambda\eta}{2}\tr(H_t\Sigma_t).
+        \label{eq:hermite-ons:trace-logdet-lower}
+    \end{align}
+
+    It remains to upper-bound how much the determinant can grow.
+    A second application of Gaussian integration by parts gives, for
+    every unit vector $v$,
+    \begin{align}
+        v^\top H_tv
+        =
+        \E\left[
+            \langle v,\nabla e_t(X_t)\rangle
+            \left\langle
+            v,\Sigma_t^{-1}(X_t-\mu_t)
+            \right\rangle
+            \right].
+    \end{align}
+    Therefore,
+    \begin{align}
+        v^\top H_tv
+        \leq
+        L\sqrt{\frac{2}{\pi}}
+        \sqrt{v^\top\Sigma_t^{-1}v},
+    \end{align}
+    and hence
+    \begin{align}
+        \lambda_{\max}(H_t)
+        \leq
+        L\sqrt{\frac{2}{\pi}}
+        \sqrt{\lambda_{\max}(\Sigma_t^{-1})}.
+        \label{eq:hermite-ons:hessian-operator}
+    \end{align}
+    The covariance update now implies
+    \begin{align}
+        \lambda_{\max}(\Sigma_{t+1}^{-1})
+        \leq{} &
+        \lambda_{\max}(\Sigma_t^{-1})
+        +
+        \lambda\eta L\sqrt{\frac{2}{\pi}}
+        \sqrt{\lambda_{\max}(\Sigma_t^{-1})}.
+    \end{align}
+    Since $\sqrt{r^2+br}\leq r+b/2$ for $r,b\geq0$,
+    \begin{align}
+        \sqrt{\lambda_{\max}(\Sigma_{t+1}^{-1})}
+        \leq
+        \sqrt{\lambda_{\max}(\Sigma_t^{-1})}
+        +
+        \frac{\lambda\eta L}{\sqrt{2\pi}}.
+    \end{align}
+    Iterating and using $\Sigma_1^{-1}=\sigma^{-2}I_d$ gives
+    \begin{align}
+        \lambda_{\max}(\Sigma_{n+1}^{-1})
+        \leq
+        \frac{1}{\sigma^2}
+        \left(
+        1+\frac{n\lambda\eta L\sigma}{\sqrt{2\pi}}
+        \right)^2.
+    \end{align}
+    Consequently,
+    \begin{align}
+        \log\frac{\det(\Sigma_{n+1}^{-1})}
+        {\det(\Sigma_1^{-1})}
+        \leq
+        2d\log\left(
+        1+\frac{n\lambda\eta L\sigma}{\sqrt{2\pi}}
+        \right).
+        \label{eq:hermite-ons:trace-logdet-upper}
+    \end{align}
+    Summing \eqref{eq:hermite-ons:trace-logdet-lower} and applying
+    \eqref{eq:hermite-ons:trace-logdet-upper} proves the result.
+\end{proof}
+
+
+\paragraph{Preserving the focus condition.}
+We now specialize to a fixed loss $e$. The important point is that
+the regret term has the correct sign: large regret can only decrease
+the distance to $x_\star$.
+
+\begin{proposition}[Preservation of the focus condition]
+    \label{prop:hermite-ons:focus}
+    Let $\cK\subseteq\R^d$ be closed and convex with
+    $\operatorname{diam}(\cK)\leq D$. Let
+    $e:\R^d\to\R$ be convex, twice continuously differentiable, and
+    $L$-Lipschitz, and fix
+    \[
+        x_\star\in\argmin_{x\in\cK}e(x).
+    \]
+    Run \cref{alg:HermiteOnlineNewtonStep} with the fixed loss
+    $e_t=e$, with $\mu_1\in\cK$ and
+    $\Sigma_1=\sigma^2I_d$. Suppose that
+    \begin{align}
+        0<\lambda\leq\frac18,
+        \qquad
+        \lambda
+        \left(
+        2d\log2+4\log(2n)
+        \right)
+        \leq
+        \frac{\log2}{12},
+        \label{eq:hermite-ons:focus-dimension}
+    \end{align}
+    and
+    \begin{align}
+        \lambda\eta L\sigma\sqrt{\frac{2}{\pi}}\leq1.
+        \label{eq:hermite-ons:focus-step-size}
+    \end{align}
+    Suppose, moreover, that
+    \begin{align}
+         & \frac12
+        \|\mu_1-x_\star\|_{\Sigma_1^{-1}}^2
+        +
+        \frac{\eta^2nL^2\sigma^2}{2}
+        \nonumber  \\
+         & \quad+
+        \frac{4(2-4\lambda)d}{\lambda}
+        \log\left(
+        1+\frac{n\lambda\eta L\sigma}{\sqrt{2\pi}}
+        \right)
+        \nonumber  \\
+         & \quad+
+        \frac{\eta LD\log2}
+        {48\sqrt{\pi\log(2\sqrt2\,n)}}
+        \leq
+        \frac{(\log2)^2}
+        {1152\lambda^2\log(2\sqrt2\,n)}.
+        \label{eq:hermite-ons:focus-sufficient}
+    \end{align}
+    Then, for every $t\in\{1,\ldots,n+1\}$,
+    \begin{align}
+        \frac12
+        \|\mu_t-x_\star\|_{\Sigma_t^{-1}}^2
+        \leq
+        \frac{(\log2)^2}
+        {1152\lambda^2\log(2\sqrt2\,n)}.
+        \label{eq:hermite-ons:focus-preserved}
+    \end{align}
+    In particular, \cref{prop:hermite-ons:bracket} is applicable with
+    $x=x_\star$ and $\delta=1/n$ at every round.
+\end{proposition}
+
+\begin{proof}
+    The metric projection satisfies the Pythagorean inequality.
+    Since $x_\star\in\cK$, this gives
+    \begin{align}
+        \frac12
+        \|\mu_{t+1}-x_\star\|_{\Sigma_{t+1}^{-1}}^2
+         & \leq
+        \frac12
+        \|x_\star-
+        (\mu_t-\eta\Sigma_{t+1}g_t)\|_{\Sigma_{t+1}^{-1}}^2
+        \nonumber \\
+         & =
+        \frac12
+        \|\mu_t-x_\star\|_{\Sigma_t^{-1}}^2
+        -\eta\langle g_t,\mu_t-x_\star\rangle
+        \nonumber \\
+         & \quad+
+        \frac{\lambda\eta}{2}
+        \|\mu_t-x_\star\|_{H_t}^2
+        +
+        \frac{\eta^2}{2}
+        \|g_t\|_{\Sigma_{t+1}}^2.
+        \label{eq:hermite-ons:focus-projection}
+    \end{align}
+
+    Suppose for the moment that
+    \begin{align}
+        \lambda
+        \|\mu_t-x_\star\|_{\Sigma_t^{-1}}
+        \sqrt{\log(2\sqrt2\,n)}
+        \leq
+        \frac{\log2}{24}.
+        \label{eq:hermite-ons:focus-condition-round}
+    \end{align}
+    Then \cref{prop:hermite-ons:bracket}, applied with
+    $\delta=1/n$, gives
+    \begin{align}
+        \frac{\lambda}{2}
+        \|\mu_t-x_\star\|_{H_t}^2
+        -
+        \E[D_e(x_\star\|X_t)]
+        \leq{} &
+        (1-4\lambda)\tr(H_t\Sigma_t)
+        \nonumber  \\
+               & +
+        \frac{LD\log2}
+        {48n\sqrt{\pi\log(2\sqrt2\,n)}}.
+        \label{eq:hermite-ons:focus-bracket-round}
+    \end{align}
+    On the other hand, the regret-switching identity gives
+    \begin{align}
+        \E[e(X_t)]-e(x_\star)
+        =
+        \tr(H_t\Sigma_t)
+        +
+        \langle g_t,\mu_t-x_\star\rangle
+        -
+        \E[D_e(x_\star\|X_t)].
+    \end{align}
+    Substituting these two relations into
+    \eqref{eq:hermite-ons:focus-projection}, we obtain
+    \begin{align}
+         & \frac12
+        \|\mu_{t+1}-x_\star\|_{\Sigma_{t+1}^{-1}}^2
+        -
+        \frac12
+        \|\mu_t-x_\star\|_{\Sigma_t^{-1}}^2
+        \nonumber    \\
+         & \quad\leq
+        -\eta\bigl(\E[e(X_t)]-e(x_\star)\bigr)
+        +
+        \frac{\eta^2}{2}
+        \|g_t\|_{\Sigma_{t+1}}^2
+        \nonumber    \\
+         & \qquad+
+        (2-4\lambda)\eta\tr(H_t\Sigma_t)
+        +
+        \frac{\eta LD\log2}
+        {48n\sqrt{\pi\log(2\sqrt2\,n)}}.
+        \label{eq:hermite-ons:focus-recursion}
+    \end{align}
+
+    The first term on the right-hand side is nonpositive. Indeed,
+    Jensen's inequality and $\mu_t\in\cK$ imply
+    \begin{align}
+        \E[e(X_t)]
+        \geq
+        e(\mu_t)
+        \geq
+        e(x_\star).
+        \label{eq:hermite-ons:stationary-nonnegative}
+    \end{align}
+    This is the only place in the argument where the fixed-loss
+    assumption is used.
+
+    We now show that the condition needed above cannot fail. Suppose
+    otherwise, and let $\tau\in\{2,\ldots,n+1\}$ be the first index
+    for which \eqref{eq:hermite-ons:focus-preserved} fails. For every
+    $t<\tau$, the focus bound holds and implies
+    \eqref{eq:hermite-ons:focus-condition-round}. We may therefore
+    sum \eqref{eq:hermite-ons:focus-recursion} from $t=1$ to
+    $\tau-1$.
+
+    Since $\Sigma_{t+1}\preceq\Sigma_1=\sigma^2I_d$ and
+    $\|g_t\|\leq L$,
+    \begin{align}
+        \sum_{t=1}^{\tau-1}
+        \|g_t\|_{\Sigma_{t+1}}^2
+        \leq nL^2\sigma^2.
+        \label{eq:hermite-ons:focus-gradient-budget}
+    \end{align}
+    Moreover, \cref{prop:hermite-ons:trace-budget} gives
+    \begin{align}
+        \eta\sum_{t=1}^{\tau-1}\tr(H_t\Sigma_t)
+        \leq
+        \frac{4d}{\lambda}
+        \log\left(
+        1+\frac{n\lambda\eta L\sigma}{\sqrt{2\pi}}
+        \right).
+        \label{eq:hermite-ons:focus-trace-budget}
+    \end{align}
+    Dropping the nonpositive regret terms and using these two bounds
+    gives
+    \begin{align}
+        \frac12
+        \|\mu_\tau-x_\star\|_{\Sigma_\tau^{-1}}^2
+        \leq{} &
+        \frac12
+        \|\mu_1-x_\star\|_{\Sigma_1^{-1}}^2
+        +
+        \frac{\eta^2nL^2\sigma^2}{2}
+        \nonumber  \\
+               & +
+        \frac{4(2-4\lambda)d}{\lambda}
+        \log\left(
+        1+\frac{n\lambda\eta L\sigma}{\sqrt{2\pi}}
+        \right)
+        \nonumber  \\
+               & +
+        \frac{\eta LD\log2}
+        {48\sqrt{\pi\log(2\sqrt2\,n)}}.
+    \end{align}
+    By \eqref{eq:hermite-ons:focus-sufficient}, the right-hand side
+    is at most the threshold in
+    \eqref{eq:hermite-ons:focus-preserved}, contradicting the
+    definition of $\tau$. Therefore the focus bound holds for every
+    $t\leq n+1$.
+
+    Finally, \eqref{eq:hermite-ons:focus-preserved} implies
+    \begin{align}
+        \lambda
+        \|\mu_t-x_\star\|_{\Sigma_t^{-1}}
+        \sqrt{\log(2\sqrt2\,n)}
+        \leq
+        \frac{\log2}{24},
+    \end{align}
+    which is precisely the second condition of
+    \cref{prop:hermite-ons:bracket} with $\delta=1/n$.
+\end{proof}
+
+
+\paragraph{Stationary regret.}
+
+\begin{theorem}[Stationary population regret]
+    \label{thm:hermite-ons:stationary}
+    Let $\cK\subseteq\R^d$ be closed and convex with
+    $\operatorname{diam}(\cK)\leq D$, where $D>0$. Let
+    $e:\R^d\to\R$ be convex, twice continuously differentiable, and
+    $L$-Lipschitz, where $L>0$, and let
+    \[
+        x_\star\in\argmin_{x\in\cK}e(x).
+    \]
+    For $n\geq1$, write
+    \[
+        \ell_n=\log(2\sqrt2\,n).
+    \]
+    Run \cref{alg:HermiteOnlineNewtonStep} on the fixed loss $e$,
+    starting from any $\mu_1\in\cK$, with
+    \begin{align}
+        \Sigma_1
+         & =
+        \frac{D^2}{d^2}I_d,
+        \label{eq:hermite-ons:stationary-sigma}
+        \\
+        \lambda
+         & =
+        \frac{(\log2)^2}
+        {18432\,d\,\ell_n^2},
+        \label{eq:hermite-ons:stationary-lambda}
+        \\
+        \eta
+         & =
+        \frac{384\,d^2\ell_n^{3/2}}
+        {(\log2)LD\sqrt n}.
+        \label{eq:hermite-ons:stationary-eta}
+    \end{align}
+    Then, for every $t\leq n+1$,
+    \begin{align}
+        \frac12
+        \|\mu_t-x_\star\|_{\Sigma_t^{-1}}^2
+        \leq
+        \frac{294912}{(\log2)^2}
+        d^2\ell_n^3.
+        \label{eq:hermite-ons:stationary-focus}
+    \end{align}
+    Moreover,
+    \begin{align}
+        \E\left[
+            \sum_{t=1}^n
+            e(X_t)-e(x_\star)
+            \right]
+        \leq
+        \left(
+        \frac{576}{\log2}+1
+        \right)
+        LD\sqrt n\,\ell_n^{3/2}.
+        \label{eq:hermite-ons:stationary-regret}
+    \end{align}
+\end{theorem}
+
+\begin{proof}
+    We verify the conditions of
+    \cref{prop:hermite-ons:focus}. First,
+    \begin{align}
+        2d\log2+4\log(2n)
+        \leq
+        6d\ell_n.
+    \end{align}
+    Therefore,
+    \begin{align}
+        \lambda
+        \left(
+        2d\log2+4\log(2n)
+        \right)
+        \leq
+        \frac{6(\log2)^2}{18432\ell_n}
+        \leq
+        \frac{\log2}{12}.
+    \end{align}
+    The trace step-size condition also holds because
+    \begin{align}
+        \lambda\eta L\frac{D}{d}
+        =
+        \frac{\log2}{48\sqrt{n\ell_n}},
+    \end{align}
+    and hence
+    \begin{align}
+        \lambda\eta L\frac{D}{d}
+        \sqrt{\frac{2}{\pi}}
+        \leq1.
+    \end{align}
+
+    We next check the sufficient condition
+    \eqref{eq:hermite-ons:focus-sufficient}. Since
+    $\|\mu_1-x_\star\|\leq D$,
+    \begin{align}
+        \frac12
+        \|\mu_1-x_\star\|_{\Sigma_1^{-1}}^2
+        \leq
+        \frac{d^2}{2}.
+        \label{eq:stationary-initial-budget}
+    \end{align}
+    The gradient contribution is
+    \begin{align}
+        \frac{\eta^2nL^2(D/d)^2}{2}
+        =
+        \frac{73728}{(\log2)^2}
+        d^2\ell_n^3.
+        \label{eq:stationary-gradient-focus-budget}
+    \end{align}
+    Moreover,
+    \begin{align}
+        \log\left(
+        1+
+        \frac{n\lambda\eta L(D/d)}{\sqrt{2\pi}}
+        \right)
+         & =
+        \log\left(
+        1+
+        \frac{\log2\,\sqrt n}
+        {48\sqrt{2\pi\ell_n}}
+        \right)
+        \nonumber \\
+         & \leq
+        \log(1+\sqrt n)
+        \leq
+        \ell_n.
+    \end{align}
+    Hence the trace contribution is at most
+    \begin{align}
+        \frac{4(2-4\lambda)d}{\lambda}
+        \log\left(
+        1+
+        \frac{n\lambda\eta L(D/d)}{\sqrt{2\pi}}
+        \right)
+        \leq
+        \frac{147456}{(\log2)^2}
+        d^2\ell_n^3.
+        \label{eq:stationary-trace-focus-budget}
+    \end{align}
+    Finally,
+    \begin{align}
+        \frac{\eta LD\log2}
+        {48\sqrt{\pi\ell_n}}
+        =
+        \frac{8d^2\ell_n}{\sqrt{\pi n}}.
+        \label{eq:stationary-tail-focus-budget}
+    \end{align}
+    The initial term and
+    \eqref{eq:stationary-tail-focus-budget} sum to at most
+    $6d^2\ell_n^3$. Since
+    \begin{align}
+        \frac{(\log2)^2}
+        {1152\lambda^2\ell_n}
+        =
+        \frac{294912}{(\log2)^2}
+        d^2\ell_n^3,
+    \end{align}
+    the bounds
+    \eqref{eq:stationary-initial-budget}--%
+    \eqref{eq:stationary-tail-focus-budget} verify
+    \eqref{eq:hermite-ons:focus-sufficient}. Thus
+    \cref{prop:hermite-ons:focus} proves
+    \eqref{eq:hermite-ons:stationary-focus}.
+
+    We may now sum
+    \eqref{eq:hermite-ons:focus-recursion} over all rounds while
+    retaining the regret term. Dropping the nonnegative final
+    potential gives
+    \begin{align}
+        \E\left[
+            \sum_{t=1}^n e(X_t)-e(x_\star)
+            \right]
+        \leq{} &
+        \frac{1}{2\eta}
+        \|\mu_1-x_\star\|_{\Sigma_1^{-1}}^2
+        +
+        \frac{\eta}{2}
+        \sum_{t=1}^n
+        \|g_t\|_{\Sigma_{t+1}}^2
+        \nonumber  \\
+               & +
+        (2-4\lambda)
+        \sum_{t=1}^n\tr(H_t\Sigma_t)
+        +
+        \frac{LD\log2}{48\sqrt{\pi\ell_n}}.
+        \label{eq:stationary-regret-decomposition}
+    \end{align}
+    The initial term is at most
+    \begin{align}
+        \frac{\log2}{768}
+        \frac{LD\sqrt n}{\ell_n^{3/2}}.
+    \end{align}
+    Since $\Sigma_{t+1}\preceq(D^2/d^2)I_d$ and
+    $\|g_t\|\leq L$, the gradient term is at most
+    \begin{align}
+        \frac{192}{\log2}
+        LD\sqrt n\,\ell_n^{3/2}.
+    \end{align}
+    Finally, \cref{prop:hermite-ons:trace-budget} bounds the trace
+    term by
+    \begin{align}
+        \frac{384}{\log2}
+        LD\sqrt n\,\ell_n^{3/2}.
+    \end{align}
+    Adding these estimates and the last term in
+    \eqref{eq:stationary-regret-decomposition} proves
+    \eqref{eq:hermite-ons:stationary-regret}.
+\end{proof}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\hrule
+\hrule
+\hrule
+
+
+\subsubsection{Sum of the traces.}
+Suppose that for all $t$, we have
+\begin{align}
+    \eta \| \Sigma_t^{1/2} H_t \Sigma_t^{1/2} \|_{\mathrm{op}} \leq 1\,.
+\end{align}
+Then write
+\begin{align}
+    \eta  \sum_{t=1}^n \tr(H_t\Sigma_t)
+     & =
+    \eta  \sum_{t=1}^n \tr(\Sigma_t^{1/2} H_t \Sigma_t^{1/2})
+    \\
+     & =
+    \sum_{t=1}^n \sum_{i=1}^d \eta  \lambda_i(\Sigma_t^{1/2} H_t \Sigma_t^{1/2})
+    \\
+     & \leq
+    2 \sum_{t=1}^n \sum_{i=1}^d \log\left(1 + \eta \lambda_i(\Sigma_t^{1/2} H_t \Sigma_t^{1/2})\right)
+    \\
+     & =
+    2 \sum_{t=1}^n \log \det\left(I + \eta \Sigma_t^{1/2} H_t \Sigma_t^{1/2}\right)
+    \\
+     & =
+    2 \sum_{t=1}^n \log \det\left(\Sigma_t^{1/2} \left( \Sigma_t^{-1} + \eta H_t\right) \Sigma_t^{1/2}\right)
+    \\
+     & =
+    2 \sum_{t=1}^n \log \det\left(\Sigma_t^{1/2} \Sigma_{t+1}^{-1} \Sigma_t^{1/2}\right)
+    \\
+     & =
+    2 \sum_{t=1}^n \log \det\left(\Sigma_{t+1}^{-1} \Sigma_t^{1}\right)
+    \\
+     & =
+    2 \log \det\left(\Sigma_{n+1}^{-1} \Sigma_1^{1}\right)\,,
+\end{align}
+where in the first inequality we used the fact that $\log(1+x)\geq x/2$ for $x\in[0,1]$.
+
+\subsubsection{Sum of gradients}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{../all}
+\clearpage
+
+\appendix
+\section{Appendix}
+\label{sec:appendix}
+
+\subsection{Proofs for $\Lambda^{\mathsf{v}}$ bounds}
+\subsubsection{Proof of \cref{prop:Lambda_in_terms_of_phi}}
+\label{proof:Lambda_in_terms_of_phi}
+\begin{proof}
+    Note that $H^\star(v) = \int_\K e^{v(t)} dt$, and $H'(q) = \log(q)$.
+    Then, starting from the definition of the variance term, we have
+    \begin{align}
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \ell)
+         & =
+        \frac{1}{\eta^2}
+        \E\left[
+            D_{H^\star}\left(
+            H'(q) - \eta \cE^\ell_X, H'(q)
+            \right)
+            \right]
+        \\
+         & =
+        \frac{1}{\eta^2}
+        \E\left[
+            H^\star(H'(q) - \eta \cE^\ell_X) - H^\star(H'(q)) + \eta \langle \cE^\ell_X, q \rangle
+            \right]
+        \\
+         & =
+        \E\left[
+            \int_\K \left(e^{-\eta \cE_X^\ell(t)} - 1 + \eta \cE_X^\ell(t)\right) q(t) dt
+            \right]
+        \\
+         & =
+        \E\left[
+            \phi_\eta(\cE_X^\ell(T))
+            \right]
+        \,,
+    \end{align}
+    where the third equality follows from the fact that
+    \begin{align}
+        H^\star(H'(q)) & = \int_\K e^{\log(q(t))} dt
+        = \int_\K q(t) dt = 1\,.\qedhere
+    \end{align}
+\end{proof}
+
+\subsubsection{Proof of \cref{lem:appendix_f_one_reduction}}
+\label{proof:appendix_f_one_reduction}
+\begin{proof}
+    Note that from \cref{prop:Lambda_in_terms_of_phi}, we have
+    \begin{align}
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \ell) & =
+        \frac{1}{\eta^2}
+        \E\left[
+            \phi_\eta(\cE_X^\ell(T))
+            \right]
+        =
+        \frac{1}{\eta^2}
+        \E\left[
+            \phi_\eta(\ell(X)(s_X(T) - 1))
+            \right]\,,
+    \end{align}
+    where the second equality follows from the definition of $\cE_X^\ell(T) = \ell(X)s_X(T) - \ell(X)$.
+    We claim that for every $a \in [0,1]$ and every $u \in \R$,
+    \begin{align}
+        \phi_\eta(au) \leq a \phi_\eta(u) \leq \phi_\eta(u).
+        \label{eq:appendix_phi_contraction}
+    \end{align}
+    Once this is proved, we can apply it with $a=\ell(x)$ and $u=(s_x^\lambda(t)-1)$.
+    Let
+    \begin{align}
+        g(x) = e^{-x} + x - 1\,,
+    \end{align}
+    which is convex, minimized at $x=0$ and satisfies $g(0)=0$, so for every $x \in \R$ and every $a \in [0,1]$ we have
+    \begin{align}
+        g(ax) \leq a g(x) + (1-a)g(0) = a g(x).
+    \end{align}
+    Finally, just observe that $\phi_\eta(u) = g(\eta u)$ gives us the first inequality in \cref{eq:appendix_phi_contraction}, and the second inequality is trivial.
+\end{proof}
+
+\subsubsection{Proof of \cref{prop:f_eta_lambda_properties}}
+\label{proof:f_eta_lambda_properties}
+\begin{proof}
+    Starting from \cref{eq:variance_reduction_to_f_one}, we have
+    \begin{align}
+        \sup_{\ell: \K \to [0,1]}
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \ell)
+        =
+        \Lambda^{\mathsf{v}}_{\eta, q}(\cE, p \| \mathbf{1})
+         & =
+        \frac{1}{\eta^2}
+        \E\left[
+            \phi_\eta(s_X(T) - 1)
+            \right]
+        =
+        \frac{1}{\eta^2}
+        \E\left[
+            \phi_\eta\left(
+            \lambda^{-1}(R - 1)
+            \right)
+            \right]\,,
+        \label{eq:appendix_f_eta_lambda_reduction}
+    \end{align}
+    where the second equality follows from \cref{eq:s_in_terms_of_r} and the definition of $R$.
+    Now, by the definition of $\phi_\eta(u) = e^{-\eta u} + \eta u - 1$,
+    \begin{align}
+        \phi_\eta\left(
+        \lambda^{-1}(R - 1)
+        \right)
+         & =
+        e^{-\frac{\eta}{\lambda}(R - 1)}
+        + \frac{\eta}{\lambda} (R - 1) - 1
+        = f_{\alpha}(R)\,,
+    \end{align}
+    where $\alpha = \eta/\lambda$ and the last equality follows from the definition of $f_\alpha$.
+\end{proof}
+
+\subsubsection{Proof of \cref{prop:appendix_exact_kl_mi}}
+\label{proof:appendix_exact_kl_mi}
+\begin{proof}
+    The identity
+    \begin{align}
+        D_{\mathrm{KL}}(\PP_{X,T_0}\,\|\,\PP_X \otimes \PP_{T_0}) = I(T_0;X)
+    \end{align}
+    is the standard definition of mutual information.
+    So it remains only to compute $I(T_0;X)$.
+    Using the decomposition
+    \begin{align}
+        X = \lambda T_0 + (1-\lambda)X',
+    \end{align}
+    with $X'$ independent of $T_0$ and $X' \stackrel{d}{=} X$, we have
+    \begin{align}
+        I(T_0;X)
+         & = h(X) - h(X\mid T_0).
+        \label{eq:appendix_mi_entropy_start}
+    \end{align}
+    Now condition on $T_0=t$. Then
+    \begin{align}
+        X\mid(T_0=t) = \lambda t + (1-\lambda)X'.
+    \end{align}
+    The term $\lambda t$ is a deterministic translation, and differential entropy is invariant under translation, hence
+    \begin{align}
+        h(X\mid T_0=t) = h\left((1-\lambda)X'\right).
+    \end{align}
+    Next, differential entropy scales according to
+    \begin{align}
+        h(aY) = h(Y) + d\log|a|,
+    \end{align}
+    for every nonzero scalar $a$.
+    Applying this with $a=1-\lambda$ gives
+    \begin{align}
+        h\left((1-\lambda)X'\right)
+        = h(X') + d\log(1-\lambda).
+    \end{align}
+    Since $X' \stackrel{d}{=} X$, we have $h(X') = h(X)$. Therefore,
+    \begin{align}
+        h(X\mid T_0=t)
+        = h(X) + d\log(1-\lambda),
+    \end{align}
+    and this does not depend on $t$. Averaging over $T_0$ yields
+    \begin{align}
+        h(X\mid T_0)
+        = h(X) + d\log(1-\lambda).
+    \end{align}
+    Substituting this into \eqref{eq:appendix_mi_entropy_start},
+    \begin{align}
+        I(T_0;X)
+         & = h(X) - \left(h(X) + d\log(1-\lambda)\right)
+        = d\log\left(\frac{1}{1-\lambda}\right),
+    \end{align}
+    which proves \eqref{eq:appendix_exact_kl_mi}.
+\end{proof}
+
+\subsection{Proofs for \cref{sec:log_factor_reduction_to_tail}}
+\subsubsection{Proof of \cref{lem:log_factor_fa_quadratic_then_linear}}
+\label{proof:log_factor_fa_quadratic_then_linear}
+\begin{proof}
+    From Taylor's theorem, for $u\le 1/a$ we have
+    \begin{align}
+        f_a(u)
+        =
+        e^{-a(u-1)}+a(u-1)-1
+        \le
+        \frac12 e^a a^2 (u-1)^2.
+    \end{align}
+    On the event $u>1/a$, we simply use
+    \begin{align}
+        f_a(u)
+        =
+        e^{-a(u-1)}+a(u-1)-1
+        =
+        au
+        +
+        (e^{-a(u-1)}-a-1)
+        \le
+        au\,.
+    \end{align}
+    Therefore, we have
+    \begin{align}
+        D_{f_a}(P\|Q)
+         & =
+        \E[f_a(R)]
+        \\
+         & \le
+        e^a a^2 \E[(R-1)^2\mathbf{1}_{\{R\le \frac{1}{a}\}}]
+        +
+        a \E[R\mathbf{1}_{\{R>\frac{1}{a}\}}]
+        \\
+         & \le
+        e^a
+        a^2
+        \left(
+        1+\E[R_0\mathbf{1}_{\{R_0\le \frac{1}{a}\}}]
+        \right)
+        +
+        a \PP\left(R_0>\frac{1}{a}\right)\,.
+        \qedhere
+    \end{align}
+\end{proof}
+
+\subsubsection{Proof of \cref{lem:log_factor_tail_to_divergence}}
+\label{proof:log_factor_tail_to_divergence}
+\begin{proof}
+    From \cref{eq:log_factor_reduction_to_tail}, we have
+    \begin{align}
+        D_{f_a}(P\|Q)
+         & \le
+        e^a
+        a^2
+        \left(
+        1+\E[R_0\mathbf{1}_{\{R_0\le \frac{1}{a}\}}]
+        \right)
+        +
+        a \PP\left(R_0>\frac{1}{a}\right)\,.
+    \end{align}
+    First, we bound the truncated mean $\E[R_0\mathbf{1}_{\{R_0\le M\}}]$ for a general $M>0$.
+    \begin{align}
+        \E[R_0\mathbf{1}_{\{R_0\le M\}}]
+         & = \int_0^M r p_{R_0}(r) \d r
+        \\
+         & = \int_0^M \left(\int_{0}^{M} \mathbb{I}_{\{t \le r\}} \d t \right) p_{R_0}(r) \d r
+        \\
+         & = \int_0^M \left( \int_{0}^{M} \mathbb{I}_{\{t \le r\}}  p_{R_0}(r) \d r \right) \d t
+        \\
+         & = \int_0^M \left( \int_{t}^{M} p_{R_0}(r) \d r \right) \d t
+        \\
+         & = \int_0^M \PP\left( t \leq R_0 \leq M \right) \d t
+        \\
+         & \leq \int_0^M \PP\left( R_0 \geq t \right) \d t
+        \\
+         & \le
+        \int_0^M
+        \min\left\{
+        1,\frac{C}{t}
+        \right\}
+        \d t
+        \\
+         & \le
+        C\log(eM)\,,
+    \end{align}
+    where the second inequality follows from the tail bound in \eqref{eq:log_factor_R0_tail}.
+    Plugging $M=1/a$ into the last display gives
+    \begin{align}
+        D_{f_a}(P\|Q)
+         & \le
+        e^a a^2
+        \left(
+        1+C\log\left(\frac{e}{a}\right)
+        \right)
+        +
+        C a^2
+        \le
+        5C
+        a^2 e^a \log\left(\frac{e}{a}\right)\,. \qedhere
+    \end{align}
+\end{proof}
+
+
+\end{document}

@@ -1,0 +1,173 @@
+\newpage
+\section{Gaussian Computations}
+We start by demystifying the relative density function $r(x,t)$, specifically in the case that $q$ is Gaussian.
+
+\subsection{Centering and affine invariance}
+Let $q$ be the $\pi_t$-th iterate of the algorithm, and for now we don't make any assumptions on $q$.
+First, we show that the variance term, which is basically the $D_{f_\alpha}$-divergence between $\PP_{X,T_0}$ and $\PP_X \otimes \PP_{T_0}$, is affine-invariant.
+Recall that $X=\lambda\sum_{k=0}^{\infty}(1-\lambda)^kT_k$, where $T_0,T_1,\ldots$ are i.i.d. samples from $q$.
+Let $\psi(x)=Ax+b$ be an invertible affine map, and define
+\begin{align}
+    \bar T_k=\psi(T_k),
+    \qquad
+    \bar X=\lambda\sum_{k=0}^{\infty}(1-\lambda)^k\bar T_k .
+\end{align}
+Since $\lambda\sum_{k=0}^{\infty}(1-\lambda)^k=1$, we have
+$
+    \bar X
+    =
+    A X+b
+    =
+    \psi(X)
+$.
+
+\begin{proposition}[Affine invariance]
+    \label{prop:affine_invariance_f_divergence}
+    For every convex generator $f$ with $f(1)=0$,
+    \begin{align}
+        D_f
+        \left(
+        \PP_{\bar X,\bar T_0}
+        \middle\|
+        \PP_{\bar X}\otimes \PP_{\bar T_0}
+        \right)
+        =
+        D_f
+        \left(
+        \PP_{X,T_0}
+        \middle\|
+        \PP_X\otimes \PP_{T_0}
+        \right).
+    \end{align}
+\end{proposition}
+\begin{proof}
+    Define $\Psi(x,t)=(\psi(x),\psi(t))$. Then
+    \begin{align}
+        \PP_{\bar X,\bar T_0}=\Psi_{\#}\PP_{X,T_0},
+        \qquad
+        \PP_{\bar X}\otimes \PP_{\bar T_0}=\Psi_{\#}\PP_X \otimes \PP_{T_0} .
+    \end{align}
+    Since $\Psi$ is a measurable bijection, then
+    \begin{align}
+        \frac{d\Psi_{\#}\PP_{X,T_0}}{d\Psi_{\#}\PP_X \otimes \PP_{T_0}}(\Psi(x,t))
+        =
+        \frac{d\PP_{X,T_0}}{d\PP_X \otimes \PP_{T_0}}(x,t)
+         & =
+        R\,.\qedhere
+    \end{align}
+\end{proof}
+Consequently, whenever $q$ has mean $m$ and covariance $\Sigma\succ0$, we may apply
+$\psi(x)=\Sigma^{-1/2}(x-m)$ and assume without loss of generality that it is isotropic and centered, i.e. that
+\begin{align}
+    \E[T_0]=0,
+    \qquad
+    \E[T_0T_0^\top]=I_d .
+\end{align}
+In particular, in the Gaussian case it is enough to study $q=\cN(0,I_d)$.
+
+
+\subsection{The shape of Gaussian $r$}
+In the Gaussian case, we have $q=\cN(0,I_d)$, and the next proposition gives an explicit formula for $r(x,t)$.
+
+\begin{proposition}[Gaussian relative density]
+    \label{prop:gaussian_relative_density_shape}
+    Assume $q=\cN(0,I_d)$, then
+    $X\sim \cN\left(0,\sigma_\lambda^2 I_d\right)$, where $\sigma_\lambda^2=\frac{\lambda}{2-\lambda}$.
+    Moreover,
+    \begin{align}
+        r(x,t)
+        =
+        (1-\lambda)^{-d}
+        \exp\left(
+        \frac{\|x\|^2}{2\sigma_\lambda^2}
+        -
+        \frac{\|x-\lambda t\|^2}{2(1-\lambda)^2\sigma_\lambda^2}
+        \right).
+        \label{eq:gaussian_r_explicit}
+    \end{align}
+    Equivalently, for fixed $x$, the map $t\mapsto r(x,t)$ is proportional to a Gaussian density:
+    \begin{align}
+        r(x,t)
+        =
+        (1-\lambda)^{-d}
+        \exp\left(
+        \frac{2-\lambda}{2\lambda}\|x\|^2
+        \right)
+        \exp\left(
+        -
+        \frac{\lambda(2-\lambda)}{2(1-\lambda)^2}
+        \left\|t-\frac{x}{\lambda}\right\|^2
+        \right).
+        \label{eq:gaussian_r_as_bump}
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    Since the $T_k$'s are independent standard Gaussians, $X$ is Gaussian with mean zero and covariance
+    \begin{align}
+        \Var(X)
+         & =
+        \lambda^2
+        \sum_{k=0}^{\infty}
+        (1-\lambda)^{2k} I_d
+        =
+        \frac{\lambda^2}{1-(1-\lambda)^2} I_d
+        =
+        \frac{\lambda}{2-\lambda} I_d .
+    \end{align}
+    Also,
+    \begin{align}
+        X=\lambda T_0+(1-\lambda)X',
+        \qquad
+        X'\sim \cN(0,\sigma_\lambda^2 I_d),
+        \qquad
+        X'\perp T_0 .
+    \end{align}
+    Hence,
+    $X\mid (T_0=t)
+        \sim
+        \cN\left(
+        \lambda t,
+        (1-\lambda)^2\sigma_\lambda^2 I_d
+        \right)$,
+    so
+    \begin{align}
+        r(x,t)
+        =
+        \frac{p_{X\mid T_0=t}(x)}{p_X(x)}
+        =
+        (1-\lambda)^{-d}
+        \exp\left(
+        \frac{\|x\|^2}{2\sigma_\lambda^2}
+        -
+        \frac{\|x-\lambda t\|^2}{2(1-\lambda)^2\sigma_\lambda^2}
+        \right),
+    \end{align}
+    which proves \eqref{eq:gaussian_r_explicit}. Completing the square in $t$ gives
+    \eqref{eq:gaussian_r_as_bump}.
+\end{proof}
+
+It is also useful to record the posterior form:
+\begin{align}
+    r(x,t)q(t)
+    =
+    p_{T_0\mid X=x}(t).
+\end{align}
+Since $(T_0,X)$ is jointly Gaussian and
+\begin{align}
+    Cov(T_0,X)=\lambda I_d,
+    \qquad
+    Var(X)=\frac{\lambda}{2-\lambda}I_d,
+\end{align}
+we have
+\begin{align}
+    T_0\mid (X=x)
+    \sim
+    \cN\left(
+    (2-\lambda)x,
+    (1-\lambda)^2 I_d
+    \right).
+    \label{eq:gaussian_posterior_T_given_X}
+\end{align}
+Thus $r(x,\cdot)$ itself is a Gaussian-shaped bump centered at $x/\lambda$, while
+$r(x,\cdot)q(\cdot)$ is the actual posterior density centered at $(2-\lambda)x$.

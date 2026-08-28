@@ -1,0 +1,645 @@
+\subsection{A KL-type control of $\Lambda_{\mathrm{var}}$ for the optimistic kernel}
+
+In this subsection we revisit the quantity
+\begin{align*}
+    \Lambda_{\mathrm{var}, q}(E, p; f)
+     :=
+    \E\left[
+        D_{H^\star}\left(
+        H'(q) - \eta E(X, f(X)), H'(q)
+        \right)
+        \right],
+\end{align*}
+where $X \sim p$.
+Our goal is twofold:
+\begin{enumerate}
+    \item to show that this quantity is already of KL type, and
+    \item for the optimistic kernel at the end of the previous subsection, to bound it by an ordinary KL mutual information rather than by a $\chi^2$-type quantity.
+\end{enumerate}
+
+Throughout this subsection we assume the following.
+\begin{itemize}
+    \item $q$ is a probability density on $\K$ such that $q(t) > 0$ for almost every $t \in \K$.
+    \item Whenever we use differential entropy below, we assume it is finite. This is a standard regularity assumption and is satisfied, for example, under the usual full-dimensional log-concavity assumptions with mild boundary behavior.
+    \item For the optimistic-kernel bound we assume $0 \leq f(x) \leq 1$ for all $x \in \K$ and we set $b_x(t) = 0$ as in the last display of the previous subsection.
+\end{itemize}
+
+\paragraph{Notation.}
+For readability, when $f$ is fixed we write
+\begin{align}
+    g_x(t) := E(x, f(x))(t).
+    \label{eq:appendix_gx_def}
+\end{align}
+Thus the general definition becomes
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E, p; f)
+    =
+    \E\left[
+        D_{H^\star}\left(
+        H'(q) - \eta g_X, H'(q)
+        \right)
+    \right].
+    \label{eq:appendix_lambda_var_general_def}
+\end{align}
+
+\begin{proposition}[The CEXP variance term is a generalized KL divergence]
+\label{prop:appendix_generalized_kl_form}
+For each $x \in \K$, define
+\begin{align}
+    \widehat q_x(t) := q(t)e^{-\eta g_x(t)}.
+    \label{eq:appendix_qhat_def}
+\end{align}
+Then
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E, p; f)
+    =
+    \E\left[D_H\left(q, \widehat q_X\right)\right],
+    \label{eq:appendix_generalized_kl_identity}
+\end{align}
+where
+\begin{align}
+    D_H(u,v) = \int_\K \left(u(t)\log\frac{u(t)}{v(t)} - u(t) + v(t)\right)dt.
+    \label{eq:appendix_generalized_kl_formula}
+\end{align}
+Equivalently,
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E, p; f)
+    =
+    \int_\K\int_\K q(t)\left(e^{-\eta g_x(t)} + \eta g_x(t) - 1\right)p(x)dt\,dx.
+    \label{eq:appendix_lambda_var_integral_formula}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+We expand the Bregman divergence associated with $H^\star$.
+By definition,
+\begin{align*}
+     & D_{H^\star}\left(H'(q)-\eta g_x, H'(q)\right) \\
+     & = H^\star\left(H'(q)-\eta g_x\right) - H^\star\left(H'(q)\right) + \eta \langle g_x, q\rangle.
+\end{align*}
+Recall that
+\begin{align*}
+    H^\star(v) = \int_\K e^{v(t)}dt,
+    \qquad
+    H'(q) = \log q.
+\end{align*}
+Therefore,
+\begin{align}
+    H^\star\left(H'(q)\right)
+     & = \int_\K e^{\log q(t)}dt
+    = \int_\K q(t)dt
+    = 1,
+    \label{eq:appendix_hstar_at_hprime_q}
+\end{align}
+and also
+\begin{align}
+    H^\star\left(H'(q)-\eta g_x\right)
+     & = \int_\K e^{\log q(t)-\eta g_x(t)}dt
+    = \int_\K q(t)e^{-\eta g_x(t)}dt.
+    \label{eq:appendix_hstar_shifted}
+\end{align}
+Plugging \eqref{eq:appendix_hstar_at_hprime_q} and \eqref{eq:appendix_hstar_shifted} into the definition of the Bregman divergence gives
+\begin{align}
+     & D_{H^\star}\left(H'(q)-\eta g_x, H'(q)\right) \nonumber \\
+     & = \int_\K q(t)e^{-\eta g_x(t)}dt - 1 + \eta \int_\K g_x(t)q(t)dt \nonumber \\
+     & = \int_\K q(t)\left(e^{-\eta g_x(t)} + \eta g_x(t) - 1\right)dt.
+    \label{eq:appendix_expand_hstar_bregman}
+\end{align}
+Now compare this with $D_H(q,\widehat q_x)$, where $\widehat q_x$ is defined in \eqref{eq:appendix_qhat_def}:
+\begin{align*}
+    D_H(q,\widehat q_x)
+     & = \int_\K \left(q(t)\log\frac{q(t)}{\widehat q_x(t)} - q(t) + \widehat q_x(t)\right)dt.
+\end{align*}
+Since $\widehat q_x(t)=q(t)e^{-\eta g_x(t)}$, we have
+\begin{align*}
+    \log\frac{q(t)}{\widehat q_x(t)}
+    = \log\left(e^{\eta g_x(t)}\right)
+    = \eta g_x(t).
+\end{align*}
+Hence
+\begin{align*}
+    D_H(q,\widehat q_x)
+     & = \int_\K \left(q(t)\eta g_x(t) - q(t) + q(t)e^{-\eta g_x(t)}\right)dt \\
+     & = \int_\K q(t)\left(e^{-\eta g_x(t)} + \eta g_x(t) - 1\right)dt.
+\end{align*}
+This agrees exactly with \eqref{eq:appendix_expand_hstar_bregman}. Averaging over $X \sim p$ proves
+\eqref{eq:appendix_generalized_kl_identity}, and writing out the expectation yields
+\eqref{eq:appendix_lambda_var_integral_formula}.
+\end{proof}
+
+The previous proposition already shows that $\Lambda_{\mathrm{var}}$ is a KL-type quantity, but the second argument of $D_H$ is not normalized in general.
+The next proposition isolates the ordinary KL part explicitly.
+
+\begin{proposition}[Ordinary KL plus a mass correction]
+\label{prop:appendix_normalized_kl_decomposition}
+Let $\widehat q_x$ be as in \eqref{eq:appendix_qhat_def}, and define
+\begin{align}
+    Z_x := \int_\K \widehat q_x(t)dt,
+    \qquad
+    \overline q_x(t) := \frac{\widehat q_x(t)}{Z_x}.
+    \label{eq:appendix_normalization_def}
+\end{align}
+Then $\overline q_x$ is a probability density and
+\begin{align}
+    D_H(q,\widehat q_x)
+    =
+    \int_\K q(t)\log\frac{q(t)}{\overline q_x(t)}dt
+    + Z_x - 1 - \log Z_x.
+    \label{eq:appendix_kl_plus_mass_identity}
+\end{align}
+Consequently,
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E, p; f)
+    =
+    \E\left[\int_\K q(t)\log\frac{q(t)}{\overline q_X(t)}dt\right]
+    + \E\left[Z_X - 1 - \log Z_X\right].
+    \label{eq:appendix_lambda_var_kl_plus_mass}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+Since $\widehat q_x = Z_x\overline q_x$, we have
+\begin{align*}
+    \log\frac{q(t)}{\widehat q_x(t)}
+    = \log\frac{q(t)}{\overline q_x(t)} - \log Z_x.
+\end{align*}
+Substitute this into the formula for $D_H(q,\widehat q_x)$:
+\begin{align*}
+    D_H(q,\widehat q_x)
+     & = \int_\K q(t)\log\frac{q(t)}{\overline q_x(t)}dt - \int_\K q(t)\log Z_x\,dt - \int_\K q(t)dt + \int_\K \widehat q_x(t)dt.
+\end{align*}
+Now each of the last three terms is elementary:
+\begin{align*}
+    \int_\K q(t)\log Z_x\,dt
+     & = \log Z_x \int_\K q(t)dt
+    = \log Z_x, \\
+    \int_\K q(t)dt
+     & = 1, \\
+    \int_\K \widehat q_x(t)dt
+     & = Z_x.
+\end{align*}
+Therefore,
+\begin{align*}
+    D_H(q,\widehat q_x)
+     & = \int_\K q(t)\log\frac{q(t)}{\overline q_x(t)}dt + Z_x - 1 - \log Z_x,
+\end{align*}
+which is exactly \eqref{eq:appendix_kl_plus_mass_identity}. Averaging over $X$ yields
+\eqref{eq:appendix_lambda_var_kl_plus_mass}.
+\end{proof}
+
+Thus, even before using the optimistic kernel, the CEXP variance term is already of the form
+\begin{align*}
+    \text{ordinary KL divergence in the $t$-variable}
+    \;+
+    \text{a one-dimensional mass correction}.
+\end{align*}
+
+We now turn to the optimistic kernel from the end of the previous subsection and derive an explicit upper bound.
+
+\begin{proposition}[A useful identity for the optimistic kernel]
+\label{prop:appendix_optimistic_kernel_identity}
+Let
+\begin{align*}
+    X = \lambda\sum_{k=0}^\infty (1-\lambda)^k T_k,
+\end{align*}
+where $T_0,T_1,\dots$ are i.i.d. with common density $q$, and let $p_X$ be the density of $X$.
+Define
+\begin{align}
+    r(x,t) := \frac{p_{X\mid T_0=t}(x)}{p_X(x)}.
+    \label{eq:appendix_r_def}
+\end{align}
+Then the optimistic kernel satisfies
+\begin{align}
+    s_x^\lambda(t)
+    = 1 - \frac{1}{\lambda} + \frac{1}{\lambda}r(x,t).
+    \label{eq:appendix_s_in_terms_of_r}
+\end{align}
+Moreover, if $Q := P_X P_{T_0}$, then
+\begin{align}
+    \E_Q[r] = 1.
+    \label{eq:appendix_r_mean_one}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+From the definition of $X$ we have the decomposition
+\begin{align*}
+    X
+    = \lambda T_0 + (1-\lambda)X',
+    \qquad
+    X' := \lambda\sum_{k=0}^\infty (1-\lambda)^k T_{k+1}.
+\end{align*}
+Since $X'$ is independent of $T_0$ and $X' \stackrel{d}{=} X$, conditioning on $T_0=t$ gives
+\begin{align*}
+    X\mid(T_0=t) = \lambda t + (1-\lambda)X'.
+\end{align*}
+Therefore,
+\begin{align}
+    p_{X\mid T_0=t}(x)
+    = \frac{1}{(1-\lambda)^d}
+    p_X\left(\frac{x-\lambda t}{1-\lambda}\right).
+    \label{eq:appendix_conditional_density}
+\end{align}
+Comparing this with the definition of $s_x^\lambda(t)$ from the previous subsection yields
+\eqref{eq:appendix_s_in_terms_of_r} immediately.
+
+Next we show \eqref{eq:appendix_r_mean_one}. By definition of $r$,
+\begin{align*}
+    \E_Q[r]
+     & = \int_\K\int_\K p_X(x)q(t)\frac{p_{X\mid T_0=t}(x)}{p_X(x)}dt\,dx \\
+     & = \int_\K q(t)\left(\int_\K p_{X\mid T_0=t}(x)dx\right)dt \\
+     & = \int_\K q(t)dt
+    = 1.
+\end{align*}
+\end{proof}
+
+The next step is the delicate one: justifying carefully why the loss $f$ can be replaced by $1$ when $0 \leq f \leq 1$.
+The point is that $s_x^\lambda(t)$ may be negative, so this is not a simple monotonicity argument.
+
+\begin{lemma}[The worst case is $f \equiv 1$]
+\label{lem:appendix_f_one_reduction}
+Assume $0 \leq f(x) \leq 1$ for all $x \in \K$ and $b_x(t)=0$.
+Then
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+    \leq
+    \int_\K\int_\K \left(e^{-\eta s_x^\lambda(t)} + \eta s_x^\lambda(t) - 1\right)p_X(x)q(t)dt\,dx.
+    \label{eq:appendix_lambda_var_reduce_to_one}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Define
+\begin{align}
+    \phi_\eta(u) := e^{-\eta u} + \eta u - 1.
+    \label{eq:appendix_phi_def}
+\end{align}
+We claim that for every $a \in [0,1]$ and every $u \in \R$,
+\begin{align}
+    \phi_\eta(au) \leq \phi_\eta(u).
+    \label{eq:appendix_phi_contraction}
+\end{align}
+Once this is proved, we can apply it with $a=f(x)$ and $u=s_x^\lambda(t)$.
+
+So let us prove \eqref{eq:appendix_phi_contraction} carefully.
+First,
+\begin{align*}
+    \phi_\eta(0) = e^0 + 0 - 1 = 0.
+\end{align*}
+Second, for every $u \in \R$ we have $\phi_\eta(u) \geq 0$, because the elementary inequality $e^z \geq 1+z$ applied with $z=-\eta u$ gives
+\begin{align*}
+    e^{-\eta u} \geq 1-\eta u
+    \qquad \Longrightarrow \qquad
+    e^{-\eta u} + \eta u - 1 \geq 0.
+\end{align*}
+Third,
+\begin{align*}
+    \phi_\eta''(u) = \eta^2 e^{-\eta u} > 0,
+\end{align*}
+so $\phi_\eta$ is convex on all of $\R$.
+Now, since $au = a\cdot u + (1-a)\cdot 0$, convexity gives
+\begin{align*}
+    \phi_\eta(au)
+     & = \phi_\eta\left(a u + (1-a)0\right) \\
+     & \leq a\phi_\eta(u) + (1-a)\phi_\eta(0) \\
+     & = a\phi_\eta(u) \\
+     & \leq \phi_\eta(u),
+\end{align*}
+because $0 \leq a \leq 1$ and $\phi_\eta(u) \geq 0$.
+This proves \eqref{eq:appendix_phi_contraction}.
+
+Since $b_x(t)=0$, we have $g_x(t)=f(x)s_x^\lambda(t)$. Therefore, by
+\eqref{eq:appendix_lambda_var_integral_formula},
+\begin{align*}
+    \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+     & = \int_\K\int_\K q(t)\phi_\eta\left(f(x)s_x^\lambda(t)\right)p_X(x)dt\,dx \\
+     & \leq \int_\K\int_\K q(t)\phi_\eta\left(s_x^\lambda(t)\right)p_X(x)dt\,dx,
+\end{align*}
+which is exactly \eqref{eq:appendix_lambda_var_reduce_to_one}.
+\end{proof}
+
+Thus, for upper bounds, it suffices to understand the case $f \equiv 1$.
+We now rewrite the right-hand side of \eqref{eq:appendix_lambda_var_reduce_to_one} as an $f$-divergence between the joint law and the product law.
+
+\begin{proposition}[Exact $f$-divergence representation]
+\label{prop:appendix_f_divergence_representation}
+Let
+\begin{align*}
+    P := P_{X,T_0},
+    \qquad
+    Q := P_X P_{T_0}.
+\end{align*}
+Then
+\begin{align}
+    \frac{dP}{dQ}(x,t) = r(x,t),
+    \label{eq:appendix_r_is_likelihood_ratio}
+\end{align}
+and if we define
+\begin{align}
+    f_{\eta,\lambda}(u)
+    := e^{\eta(\frac{1}{\lambda}-1)}\left(e^{-\frac{\eta}{\lambda}u} - e^{-\frac{\eta}{\lambda}} + \frac{\eta}{\lambda}e^{-\frac{\eta}{\lambda}}(u-1)\right),
+    \label{eq:appendix_f_generator_def}
+\end{align}
+then
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+    \leq
+    e^{-\eta} + \eta - 1 + D_{f_{\eta,\lambda}}(P_{X,T_0}\,\|\,P_XP_{T_0}),
+    \label{eq:appendix_f_divergence_bound}
+\end{align}
+where
+\begin{align*}
+    D_{f_{\eta,\lambda}}(P\|Q)
+    := \E_Q\left[f_{\eta,\lambda}\left(\frac{dP}{dQ}\right)\right].
+\end{align*}
+\end{proposition}
+
+\begin{proof}
+By definition of conditional density,
+\begin{align*}
+    \frac{dP}{dQ}(x,t)
+    = \frac{p_{X\mid T_0=t}(x)}{p_X(x)}
+    = r(x,t),
+\end{align*}
+which proves \eqref{eq:appendix_r_is_likelihood_ratio}.
+Now start from the upper bound in \eqref{eq:appendix_lambda_var_reduce_to_one} and use
+\eqref{eq:appendix_s_in_terms_of_r}:
+\begin{align}
+     & \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f) \nonumber \\
+     & \leq \E_Q\left[\phi_\eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right)\right].
+    \label{eq:appendix_before_phi_expansion}
+\end{align}
+We now expand the argument of $\phi_\eta$ carefully. Using the definition
+\eqref{eq:appendix_phi_def},
+\begin{align}
+     & \phi_\eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right) \nonumber \\
+     & = \exp\left(-\eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right)\right)
+    + \eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right) - 1 \nonumber \\
+     & = e^{\eta(\frac{1}{\lambda}-1)} e^{-(\eta/\lambda)r}
+    + \eta - 1 + \frac{\eta}{\lambda}(r-1).
+    \label{eq:appendix_phi_expanded}
+\end{align}
+Taking expectation with respect to $Q$ and using \eqref{eq:appendix_r_mean_one} gives
+\begin{align}
+     & \E_Q\left[\phi_\eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right)\right] \nonumber \\
+     & = \eta - 1 + e^{\eta(\frac{1}{\lambda}-1)}\E_Q\left[e^{-(\eta/\lambda)r}\right].
+    \label{eq:appendix_phi_after_mean_one}
+\end{align}
+Now define $f_{\eta,\lambda}$ by \eqref{eq:appendix_f_generator_def}. Then
+\begin{align*}
+     & \E_Q\left[f_{\eta,\lambda}(r)\right] \\
+     & = e^{\eta(\frac{1}{\lambda}-1)}\left(\E_Q\left[e^{-(\eta/\lambda)r}\right] - e^{-\eta/\lambda} + \frac{\eta}{\lambda}e^{-\eta/\lambda}\E_Q[r-1]\right).
+\end{align*}
+Since $\E_Q[r-1]=0$, this becomes
+\begin{align*}
+    \E_Q\left[f_{\eta,\lambda}(r)\right]
+    = e^{\eta(\frac{1}{\lambda}-1)}\left(\E_Q\left[e^{-(\eta/\lambda)r}\right] - e^{-\eta/\lambda}\right).
+\end{align*}
+Finally,
+\begin{align*}
+    e^{\eta(\frac{1}{\lambda}-1)}e^{-\eta/\lambda}
+    = e^{-\eta},
+\end{align*}
+so \eqref{eq:appendix_phi_after_mean_one} can be rewritten as
+\begin{align*}
+    \E_Q\left[\phi_\eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right)\right]
+    = e^{-\eta} + \eta - 1 + \E_Q\left[f_{\eta,\lambda}(r)\right].
+\end{align*}
+Since $r = dP/dQ$, the last expectation is exactly
+$D_{f_{\eta,\lambda}}(P_{X,T_0}\,\|\,P_XP_{T_0})$. Combining this with
+\eqref{eq:appendix_before_phi_expansion} proves \eqref{eq:appendix_f_divergence_bound}.
+\end{proof}
+
+The previous proposition shows that the optimistic-kernel variance term is controlled not by a quadratic generator, but by a much softer $f$-divergence.
+The next step is to compare that $f$-divergence with ordinary KL.
+
+\begin{proposition}[Comparison with ordinary KL]
+\label{prop:appendix_compare_f_to_kl}
+Let
+\begin{align}
+    h(u) := u\log u - u + 1,
+    \label{eq:appendix_kl_generator}
+\end{align}
+which is the standard generator of the KL divergence.
+Then for every $u > 0$,
+\begin{align}
+    f_{\eta,\lambda}(u)
+    \leq
+    \frac{\eta}{e\lambda}e^{\eta(\frac{1}{\lambda}-1)} h(u).
+    \label{eq:appendix_pointwise_f_vs_kl}
+\end{align}
+Consequently,
+\begin{align}
+    D_{f_{\eta,\lambda}}(P_{X,T_0}\,\|\,P_XP_{T_0})
+    \leq
+    \frac{\eta}{e\lambda}e^{\eta(\frac{1}{\lambda}-1)}
+    \mathrm{KL}(P_{X,T_0}\,\|\,P_XP_{T_0}).
+    \label{eq:appendix_f_vs_kl_divergence}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+We compare the two generators by comparing their second derivatives.
+First,
+\begin{align*}
+    h''(u) = \frac{1}{u},
+    \qquad u>0.
+\end{align*}
+Next, differentiating \eqref{eq:appendix_f_generator_def} twice gives
+\begin{align*}
+    f_{\eta,\lambda}''(u)
+    = \left(\frac{\eta}{\lambda}\right)^2 e^{\eta(\frac{1}{\lambda}-1)} e^{-(\eta/\lambda)u}.
+\end{align*}
+Therefore,
+\begin{align}
+    \frac{f_{\eta,\lambda}''(u)}{h''(u)}
+    = \left(\frac{\eta}{\lambda}\right)^2 e^{\eta(\frac{1}{\lambda}-1)} u e^{-(\eta/\lambda)u}.
+    \label{eq:appendix_second_derivative_ratio}
+\end{align}
+The only nontrivial part is to bound the factor $u e^{-(\eta/\lambda)u}$ uniformly in $u$.
+Set
+\begin{align*}
+    a := \frac{\eta}{\lambda} > 0.
+\end{align*}
+Then the function $u \mapsto ue^{-au}$ has derivative
+\begin{align*}
+    \frac{d}{du}\left(ue^{-au}\right) = e^{-au}(1-au),
+\end{align*}
+which vanishes exactly at $u = 1/a$.
+Thus the maximum is attained at $u = 1/a$, and
+\begin{align*}
+    \sup_{u>0} ue^{-au}
+    = \frac{1}{ae}.
+\end{align*}
+Substituting this bound into \eqref{eq:appendix_second_derivative_ratio} gives
+\begin{align}
+    f_{\eta,\lambda}''(u)
+    \leq
+    \frac{\eta}{e\lambda}e^{\eta(\frac{1}{\lambda}-1)} h''(u)
+    \qquad \text{for all } u>0.
+    \label{eq:appendix_second_derivative_domination}
+\end{align}
+Now define
+\begin{align*}
+    m(u)
+    := \frac{\eta}{e\lambda}e^{\eta(\frac{1}{\lambda}-1)} h(u) - f_{\eta,\lambda}(u).
+\end{align*}
+By \eqref{eq:appendix_second_derivative_domination}, we have $m''(u) \geq 0$ for all $u>0$, so $m$ is convex.
+Also,
+\begin{align*}
+    h(1) = 0,
+    \qquad h'(1) = 0,
+    \qquad f_{\eta,\lambda}(1) = 0,
+    \qquad f_{\eta,\lambda}'(1) = 0.
+\end{align*}
+Therefore,
+\begin{align*}
+    m(1) = 0,
+    \qquad m'(1) = 0.
+\end{align*}
+Since a convex function with derivative $0$ at a point attains its global minimum there, we obtain
+\begin{align*}
+    m(u) \geq 0
+    \qquad \text{for all } u>0.
+\end{align*}
+This is precisely the pointwise bound \eqref{eq:appendix_pointwise_f_vs_kl}. Integrating
+that inequality with respect to $Q$ proves \eqref{eq:appendix_f_vs_kl_divergence}.
+\end{proof}
+
+We now evaluate the KL divergence appearing on the right-hand side.
+This is exactly the ordinary mutual information between $T_0$ and $X$.
+
+\begin{proposition}[Exact evaluation of the KL mutual information]
+\label{prop:appendix_exact_kl_mi}
+Assume the relevant differential entropies are finite.
+Then
+\begin{align}
+    \mathrm{KL}(P_{X,T_0}\,\|\,P_XP_{T_0})
+    = I(T_0;X)
+    = d\log\left(\frac{1}{1-\lambda}\right).
+    \label{eq:appendix_exact_kl_mi}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+The identity
+\begin{align*}
+    \mathrm{KL}(P_{X,T_0}\,\|\,P_XP_{T_0}) = I(T_0;X)
+\end{align*}
+is the standard definition of mutual information.
+So it remains only to compute $I(T_0;X)$.
+Using the decomposition
+\begin{align*}
+    X = \lambda T_0 + (1-\lambda)X',
+\end{align*}
+with $X'$ independent of $T_0$ and $X' \stackrel{d}{=} X$, we have
+\begin{align}
+    I(T_0;X)
+     & = h(X) - h(X\mid T_0). 
+    \label{eq:appendix_mi_entropy_start}
+\end{align}
+Now condition on $T_0=t$. Then
+\begin{align*}
+    X\mid(T_0=t) = \lambda t + (1-\lambda)X'.
+\end{align*}
+The term $\lambda t$ is a deterministic translation, and differential entropy is invariant under translation, hence
+\begin{align*}
+    h(X\mid T_0=t) = h\left((1-\lambda)X'\right).
+\end{align*}
+Next, differential entropy scales according to
+\begin{align*}
+    h(aY) = h(Y) + d\log|a|,
+\end{align*}
+for every nonzero scalar $a$.
+Applying this with $a=1-\lambda$ gives
+\begin{align*}
+    h\left((1-\lambda)X'\right)
+    = h(X') + d\log(1-\lambda).
+\end{align*}
+Since $X' \stackrel{d}{=} X$, we have $h(X') = h(X)$. Therefore,
+\begin{align*}
+    h(X\mid T_0=t)
+    = h(X) + d\log(1-\lambda),
+\end{align*}
+and this does not depend on $t$. Averaging over $T_0$ yields
+\begin{align*}
+    h(X\mid T_0)
+    = h(X) + d\log(1-\lambda).
+\end{align*}
+Substituting this into \eqref{eq:appendix_mi_entropy_start},
+\begin{align*}
+    I(T_0;X)
+     & = h(X) - \left(h(X) + d\log(1-\lambda)\right) \\
+     & = d\log\left(\frac{1}{1-\lambda}\right),
+\end{align*}
+which proves \eqref{eq:appendix_exact_kl_mi}.
+\end{proof}
+
+Combining the previous results gives the main estimate.
+
+\begin{corollary}[Explicit KL-based upper bound]
+\label{cor:appendix_main_lambda_var_bound}
+Under the assumptions above,
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+    \leq
+    e^{-\eta} + \eta - 1
+    + \frac{\eta}{e\lambda}e^{\eta(\frac{1}{\lambda}-1)}
+    d\log\left(\frac{1}{1-\lambda}\right).
+    \label{eq:appendix_main_lambda_var_bound}
+\end{align}
+\end{corollary}
+
+\begin{proof}
+Combine \eqref{eq:appendix_f_divergence_bound}, \eqref{eq:appendix_f_vs_kl_divergence}, and \eqref{eq:appendix_exact_kl_mi}.
+\end{proof}
+
+The corollary above gives a direct KL-type control of the optimistic-kernel variance term.
+It is worth recording separately what happens after the outer factor $1/\eta^2$ is inserted in the final regret bound.
+
+\begin{remark}[After inserting the factor $1/\eta^2$]
+\label{rem:appendix_eta_squared}
+If the final bound contains $\eta^{-2}\Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)$, then
+\begin{align}
+    \frac{1}{\eta^2}\Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+    \leq
+    \frac{e^{-\eta} + \eta - 1}{\eta^2}
+    + \frac{1}{e\lambda\eta}e^{\eta(\frac{1}{\lambda}-1)}
+    d\log\left(\frac{1}{1-\lambda}\right).
+    \label{eq:appendix_eta_squared_bound}
+\end{align}
+The first term is harmless for small $\eta$, since
+\begin{align*}
+    e^{-\eta} + \eta - 1 = \frac{\eta^2}{2} + O(\eta^3),
+\end{align*}
+so
+\begin{align*}
+    \frac{e^{-\eta} + \eta - 1}{\eta^2} = \frac{1}{2} + O(\eta).
+\end{align*}
+Thus the main tuning issue is the second term.
+If later one wants to plug in $\eta \asymp 1/\sqrt{T}$, then the present derivation leaves the dependence on
+$\lambda$ completely explicit, and one can optimize that tradeoff separately.
+I have not tried to optimize that final $\eta$--$\lambda$ tradeoff here; the point of the present subsection is only that the CEXP quantity can be reduced to an ordinary KL mutual information rather than to a $\chi^2$ mutual information.
+\end{remark}
+
+Finally, even though the previous corollary already gives a useful upper bound, it is instructive to record that the CEXP quantity stays finite even in the Laplace example where the $\chi^2$ mutual information blows up.
+
+\begin{remark}[The optimistic-kernel CEXP quantity is finite for Laplace]
+\label{rem:appendix_laplace_finite}
+The quantity in \eqref{eq:appendix_lambda_var_reduce_to_one} is finite for every density $q$ for which the optimistic kernel is defined, and in particular for the Laplace distribution.
+Indeed, from \eqref{eq:appendix_phi_after_mean_one} we have
+\begin{align*}
+    \E_Q\left[\phi_\eta\left(1 - \frac{1}{\lambda} + \frac{1}{\lambda}r\right)\right]
+    = \eta - 1 + e^{\eta(\frac{1}{\lambda}-1)}\E_Q\left[e^{-(\eta/\lambda)r}\right].
+\end{align*}
+Since $r \geq 0$, we have $e^{-(\eta/\lambda)r} \leq 1$, and therefore
+\begin{align}
+    \Lambda_{\mathrm{var}, q}(E_\lambda, p_X; f)
+    \leq
+    \eta - 1 + e^{\eta(\frac{1}{\lambda}-1)} < \infty.
+    \label{eq:appendix_uniform_finiteness}
+\end{align}
+So the Laplace pathology that appears for the $\chi^2$ mutual information does \emph{not} appear here.
+The structural reason is that the $\chi^2$ generator grows quadratically, whereas the generator
+$f_{\eta,\lambda}$ in \eqref{eq:appendix_f_generator_def} has only linear growth as $u \to \infty$.
+\end{remark}

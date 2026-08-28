@@ -1,0 +1,2260 @@
+% -----------------------------------------------------------------------------
+% Tangent-centred, unprojected Hermite--ONS.
+%
+% This patch is written for insertion into the manuscript
+% "Direct Hermite Projections for Stochastic Bandit Convex Optimization".
+% It uses the manuscript's notation, filtration, extension e, Hermite
+% coefficients g_t,H_t, regret-switching lemma, bracket proposition, trace
+% lemma, Freedman inequality, self-normalised martingale inequality, and
+% chi-square tail lemma.
+%
+% The theorem below is unconditional and changes no algorithmic operation
+% beyond (i) deleting the projection in the mean update and (ii) replacing the
+% raw Hermite estimators by the tangent-centred estimators.  The theorem uses a
+% smaller value of eta.  This yields coarse, automatically proved confinement
+% and regret O(d^3 M sqrt(n) ell^4).  The final subsection records the exact
+% obstruction to recovering the original eta by the most direct stopped
+% distance-to-K_epsilon argument.
+% -----------------------------------------------------------------------------
+
+\subsection{Tangent-centred unprojected Hermite--ONS}
+\label{sec:ctr-unprojected}
+
+Write
+\begin{align}
+    p(x)=\frac{\pi(x)}{1-\eps},
+    \qquad
+    \K_\eps=\{x\in\R^d:p(x)\leq1\},
+    \qquad
+    v(x)=(p(x)-1)_+.
+    \label{eq:ctr-p-v}
+\end{align}
+Before sampling in round $t$, the learner chooses an $\F_{t-1}$-measurable
+vector
+\begin{align}
+    s_t\in\partial v(\mu_t),
+    \qquad
+    s_t=0\quad\text{whenever }v(\mu_t)=0.
+    \label{eq:ctr-selector}
+\end{align}
+The predictable measurability in \eqref{eq:ctr-selector} is an explicit oracle
+assumption.  In particular, $s_t$ is fixed before $X_t$ and $\xi_t$ are
+observed.
+
+Define
+\begin{align}
+    \mathcal B_t(x)
+     & =v(x)-v(\mu_t)-\ip{s_t}{x-\mu_t},
+    \label{eq:ctr-B-definition}
+    \\
+    \widetilde Y_t
+     & =Y_t-\frac2\eps
+    \left(
+    v(\mu_t)+\ip{s_t}{X_t-\mu_t}
+    \right),
+    \label{eq:ctr-Y-definition}
+\end{align}
+and
+\begin{align}
+    \widehat g_t^{\mathrm{ctr}}
+     & =\widetilde Y_t\Sigma_t^{-1/2}Z_t+\frac2\eps s_t,
+    \label{eq:ctr-g-definition}
+    \\
+    \widehat H_t^{\mathrm{ctr}}
+     & =\widetilde Y_t\Sigma_t^{-1/2}
+    (Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}.
+    \label{eq:ctr-H-definition}
+\end{align}
+The sampled quadratic is
+\begin{align}
+    \widehat q_t^{\mathrm{ctr}}(x)
+    =\ip{\widehat g_t^{\mathrm{ctr}}}{x-\mu_t}
+    +\frac\lambda2
+    (x-\mu_t)^\top\widehat H_t^{\mathrm{ctr}}(x-\mu_t).
+    \label{eq:ctr-qhat-definition}
+\end{align}
+
+\begin{algorithm}[!t]
+    \caption{Tangent-centred unprojected Hermite--ONS}
+    \label{alg:ctr-unprojected}
+    \small
+    \begin{tabbing}
+        \qquad\=\qquad\=\kill
+        \textbf{input:} $\eta,\lambda,\sigma^2,\eps$\\
+        $\mu_1=0$ and $\Sigma_1=\sigma^2I_d$\\[1mm]
+        \textbf{for} $t=1,\ldots,n$ \textbf{do}\\
+        \>Choose predictable $s_t$ as in \eqref{eq:ctr-selector}\\
+        \>Sample $Z_t\sim\N(0,I_d)$ conditionally on $\F_{t-1}$ and set
+        $X_t=\mu_t+\Sigma_t^{1/2}Z_t$\\
+        \>Play $A_t=X_t/\pi_\eps(X_t)$ and observe $f(A_t)+\xi_t$\\
+        \>Form $Y_t$, $\mathcal B_t(X_t)$, $\widetilde Y_t$,
+        $\widehat g_t^{\mathrm{ctr}}$, and $\widehat H_t^{\mathrm{ctr}}$\\
+        \>\textbf{if}
+        $\Sigma_t^{-1}+\lambda\eta\widehat H_t^{\mathrm{ctr}}\succ0$:\\
+        \>\>Set
+        $\Sigma_{t+1}^{-1}
+            =\Sigma_t^{-1}+\lambda\eta\widehat H_t^{\mathrm{ctr}}$\\
+        \>\>and
+        $\mu_{t+1}=\mu_t-\eta\Sigma_{t+1}
+            \widehat g_t^{\mathrm{ctr}}$\\
+        \>\textbf{else}:\\
+        \>\>Set $\Sigma_{t+1}=\Sigma_t$ and $\mu_{t+1}=\mu_t$
+        \qquad\textit{$\triangleright$ The algorithm has failed.}\\
+        \textbf{end for}
+    \end{tabbing}
+\end{algorithm}
+
+\subsubsection{Geometry, measurability, and unbiasedness}
+
+\begin{lemma}[Tangent geometry of the gauge violation]
+    \label{lem:ctr-tangent-geometry}
+    Fix $\mu\in\R^d$, let $m=v(\mu)$, and choose
+    $s\in\partial v(\mu)$, taking $s=0$ when $m=0$.  Put
+    \begin{align}
+        \mathcal B(x)=v(x)-m-\ip{s}{x-\mu}.
+    \end{align}
+    Then:
+    \begin{enumerate}
+        \item $\mathcal B\geq0$ and $D^2\mathcal B=D^2v$ in the sense of
+              distributions.
+        \item For every $w\in\R^d$,
+              \begin{align}
+                  \ip{s}{w}              & \leq p(w),
+                  \label{eq:ctr-recession-subgradient}
+                  \\
+                  v(\mu+w)               & \leq m+p(w),
+                  \label{eq:ctr-v-increment}
+                  \\
+                  0\leq\mathcal B(\mu+w) & \leq p(w)+p(-w).
+                  \label{eq:ctr-B-pointwise}
+              \end{align}
+        \item If $m>0$, then
+              \begin{align}
+                  p(\mu)=1+m,
+                  \qquad
+                  \ip{s}{\mu}=1+m,
+                  \label{eq:ctr-Euler}
+              \end{align}
+              and for every $x\in\K_\eps$,
+              \begin{align}
+                  \ip{s}{\mu-x}\geq m.
+                  \label{eq:ctr-inward-support}
+              \end{align}
+              Equality in \eqref{eq:ctr-inward-support} holds for
+              $x=\mu/(1+m)$.
+        \item
+              \begin{align}
+                  \norm{s}\leq\frac1{1-\eps}\leq2.
+                  \label{eq:ctr-s-Euclidean}
+              \end{align}
+    \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    The subgradient inequality gives
+    \begin{align}
+        v(x)\geq v(\mu)+\ip{s}{x-\mu},
+    \end{align}
+    proving $\mathcal B\geq0$.  Subtracting an affine function does not change
+    a distributional Hessian, so $D^2\mathcal B=D^2v$.
+
+    Fix $w\in\R^d$.  Subadditivity of the gauge $p$ gives, for $r>0$,
+    \begin{align}
+        rp(w)-p(-\mu)
+        \leq p(\mu+rw)
+        \leq p(\mu)+rp(w).
+    \end{align}
+    Hence
+    \begin{align}
+        \lim_{r\to\infty}\frac{v(\mu+rw)}r=p(w).
+    \end{align}
+    The subgradient inequality also gives
+    \begin{align}
+        \frac{v(\mu+rw)-v(\mu)}r\geq\ip{s}{w}.
+    \end{align}
+    Letting $r\to\infty$ proves
+    \eqref{eq:ctr-recession-subgradient}.  Moreover,
+    \begin{align}
+        v(\mu+w)
+         & =(p(\mu+w)-1)_+
+        \leq(p(\mu)+p(w)-1)_+
+        \leq m+p(w),
+    \end{align}
+    which is \eqref{eq:ctr-v-increment}.  Therefore,
+    \begin{align}
+        \mathcal B(\mu+w)
+         & =v(\mu+w)-m-\ip{s}{w}
+        \leq p(w)-\ip{s}{w}
+        \leq p(w)+p(-w),
+    \end{align}
+    proving \eqref{eq:ctr-B-pointwise}.
+
+    Suppose $m>0$.  Then $p(\mu)>1$, so $v=p-1$ in a neighbourhood of
+    $\mu$ and $s\in\partial p(\mu)$.  Applying the subgradient inequality for
+    $p$ with $x=0$ and $x=2\mu$ gives
+    \begin{align}
+        0=p(0)          & \geq p(\mu)-\ip{s}{\mu},
+        \\
+        2p(\mu)=p(2\mu) & \geq p(\mu)+\ip{s}{\mu}.
+    \end{align}
+    Thus $\ip{s}{\mu}=p(\mu)=1+m$, proving \eqref{eq:ctr-Euler}.  If
+    $x\in\K_\eps$, then $v(x)=0$, and
+    \begin{align}
+        0=v(x)\geq m+\ip{s}{x-\mu},
+    \end{align}
+    which is \eqref{eq:ctr-inward-support}.  For
+    $x=\mu/(1+m)$, \eqref{eq:ctr-Euler} gives $\ip{s}{x}=1$, so equality
+    holds.  Finally, a subgradient of a finite $L$-Lipschitz convex function
+    has Euclidean norm at most $L$.  Since $v$ is
+    $(1-\eps)^{-1}$-Lipschitz, \eqref{eq:ctr-s-Euclidean} follows.
+\end{proof}
+
+\begin{lemma}[Conditional measurability, integrability, and unbiasedness]
+    \label{lem:ctr-unbiasedness}
+    On every active round, $\mathcal B_t(X_t)$, $\widetilde Y_t$,
+    $\widehat g_t^{\mathrm{ctr}}$, and $\widehat H_t^{\mathrm{ctr}}$ are
+    $\F_t$-measurable.  Every entry has a finite conditional moment of every
+    finite order.  Moreover,
+    \begin{align}
+        \E_t[\widehat g_t^{\mathrm{ctr}}] & =g_t,
+                                          &
+        \E_t[\widehat H_t^{\mathrm{ctr}}] & =H_t,
+        \label{eq:ctr-unbiasedness}
+    \end{align}
+    and, for every $\F_{t-1}$-measurable $x\in\R^d$,
+    \begin{align}
+        \E_t[\widehat q_t^{\mathrm{ctr}}(x)]=q_t(x).
+        \label{eq:ctr-q-unbiasedness}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    The maps $\pi$, $p$, and $v$ are continuous.  The quantities
+    $\mu_t$, $\Sigma_t$, and $s_t$ are $\F_{t-1}$-measurable, while
+    $X_t$, $Z_t$, and the observed feedback are $\F_t$-measurable.  Thus all
+    quantities in \eqref{eq:ctr-B-definition}--\eqref{eq:ctr-H-definition}
+    are $\F_t$-measurable.
+
+    Conditionally on $\F_{t-1}$, write $W_t=X_t-\mu_t$.  By
+    \eqref{eq:ctr-v-increment} and \eqref{eq:ctr-B-pointwise},
+    \begin{align}
+        \pi_\eps(X_t)     & \leq1+v(\mu_t)+p(W_t),
+        \\
+        \mathcal B_t(X_t) & \leq p(W_t)+p(-W_t).
+        \label{eq:ctr-integrability-envelope}
+    \end{align}
+    The gauge $p$ is Lipschitz, so the right-hand sides have finite Gaussian
+    moments of every finite order.  The noise assumption gives, for every
+    $r>0$,
+    \begin{align}
+        \E_t[|\xi_t|^r\mid X_t]<\infty,
+    \end{align}
+    because $|z|^r\leq C_r e^{z^2}$ for a finite deterministic $C_r$.
+    Equation \eqref{eq:ctr-Y-definition}, Holder's inequality, and Gaussian
+    moments therefore imply the asserted conditional integrability of the
+    two estimators.
+
+    Define the predictable affine function
+    \begin{align}
+        a_t(x)=\frac2\eps
+        \left(v(\mu_t)+\ip{s_t}{x-\mu_t}\right).
+    \end{align}
+    Conditional centring of the noise gives
+    \begin{align}
+        \E_t[\widetilde Y_t\mid X_t]=e(X_t)-a_t(X_t).
+        \label{eq:ctr-Y-conditional-mean}
+    \end{align}
+    Since $a_t$ is affine,
+    \begin{align}
+        D(e-a_t)   & =De-\frac2\eps s_t,
+                   &
+        D^2(e-a_t) & =D^2e.
+    \end{align}
+    Distributional Gaussian integration by parts, justified by the preceding
+    integrability bounds, yields
+    \begin{align}
+        \E_t\left[
+            \widetilde Y_t\Sigma_t^{-1/2}Z_t
+            \right]
+         & =\left\langle D(e-a_t),\gamma_{\mu_t,\Sigma_t}\right\rangle
+        =g_t-\frac2\eps s_t,
+        \\
+        \E_t\left[
+            \widetilde Y_t\Sigma_t^{-1/2}
+            (Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}
+            \right]
+         & =\left\langle D^2(e-a_t),\gamma_{\mu_t,\Sigma_t}\right\rangle
+        =H_t.
+    \end{align}
+    Adding the deterministic correction in
+    \eqref{eq:ctr-g-definition} proves \eqref{eq:ctr-unbiasedness};
+    \eqref{eq:ctr-q-unbiasedness} follows by linearity.
+\end{proof}
+
+\begin{lemma}[Tangent-remainder moments and normal width]
+    \label{lem:ctr-B-moments}
+    Fix a round and condition on $\F_{t-1}$.  Suppose
+    \begin{align}
+        \Sigma_t\preceq2\sigma^2I_d,
+        \qquad
+        \sigma=\frac1{M\sqrt{2d}},
+        \qquad
+        0<\eps\leq\frac12.
+        \label{eq:ctr-B-cov-assumption}
+    \end{align}
+    Put
+    \begin{align}
+        V_t=\left\langle D^2v,\gamma_{\mu_t,\Sigma_t}\right\rangle,
+        \qquad
+        c_t=\tr(\Sigma_tV_t),
+        \qquad
+        m_t=v(\mu_t).
+    \end{align}
+    Then
+    \begin{align}
+        0\leq c_t\leq2,
+        \qquad
+        \E_t[\mathcal B_t(X_t)]\leq c_t
+        \leq\eps\tr(H_t\Sigma_t).
+        \label{eq:ctr-B-first}
+    \end{align}
+    For every $u\geq0$,
+    \begin{align}
+        \Pp_t\left(\mathcal B_t(X_t)>4+2u\right)
+        \leq\exp\left(-\frac{u^2}{8}\right).
+        \label{eq:ctr-B-tail}
+    \end{align}
+    Hence, for every $\ell\geq1$,
+    \begin{align}
+        \E_t[\mathcal B_t(X_t)^2]
+         & \leq32\sqrt\ell\,c_t+e^{-8\ell}
+        \label{eq:ctr-B-second-a}
+        \\
+         & \leq32\eps\sqrt\ell\,\tr(H_t\Sigma_t)+e^{-8\ell}.
+        \label{eq:ctr-B-second-b}
+    \end{align}
+    Finally,
+    \begin{align}
+        s_t^\top\Sigma_ts_t
+        \leq4m_t^2+2^{11}c_t
+        \leq4m_t^2+2^{11}\eps\tr(H_t\Sigma_t).
+        \label{eq:ctr-normal-width}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Write $W_t=X_t-\mu_t$.  At every differentiability point of $v$, the
+    supporting-hyperplane inequality at $X_t$ gives
+    \begin{align}
+        v(X_t)-v(\mu_t)
+        \leq\ip{\nabla v(X_t)}{W_t}.
+    \end{align}
+    Since $\E_t[W_t]=0$, boundedness of the almost-everywhere gradient and
+    distributional integration by parts yield
+    \begin{align}
+        \E_t[\mathcal B_t(X_t)]
+         & =\E_t[v(X_t)]-v(\mu_t)
+        \\
+         & \leq\E_t\left[\ip{\nabla v(X_t)}{W_t}\right]
+        =\tr(\Sigma_tV_t)=c_t.
+        \label{eq:ctr-B-IBP}
+    \end{align}
+    The extension decomposition
+    \begin{align}
+        e=\bar e+\frac{1+\eps}{\eps}v
+    \end{align}
+    and convexity of $\bar e$ imply
+    \begin{align}
+        D^2v\preceq\frac\eps{1+\eps}D^2e\preceq\eps D^2e.
+    \end{align}
+    Pairing with the Gaussian density and taking the trace after multiplication
+    by $\Sigma_t$ proves the last inequality in \eqref{eq:ctr-B-first}.
+
+    Let $r(x)$ denote an almost-everywhere gradient of $v$.  Applying
+    \eqref{eq:ctr-recession-subgradient} at $X_t$ gives
+    \begin{align}
+        \ip{r(X_t)}{W_t}\leq p(W_t).
+    \end{align}
+    Under \eqref{eq:ctr-B-cov-assumption}, take an independent
+    $Q_t\sim\N(0,2\sigma^2I_d-\Sigma_t)$.  Jensen's inequality and the
+    definition of $M$ give
+    \begin{align}
+        \E_t[\pi(W_t)]
+         & =\E_t\left[\pi\left(\E_t[W_t+Q_t\mid W_t]\right)\right]
+        \\
+         & \leq\E_t[\pi(W_t+Q_t)]
+        =\sqrt2\sigma\,\E[\norm Z]\E[\pi(U)]
+        \leq\sqrt{2d}\,\sigma M=1.
+        \label{eq:ctr-pi-mean}
+    \end{align}
+    Therefore
+    \begin{align}
+        c_t
+        =\E_t\left[\ip{r(X_t)}{W_t}\right]
+        \leq\E_t[p(W_t)]\leq2.
+    \end{align}
+
+    Set $S_t=\pi(W_t)+\pi(-W_t)$.  Symmetry gives
+    $\E_t[S_t]\leq2$, and $S_t$ is $2$-Lipschitz.  Since
+    $\norm{\Sigma_t}_{\op}\leq2\sigma^2\leq1$, Gaussian concentration gives
+    \begin{align}
+        \Pp_t(S_t>2+u)\leq e^{-u^2/8}.
+        \label{eq:ctr-S-tail}
+    \end{align}
+    Equation \eqref{eq:ctr-B-pointwise} and
+    $p\leq2\pi$ imply $\mathcal B_t(X_t)\leq2S_t$, so
+    \eqref{eq:ctr-B-tail} follows.
+
+    Put $A=32\sqrt\ell$.  Then
+    \begin{align}
+        \E_t[\mathcal B_t(X_t)^2]
+         & \leq
+        A\E_t[\mathcal B_t(X_t)]
+        +\E_t\left[
+            \mathcal B_t(X_t)^2\1\{\mathcal B_t(X_t)>A\}
+            \right].
+        \label{eq:ctr-B-split}
+    \end{align}
+    For $z\geq A$, \eqref{eq:ctr-B-tail} gives
+    \begin{align}
+        \Pp_t(\mathcal B_t(X_t)>z)
+        \leq\exp\left(-\frac{(z-4)^2}{32}\right).
+    \end{align}
+    The layer-cake identity and
+    $\int_a^\infty e^{-u^2/32}\,du\leq16a^{-1}e^{-a^2/32}$ give
+    \begin{align}
+         & \E_t\left[
+            \mathcal B_t(X_t)^2\1\{\mathcal B_t(X_t)>A\}
+            \right]
+        \\
+         & \quad=
+        A^2\Pp_t(\mathcal B_t(X_t)>A)
+        +\int_A^\infty2z\Pp_t(\mathcal B_t(X_t)>z)\,dz
+        \\
+         & \quad\leq
+        \left(A^2+32+\frac{128}{A-4}\right)
+        e^{-(A-4)^2/32}
+        \leq e^{-8\ell}.
+    \end{align}
+    Combining this with \eqref{eq:ctr-B-split} and
+    \eqref{eq:ctr-B-first} proves
+    \eqref{eq:ctr-B-second-a}--\eqref{eq:ctr-B-second-b}.
+
+    It remains to prove \eqref{eq:ctr-normal-width}.  Let
+    \begin{align}
+        T_t=\ip{s_t}{W_t},
+        \qquad
+        a_t=s_t^\top\Sigma_ts_t.
+    \end{align}
+    Conditionally, $T_t\sim\N(0,a_t)$.  Since $v(X_t)\geq0$,
+    \begin{align}
+        \mathcal B_t(X_t)
+        =v(X_t)-m_t-T_t
+        \geq(-m_t-T_t)_+.
+        \label{eq:ctr-shortfall}
+    \end{align}
+    If $m_t\geq\sqrt{a_t}/2$, then $a_t\leq4m_t^2$.  Otherwise, on
+    $\{T_t\leq-\sqrt{a_t}\}$,
+    \begin{align}
+        (-m_t-T_t)_+\geq\frac12\sqrt{a_t}.
+    \end{align}
+    Moreover,
+    \begin{align}
+        \Pp_t(T_t\leq-\sqrt{a_t})
+        =\Pp(Z\leq-1)
+        \geq\int_1^{3/2}\frac{e^{-u^2/2}}{\sqrt{2\pi}}\,du
+        >\frac1{16}.
+    \end{align}
+    Thus, in the second case,
+    \begin{align}
+        c_t\geq\E_t[\mathcal B_t(X_t)]\geq\frac1{32}\sqrt{a_t},
+    \end{align}
+    so $a_t\leq2^{10}c_t^2\leq2^{11}c_t$, because $c_t\leq2$.
+    Combining the two cases proves \eqref{eq:ctr-normal-width}.
+\end{proof}
+
+\subsubsection{Stopped invariants and coarse confinement}
+
+Retain the predictable covariance
+\begin{align}
+    \overline\Sigma_1^{-1}=\Sigma_1^{-1}=\sigma^{-2}I_d,
+    \qquad
+    \overline\Sigma_{t+1}^{-1}
+    =\overline\Sigma_t^{-1}+\lambda\eta H_t.
+    \label{eq:ctr-predictable-covariance}
+\end{align}
+Define $\tau_{\mathrm{cov}}$ by replacing $\widehat H_t$ with
+$\widehat H_t^{\mathrm{ctr}}$ in the covariance stopping time of the
+manuscript.  Thus, for $t\leq\tau_{\mathrm{cov}}$,
+\begin{align}
+    \frac12\overline\Sigma_t^{-1}
+    \preceq\Sigma_t^{-1}
+    \preceq\frac32\overline\Sigma_t^{-1}.
+    \label{eq:ctr-cov-comparison}
+\end{align}
+Fix
+\begin{align}
+    B=\frac{b}{\lambda^2\ell}
+    \label{eq:ctr-focus-radius}
+\end{align}
+and define
+\begin{align}
+    \tau_{\mathrm{focus}}
+    =\min\left(
+    \left\{
+    t\in[n]:
+    \frac12
+    \normm{\mu_{t+1}-x_\star}{\Sigma_{t+1}^{-1}}^2>B
+    \right\}\cup\{n\}
+    \right),
+    \qquad
+    \tau=\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{focus}}.
+    \label{eq:ctr-safe-stop}
+\end{align}
+Finally, set
+\begin{align}
+    \rho=4\sigma\sqrt B
+    =\frac{2\sqrt{2b}}{c_\lambda}\,d\ell^{3/2}
+    \label{eq:ctr-rho}
+\end{align}
+when $\lambda=c_\lambda/(d^{3/2}M\ell^2)$.
+
+\begin{lemma}[Stopped distance and coarse confinement]
+    \label{lem:ctr-coarse-confinement}
+    Suppose $t\leq\tau$.  Define the distance-to-$\K_\eps$ potential
+    \begin{align}
+        \mathsf D_t
+        =\frac12\inf_{x\in\K_\eps}
+        \normm{\mu_t-x}{\Sigma_t^{-1}}^2.
+        \label{eq:ctr-distance-potential}
+    \end{align}
+    Then
+    \begin{align}
+        \mathsf D_t
+        \leq\frac12
+        \normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
+        \leq B,
+        \label{eq:ctr-distance-below-focus}
+    \end{align}
+    and
+    \begin{align}
+        v(\mu_t)\leq4\sigma\sqrt{\mathsf D_t}
+        \leq\rho.
+        \label{eq:ctr-coarse-v-bound}
+    \end{align}
+    Moreover,
+    \begin{align}
+        \Sigma_t\preceq2\overline\Sigma_t
+        \preceq2\sigma^2I_d.
+        \label{eq:ctr-stopped-cov-upper}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Since $x_\star\in\K_\eps$, the first inequality in
+    \eqref{eq:ctr-distance-below-focus} follows from the definition of
+    $\mathsf D_t$, and the second follows from the focus stop.
+
+    Let $P_t$ be the unique minimizer in
+    \eqref{eq:ctr-distance-potential}.  Since $p(P_t)\leq1$, subadditivity of
+    $p$ gives
+    \begin{align}
+        v(\mu_t)
+         & =(p(\mu_t)-1)_+
+        \leq p(\mu_t-P_t)
+        \leq2\pi(\mu_t-P_t)
+        \leq2\norm{\mu_t-P_t}.
+        \label{eq:ctr-v-to-Euclidean-distance}
+    \end{align}
+    The lower covariance comparison and monotonicity of
+    $\overline\Sigma_t^{-1}$ give
+    \begin{align}
+        \Sigma_t^{-1}
+        \succeq\frac12\overline\Sigma_t^{-1}
+        \succeq\frac1{2\sigma^2}I_d.
+    \end{align}
+    Hence
+    \begin{align}
+        \norm{\mu_t-P_t}^2
+        \leq2\sigma^2
+        \normm{\mu_t-P_t}{\Sigma_t^{-1}}^2
+        =4\sigma^2\mathsf D_t.
+    \end{align}
+    Combining this with \eqref{eq:ctr-v-to-Euclidean-distance} proves
+    \eqref{eq:ctr-coarse-v-bound}.  Inverting the lower covariance comparison
+    and using $\overline\Sigma_t\preceq\overline\Sigma_1=\sigma^2I_d$ proves
+    \eqref{eq:ctr-stopped-cov-upper}.
+\end{proof}
+
+
+\begin{lemma}[Predictable spectrum and trace budget]
+    \label{lem:ctr-trace}
+    Let $L=\Lip(e)$ and suppose
+    \begin{align}
+        \lambda\eta L\leq1,
+        \qquad
+        \sqrt{\frac32}\lambda\eta L\sigma\leq1.
+        \label{eq:ctr-trace-hypotheses}
+    \end{align}
+    Then, for every $t\leq\tau_{\mathrm{cov}}$,
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}^{1/2}
+        \leq\sigma^{-1}+t\lambda\eta L
+        \leq\sigma^{-1}+t,
+        \label{eq:ctr-trace-spectrum}
+    \end{align}
+    and
+    \begin{align}
+        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\overline\Sigma_t)
+        \leq\frac{4d\log(1+n)}\lambda.
+        \label{eq:ctr-trace-logdet}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Distributional integration by parts gives, for every Euclidean unit vector
+    $u$,
+    \begin{align}
+        u^\top H_tu
+         & =\E_t\left[
+            \ip{\nabla e(X_t)}{u}
+            \ip{\Sigma_t^{-1}(X_t-\mu_t)}{u}
+            \right]
+        \\
+         & \leq L\sqrt{u^\top\Sigma_t^{-1}u}.
+    \end{align}
+    Hence
+    \begin{align}
+        \norm{H_t}_{\op}
+        \leq L\norm{\Sigma_t^{-1}}_{\op}^{1/2}
+        \leq\sqrt{\frac32}L
+        \norm{\overline\Sigma_t^{-1}}_{\op}^{1/2},
+        \label{eq:ctr-H-op-bound}
+    \end{align}
+    where covariance comparison is used in the last step.  Therefore
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}
+         & \leq
+        \norm{\overline\Sigma_t^{-1}}_{\op}
+        +\sqrt{\frac32}\lambda\eta L
+        \norm{\overline\Sigma_t^{-1}}_{\op}^{1/2}
+        \\
+         & \leq
+        \left(
+        \norm{\overline\Sigma_t^{-1}}_{\op}^{1/2}
+        +\lambda\eta L
+        \right)^2.
+    \end{align}
+    Taking square roots and iterating proves
+    \eqref{eq:ctr-trace-spectrum}.
+
+    We next bound the normalised predictable Hessian.  For a Euclidean unit
+    vector $u$, the first inequality in the proof, applied to
+    $\overline\Sigma_t^{1/2}u$, gives
+    \begin{align}
+        u^\top\overline\Sigma_t^{1/2}H_t
+        \overline\Sigma_t^{1/2}u
+         & \leq
+        L\norm{\overline\Sigma_t^{1/2}u}
+        \sqrt{
+            u^\top\overline\Sigma_t^{1/2}
+            \Sigma_t^{-1}
+            \overline\Sigma_t^{1/2}u
+        }
+        \\
+         & \leq\sqrt{\frac32}L
+        \norm{\overline\Sigma_t^{1/2}u}
+        \leq\sqrt{\frac32}L\sigma.
+    \end{align}
+    Thus every eigenvalue of
+    \begin{align}
+        C_t=\lambda\eta
+        \overline\Sigma_t^{1/2}H_t\overline\Sigma_t^{1/2}
+    \end{align}
+    belongs to $[0,1]$.  The scalar inequality
+    $x\leq2\log(1+x)$ for $x\in[0,1]$ and cyclicity of the trace give
+    \begin{align}
+        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\overline\Sigma_t)
+         & =\frac1\lambda
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}\tr(C_t)
+        \\
+         & \leq\frac2\lambda
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \log\det(I_d+C_t)
+        \\
+         & =\frac2\lambda
+        \log\frac{
+            \det(\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1})
+        }{
+            \det(\overline\Sigma_1^{-1})
+        }
+        \\
+         & \leq\frac{2d}\lambda
+        \log\left(
+        \sigma^2
+        \norm{\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1}}_{\op}
+        \right)
+        \\
+         & =\frac{4d}\lambda
+        \log\left(
+        \sigma
+        \norm{\overline\Sigma_{\tau_{\mathrm{cov}}+1}^{-1}}_{\op}^{1/2}
+        \right)
+        \\
+         & \leq\frac{4d\log(1+n)}\lambda,
+    \end{align}
+    where the last inequality uses
+    \eqref{eq:ctr-trace-spectrum}, $\sigma\leq1$, and
+    $\tau_{\mathrm{cov}}\leq n$.
+\end{proof}
+
+\subsubsection{Centred feedback and weighted Gaussian scores}
+
+Put
+\begin{align}
+    R_\rho=1+\rho,
+    \qquad
+    B_Y=2^8\ell\left(R_\rho+\eps^{-1}\right).
+    \label{eq:ctr-feedback-scales}
+\end{align}
+
+\begin{lemma}[Predictable and realised centred feedback]
+    \label{lem:ctr-feedback}
+    Suppose $\ell\geq64$ and work through the stopping time $\tau$ in
+    \eqref{eq:ctr-safe-stop}.  Suppose also that
+    \begin{align}
+        \sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
+        \leq\frac{8d\log(1+n)}{\lambda\eta},
+        \label{eq:ctr-feedback-trace-input}
+    \end{align}
+    and that
+    \begin{align}
+        \frac{2^{12}d\sqrt\ell\log(1+n)}
+        {\lambda\eta\eps}
+             & \leq nR_\rho^2,
+        \label{eq:ctr-feedback-param-a}
+        \\
+        \frac{ne^{-8\ell}}{\eps^2}
+             & \leq nR_\rho^2,
+        \label{eq:ctr-feedback-param-b}
+        \\
+        B_Y\sqrt\ell
+             & \leq2^{-8}\sqrt n\,R_\rho,
+        \label{eq:ctr-feedback-param-c}
+        \\
+        \ell & \geq\log\frac{512n}{\delta}.
+        \label{eq:ctr-feedback-param-d}
+    \end{align}
+    Then
+    \begin{align}
+        \sum_{t=1}^{\tau}\E_t[\widetilde Y_t^2]
+        \leq2^{12}nR_\rho^2.
+        \label{eq:ctr-predictable-Y2}
+    \end{align}
+    Moreover, with probability at least $1-\delta/16$,
+    \begin{align}
+        \max_{t\leq\tau}|\widetilde Y_t|
+         & \leq B_Y,
+        \label{eq:ctr-Y-maximum}
+        \\
+        \sum_{t=1}^{\tau}\widetilde Y_t^2
+         & \leq2^{13}nR_\rho^2.
+        \label{eq:ctr-realised-Y2}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Write $r_t=\pi_\eps(X_t)$ and $W_t=X_t-\mu_t$.  From
+    \eqref{eq:ctr-Y-definition},
+    \begin{align}
+        \widetilde Y_t
+        =r_t\bigl(f(A_t)+\xi_t\bigr)
+        +\frac2\eps\mathcal B_t(X_t).
+        \label{eq:ctr-Y-decomposition}
+    \end{align}
+    Conditioning first on $X_t$, using
+    $\E_t[\xi_t\mid X_t]=0$ and
+    $\E_t[\xi_t^2\mid X_t]\leq1$, gives
+    \begin{align}
+        \E_t[\widetilde Y_t^2\mid X_t]
+         & \leq3r_t^2+\frac8{\eps^2}\mathcal B_t(X_t)^2.
+        \label{eq:ctr-Y-conditional-second}
+    \end{align}
+    By \cref{lem:ctr-coarse-confinement} and
+    \eqref{eq:ctr-v-increment},
+    \begin{align}
+        r_t\leq R_\rho+p(W_t).
+        \label{eq:ctr-r-envelope}
+    \end{align}
+    Let $\Delta_t=\pi(W_t)-\E_t[\pi(W_t)]$.  Gaussian concentration and
+    \eqref{eq:ctr-stopped-cov-upper} give
+    \begin{align}
+        \Pp_t(|\Delta_t|>u)
+        \leq2e^{-u^2/2},
+        \qquad u\geq0,
+    \end{align}
+    because $\norm{\Sigma_t}_{\op}\leq1$.  Therefore
+    \begin{align}
+        \E_t[\Delta_t^2]
+         & =\int_0^\infty2u\Pp_t(|\Delta_t|>u)\,du
+        \leq4.
+    \end{align}
+    Together with \eqref{eq:ctr-pi-mean}, this yields
+    \begin{align}
+        \E_t[\pi(W_t)^2]
+        \leq2\E_t[\pi(W_t)]^2+2\E_t[\Delta_t^2]
+        \leq10.
+    \end{align}
+    Hence, since $p\leq2\pi$,
+    \begin{align}
+        \E_t[r_t^2]
+        \leq2R_\rho^2+2\E_t[p(W_t)^2]
+        \leq82R_\rho^2
+        \leq2^7R_\rho^2.
+        \label{eq:ctr-r-second}
+    \end{align}
+    Applying \cref{lem:ctr-B-moments} in
+    \eqref{eq:ctr-Y-conditional-second} gives
+    \begin{align}
+        \E_t[\widetilde Y_t^2]
+        \leq
+        2^9R_\rho^2
+        +\frac{2^8\sqrt\ell}{\eps}\tr(H_t\Sigma_t)
+        +\frac{8e^{-8\ell}}{\eps^2}.
+        \label{eq:ctr-Y-roundwise-second}
+    \end{align}
+    Summing, using \eqref{eq:ctr-feedback-trace-input}, and then applying
+    \eqref{eq:ctr-feedback-param-a}--\eqref{eq:ctr-feedback-param-b} proves
+    \eqref{eq:ctr-predictable-Y2}.
+
+    We next prove the pointwise truncation bound.  Gaussian concentration,
+    \eqref{eq:ctr-pi-mean}, symmetry of $W_t$, and the noise assumption give
+    \begin{align}
+        \Pp_t\bigl(\pi(W_t)>1+2\sqrt\ell\bigr)  & \leq e^{-2\ell},
+        \\
+        \Pp_t\bigl(\pi(-W_t)>1+2\sqrt\ell\bigr) & \leq e^{-2\ell},
+        \\
+        \Pp_t(|\xi_t|>\sqrt\ell\mid X_t)        & \leq2e^{-\ell}.
+        \label{eq:ctr-roundwise-tail-events}
+    \end{align}
+    Outside these three events,
+    \begin{align}
+        r_t
+         & \leq R_\rho+2+4\sqrt\ell
+        \leq8R_\rho\sqrt\ell,
+        \\
+        \mathcal B_t(X_t)
+         & \leq p(W_t)+p(-W_t)
+        \leq4+8\sqrt\ell
+        \leq12\sqrt\ell.
+    \end{align}
+    Thus
+    \begin{align}
+        |\widetilde Y_t|
+         & \leq r_t(1+|\xi_t|)+\frac2\eps\mathcal B_t(X_t)
+        \\
+         & \leq16R_\rho\ell+\frac{24\sqrt\ell}{\eps}
+        \leq B_Y.
+        \label{eq:ctr-Y-pointwise}
+    \end{align}
+    Since $\1\{t\leq\tau\}$ is $\F_{t-1}$-measurable, a union bound and
+    \eqref{eq:ctr-feedback-param-d} show that
+    \eqref{eq:ctr-Y-maximum} fails with probability at most $\delta/32$.
+
+    Define
+    \begin{align}
+        \overline Y_t
+        =\widetilde Y_t\1\{|\widetilde Y_t|\leq B_Y\},
+        \qquad
+        D_t=\1\{t\leq\tau\}
+        \left(
+        \overline Y_t^2-\E_t[\overline Y_t^2]
+        \right).
+    \end{align}
+    Then $\E_t[D_t]=0$, $|D_t|\leq B_Y^2$, and
+    \begin{align}
+        \sum_{t=1}^n\E_t[D_t^2]
+         & \leq B_Y^2
+        \sum_{t=1}^{\tau}\E_t[\widetilde Y_t^2]
+        \leq2^{12}nB_Y^2R_\rho^2.
+    \end{align}
+    Apply the manuscript's Freedman inequality with
+    \begin{align}
+        b=B_Y^2,
+        \qquad
+        s=2^6B_Y\sqrt n\,R_\rho,
+        \qquad
+        z=\sqrt{2\log\frac{64}{\delta}}\leq\sqrt{2\ell}.
+    \end{align}
+    Outside an event of probability $\delta/32$,
+    \begin{align}
+        \sum_{t=1}^nD_t
+         & \leq sz+\frac{bz^2}{3}
+        \\
+         & \leq2^7B_YR_\rho\sqrt{n\ell}+B_Y^2\ell
+        \leq2^{12}nR_\rho^2,
+    \end{align}
+    where the last inequality is
+    \eqref{eq:ctr-feedback-param-c}.  On the event
+    \eqref{eq:ctr-Y-maximum}, $\overline Y_t=\widetilde Y_t$ for every
+    $t\leq\tau$.  Combining the last display with
+    \eqref{eq:ctr-predictable-Y2} proves
+    \eqref{eq:ctr-realised-Y2}.  A union bound completes the proof.
+\end{proof}
+
+\begin{lemma}[Weighted centred Gaussian scores]
+    \label{lem:ctr-score-localisation}
+    Let $t\leq\tau$, let $h_t$ be an $\F_{t-1}$-measurable unit vector, and
+    put $G_t=\ip{h_t}{Z_t}$.  Suppose
+    \begin{align}
+        2^{20}\eps^{-2}R_\rho^2\leq e^{4\ell}.
+        \label{eq:ctr-score-tail-parameter}
+    \end{align}
+    Then
+    \begin{align}
+        \E_t\left[
+            \widetilde Y_t^2(G_t^2+1)^2
+            \right]
+        \leq2^{14}\ell^2\E_t[\widetilde Y_t^2]+e^{-4\ell}.
+        \label{eq:ctr-score-localisation}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Let $\mathcal A_t=\{|G_t|\leq8\sqrt\ell\}$.  On $\mathcal A_t$,
+    $(G_t^2+1)^2\leq2^{14}\ell^2$.  It remains to control the complement.
+
+    Set
+    \begin{align}
+        \mathcal R_t
+        =R_\rho+p(W_t)+p(-W_t).
+    \end{align}
+    Equations \eqref{eq:ctr-r-envelope}, \eqref{eq:ctr-B-pointwise}, and
+    \eqref{eq:ctr-Y-conditional-second} give
+    \begin{align}
+        \E_t[\widetilde Y_t^2\mid X_t]
+        \leq11\eps^{-2}\mathcal R_t^2.
+        \label{eq:ctr-score-envelope}
+    \end{align}
+    Put $S_t=\pi(W_t)+\pi(-W_t)$.  As in
+    \eqref{eq:ctr-S-tail},
+    \begin{align}
+        \Pp_t(|S_t-\E_tS_t|>u)\leq2e^{-u^2/8}.
+    \end{align}
+    The layer-cake identity gives
+    \begin{align}
+        \E_t[|S_t-\E_tS_t|^4]
+        \leq8\int_0^\infty u^3e^{-u^2/8}\,du
+        =2^8.
+    \end{align}
+    Since $\E_tS_t\leq2$, Minkowski's inequality yields
+    $\norm{S_t}_{L^4(\Pp_t)}\leq6$.  Because
+    $p(W_t)+p(-W_t)\leq2S_t$,
+    \begin{align}
+        \E_t[\mathcal R_t^4]^{1/2}
+        \leq2^8R_\rho^2.
+        \label{eq:ctr-R-fourth}
+    \end{align}
+    Conditioning on $X_t$ and applying Cauchy--Schwarz gives
+    \begin{align}
+         & \E_t\left[
+            \widetilde Y_t^2(G_t^2+1)^2\1_{\mathcal A_t^c}
+            \right]
+        \\
+         & \quad\leq
+        11\eps^{-2}\E_t[\mathcal R_t^4]^{1/2}
+        \E_t\left[
+            (G_t^2+1)^4\1_{\mathcal A_t^c}
+            \right]^{1/2}.
+        \label{eq:ctr-score-tail-CS}
+    \end{align}
+    Since $G_t\sim\N(0,1)$ conditionally, another Cauchy--Schwarz
+    inequality, $\E[G_t^{16}]=15!!$, and
+    $\Pp(|G_t|>8\sqrt\ell)\leq2e^{-32\ell}$ imply
+    \begin{align}
+        \E_t\left[
+            (G_t^2+1)^4\1_{\mathcal A_t^c}
+            \right]^{1/2}
+        \leq2^8e^{-8\ell}.
+    \end{align}
+    Substitution into \eqref{eq:ctr-score-tail-CS} gives
+    \begin{align}
+        \E_t\left[
+            \widetilde Y_t^2(G_t^2+1)^2\1_{\mathcal A_t^c}
+            \right]
+        \leq2^{20}\eps^{-2}R_\rho^2e^{-8\ell}
+        \leq e^{-4\ell},
+    \end{align}
+    where the last inequality is
+    \eqref{eq:ctr-score-tail-parameter}.  This proves
+    \eqref{eq:ctr-score-localisation}.
+\end{proof}
+
+\subsubsection{Unprojected ONS and the deterministic tangent correction}
+
+\begin{lemma}[Exact unprojected ONS identity]
+    \label{lem:ctr-unprojected-ONS}
+    On every round on which the update in \cref{alg:ctr-unprojected} is
+    performed, for every $x\in\R^d$,
+    \begin{align}
+         & \frac12\left(
+        \normm{\mu_{t+1}-x}{\Sigma_{t+1}^{-1}}^2
+        -\normm{\mu_t-x}{\Sigma_t^{-1}}^2
+        \right)
+        \nonumber        \\
+         & \qquad=
+        \eta\widehat q_t^{\mathrm{ctr}}(x)
+        +\frac{\eta^2}{2}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2.
+        \label{eq:ctr-unprojected-ONS}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Put $A_{t+1}=\Sigma_{t+1}^{-1}$ and
+    $\Delta_t=-\eta\Sigma_{t+1}\widehat g_t^{\mathrm{ctr}}$.  Then
+    \begin{align}
+        \frac12\normm{\mu_t+\Delta_t-x}{A_{t+1}}^2
+         & =\frac12\normm{\mu_t-x}{A_{t+1}}^2
+        +\eta\ip{\widehat g_t^{\mathrm{ctr}}}{x-\mu_t}
+        +\frac{\eta^2}{2}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2
+        \\
+         & =\frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2
+        +\frac{\lambda\eta}{2}
+        (x-\mu_t)^\top\widehat H_t^{\mathrm{ctr}}(x-\mu_t)
+        \\
+         & \qquad
+        +\eta\ip{\widehat g_t^{\mathrm{ctr}}}{x-\mu_t}
+        +\frac{\eta^2}{2}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2.
+    \end{align}
+    Since $\mu_t+\Delta_t=\mu_{t+1}$, the right-hand side is exactly the
+    right-hand side of \eqref{eq:ctr-unprojected-ONS} plus the old potential.
+\end{proof}
+
+\begin{lemma}[Radial coercivity]
+    \label{lem:ctr-radial-coercivity}
+    Put
+    \begin{align}
+        \mathfrak R_t=\E_t[e(X_t)]-e(x_\star).
+    \end{align}
+    Then
+    \begin{align}
+        \mathfrak R_t\geq\frac2\eps v(\mu_t).
+        \label{eq:ctr-radial-coercivity}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Jensen's inequality gives $\E_t[e(X_t)]\geq e(\mu_t)$.  If
+    $v(\mu_t)=0$, then $e(\mu_t)\geq e(x_\star)$ because $x_\star$ is a
+    global minimizer of $e$.  Suppose $m_t=v(\mu_t)>0$ and put
+    \begin{align}
+        a_t=\frac{\mu_t}{1+m_t}\in\K_\eps.
+    \end{align}
+    The definition of the extension and optimality of $x_\star$ on
+    $\K_\eps$ give
+    \begin{align}
+        e(\mu_t)-e(x_\star)
+         & =(1+m_t)f(a_t)+\frac2\eps m_t-f(x_\star)
+        \\
+         & =f(a_t)-f(x_\star)+m_tf(a_t)+\frac2\eps m_t
+        \geq\frac2\eps m_t.
+    \end{align}
+    Combining the two cases proves \eqref{eq:ctr-radial-coercivity}.
+\end{proof}
+
+\begin{lemma}[Centred gradient energy]
+    \label{lem:ctr-gradient-energy}
+    Suppose that $\Sigma_{t+1}\preceq3\Sigma_t$ for every $t\leq\tau$.
+    Then
+    \begin{align}
+         & \sum_{t=1}^{\tau}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2
+        \nonumber            \\
+         & \quad\leq
+        6\sum_{t=1}^{\tau}\widetilde Y_t^2\norm{Z_t}^2
+        +\frac{96}{\eps^2}\sum_{t=1}^{\tau}v(\mu_t)^2
+        +\frac{3\cdot2^{14}}\eps
+        \sum_{t=1}^{\tau}\tr(H_t\Sigma_t).
+        \label{eq:ctr-full-gradient-energy}
+    \end{align}
+    Consequently, on the stopped interval where $v(\mu_t)\leq\rho$,
+    \begin{align}
+         & \frac{\eta^2}{2}
+        \sum_{t=1}^{\tau}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2
+        \nonumber           \\
+         & \quad\leq
+        3\eta^2\sum_{t=1}^{\tau}
+        \widetilde Y_t^2\norm{Z_t}^2
+        +\frac{24\eta^2\rho}{\eps}
+        \sum_{t=1}^{\tau}\mathfrak R_t
+        +\frac{3\cdot2^{13}\eta^2}\eps
+        \sum_{t=1}^{\tau}\tr(H_t\Sigma_t),
+        \label{eq:ctr-focus-energy}
+    \end{align}
+    and
+    \begin{align}
+         & \frac\eta2
+        \sum_{t=1}^{\tau}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2
+        \nonumber     \\
+         & \quad\leq
+        3\eta\sum_{t=1}^{\tau}
+        \widetilde Y_t^2\norm{Z_t}^2
+        +\frac{24\eta\rho}{\eps}
+        \sum_{t=1}^{\tau}\mathfrak R_t
+        +\frac{3\cdot2^{13}\eta}\eps
+        \sum_{t=1}^{\tau}\tr(H_t\Sigma_t).
+        \label{eq:ctr-regret-energy}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Write
+    \begin{align}
+        U_t=\widetilde Y_t\Sigma_t^{-1/2}Z_t,
+        \qquad
+        b_t=\frac2\eps s_t.
+    \end{align}
+    The inequality $(u+v)^\top A(u+v)\leq2u^\top Au+2v^\top Av$ and
+    $\Sigma_{t+1}\preceq3\Sigma_t$ give
+    \begin{align}
+        \normm{U_t+b_t}{\Sigma_{t+1}}^2
+         & \leq2\normm{U_t}{\Sigma_{t+1}}^2
+        +2\normm{b_t}{\Sigma_{t+1}}^2
+        \\
+         & \leq6\widetilde Y_t^2\norm{Z_t}^2
+        +\frac{24}{\eps^2}s_t^\top\Sigma_ts_t.
+    \end{align}
+    Applying \eqref{eq:ctr-normal-width} and summing proves
+    \eqref{eq:ctr-full-gradient-energy}.
+
+    By \cref{lem:ctr-radial-coercivity} and $v(\mu_t)\leq\rho$,
+    \begin{align}
+        \sum_{t=1}^{\tau}v(\mu_t)^2
+        \leq\rho\sum_{t=1}^{\tau}v(\mu_t)
+        \leq\frac{\rho\eps}{2}
+        \sum_{t=1}^{\tau}\mathfrak R_t.
+    \end{align}
+    Substituting this into \eqref{eq:ctr-full-gradient-energy} and multiplying
+    by $\eta^2/2$ and $\eta/2$, respectively, proves
+    \eqref{eq:ctr-focus-energy} and \eqref{eq:ctr-regret-energy}.
+\end{proof}
+
+\subsubsection{Centred concentration through the stopped interval}
+
+\begin{proposition}[Centred concentration]
+    \label{prop:ctr-concentration}
+    Suppose the assumptions of \cref{lem:ctr-feedback} and
+    \cref{lem:ctr-score-localisation} hold.  Suppose also that
+    \begin{align}
+        B_Yd^{3/2}\sqrt\ell
+        \leq2^{-20}\sqrt n\,R_\rho,
+        \label{eq:ctr-H-Freedman-scale}
+    \end{align}
+    and that $b\leq2^{-20}$ and $C_0\geq2^{12}$.  Then, with probability
+    at least $1-\delta/4$,
+    simultaneously,
+    \begin{align}
+        \left|
+        \sum_{t=1}^{\tau}
+        \left(
+        \widehat q_t^{\mathrm{ctr}}(x_\star)-q_t(x_\star)
+        \right)
+        \right|
+         & \leq
+        \frac{2^{18}\sqrt b\,R_\rho\sqrt{n\ell}}\lambda,
+        \label{eq:ctr-q-concentration}
+        \\
+        \sum_{t=1}^{\tau}
+        \widetilde Y_t^2\norm{Z_t}^2
+         & \leq2^{16}dn\ell R_\rho^2,
+        \label{eq:ctr-random-gradient-energy}
+    \end{align}
+    and
+    \begin{align}
+         & -2^{22}R_\rho\ell^{3/2}\sqrt{dn}\,
+        \overline\Sigma_{\tau+1}^{-1}
+        \nonumber                             \\
+         & \qquad\preceq
+        \sum_{t=1}^{\tau}
+        \left(\widehat H_t^{\mathrm{ctr}}-H_t\right)
+        \nonumber                             \\
+         & \qquad\preceq
+        2^{22}R_\rho\ell^{3/2}\sqrt{dn}\,
+        \overline\Sigma_{\tau+1}^{-1}.
+        \label{eq:ctr-H-concentration}
+    \end{align}
+\end{proposition}
+
+\begin{proof}
+    We prove the three estimates separately, keeping all stopping indicators
+    explicit.
+
+    \proofstep{1}{The quadratic martingale}
+    For $t\leq\tau$, put
+    \begin{align}
+        R_t=\normm{x_\star-\mu_t}{\Sigma_t^{-1}},
+        \qquad
+        h_t=
+        \begin{cases}
+            \Sigma_t^{-1/2}(x_\star-\mu_t)/R_t, & R_t>0, \\
+            e_1,                                & R_t=0,
+        \end{cases}
+        \qquad
+        G_t=\ip{h_t}{Z_t}.
+    \end{align}
+    Then $G_t$ is conditionally standard Gaussian and
+    \begin{align}
+        \widehat q_t^{\mathrm{ctr}}(x_\star)
+        =\widetilde Y_tL_t+\kappa_t,
+        \label{eq:ctr-q-score-representation}
+    \end{align}
+    where
+    \begin{align}
+        L_t=R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1),
+        \qquad
+        \kappa_t=\frac2\eps\ip{s_t}{x_\star-\mu_t}.
+    \end{align}
+    The variable $\kappa_t$ is $\F_{t-1}$-measurable.  Hence
+    \begin{align}
+        \widehat q_t^{\mathrm{ctr}}(x_\star)-q_t(x_\star)
+        =\widetilde Y_tL_t-\E_t[\widetilde Y_tL_t].
+        \label{eq:ctr-q-martingale-cancellation}
+    \end{align}
+    The focus stop gives
+    \begin{align}
+        R_t\leq\sqrt{2B}
+        =\frac{\sqrt{2b}}{\lambda\sqrt\ell}.
+        \label{eq:ctr-R-focus}
+    \end{align}
+    Therefore
+    \begin{align}
+        L_t^2
+         & \leq3R_t^2G_t^2
+        +\frac{3\lambda^2R_t^4}{4}(G_t^4+1)
+        \\
+         & \leq
+        \frac{12b}{\lambda^2}
+        \left(
+        \frac12+\frac{3}{2\ell^2}(G_t^2+1)^2
+        \right).
+        \label{eq:ctr-L-square}
+    \end{align}
+    Combining \eqref{eq:ctr-L-square} with
+    \eqref{eq:ctr-score-localisation} gives
+    \begin{align}
+        \E_t[\widetilde Y_t^2L_t^2]
+        \leq\frac{2^{20}b}{\lambda^2}
+        \left(\E_t[\widetilde Y_t^2]+1\right).
+        \label{eq:ctr-q-predictable-second}
+    \end{align}
+
+    Let
+    \begin{align}
+        \mathcal E_G
+        =\left\{\max_{t\leq\tau}|G_t|\leq\sqrt\ell\right\}.
+    \end{align}
+    Since $G_t$ is conditionally standard Gaussian and
+    $\1\{t\leq\tau\}$ is predictable,
+    \begin{align}
+        \Pp(\mathcal E_G^c)
+        \leq2ne^{-\ell/2}
+        \leq\frac\delta{64}.
+        \label{eq:ctr-EG-probability}
+    \end{align}
+    On $\mathcal E_G$, \eqref{eq:ctr-R-focus} gives
+    \begin{align}
+        |L_t|
+        \leq\frac{4\sqrt b}{\lambda}.
+        \label{eq:ctr-L-maximum}
+    \end{align}
+    Let $\mathcal E_Y$ be the event in \cref{lem:ctr-feedback}.  Define
+    \begin{align}
+        Q_t=\1\{t\leq\tau\}\widetilde Y_tL_t,
+        \qquad
+        D_t=Q_t-\E_t[Q_t].
+    \end{align}
+    On $\mathcal E_G\cap\mathcal E_Y$,
+    \begin{align}
+        \sum_{t=1}^n\left(D_t^2+\E_t[D_t^2]\right)
+         & \leq2\sum_{t=1}^n
+        \left(Q_t^2+\E_t[Q_t^2]\right)
+        \\
+         & \leq\frac{2^{35}bnR_\rho^2}{\lambda^2},
+        \label{eq:ctr-q-self-normaliser}
+    \end{align}
+    where the realised term uses
+    \eqref{eq:ctr-L-maximum} and \eqref{eq:ctr-realised-Y2}, while the
+    predictable term uses \eqref{eq:ctr-q-predictable-second} and
+    \eqref{eq:ctr-predictable-Y2}.
+
+    Apply the manuscript's self-normalised martingale inequality with
+    \begin{align}
+        z=\frac{2^{18}\sqrt b\,R_\rho\sqrt{n\ell}}\lambda,
+        \qquad
+        v=\frac{2^{35}bnR_\rho^2}{\lambda^2}.
+    \end{align}
+    Since $b\leq2^{-20}$,
+    \begin{align}
+        2\exp\left(-\frac{z^2}{2v}\right)
+        \leq2e^{-\ell}
+        \leq\frac\delta{64}.
+    \end{align}
+    Combining this with \eqref{eq:ctr-EG-probability} and the failure
+    probability in \cref{lem:ctr-feedback} proves
+    \eqref{eq:ctr-q-concentration} outside an event of probability at most
+    $3\delta/32$.
+
+    \proofstep{2}{The random part of the gradient energy}
+    Let
+    \begin{align}
+        \mathcal E_Z
+        =\left\{
+        \max_{t\leq\tau}\norm{Z_t}^2
+        \leq3(d+\ell)
+        \right\}.
+    \end{align}
+    The chi-square upper-tail lemma and a predictable union bound give
+    \begin{align}
+        \Pp(\mathcal E_Z^c)\leq ne^{-\ell}\leq\frac\delta{64}.
+        \label{eq:ctr-EZ-probability}
+    \end{align}
+    On $\mathcal E_Z\cap\mathcal E_Y$, using
+    $d+\ell\leq2d\ell$ for $d,\ell\geq1$ gives
+    \begin{align}
+        \sum_{t=1}^{\tau}\widetilde Y_t^2\norm{Z_t}^2
+         & \leq3(d+\ell)\sum_{t=1}^{\tau}\widetilde Y_t^2
+        \\
+         & \leq2^{16}dn\ell R_\rho^2.
+    \end{align}
+    This proves \eqref{eq:ctr-random-gradient-energy}.
+
+    \proofstep{3}{The Hessian martingale}
+    Let $\mathcal U$ be a $(2^{14}dn^2)^{-1}$-net of the Euclidean unit
+    sphere.  The volumetric covering bound gives
+    \begin{align}
+        \log|\mathcal U|
+        \leq d\log(1+2^{15}dn^2)
+        \leq\frac{2d\ell}{C_0}.
+        \label{eq:ctr-net-size}
+    \end{align}
+    Fix $u\in\mathcal U$ and define
+    \begin{align}
+        a_{t,u}=u^\top\Sigma_t^{-1}u,
+        \qquad
+        G_{t,u}
+        =\ip{
+            \frac{\Sigma_t^{-1/2}u}{\sqrt{a_{t,u}}}
+        }{Z_t}.
+        \label{eq:ctr-H-standardisation}
+    \end{align}
+    Conditionally, $G_{t,u}\sim\N(0,1)$, and
+    \begin{align}
+        Q_{t,u}
+        =u^\top\widehat H_t^{\mathrm{ctr}}u
+        =a_{t,u}\widetilde Y_t(G_{t,u}^2-1).
+        \label{eq:ctr-H-direction}
+    \end{align}
+
+    Define the truncated score energy
+    \begin{align}
+        W_{t,u}
+         & =\1\{t\leq\tau\}
+        \widetilde Y_t^2(G_{t,u}^2-1)^2
+        \1\{|\widetilde Y_t|\leq B_Y\}
+        \1\{\norm{Z_t}^2\leq3(d+\ell)\}.
+        \label{eq:ctr-W-definition}
+    \end{align}
+    By \cref{lem:ctr-score-localisation} and
+    \eqref{eq:ctr-predictable-Y2},
+    \begin{align}
+        \sum_{t=1}^n\E_t[W_{t,u}]
+         & \leq
+        \sum_{t=1}^{\tau}
+        \E_t\left[
+            \widetilde Y_t^2(G_{t,u}^2-1)^2
+            \right]
+        \\
+         & \leq2^{27}nR_\rho^2\ell^2.
+        \label{eq:ctr-W-predictable}
+    \end{align}
+    Since $G_{t,u}^2\leq\norm{Z_t}^2$ on the truncation event,
+    \begin{align}
+        0\leq W_{t,u}
+        \leq2^7B_Y^2d^2\ell^2
+        \triangleq\Lambda.
+        \label{eq:ctr-W-bound}
+    \end{align}
+    Put $R_{t,u}=W_{t,u}-\E_t[W_{t,u}]$.  Then
+    \begin{align}
+        \sum_{t=1}^n\E_t[R_{t,u}^2]
+        \leq\Lambda\sum_{t=1}^n\E_t[W_{t,u}]
+        \leq2^{34}B_Y^2d^2nR_\rho^2\ell^4.
+        \label{eq:ctr-W-variance}
+    \end{align}
+    Apply Freedman's inequality with
+    \begin{align}
+        b=\Lambda,
+        \qquad
+        s=2^{17}B_Yd\sqrt n\,R_\rho\ell^2,
+        \qquad
+        z=\sqrt{2\log\frac{128|\mathcal U|}{\delta}}
+        \leq\sqrt{\frac{d\ell}{8}}.
+    \end{align}
+    Indeed, \eqref{eq:ctr-net-size} and the definition of $\ell$ give
+    \begin{align}
+        \log\frac{128|\mathcal U|}{\delta}
+        \leq\frac{3d\ell}{C_0}
+        \leq\frac{d\ell}{16}.
+    \end{align}
+    Simultaneously for every
+    $u\in\mathcal U$, outside an event of probability $\delta/64$,
+    \begin{align}
+        \sum_{t=1}^nR_{t,u}
+         & \leq sz+\frac{bz^2}{3}
+        \\
+         & \leq
+        2^{16}B_Yd^{3/2}\sqrt n\,R_\rho\ell^{5/2}
+        +2^4B_Y^2d^3\ell^3
+        \\
+         & \leq2^{26}nR_\rho^2\ell^2.
+        \label{eq:ctr-W-Freedman}
+    \end{align}
+    The last inequality follows from
+    \eqref{eq:ctr-H-Freedman-scale}; squaring that condition also controls
+    the second term.  Combining
+    \eqref{eq:ctr-W-predictable} and \eqref{eq:ctr-W-Freedman} gives
+    \begin{align}
+        \sum_{t=1}^{\tau}
+        \widetilde Y_t^2(G_{t,u}^2-1)^2
+        \leq2^{28}nR_\rho^2\ell^2
+        \label{eq:ctr-H-realised-directional-energy}
+    \end{align}
+    simultaneously for all $u\in\mathcal U$ on
+    $\mathcal E_Y\cap\mathcal E_Z$.
+
+    Let
+    \begin{align}
+        a_u^\star=\max_{t\leq\tau}a_{t,u}.
+    \end{align}
+    By \eqref{eq:ctr-H-direction},
+    \eqref{eq:ctr-H-realised-directional-energy}, and
+    \eqref{eq:ctr-W-predictable},
+    \begin{align}
+        \sum_{t=1}^{\tau}Q_{t,u}^2
+         & \leq2^{28}(a_u^\star)^2nR_\rho^2\ell^2,
+        \\
+        \sum_{t=1}^{\tau}\E_t[Q_{t,u}^2]
+         & \leq2^{27}(a_u^\star)^2nR_\rho^2\ell^2.
+    \end{align}
+    Hence, with
+    \begin{align}
+        D_{t,u}=\1\{t\leq\tau\}
+        \left(Q_{t,u}-\E_t[Q_{t,u}]\right),
+    \end{align}
+    one has
+    \begin{align}
+        \sum_{t=1}^n
+        \left(D_{t,u}^2+\E_t[D_{t,u}^2]\right)
+        \leq2^{30}(a_u^\star)^2nR_\rho^2\ell^2.
+        \label{eq:ctr-H-self-normaliser}
+    \end{align}
+
+    We next bound the range of $a_u^\star$.  The spectrum estimate in
+    \cref{lem:ctr-trace} gives
+    \begin{align}
+        \norm{\overline\Sigma_{t+1}^{-1}}_{\op}^{1/2}
+        \leq\sigma^{-1}+t\lambda\eta\Lip(e)
+        \leq\sigma^{-1}+t,
+        \label{eq:ctr-predictable-spectrum}
+    \end{align}
+    where the last inequality follows from the parameter conditions verified
+    below.  Consequently,
+    \begin{align}
+        \norm{\overline\Sigma_{\tau+1}^{-1}}_{\op}
+        \leq(\sqrt{2d}+n)^2
+        \leq6dn^2.
+        \label{eq:ctr-spectrum-upper}
+    \end{align}
+    Covariance comparison gives
+    \begin{align}
+        1\leq a_u^\star\leq9dn^2.
+        \label{eq:ctr-a-range}
+    \end{align}
+    Let $J=\lceil\log_2(9dn^2)\rceil$.  For
+    $j=0,\ldots,J$, put $b_j=2^j$.  On the event
+    $b_{j-1}<a_u^\star\leq b_j$, the right-hand side of
+    \eqref{eq:ctr-H-self-normaliser} is at most
+    $2^{32}b_j^2nR_\rho^2\ell^2$.  The self-normalised martingale inequality
+    therefore gives
+    \begin{align}
+         & \Pp\left(
+        \left|\sum_{t=1}^nD_{t,u}\right|
+        >2^{18}b_jR_\rho\ell
+        \sqrt{n\log\frac{256|\mathcal U|(J+1)}\delta},
+        \right.
+        \nonumber             \\[-1mm]
+         & \hspace{4cm}\left.
+        \sum_{t=1}^n
+        \left(D_{t,u}^2+\E_t[D_{t,u}^2]\right)
+        \leq2^{32}b_j^2nR_\rho^2\ell^2
+        \right)
+        \leq\frac{\delta}{128|\mathcal U|(J+1)}.
+    \end{align}
+    Since $J+1\leq2^{4}dn^2$, \eqref{eq:ctr-net-size} and the definition
+    of $\ell$ also give
+    \begin{align}
+        \log\frac{256|\mathcal U|(J+1)}\delta
+        \leq\frac{6d\ell}{C_0}
+        \leq\frac{d\ell}{16}.
+    \end{align}
+    A union bound over $u$ and $j$ therefore yields, outside an event of
+    probability $\delta/128$,
+    \begin{align}
+        \left|
+        u^\top\sum_{t=1}^{\tau}
+        (\widehat H_t^{\mathrm{ctr}}-H_t)u
+        \right|
+        \leq2^{18}R_\rho\ell^{3/2}\sqrt{dn}
+        \max_{t\leq\tau}u^\top\Sigma_t^{-1}u
+        \label{eq:ctr-H-net}
+    \end{align}
+    for every $u\in\mathcal U$.
+
+    Put
+    \begin{align}
+        M_\tau=\sum_{t=1}^{\tau}
+        (\widehat H_t^{\mathrm{ctr}}-H_t),
+        \qquad
+        \overline A=\overline\Sigma_{\tau+1}^{-1}.
+    \end{align}
+    By covariance comparison and monotonicity of the predictable precision,
+    \begin{align}
+        \max_{t\leq\tau}\Sigma_t^{-1}
+        \preceq\frac32\overline A.
+    \end{align}
+    Thus \eqref{eq:ctr-H-net} gives
+    \begin{align}
+        |u^\top M_\tau u|
+        \leq3\cdot2^{17}R_\rho\ell^{3/2}\sqrt{dn}\,
+        u^\top\overline A u.
+        \label{eq:ctr-H-net-A}
+    \end{align}
+    Moreover, \eqref{eq:ctr-spectrum-upper} and
+    $\overline A\succeq\sigma^{-2}I_d$ imply
+    \begin{align}
+        \frac{\lambda_{\max}(\overline A)}
+        {\lambda_{\min}(\overline A)}
+        \leq6dn^2.
+        \label{eq:ctr-condition-number}
+    \end{align}
+
+    Fix a Euclidean unit vector $v$ and choose $u\in\mathcal U$ with
+    $\norm{u-v}\leq(2^{14}dn^2)^{-1}$.  Symmetry gives
+    \begin{align}
+        |v^\top M_\tau v-u^\top M_\tau u|
+        \leq2\norm{u-v}\norm{M_\tau}_{\op}
+        \leq\frac{\norm{M_\tau}_{\op}}{2^{13}dn^2}.
+        \label{eq:ctr-M-net-error}
+    \end{align}
+    Taking a supremum in the combination of
+    \eqref{eq:ctr-H-net-A} and \eqref{eq:ctr-M-net-error} first yields
+    \begin{align}
+        \norm{M_\tau}_{\op}
+        \leq2^{20}R_\rho\ell^{3/2}\sqrt{dn}\,
+        \norm{\overline A}_{\op}.
+        \label{eq:ctr-M-op-preliminary}
+    \end{align}
+    Also,
+    \begin{align}
+        |u^\top\overline A u-v^\top\overline A v|
+         & \leq2\norm{u-v}\norm{\overline A}_{\op}
+        \\
+         & \leq\frac{12}{2^{14}}
+        v^\top\overline A v,
+        \label{eq:ctr-A-net-error}
+    \end{align}
+    where \eqref{eq:ctr-condition-number} is used in the last step.  Substituting
+    \eqref{eq:ctr-M-op-preliminary} and \eqref{eq:ctr-A-net-error} into
+    \eqref{eq:ctr-H-net-A}--\eqref{eq:ctr-M-net-error} gives
+    \begin{align}
+        |v^\top M_\tau v|
+        \leq2^{22}R_\rho\ell^{3/2}\sqrt{dn}\,
+        v^\top\overline A v.
+    \end{align}
+    Since this holds for every unit $v$, it is equivalent to
+    \eqref{eq:ctr-H-concentration}.  The failure probabilities accumulated in
+    the three steps are smaller than $\delta/4$.
+\end{proof}
+
+\subsubsection{Unconditional stability and regret}
+
+The following deliberately non-optimised constants make every numerical
+inequality in the proof explicit and mutually consistent:
+\begin{align}
+    C_0=2^{40},
+    \qquad
+    c_\lambda=2^{-80},
+    \qquad
+    c_\eta=2^{-80},
+    \qquad
+    b=2^{-20},
+    \qquad
+    C_\eps=2^{200}.
+    \label{eq:ctr-concrete-constants}
+\end{align}
+Smaller $c_\lambda,c_\eta$ and larger $C_0,C_\eps$ also work.  No attempt is
+made to optimise these universal constants.
+
+\begin{theorem}[Tangent-centred unprojected regret]
+    \label{thm:ctr-main}
+    Let $\delta\in(0,1/2)$ and define
+    \begin{align}
+        \ell=C_0\log\frac{C_0nd}{\delta},
+        \qquad
+        \sigma=\frac1{M\sqrt{2d}},
+        \qquad
+        \lambda=\frac{c_\lambda}{d^{3/2}M\ell^2},
+        \label{eq:ctr-main-parameters-a}
+        \\
+        \eta=\frac{c_\eta M}{\sqrt n\,\ell},
+        \qquad
+        \eps_0=\frac{C_\eps d^2M\ell^4}{\sqrt n},
+        \label{eq:ctr-main-parameters-b}
+    \end{align}
+    with the constants in \eqref{eq:ctr-concrete-constants}.  If
+    $\eps_0\leq1/2$, run \cref{alg:ctr-unprojected} with $\eps=\eps_0$.
+    Otherwise play any fixed point in $\K$.  Then, with probability at least
+    $1-\delta$,
+    \begin{align}
+        \operatorname{Reg}_n
+        \leq2^{500}d^3M\ell^4\sqrt n.
+        \label{eq:ctr-main-regret}
+    \end{align}
+    On the same event, the algorithm never fails and, on every round,
+    \begin{align}
+        v(\mu_t)
+        \leq\rho
+        =\frac{2\sqrt{2b}}{c_\lambda}d\ell^{3/2}.
+        \label{eq:ctr-main-confinement}
+    \end{align}
+\end{theorem}
+
+\begin{proof}
+    Suppose first that $\eps_0>1/2$.  Then
+    \begin{align}
+        \sqrt n<2C_\eps d^2M\ell^4,
+    \end{align}
+    and therefore
+    \begin{align}
+        \operatorname{Reg}_n
+        \leq n
+        <2C_\eps d^2M\ell^4\sqrt n
+        \leq2^{500}d^3M\ell^4\sqrt n.
+    \end{align}
+    Hence assume for the remainder that $\eps=\eps_0\leq1/2$.  This implies
+    \begin{align}
+        \sqrt n
+        \geq2C_\eps d^2M\ell^4
+        \geq2C_\eps d^{3/2}\ell^4,
+        \label{eq:ctr-large-horizon-consequence}
+    \end{align}
+    because $M\geq d^{-1/2}$.  The constants in
+    \eqref{eq:ctr-concrete-constants} also give $\rho\geq1$, and hence
+    \begin{align}
+        R_\rho=1+\rho\leq2\rho.
+        \label{eq:ctr-R-rho-comparison}
+    \end{align}
+
+    \proofstep{1}{Verification of the stopped stochastic estimates}
+    The predictable trace bound is independent of the sampled estimator.  Indeed,
+    $\Lip(e)\leq8/\eps$, and direct substitution gives
+    \begin{align}
+        \lambda\eta\Lip(e)
+         & \leq
+        \frac{8c_\lambda c_\eta}
+        {C_\eps d^{7/2}M\ell^7}
+        \leq1.
+        \label{eq:ctr-trace-small-step}
+    \end{align}
+    Since $\sigma\leq1$, the two hypotheses of
+    \cref{lem:ctr-trace} follow from \eqref{eq:ctr-trace-small-step}.
+    Therefore
+    \begin{align}
+        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\overline\Sigma_t)
+        \leq\frac{4d\log(1+n)}\lambda.
+        \label{eq:ctr-trace-budget}
+    \end{align}
+    In particular, by \eqref{eq:ctr-cov-comparison},
+    \begin{align}
+        \sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
+        \leq\frac{8d\log(1+n)}{\lambda\eta}.
+        \label{eq:ctr-stopped-trace-budget}
+    \end{align}
+
+    We next verify the assumptions of \cref{lem:ctr-feedback}.  Since
+    $R_\rho\geq\rho$ and
+    \begin{align}
+        \rho^2
+        =\frac{8b}{c_\lambda^2}d^2\ell^3,
+        \label{eq:ctr-rho-square}
+    \end{align}
+    the ratio between the left-hand side of
+    \eqref{eq:ctr-feedback-param-a} and $nR_\rho^2$ is at most
+    \begin{align}
+        \frac{2^{12}d\ell^{3/2}}
+        {\lambda\eta\eps\,n\rho^2}
+         & \leq
+        \frac{2^9c_\lambda}
+        {b c_\eta C_\eps d^{3/2}M\ell^{5/2}}
+        \leq2^{-100}.
+        \label{eq:ctr-verify-feedback-a}
+    \end{align}
+    Also $e^{-8\ell}/\eps^2\leq R_\rho^2$, because
+    $\eps^{-2}\leq n$ and $ne^{-8\ell}\leq1$.  Furthermore,
+    \begin{align}
+        \frac{B_Y\sqrt\ell}{\sqrt nR_\rho}
+         & =\frac{2^8\ell^{3/2}}{\sqrt n}
+        \left(1+\frac1{\eps R_\rho}\right)
+        \\
+         & \leq
+        \frac{2^7}{C_\eps d^{3/2}\ell^{5/2}}
+        +\frac{2^8\ell^{3/2}}
+        {C_\eps d^2M\ell^4R_\rho}
+        \leq2^{-100}.
+        \label{eq:ctr-verify-feedback-c}
+    \end{align}
+    Thus \eqref{eq:ctr-feedback-param-a}--\eqref{eq:ctr-feedback-param-d}
+    hold.  Similarly,
+    \begin{align}
+        2^{20}\eps^{-2}R_\rho^2
+         & \leq
+        \frac{2^{25}bn}
+        {c_\lambda^2C_\eps^2d^2M^2\ell^5}
+        \leq2^{25}n
+        \leq e^{4\ell},
+        \label{eq:ctr-verify-score-tail}
+    \end{align}
+    proving \eqref{eq:ctr-score-tail-parameter}.  Finally,
+    \begin{align}
+        \frac{B_Yd^{3/2}\sqrt\ell}{\sqrt nR_\rho}
+         & =\frac{2^8d^{3/2}\ell^{3/2}}{\sqrt n}
+        \left(1+\frac1{\eps R_\rho}\right)
+        \leq2^{-100},
+        \label{eq:ctr-verify-H-Freedman}
+    \end{align}
+    by \eqref{eq:ctr-large-horizon-consequence}.  Hence
+    \eqref{eq:ctr-H-Freedman-scale} holds.  The net logarithm condition follows
+    from $C_0=2^{40}$.  All hypotheses of
+    \cref{prop:ctr-concentration} are therefore satisfied without assuming a
+    feedback good event.
+
+    Work on the event in \cref{prop:ctr-concentration}.  It has probability at
+    least $1-\delta/4$.
+
+    \proofstep{2}{Covariance stability}
+    From \eqref{eq:ctr-H-concentration},
+    \begin{align}
+        2^{22}\lambda\eta R_\rho\ell^{3/2}\sqrt{dn}
+         & \leq
+        2^{23}\lambda\eta\rho\ell^{3/2}\sqrt{dn}
+        \\
+         & =2^{25}\eta\sigma\sqrt b\,\ell\sqrt{dn}
+        =\frac{2^{25}}{\sqrt2}c_\eta\sqrt b
+        \leq\frac14.
+        \label{eq:ctr-H-small}
+    \end{align}
+    Multiplying \eqref{eq:ctr-H-concentration} by $\lambda\eta$ therefore
+    gives
+    \begin{align}
+        -\frac14\overline\Sigma_{\tau+1}^{-1}
+        \preceq
+        \lambda\eta\sum_{t=1}^{\tau}
+        (\widehat H_t^{\mathrm{ctr}}-H_t)
+        \preceq
+        \frac14\overline\Sigma_{\tau+1}^{-1}.
+        \label{eq:ctr-H-small-matrix}
+    \end{align}
+    All earlier covariance updates were performed, so the proposed precision
+    at round $\tau$ is
+    \begin{align}
+        \Sigma_\tau^{-1}+\lambda\eta\widehat H_\tau^{\mathrm{ctr}}
+         & =\Sigma_1^{-1}
+        +\lambda\eta\sum_{t=1}^{\tau}
+        \widehat H_t^{\mathrm{ctr}}
+        \\
+         & =\overline\Sigma_{\tau+1}^{-1}
+        +\lambda\eta\sum_{t=1}^{\tau}
+        (\widehat H_t^{\mathrm{ctr}}-H_t).
+    \end{align}
+    Hence
+    \begin{align}
+        \frac34\overline\Sigma_{\tau+1}^{-1}
+        \preceq
+        \Sigma_\tau^{-1}+\lambda\eta\widehat H_\tau^{\mathrm{ctr}}
+        \preceq
+        \frac54\overline\Sigma_{\tau+1}^{-1}.
+        \label{eq:ctr-strict-covariance}
+    \end{align}
+    The update is therefore performed at round $\tau$, and covariance
+    comparison cannot fail there.  Moreover, for every $t\leq\tau$,
+    \begin{align}
+        \Sigma_{t+1}^{-1}
+        \succeq\frac12\overline\Sigma_{t+1}^{-1}
+        \succeq\frac12\overline\Sigma_t^{-1}
+        \succeq\frac13\Sigma_t^{-1},
+    \end{align}
+    so
+    \begin{align}
+        \Sigma_{t+1}\preceq3\Sigma_t.
+        \label{eq:ctr-next-covariance}
+    \end{align}
+
+    \proofstep{3}{Focus stability and inward drift}
+    Summing \eqref{eq:ctr-unprojected-ONS} with $x=x_\star$ gives
+    \begin{align}
+        \frac12
+        \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
+         & =\frac12
+        \normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2
+        +\eta\sum_{t=1}^{\tau}q_t(x_\star)
+        \nonumber   \\
+         & \quad
+        +\eta\sum_{t=1}^{\tau}
+        \left(
+        \widehat q_t^{\mathrm{ctr}}(x_\star)-q_t(x_\star)
+        \right)
+        +\frac{\eta^2}{2}
+        \sum_{t=1}^{\tau}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2.
+        \label{eq:ctr-focus-decomposition}
+    \end{align}
+
+    Regret switching and the bracket proposition give
+    \begin{align}
+        q_t(x_\star)
+        \leq
+        -\mathfrak R_t
+        +\frac{17}{16}\tr(H_t\Sigma_t)
+        +\operatorname{tail}_t,
+        \label{eq:ctr-q-inward}
+    \end{align}
+    where
+    \begin{align}
+        \operatorname{tail}_t
+        =\frac{\lambda\Lip(e)e^{-\ell}}{\sqrt\pi}
+        \norm{\mu_t-x_\star}
+        \normm{\mu_t-x_\star}{\Sigma_t^{-1}}.
+    \end{align}
+    The bracket scale conditions hold because
+    \begin{align}
+        \lambda(d+2\ell)
+        \leq\frac{4c_\lambda}{C_0}\leq\frac1{64},
+        \qquad
+        \lambda\sqrt{2B}\sqrt{2\ell}
+        =2\sqrt b\leq\frac1{64}.
+    \end{align}
+    The covariance lower bound and focus give
+    \begin{align}
+        \norm{\mu_t-x_\star}\leq2\sigma\sqrt B,
+        \qquad
+        \normm{\mu_t-x_\star}{\Sigma_t^{-1}}\leq\sqrt{2B}.
+    \end{align}
+    Thus
+    \begin{align}
+        \sum_{t=1}^{\tau}\operatorname{tail}_t
+        \leq
+        \frac{32bn\sigma e^{-\ell}}{\lambda\eps\ell}
+        \leq1.
+        \label{eq:ctr-bracket-tail-sum}
+    \end{align}
+    The last inequality follows by substituting the parameters and using
+    $n^{3/2}e^{-\ell}\leq1$.
+
+    By \eqref{eq:ctr-next-covariance},
+    \cref{lem:ctr-gradient-energy} applies.  Furthermore,
+    \begin{align}
+        \frac{24\eta\rho}{\eps}
+        =\frac{48\sqrt{2b}\,c_\eta}
+        {c_\lambda C_\eps d\ell^{7/2}}
+        \leq\frac12.
+        \label{eq:ctr-regret-absorption-condition}
+    \end{align}
+    Combining \eqref{eq:ctr-q-inward} with
+    \eqref{eq:ctr-focus-energy} therefore absorbs the predictable tangent
+    energy into the negative inward-drift term $-\eta\sum_t\mathfrak R_t$.
+    Dropping the remaining nonpositive term and using
+    \eqref{eq:ctr-q-concentration},
+    \eqref{eq:ctr-random-gradient-energy}, and
+    \eqref{eq:ctr-stopped-trace-budget} yields
+    \begin{align}
+        \frac12
+        \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
+         & \leq4d^3M^2
+        +\frac{2^{18}\sqrt b\,\eta R_\rho\sqrt{n\ell}}\lambda
+        +3\cdot2^{16}\eta^2dn\ell R_\rho^2
+        \nonumber      \\
+         & \quad
+        +\frac{17d\log(1+n)}{2\lambda}
+        +\frac{3\cdot2^{16}\eta d\log(1+n)}{\lambda\eps}
+        +\eta.
+        \label{eq:ctr-focus-budget}
+    \end{align}
+    Each term is at most $B/8$ under
+    \eqref{eq:ctr-concrete-constants}.  Explicitly, after division by
+    $B=b/(\lambda^2\ell)$, the first four non-negligible ratios are bounded by
+    \begin{align}
+        \frac{4c_\lambda^2}{b\ell^3},
+        \qquad
+        \frac{2^{22}c_\eta}{\sqrt d},
+        \qquad
+        \frac{3\cdot2^{22}c_\eta^2}{\ell},
+        \qquad
+        \frac{17c_\lambda}{2b\sqrt d\,M},
+    \end{align}
+    respectively; each is smaller than $2^{-20}$.  The last two terms in
+    \eqref{eq:ctr-focus-budget} are smaller still because they contain
+    $C_\eps^{-1}$ or $B^{-1}$.  Therefore
+    \begin{align}
+        \frac12
+        \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
+        \leq B.
+        \label{eq:ctr-focus-strict}
+    \end{align}
+    Focus cannot fail at round $\tau$.
+
+    If $\tau<n$, \eqref{eq:ctr-strict-covariance} and
+    \eqref{eq:ctr-focus-strict} imply
+    \begin{align}
+        \tau<\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{focus}}=\tau,
+    \end{align}
+    a contradiction.  Hence
+    \begin{align}
+        \tau=n.
+        \label{eq:ctr-global-stability}
+    \end{align}
+    In particular, the algorithm never fails, and
+    \eqref{eq:ctr-main-confinement} follows from
+    \cref{lem:ctr-coarse-confinement}.
+
+    \proofstep{4}{Extension regret}
+    Continue on the event used above.  Regret switching and the bracket bound
+    give
+    \begin{align}
+        \sum_{t=1}^n\mathfrak R_t
+        \leq
+        -\sum_{t=1}^nq_t(x_\star)
+        +\frac{17}{16}\sum_{t=1}^n\tr(H_t\Sigma_t)+1.
+        \label{eq:ctr-extension-switch}
+    \end{align}
+    By \eqref{eq:ctr-unprojected-ONS}, dropping the nonnegative final
+    potential gives
+    \begin{align}
+        -\sum_{t=1}^n\widehat q_t^{\mathrm{ctr}}(x_\star)
+        \leq
+        \frac{4d^3M^2}{\eta}
+        +\frac\eta2\sum_{t=1}^n
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2.
+        \label{eq:ctr-ONS-regret}
+    \end{align}
+    Substitute
+    $-q_t=-\widehat q_t^{\mathrm{ctr}}
+        +(\widehat q_t^{\mathrm{ctr}}-q_t)$ into
+    \eqref{eq:ctr-extension-switch}, and apply
+    \eqref{eq:ctr-regret-energy}.  The absorption condition
+    \eqref{eq:ctr-regret-absorption-condition} moves the resulting multiple of
+    $\sum_t\mathfrak R_t$ to the left.  Using
+    \eqref{eq:ctr-q-concentration},
+    \eqref{eq:ctr-random-gradient-energy}, and
+    \eqref{eq:ctr-stopped-trace-budget} gives
+    \begin{align}
+        \frac12\sum_{t=1}^n\mathfrak R_t
+         & \leq
+        \frac{4d^3M^2}{\eta}
+        +3\cdot2^{16}\eta dn\ell R_\rho^2
+        +\frac{2^{18}\sqrt b\,R_\rho\sqrt{n\ell}}\lambda
+        \nonumber \\
+         & \quad
+        +\frac{17d\log(1+n)}{2\lambda\eta}
+        +\frac{3\cdot2^{16}d\log(1+n)}{\lambda\eps}
+        +1.
+        \label{eq:ctr-extension-budget}
+    \end{align}
+    Substituting \eqref{eq:ctr-main-parameters-a}--
+    \eqref{eq:ctr-main-parameters-b}, using
+    $R_\rho\leq2\rho$, \eqref{eq:ctr-rho},
+    $M\sqrt d\geq1$, and $\log(1+n)\leq\ell$, yields
+    \begin{align}
+        \sum_{t=1}^n\mathfrak R_t
+        \leq2^{400}d^3M\ell^4\sqrt n.
+        \label{eq:ctr-extension-regret}
+    \end{align}
+    For example, the five nonconstant terms in
+    \eqref{eq:ctr-extension-budget} are respectively of orders
+    \begin{align}
+        d^3M\ell\sqrt n,
+        \quad
+        d^3M\ell^3\sqrt n,
+        \quad
+        d^{5/2}M\ell^4\sqrt n,
+        \quad
+        d^{5/2}\ell^4\sqrt n,
+        \quad
+        \sqrt d\,\ell^{-1}\sqrt n,
+    \end{align}
+    each bounded by the right-hand side of
+    \eqref{eq:ctr-extension-regret}.
+
+    \proofstep{5}{Realised regret}
+    Azuma's inequality gives, outside an event of probability $\delta/4$,
+    \begin{align}
+        \sum_{t=1}^n
+        \left(f(A_t)-\E_t[f(A_t)]\right)
+        \leq\sqrt{2n\ell}.
+        \label{eq:ctr-action-martingale}
+    \end{align}
+    As in the manuscript,
+    \begin{align}
+        f(x_\star)-\inf_{x\in\K}f(x)\leq\eps,
+        \qquad
+        f(A_t)\leq e(X_t).
+    \end{align}
+    Combining these inequalities with
+    \eqref{eq:ctr-extension-regret} and
+    $n\eps=C_\eps d^2M\ell^4\sqrt n$ gives
+    \begin{align}
+        \operatorname{Reg}_n
+         & \leq
+        \sqrt{2n\ell}
+        +2^{400}d^3M\ell^4\sqrt n
+        +C_\eps d^2M\ell^4\sqrt n
+        \\
+         & \leq2^{500}d^3M\ell^4\sqrt n.
+    \end{align}
+    The concentration event and action-martingale event fail with total
+    probability at most $\delta/2<\delta$, completing the proof.
+\end{proof}
+
+\subsubsection{Why the direct small-shell distance argument does not close}
+
+The preceding theorem obtains the deterministic shell
+$v(\mu_t)\leq\rho=O(d\ell^{3/2})$ from the focus potential.  The following
+identity is the natural starting point for trying to replace this shell by
+$v(\mu_t)=O(\sqrt\ell)$ while retaining the larger step size used in the
+projected theorem.
+
+\begin{lemma}[Exact stopped distance-to-$\K_\eps$ recursion]
+    \label{lem:ctr-distance-recursion}
+    On an active round, let
+    \begin{align}
+        P_t
+        =\argmin_{x\in\K_\eps}
+        \normm{\mu_t-x}{\Sigma_t^{-1}}^2,
+        \qquad
+        \mathsf D_t
+        =\frac12\normm{\mu_t-P_t}{\Sigma_t^{-1}}^2.
+    \end{align}
+    The minimizer is unique and $\F_{t-1}$-measurable.  Put
+    \begin{align}
+        R_t=\sqrt{2\mathsf D_t},
+        \qquad
+        h_t=
+        \begin{cases}
+            \Sigma_t^{-1/2}(\mu_t-P_t)/R_t, & R_t>0, \\
+            e_1,                            & R_t=0,
+        \end{cases}
+        \qquad
+        G_t=\ip{h_t}{Z_t}.
+    \end{align}
+    Then
+    \begin{align}
+        \mathsf D_{t+1}-\mathsf D_t
+         & \leq
+        -\frac{2\eta}{\eps}v(\mu_t)
+        +\eta\widetilde Y_t
+        \left(
+        -R_tG_t
+        +\frac{\lambda R_t^2}{2}(G_t^2-1)
+        \right)
+        \nonumber \\
+         & \qquad
+        +\frac{\eta^2}{2}
+        \normm{\widehat g_t^{\mathrm{ctr}}}{\Sigma_{t+1}}^2.
+        \label{eq:ctr-distance-recursion}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Strict convexity of the quadratic objective gives uniqueness of $P_t$.
+    To prove measurability, let
+    \begin{align}
+        F(\mu,A,x)=(x-\mu)^\top A(x-\mu),
+        \qquad A\succ0.
+    \end{align}
+    The function $F$ is continuous, $\K_\eps$ is compact, and the minimizer is
+    unique.  If $(\mu_k,A_k)\to(\mu,A)$ and $P(\mu_k,A_k)$ has a convergent
+    subsequence with limit $p$, continuity and optimality imply that $p$ is
+    the unique minimizer for $(\mu,A)$.  Hence the entire sequence converges
+    to $P(\mu,A)$, so the projection map is continuous and therefore Borel
+    measurable.
+
+    By the definition of $\mathsf D_{t+1}$,
+    \begin{align}
+        \mathsf D_{t+1}
+        \leq\frac12
+        \normm{\mu_{t+1}-P_t}{\Sigma_{t+1}^{-1}}^2.
+    \end{align}
+    Apply \eqref{eq:ctr-unprojected-ONS} with $x=P_t$.  The random score part
+    satisfies
+    \begin{align}
+         & \ip{
+            \widetilde Y_t\Sigma_t^{-1/2}Z_t
+        }{P_t-\mu_t}
+        +\frac\lambda2
+        (P_t-\mu_t)^\top\widehat H_t^{\mathrm{ctr}}
+        (P_t-\mu_t)
+        \\
+         & \qquad=
+        \widetilde Y_t
+        \left(
+        -R_tG_t
+        +\frac{\lambda R_t^2}{2}(G_t^2-1)
+        \right).
+    \end{align}
+    Finally, \eqref{eq:ctr-inward-support} gives
+    \begin{align}
+        \frac2\eps\ip{s_t}{P_t-\mu_t}
+        \leq-\frac2\eps v(\mu_t).
+    \end{align}
+    Substitution proves \eqref{eq:ctr-distance-recursion}.
+\end{proof}
+
+The threshold implication itself is valid:
+\begin{align}
+    v(\mu_t)>r
+    \quad\Longrightarrow\quad
+    \mathsf D_t>\frac{r^2}{16\sigma^2},
+    \label{eq:ctr-valid-distance-threshold}
+\end{align}
+by the proof of \cref{lem:ctr-coarse-confinement}.  What fails is the
+increment inequality needed to telescope
+\eqref{eq:ctr-distance-recursion} over an excursion.  If
+\begin{align}
+    \nu_r
+    =\max\{t<\tau_r:v(\mu_t)\leq r/2\},
+    \qquad
+    \tau_r=\min\{t:v(\mu_t)>r\},
+\end{align}
+then the direct excursion proof would require a deterministic lower bound such
+as
+\begin{align}
+    \mathsf D_{\tau_r}-\mathsf D_{\nu_r}
+    \geq c\frac{r^2}{\sigma^2}
+    \label{eq:ctr-false-excursion-increment}
+\end{align}
+for a universal $c>0$.  This is false, even with a fixed covariance.
+
+\begin{proposition}[Failure of the distance-excursion increment]
+    \label{prop:ctr-distance-excursion-failure}
+    For every $r>0$ and every $c>0$, there are a convex body, a fixed
+    positive-definite covariance, and points $x,y$ such that
+    \begin{align}
+        v(x)\leq\frac r2,
+        \qquad
+        v(y)>r,
+        \qquad
+        \frac12\operatorname{dist}_{\Sigma^{-1}}(y,\K_\eps)^2
+        -\frac12\operatorname{dist}_{\Sigma^{-1}}(x,\K_\eps)^2
+        <-c\frac{r^2}{\norm{\Sigma}_{\op}}.
+        \label{eq:ctr-distance-excursion-counterexample}
+    \end{align}
+    Moreover, Euclidean squared distance cannot replace the Mahalanobis
+    potential using only the deterministic correction $-(2\eta/\eps)\Sigma s$
+    for an arbitrary selector $s\in\partial v(\mu)$.
+\end{proposition}
+
+\begin{proof}
+    Take
+    \begin{align}
+        \K_\eps=[-1,1]^2,
+        \qquad
+        v(z)=\left(\max\{|z_1|,|z_2|\}-1\right)_+.
+    \end{align}
+    Put
+    \begin{align}
+        x=(1+r/2,0),
+        \qquad
+        y=(0,1+2r),
+        \qquad
+        \Sigma^{-1}=
+        \begin{pmatrix}
+            \kappa & 0 \\
+            0      & 1
+        \end{pmatrix}.
+    \end{align}
+    Then $v(x)=r/2$ and $v(y)=2r>r$, while
+    \begin{align}
+        \frac12\operatorname{dist}_{\Sigma^{-1}}(x,\K_\eps)^2
+        =\frac{\kappa r^2}{8},
+        \qquad
+        \frac12\operatorname{dist}_{\Sigma^{-1}}(y,\K_\eps)^2
+        =2r^2.
+    \end{align}
+    Since $\norm{\Sigma}_{\op}=1$, choosing
+    $\kappa>16+8c$ proves
+    \eqref{eq:ctr-distance-excursion-counterexample}.  Thus a larger raw
+    violation can be reached while the stopped Mahalanobis distance decreases
+    by an arbitrarily large amount.
+
+    For the Euclidean claim, take
+    \begin{align}
+        \mu=(1+r,1+r),
+        \qquad
+        s=e_1\in\partial v(\mu),
+        \qquad
+        \Sigma=
+        \begin{pmatrix}
+            1  & -2 \\
+            -2 & 5
+        \end{pmatrix}.
+    \end{align}
+    The matrix is positive definite because its leading principal minors are
+    $1$ and $1$.  The Euclidean projection is $P=(1,1)$, and for the pure
+    tangent correction $\Delta=-a\Sigma s=a(-1,2)$ with $a>0$,
+    \begin{align}
+        \ip{\mu-P}{\Delta}=ar>0.
+    \end{align}
+    Hence
+    \begin{align}
+        \frac12\operatorname{dist}(\mu+\Delta,\K_\eps)^2
+        -\frac12\operatorname{dist}(\mu,\K_\eps)^2
+        =ar+O(a^2)>0
+    \end{align}
+    for all sufficiently small $a$.  This disproves a selector-uniform
+    Euclidean inward-drift inequality based only on the deterministic tangent
+    term.  It does not assert that the full centred estimator is unstable; the
+    random tangent remainder has a compensating conditional mean.
+\end{proof}
+
+\paragraph{Exact proof status for the stronger parameter choice.}
+The centred estimator removes the affine gauge component from the random
+Hermite scores, and every estimator, feedback, covariance, focus, and regret
+calculation above is complete.  With the smaller step size in
+\eqref{eq:ctr-main-parameters-b}, the stopped focus potential itself supplies
+coarse confinement and closes the bootstrap.  To retain the projected
+manuscript's larger choice $\eta\asymp dM/\sqrt n$, the covariance
+concentration bound would require a shell $v(\mu_t)=O(\sqrt\ell)$ rather than
+\eqref{eq:ctr-main-confinement}.  The direct attempt to prove that shell from
+\eqref{eq:ctr-distance-recursion} first needs an excursion comparison of the
+form \eqref{eq:ctr-false-excursion-increment};
+\cref{prop:ctr-distance-excursion-failure} shows that this particular
+inequality is false.  A same-rate theorem would therefore require a different
+multi-face confinement potential or a more restrictive selector rule.  No
+such extra assumption is used in \cref{thm:ctr-main}.

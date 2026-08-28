@@ -1,0 +1,178 @@
+\subsubsection{Proof of \cref{prop:laplace_infinite_second_moment}}
+\label{proof:laplace_infinite_second_moment}
+\begin{proof}
+    Recall that
+    \begin{align}
+        R_0
+        = \frac{p_{X,T_0}(X, T_0)}{p_X(X) p_{T_0}(T_0)}
+        = \frac{p_{X|T_0=T_0}(X)}{p_X(X)}\,.
+    \end{align}
+    The lower bound idea is to consider a very large value of $x$, say $x=10000$, then $p_X(10000)$ is very small as it is really a tail event.
+    However, if we condition on $T_0=10000/\lambda$, then $p_{X|T_0=10000/\lambda}(10000)$ is not a tail event at all, and it is much bigger than $p_X(10000)$, so the ratio is very large.
+    \textbf{The main saving grace here is that the probability of $t=10000/\lambda$ is also very small}, but it turns out that it is not small enough to cancel this out.
+
+    \paragraph{Step 1: the bad strip.}
+    However, we show that $R_0$ is actually exponentially large when
+    \begin{align}
+        X \in [\lambda T_0 - \epsilon, \lambda T_0 + \epsilon]\,, \qquad\text{and}\qquad T_0 > 2\epsilon/\lambda\,,
+    \end{align}
+    and $\epsilon$ is a small constant, say $\epsilon = \frac12$.
+
+    \paragraph{Step 2: $p(x)$ has a $\lambda$-Laplace tail.}
+    Define $Z$ as
+    \begin{align}
+        Z = \lambda\sum_{k=1}^\infty (1-\lambda)^k T_k\,,
+        \qquad\text{so that}\qquad
+        X = \lambda T_0 + Z\,,
+    \end{align}
+    where $Z \perp T_0$ and $Z \stackrel{d.}{=}(1-\lambda)X$,
+    so its density is given by
+    \begin{align}
+        p_z(z) = \frac{1}{1-\lambda} p_X\left(\frac{z}{1-\lambda}\right)\,.
+    \end{align}
+    Let
+    \begin{align}
+        q_\lambda(u)\triangleq \frac{1}{2\lambda}e^{-|u|/\lambda},
+    \end{align}
+    which is the density of $\lambda T_0$.
+    Since $X=\lambda T_0+Z$, we have $p=q_\lambda * p_z$, that is,
+    \begin{align}
+        p(x)=\int_{\R} q_\lambda(x-z)p_z(z)\,dz.
+    \end{align}
+    Therefore, for $x>0$,
+    \begin{align}
+        p(x)
+        =
+        \int_{\R}\frac{1}{2\lambda}e^{-|x-z|/\lambda}p_z(z)\,dz
+        \le
+        \frac{1}{2\lambda}e^{-x/\lambda}\int_{\R}e^{|z|/\lambda}p_z(z)\,dz\,,
+    \end{align}
+    where we used $|x-z|\ge x-|z|$.
+    Set
+    \begin{align}
+        C_\lambda \triangleq \int_{\R} e^{|z|/\lambda}p_z(z)\,dz = \E[e^{|Z|/\lambda}]\,.
+    \end{align}
+    We claim that $C_\lambda<\infty$ and we prove it at the end.
+    So the tail bound is
+    \begin{align}
+        p(x) \le \frac{C_\lambda}{2\lambda}e^{-x/\lambda}\,.
+        \label{eq:laplace_p_tail_bound}
+    \end{align}
+
+    \paragraph{Step 3: lower bound the integrand on an infinite strip.}
+    First, note that
+    \begin{align}
+        \E[R_0]
+         & =
+        \int_{\R}\int_{\R}
+        \left(
+        \frac{P_{X,T_0}(x, t)}{P_X(x) P_{T_0}(t)}
+        \right)
+        P_{X,T_0}(x, t) dx\,dt
+        \\
+         & =
+        \int_{\R}\int_{\R}
+        \frac{P_{X|T_0=t}(x)}{P_X(x)}
+        P_{X,T_0}(x, t) dx\,dt
+        \\
+         & =
+        \int_{\R}\int_{\R}
+        \frac{q(t)}{p(x)} P_{X|T_0=t}(x)^2 dx\,dt
+        \\
+         & \ge
+        \frac{\lambda}{C_\lambda}
+        \int_{\R}\int_{x>0}
+        \,\frac{
+            e^{-|t|}
+        }{e^{-x/\lambda}}
+        P_{X|T_0=t}(x)^2
+        \,dx\,dt
+        \\
+         & \geq
+        \frac{\lambda}{C_\lambda}
+        \int_{t>0}\int_{x>0}
+        e^{\frac{x}{\lambda} - t}
+        P_{X|T_0=t}(x)^2
+        dx\,dt
+        \,.
+    \end{align}
+    Recall the bad strip, which we denote by $\mathcal S$,
+    \begin{align}
+        \mathcal S \triangleq \{(t,x): t\ge 2\epsilon/\lambda,\ |x-\lambda t|\le \epsilon\}.
+    \end{align}
+    We can continue the lower bound as
+    \begin{align}
+        \E[R^2]
+         & \geq
+        \frac{\lambda}{C_\lambda}
+        \int_{2\epsilon/\lambda}^\infty \int_{\lambda t - \epsilon}^{\lambda t + \epsilon}
+        e^{\frac{x}{\lambda} - t}
+        P_{X|T_0=t}(x)^2
+        \,dx\,dt
+        \\
+         & \geq
+        \frac{\lambda}{C_\lambda}
+        \int_{2\epsilon/\lambda}^\infty \int_{\lambda t - \epsilon}^{\lambda t + \epsilon}
+        e^{\frac{\lambda t - \epsilon}{\lambda} - t}
+        P_{X|T_0=t}(x)^2
+        \,dx\,dt
+        \\
+         & \geq
+        \frac{\lambda}{C_\lambda}
+        e^{-\frac{\epsilon}{\lambda}}
+        \int_{2\epsilon/\lambda}^\infty \int_{\lambda t - \epsilon}^{\lambda t + \epsilon}
+        P_{X|T_0=t}(x)^2
+        \,dx\,dt
+        \\
+         & \geq
+        \frac{\lambda}{C_\lambda}
+        e^{-\frac{\epsilon}{\lambda}}
+        \int_{2\epsilon/\lambda}^\infty \int_{\lambda t - \epsilon}^{\lambda t + \epsilon}
+        \inf_{|u|\le \epsilon} p_{X|T_0=t}(u)^2 \,dx\,dt
+        \geq
+        \infty\,,
+    \end{align}
+    where to see the last step, first observe that for $\epsilon=\frac12$ there exists $m_\lambda>0$ such that
+    \begin{align}
+        \inf_{|u|\le \epsilon} p_{X|T_0=t}(u) \ge m_\lambda\,.
+    \end{align}
+    This uses nothing but the fact that $p_{X|T_0=t}(u)$ is positive everywhere and continuous.
+
+    \paragraph{Step 4: bounding $C_\lambda = \E[e^{|Z|/\lambda}]$.}
+    We have
+    \begin{align}
+        \frac{|Z|}{\lambda}
+        \le
+        \sum_{k=1}^\infty (1-\lambda)^k |T_k|,
+    \end{align}
+    hence, by independence,
+    \begin{align}
+        \E[e^{|Z|/\lambda}]
+         & \le
+        \prod_{k=1}^\infty \E\!\left[e^{(1-\lambda)^k |T_k|}\right].
+    \end{align}
+    For a Laplace random variable $L\sim\mathrm{Laplace}(0,1)$ and every $\alpha\in(0,1)$,
+    \begin{align}
+        \E[e^{\alpha|L|}]
+        =
+        \int_0^\infty e^{-x}e^{\alpha x}\,dx
+        =
+        \frac{1}{1-\alpha}.
+    \end{align}
+    Therefore,
+    \begin{align}
+        \E[e^{|Z|/\lambda}]
+        \le
+        \prod_{k=1}^\infty \frac{1}{1-(1-\lambda)^k}.
+    \end{align}
+    To see that this product is finite, it is enough to show that
+    \begin{align}
+        \sum_{k=1}^\infty -\log\bigl(1-(1-\lambda)^k\bigr)<\infty.
+    \end{align}
+    Since $(1-\lambda)^k\to 0$, there exists $K$ such that $(1-\lambda)^k\le 1/2$ for all $k\ge K$.
+    For $x\in[0,1/2]$, we have $-\log(1-x)\le 2x$, so for $k\ge K$,
+    \begin{align}
+        -\log\bigl(1-(1-\lambda)^k\bigr)\le 2(1-\lambda)^k.
+    \end{align}
+    The right-hand side is summable, so the product is finite and $C_\lambda<\infty$.
+\end{proof}
