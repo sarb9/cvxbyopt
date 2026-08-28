@@ -2507,14 +2507,14 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \sum_{t=1}^{\tau_{\mathrm{cov}}}
         \E_t[Y_t^2]
         \leq
-        6nB^2.
+        6nB_Y^2.
         \label{eq:feedback-freedman-variance}
     \end{align}
     Applying the Freedman inequality \cref{lem:freedman} with
     \begin{align}
         b=B_Y^2,
         \qquad
-        s^2=6nB^2,
+        s^2=6nB_Y^2,
         \qquad
         z=\sqrt{2\log\frac{32}{\delta}},
     \end{align}
@@ -2527,9 +2527,9 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq
         \sqrt2\,s z+bz^2
         \leq
-        2B\sqrt{6n\ell}
+        2B_Y\sqrt{6n\ell}
         +
-        2B^2\ell.
+        2B_Y^2\ell.
         \label{eq:feedback-freedman}
     \end{align}
     Finally, the parameter definitions give
@@ -2554,9 +2554,9 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq
         6n
         +
-        2B\sqrt{6n\ell}
+        2B_Y\sqrt{6n\ell}
         +
-        2B^2\ell
+        2B_Y^2\ell
         \\
          &
         \leq
