@@ -437,8 +437,22 @@ where $C_0$ is a sufficiently large universal constant.
 
 \begin{theorem}
     \label{thm:main}
-    There are universal constants $c_\lambda,c_\eta,C_\eps,C>0$ for which the
-    following holds.  Set
+    There are universal constants $c_\lambda,c_\eta,C_\eps,b>0$ for which the
+    following holds.  Define
+    \begin{align}
+        C
+        =\max\left\{
+        2C_\eps,
+        \sqrt2+C_\eps
+        +\frac4{c_\eta}
+        +72c_\eta
+        +\frac{2^9\sqrt b}{c_\lambda}
+        +\frac{17}{2c_\lambda c_\eta}
+        +1
+        \right\}.
+        \label{eq:main-constant-choice}
+    \end{align}
+    Set
     \begin{align}
         \sigma  & =\frac1{M\sqrt{2d}},
                 &
@@ -791,7 +805,7 @@ minimizer of $e$.  Consequently,
     \E_t[e(X_t)]-e(x_\star)\geq0.
     \label{eq:stationarity-sign}
 \end{align}
-Fix a universal constant $b>0$ and define the focus radius
+Fix the universal constant $b>0$ from \cref{thm:main} and define the focus radius
 $B=\frac{b}{\lambda^2\ell}$
 and the stopping times
 \begin{align}
@@ -893,32 +907,17 @@ The proof is in \cref{app:concentration}.
         \frac{c_\lambda c_\eta}{C_\eps C_0^6}
         \leq\frac18,
         \quad
-        \frac{C_3c_\lambda c_\eta}{\sqrt{C_0}}
+        \frac{2^{12}c_\lambda c_\eta}{\sqrt{C_0}}
         \leq\frac14,
         \quad
         4
-        +\frac{C_1c_\eta}{c_\lambda}
-        +\frac{3C_2}{2}c_\eta^2
+        +\frac{2^9\sqrt b\,c_\eta}{c_\lambda}
+        +72c_\eta^2
         +\frac{16}{c_\lambda}
         +c_\eta
         \leq
         \frac{b}{c_\lambda^2}.
         \label{eq:stability-constants-two}
-    \end{align}
-    and
-    \begin{align}
-        C
-         & \geq 2C_\eps,
-         &
-        C
-         & \geq
-        \sqrt2+C_\eps
-        +\frac4{c_\eta}
-        +\frac{3C_2c_\eta}{2}
-        +\frac{C_1}{c_\lambda}
-        +\frac{17}{2c_\lambda c_\eta}
-        +1.
-        \label{eq:main-constant-choice}
     \end{align}
     If $\eps_0>1/2$, then
     \begin{align}
@@ -942,11 +941,11 @@ The proof is in \cref{app:concentration}.
     We first show that the covariance condition holds at round $\tau$.
     By \eqref{eq:stability-constants-two},
     \begin{align}
-        C_3\lambda\eta\ell^{3/2}\sqrt{dn}
+        2^{12}\lambda\eta\ell^{3/2}\sqrt{dn}
         =
-        \frac{C_3c_\lambda c_\eta}{\sqrt\ell}
+        \frac{2^{12}c_\lambda c_\eta}{\sqrt\ell}
         \leq
-        \frac{C_3c_\lambda c_\eta}{\sqrt{C_0}}
+        \frac{2^{12}c_\lambda c_\eta}{\sqrt{C_0}}
         \leq\frac14\,.
         \label{eq:main-stability-H-small}
     \end{align}
@@ -955,14 +954,14 @@ The proof is in \cref{app:concentration}.
         -\frac14
         \overline\Sigma_{\tau+1}^{-1}
         \preceq
-        -C_3\eta\lambda\ell^{3/2}\sqrt{dn}\,
+        -2^{12}\eta\lambda\ell^{3/2}\sqrt{dn}\,
         \overline\Sigma_{\tau+1}^{-1}
         \preceq
         \eta\lambda
         \sum_{t=1}^{\tau}
         (\widehat H_t-H_t)
         \preceq
-        C_3\eta\lambda\ell^{3/2}\sqrt{dn}
+        2^{12}\eta\lambda\ell^{3/2}\sqrt{dn}
         \overline\Sigma_{\tau+1}^{-1}
         \preceq
         \frac{1}{4}
@@ -1020,7 +1019,7 @@ The proof is in \cref{app:concentration}.
         \leq
         3\sum_{t=1}^{\tau}
         \normm{\widehat g_t}{\Sigma_t}^2
-        \leq 3C_2dn\ell.
+        \leq 144dn\ell.
         \label{eq:main-next-gradient-energy}
     \end{align}
     Likewise, the lower comparison in
@@ -1172,8 +1171,8 @@ The proof is in \cref{app:concentration}.
         +\frac{\eta^2}{2}\sum_{t=1}^{\tau}
         \normm{\widehat g_t}{\Sigma_{t+1}}^2
         \leq
-        \frac{C_1\eta\sqrt{n\ell}}{\lambda}
-        +\frac{3C_2\eta^2dn\ell}{2}.
+        \frac{2^9\sqrt b\,\eta\sqrt{n\ell}}{\lambda}
+        +72\eta^2dn\ell.
     \end{align}
 
     \proofstepinline{1.2.3}
@@ -1187,16 +1186,16 @@ The proof is in \cref{app:concentration}.
         \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
          & \leq
         4d^3M^2
-        +\frac{C_1\eta\sqrt{n\ell}}{\lambda}
-        +\frac{3C_2\eta^2dn\ell}{2}
+        +\frac{2^9\sqrt b\,\eta\sqrt{n\ell}}{\lambda}
+        +72\eta^2dn\ell
         +\frac{16d\log(2n)}{\lambda}
         +\eta n^{3/2}e^{-\ell}
         \\
          & \leq
         d^3M^2\ell^3\left(
         4
-        +\frac{C_1c_\eta}{c_\lambda}
-        +\frac{3C_2}{2}c_\eta^2
+        +\frac{2^9\sqrt b\,c_\eta}{c_\lambda}
+        +72c_\eta^2
         +\frac{16}{c_\lambda}
         +c_\eta
         \right)
@@ -1301,7 +1300,7 @@ The proof is in \cref{app:concentration}.
         \normm{\widehat g_t}{\Sigma_{t+1}}^2
         \leq
         \frac{4d^3M^2}{\eta}
-        +\frac{3C_2\eta dn\ell}{2},
+        +72\eta dn\ell,
     \end{align}
     where the second inequality uses \eqref{eq:initial-focus} and the
     next-gradient estimate \eqref{eq:main-next-gradient-energy} from
@@ -1323,8 +1322,8 @@ The proof is in \cref{app:concentration}.
         \nonumber           \\
          & \explan{\leq}{a}
         \frac{4d^3M^2}{\eta}
-        +\frac{3C_2\eta dn\ell}{2}
-        +\frac{C_1\sqrt{n\ell}}{\lambda}
+        +72\eta dn\ell
+        +\frac{2^9\sqrt b\,\sqrt{n\ell}}{\lambda}
         +\frac{17d\log(1+n)}{2\lambda\eta}
         +1.
         \label{eq:main-extension-budget}
@@ -1336,23 +1335,23 @@ The proof is in \cref{app:concentration}.
     $\log(1+n)\leq\ell$, the right-hand side satisfies
     \begin{align}
          & \frac{4d^3M^2}{\eta}
-        +\frac{3C_2\eta dn\ell}{2}
-        +\frac{C_1\sqrt{n\ell}}{\lambda}
+        +72\eta dn\ell
+        +\frac{2^9\sqrt b\,\sqrt{n\ell}}{\lambda}
         +\frac{17d\log(1+n)}{2\lambda\eta}
         +1
         \nonumber               \\
          & \quad\leq
         \frac4{c_\eta}d^2M\sqrt n
-        +\frac{3C_2c_\eta}{2}d^2M\ell\sqrt n
-        +\frac{C_1}{c_\lambda}d^{3/2}M\ell^{5/2}\sqrt n
+        +72c_\eta d^2M\ell\sqrt n
+        +\frac{2^9\sqrt b}{c_\lambda}d^{3/2}M\ell^{5/2}\sqrt n
         +\frac{17}{2c_\lambda c_\eta}d^{3/2}\ell^3\sqrt n
         +1
         \nonumber               \\
          & \quad\leq
         \left(
         \frac4{c_\eta}
-        +\frac{3C_2c_\eta}{2}
-        +\frac{C_1}{c_\lambda}
+        +72c_\eta
+        +\frac{2^9\sqrt b}{c_\lambda}
         +\frac{17}{2c_\lambda c_\eta}
         +1
         \right)d^2M\ell^3\sqrt n.
@@ -1394,8 +1393,8 @@ The proof is in \cref{app:concentration}.
         +C_\eps d^2M\ell^4\sqrt n
         +\left(
         \frac4{c_\eta}
-        +\frac{3C_2c_\eta}{2}
-        +\frac{C_1}{c_\lambda}
+        +72c_\eta
+        +\frac{2^9\sqrt b}{c_\lambda}
         +\frac{17}{2c_\lambda c_\eta}
         +1
         \right)d^2M\ell^3\sqrt n
@@ -1404,8 +1403,8 @@ The proof is in \cref{app:concentration}.
         \left(
         \sqrt2+C_\eps
         +\frac4{c_\eta}
-        +\frac{3C_2c_\eta}{2}
-        +\frac{C_1}{c_\lambda}
+        +72c_\eta
+        +\frac{2^9\sqrt b}{c_\lambda}
         +\frac{17}{2c_\lambda c_\eta}
         +1
         \right)d^2M\ell^4\sqrt n
@@ -1787,8 +1786,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \norm{z}^2\tr Q(z)
         =
         \norm{z}^2.$
-    On $\mathcal A$, \eqref{ineq:lambda-z-squared-bound}
-    and letting $c_0=\frac{1}{64}$ gives $\lambda\norm{z}^2\leq1/16$.
+    On $\mathcal A$, \eqref{ineq:lambda-z-squared-bound} gives $\lambda\norm{z}^2\leq1/16$.
     Hence,
     \begin{align}
         \lambda
@@ -1955,18 +1953,6 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     Plugging \eqref{eq:bracket-step1} and \eqref{eq:bracket-step2}
     into \eqref{eq:standardized-comparator-curvature}
     completes the proof.
-    %     \frac\lambda2\normm{\mu-x}{H}^2
-    %     -
-    %     \E[D_e(x\,\|\,X)]
-    %     \leq
-    %     \frac1{16}\tr(H\Sigma)
-    %     +
-    %     \frac{\lambda L\beta}{2\sqrt\pi}
-    %     \norm{\mu-x}
-    %     \normm{\mu-x}{\Sigma^{-1}}.
-    % \end{align}
-    % Since $1/(2\sqrt\pi)$ is a universal constant, this proves
-    % \eqref{eq:bracket}.
 \end{proof}
 
 \section{Proof of \cref{lem:trace}}
@@ -3245,7 +3231,7 @@ The following chi-square upper-tail inequality follows from
     \begin{align}
         |x^\top M_\tau x|
         \leq
-        C_3\ell^{3/2}\sqrt{dn} \|x\|^2_{\overline\Sigma_{\tau+1}^{-1}}.
+        2^{12}\ell^{3/2}\sqrt{dn} \|x\|^2_{\overline\Sigma_{\tau+1}^{-1}}.
     \end{align}
     Let $\mathcal U$ be a $\left(2^9dn^2\right)^{-1}$-net of
     $\mathbb S^{d-1}$ which, by the standard volumetric covering bound
@@ -3345,7 +3331,7 @@ The following chi-square upper-tail inequality follows from
         \max_{u\in\mathcal U}
         \sum_{t=1}^\tau W_{t,u}
         \leq
-        C\ell^2n
+        2^{19}\ell^2n
         \right\}\,.
     \end{align}
     Let $R_{t,u}=W_{t,u}-\E_t[W_{t,u}]$ be a martingale difference sequence, so that
@@ -3541,7 +3527,7 @@ The following chi-square upper-tail inequality follows from
         Q_{t,u}^2+\E_t[Q_{t,u}^2]
         \right)
         \leq
-        2^{20}(a_u^\star)^2\ell^2n.
+        2^{21}(a_u^\star)^2\ell^2n.
         \label{eq:H-directional-self-normaliser}
     \end{align}
     Let $J = \lceil \log_2(6dn^2) \rceil$
@@ -3739,270 +3725,5 @@ The following chi-square upper-tail inequality follows from
     \end{align}
     This proves \eqref{eq:H-concentration}.
 \end{proof}
-
-
-
-
-
-% \section{Proof of \cref{prop:stability}}
-% \label{app:stability}
-
-% \begin{proof}[Proof of \cref{prop:stability}]
-%     Write $\tau=\tau_{\mathrm{safe}}$.
-%     By \eqref{eq:stability-constants-one} and \eqref{eq:initial-focus}
-%     the stopped invariants \eqref{eq:stability-stopped-invariants} hold.
-%     Work on the event in \cref{prop:concentration}, which has probability at
-%     least $1-\delta/4\geq1-\delta/2$.
-
-%     The proof is by contradiction: suppose that $\tau_{\mathrm{safe}}<n$.
-%     \proofstep{1}{Proving that $\tau_{\mathrm{safe}}<\tau_{\mathrm{cov}}$}
-%     By \eqref{eq:stability-constants-two},
-%     \begin{align}
-%         C_3\lambda\eta\ell^{3/2}\sqrt{dn}
-%         =
-%         \frac{C_3c_\lambda c_\eta}{\sqrt\ell}
-%         \leq
-%         \frac{C_3c_\lambda c_\eta}{\sqrt{C_0}}
-%         \leq\frac14\,.
-%         \label{eq:stability-H-small}
-%     \end{align}
-%     Therefore, by multiplying \eqref{eq:H-concentration} by $\eta\lambda$ we have
-%     \begin{align}
-%         -\frac14
-%         \overline\Sigma_{\tau_{\mathrm{safe}}+1}^{-1}
-%         \preceq
-%         -C_3\eta\lambda\ell^{3/2}\sqrt{dn}\,
-%         \overline\Sigma_{\tau_{\mathrm{safe}}+1}^{-1}
-%         \preceq
-%         \eta\lambda
-%         \sum_{t=1}^{\tau_{\mathrm{safe}}}
-%         (\widehat H_t-H_t)
-%         \preceq
-%         C_3\eta\lambda\ell^{3/2}\sqrt{dn}
-%         \overline\Sigma_{\tau_{\mathrm{safe}}+1}^{-1}
-%         \preceq
-%         \frac{1}{4}
-%         \overline\Sigma_{\tau_{\mathrm{safe}}+1}^{-1}\,.
-%         \label{eq:stability-H-small-2}
-%     \end{align}
-%     Moreover, since every earlier covariance comparison holds, the proposed precision
-%     at round $\tau$ satisfies
-%     \begin{align}
-%         \Sigma_{\tau}^{-1}
-%         +\lambda\eta\widehat H_{\tau}
-%          & =
-%         \Sigma_1^{-1}
-%         +\lambda\eta\sum_{t=1}^{\tau}\widehat H_t
-%         =
-%         \overline\Sigma_{\tau+1}^{-1}
-%         +
-%         \lambda\eta\sum_{t=1}^{\tau}
-%         (\widehat H_t-H_t).
-%     \end{align}
-%     Combining this with \eqref{eq:stability-H-small-2} gives
-%     \begin{align}
-%         \frac34\overline\Sigma_{\tau+1}^{-1}
-%         \preceq
-%         \Sigma_{\tau}^{-1}
-%         +\lambda\eta\widehat H_{\tau}
-%         \preceq\frac54\overline\Sigma_{\tau+1}^{-1}.
-%         \label{eq:strict-comparison}
-%     \end{align}
-%     Thus the algorithm performs the update at round $\tau$ and
-%     $\Sigma_{\tau+1}^{-1}
-%         =\Sigma_{\tau}^{-1}
-%         +\lambda\eta\widehat H_{\tau}$; moreover, the
-%     covariance comparison holds at this round
-%     which means that $\tau_{\mathrm{safe}}<\tau_{\mathrm{cov}}$.
-
-%     The covariance comparisons for $t<\tau$ and
-%     \eqref{eq:strict-comparison} at $t=\tau$ now give, for every $t\leq\tau$,
-%     \begin{align}
-%         \Sigma_{t+1}^{-1}
-%         \succeq
-%         \frac12\overline\Sigma_{t+1}^{-1}
-%         \succeq
-%         \frac12\overline\Sigma_t^{-1}
-%         \succeq
-%         \frac13\Sigma_t^{-1}.
-%     \end{align}
-%     Inverting this inequality and then applying \eqref{eq:gradient-energy}
-%     yields
-%     \begin{align}
-%         \sum_{t=1}^{\tau}
-%         \normm{\widehat g_t}{\Sigma_{t+1}}^2
-%         \leq
-%         3\sum_{t=1}^{\tau}
-%         \normm{\widehat g_t}{\Sigma_t}^2
-%         \leq 3C_2dn\ell.
-%         \label{eq:next-gradient-energy}
-%     \end{align}
-%     Likewise, the lower comparison in
-%     \eqref{eq:stability-stopped-invariants} gives
-%     $\Sigma_t\preceq2\overline\Sigma_t$.  Since
-%     $\tau\leq\tau_{\mathrm{cov}}$ and
-%     $\tr(H_t\overline\Sigma_t)\geq0$, \cref{lem:trace} gives
-%     \begin{align}
-%         \eta\sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
-%         \leq
-%         2\eta\sum_{t=1}^{\tau}
-%         \tr(H_t\overline\Sigma_t)
-%         \leq
-%         2\eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
-%         \tr(H_t\overline\Sigma_t)
-%         \leq\frac{8d\log(1+n)}{\lambda}.
-%         \label{eq:stability-stopped-trace}
-%     \end{align}
-
-%     \proofstep{2}{Proving that $\tau_{\mathrm{safe}}<\tau_{\mathrm{focus}}$}
-%     Summing \eqref{eq:ons-step} through round $\tau$ gives
-%     \begin{align}
-%         \frac12
-%         \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
-%          & \leq
-%         \frac12\normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2
-%         +\eta\sum_{t=1}^{\tau}
-%         \left(
-%         \widehat q_t(x_\star)
-%         -
-%         \widehat q_t(\mu_t)
-%         \right)
-%         +\frac{\eta^2}{2}\sum_{t=1}^{\tau}
-%         \normm{\widehat g_t}{\Sigma_{t+1}}^2
-%         \\
-%          & =
-%         \frac12\normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2
-%         +\eta\sum_{t=1}^{\tau}q_t(x_\star)
-%         +\eta\sum_{t=1}^{\tau}
-%         \bigl(\widehat q_t(x_\star)-q_t(x_\star)\bigr)
-%         +\frac{\eta^2}{2}\sum_{t=1}^{\tau}
-%         \normm{\widehat g_t}{\Sigma_{t+1}}^2\,,
-%         \label{eq:stability-focus-decomposition}
-%     \end{align}
-%     where equality holds because $\widehat q_t(\mu_t)=0$.
-
-%     \proofstepinline{2.1}
-%     To bound the sum involving $q_t(x_\star)$ in \eqref{eq:stability-focus-decomposition}, write
-%     \begin{align}
-%         q_t(x_\star)
-%          &
-%         \explan{=}{a}
-%         -\bigl(\E_t[e(X_t)]-e(x_\star)\bigr)
-%         +\tr(H_t\Sigma_t)
-%         +\frac\lambda2\normm{\mu_t-x_\star}{H_t}^2
-%         -\E_t[D_e(x_\star\,\|\,X_t)]         \\
-%          &
-%         \explan{\leq}{b}
-%         \tr(H_t\Sigma_t)
-%         +\frac\lambda2\normm{\mu_t-x_\star}{H_t}^2
-%         -\E_t[D_e(x_\star\,\|\,X_t)]         \\
-%          &
-%         \explan{\leq}{c}
-%         \frac{17}{16}\tr(H_t\Sigma_t)
-%         +\frac{\lambda\Lip(e)e^{-\ell}}{\sqrt\pi}
-%         \norm{\mu_t-x_\star}
-%         \normm{\mu_t-x_\star}{\Sigma_t^{-1}} \\
-%          &
-%         \explan{\leq}{d}
-%         2\tr(H_t\Sigma_t)
-%         +\frac{32d \lambda e^{-\ell}}{\eps\sqrt\pi}
-%         \sqrt{2B}
-%         \\
-%          & \explan{\leq}{e}
-%         2\tr(H_t\Sigma_t)
-%         + \sqrt{n}e^{-\ell}\,,
-%         \label{eq:q-upper}
-%     \end{align}
-%     where \reason{a} uses \cref{cor:regret-switch} and the fact that
-%     $q_t(\mu_t)=0$;
-%     \reason{b} $\E_t[e(X_t)]-e(x_\star)\geq0$;
-%     and \reason{c} uses \cref{prop:bracket} with $\beta=e^{-\ell}$
-%     as its hypotheses are satisfied
-%     for every $t\leq\tau$, since
-%     \begin{align}
-%         \lambda\left(d+\log(2e^\ell)\right)
-%          & \leq
-%         \lambda\left(d+2\ell\right)
-%         \leq
-%         \frac{c_\lambda}{\ell^2}
-%         +\frac{2c_\lambda}{\ell}
-%         \leq
-%         \frac{4c_\lambda}{C_0}
-%         \leq\frac1{64},
-%         \label{eq:stability-bracket-scale}
-%         \\
-%         \lambda
-%         \normm{\mu_t-x_\star}{\Sigma_t^{-1}}
-%         \sqrt{\log(2e^\ell)}
-%          & \leq
-%         \lambda\sqrt{2B}\sqrt{2\ell}
-%         =2\sqrt b
-%         \leq\frac1{64}.
-%         \label{eq:stability-bracket-focus}
-%     \end{align}
-%     Inequality \reason{d} uses the fact that $\Lip(e)\leq\frac{8}{\eps}$, $\norm{\mu_t-x_\star}\leq4d$,
-%     and for every $t\leq\tau$, $\normm{\mu_t-x_\star}{\Sigma_t^{-1}}\leq\sqrt{2B}$ by \eqref{eq:stability-stopped-invariants}.
-%     Finally, \reason{e} follows by the choice of constants.
-%     Therefore, we have
-%     \begin{align}
-%         \eta\sum_{t=1}^{\tau}q_t(x_\star)
-%          & \leq
-%         2\eta\sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
-%         +\eta\tau\sqrt{n}e^{-\ell}
-%         \explan{\leq}{a}
-%         4\eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
-%         +\eta\tau\sqrt{n}e^{-\ell}
-%         \explan{\leq}{b}
-%         \frac{16d\log(2n)}{\lambda}
-%         +\eta n^{3/2}e^{-\ell}
-%         \,,
-%     \end{align}
-%     where \reason{a} uses $\Sigma_t\preceq2\overline\Sigma_t$ and
-%     \reason{b} uses \cref{lem:trace} and $\tau\leq n$.
-
-%     \proofstepinline{2.2}
-%     The sums involving $\widehat q_t(x_\star)-q_t(x_\star)$ and
-%     $\normm{\widehat g_t}{\Sigma_{t}}^2$
-%     in \eqref{eq:stability-focus-decomposition} are bounded by \eqref{eq:q-concentration} and \eqref{eq:next-gradient-energy} as
-%     \begin{align}
-%         \eta\sum_{t=1}^{\tau}
-%         \bigl(\widehat q_t(x_\star)-q_t(x_\star)\bigr)
-%         +\frac{\eta^2}{2}\sum_{t=1}^{\tau}
-%         \normm{\widehat g_t}{\Sigma_{t+1}}^2
-%         \leq
-%         \frac{C_1\eta\sqrt{n\ell}}{\lambda}
-%         +\frac{C_2\eta^2dn\ell}{2}.
-%     \end{align}
-
-%     \proofstepinline{2.3}
-%     By $\frac12\norm{\mu_1 - x_\star}_{\Sigma_1^{-1}}^2 \leq 4d^3M^2$ from \eqref{eq:initial-focus}, and plugging in the bounds from \texttt{Step 2.1} and \texttt{Step 2.2} into \eqref{eq:stability-focus-decomposition}, we have
-%     \begin{align}
-%         \frac12
-%         \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
-%          & \leq
-%         4d^3M^2
-%         +\frac{C_1\eta\sqrt{n\ell}}{\lambda}
-%         +\frac{C_2\eta^2dn\ell}{2}
-%         +\frac{16d\log(2n)}{\lambda}
-%         +\eta n^{3/2}e^{-\ell}
-%         \\
-%          & \leq
-%         d^3M^2\ell^3\left(
-%         4
-%         +\frac{C_1c_\eta}{c_\lambda}
-%         +\frac{3C_2}{2}c_\eta^2
-%         +\frac{16}{c_\lambda}
-%         +c_\eta
-%         \right)
-%         \leq B.
-%     \end{align}
-%     where the last inequality uses the choice of constants.
-
-%     Thus the focus condition does not fail at round $\tau$.  Since
-%     $\tau=\tau_{\mathrm{safe}}<n$ and
-%     $\tau_{\mathrm{safe}}\leq\tau_{\mathrm{focus}}$, the definition of
-%     $\tau_{\mathrm{focus}}$ gives
-%     $\tau_{\mathrm{safe}}<\tau_{\mathrm{focus}}$.
-% \end{proof}
 
 \end{document}
