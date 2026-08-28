@@ -745,21 +745,31 @@ By minimality and the equality $\Sigma_1^{-1}=\overline\Sigma_1^{-1}$,
     \end{align}
 \end{lemma}
 The proof is in \cref{app:trace}.
-
+Define the feedback good event
+\begin{align}
+    \mathcal E_Y
+    =
+    \left\{
+    \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2\leq 8n,
+    \qquad
+    \max_{t\leq\tau_{\mathrm{cov}}}|Y_t|
+    \leq
+    \frac{32\ell}{\eps}
+    \right\}.
+    \label{eq:feedback-good-event}
+\end{align}
 \begin{lemma}
     \label{lem:feedback}
     Suppose that $C_0\geq 64$, $C_\eps> 2^{11}$, $c_\lambda c_\eta C_\eps> 2^{12}$, $\eps\leq 1/2$,
     $\ell\geq 1$, and $\frac{c_\lambda c_\eta}{C_\eps C_0^6}\leq\frac{1}{8}$.
-    It holds that
+    Then
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}\E_t[Y_t^2]\leq 6n\,,
+        \sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \E_t[Y_t^2]
+        \leq 6n,
         \label{eq:predictable-Y2}
     \end{align}
-    and with probability at least $1-\delta/8$,
-    \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2 \leq 8n.
-        \label{eq:realised-Y2}
-    \end{align}
+    and $\Pp(\mathcal E_Y) \geq 1-\frac{\delta}{8}$.
 \end{lemma}
 
 The proof is in \cref{app:feedback}.
@@ -839,24 +849,24 @@ stability and regret arguments.
         \bigl(\widehat q_t(x_\star)-q_t(x_\star)\bigr)
         \right|
          & \leq
-        \frac{C_1\sqrt{n\ell}}{\lambda},
+        \frac{2^9\sqrt{b} \sqrt{n\ell}}{\lambda},
         \label{eq:q-concentration}
         \\
         \sum_{t=1}^{\tau_{\mathrm{safe}}}
         \normm{\widehat g_t}{\Sigma_t}^2
          & \leq
-        C_2dn\ell,
+        48dn\ell,
         \label{eq:gradient-energy}
     \end{align}
     and
     \begin{align}
-        -C_3\ell^{3/2}\sqrt{dn}\,
+        -2^{12}\ell^{3/2}\sqrt{dn}\,
         \overline\Sigma_{\tau_{\mathrm{safe}}+1}^{-1}
         \preceq
         \sum_{t=1}^{\tau_{\mathrm{safe}}}
         (\widehat H_t-H_t)
         \preceq
-        C_3\ell^{3/2}\sqrt{dn}\,
+        2^{12}\ell^{3/2}\sqrt{dn}\,
         \overline\Sigma_{\tau_{\mathrm{safe}}+1}^{-1}.
         \label{eq:H-concentration}
     \end{align}
@@ -1435,6 +1445,13 @@ The proof is in \cref{app:concentration}.
     \newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
     volume 195 of \emph{Proceedings of Machine Learning Research}, pages
     2067--2094, 2023.
+
+    \bibitem[Laurent and Massart(2000)]{laurent2000adaptive}
+    B\'eatrice Laurent and Pascal Massart.
+    \newblock Adaptive estimation of a quadratic functional by model selection.
+    \newblock \emph{The Annals of Statistics}, 28(5):1302--1338, 2000.
+    \newblock \href{https://doi.org/10.1214/aos/1015957395}
+    {doi:10.1214/aos/1015957395}.
 
     \bibitem[Vershynin(2018)]{vershynin2018high}
     Roman Vershynin.
@@ -2648,6 +2665,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \eqref{eq:feedback-truncation-event}, and
     \eqref{eq:feedback-truncated-sum} gives
     \begin{align}
+        \Pp(\mathcal E_Y^c)
+        =
         \Pp\left(
         \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2
         >8n
@@ -2670,7 +2689,6 @@ Recall that
 \end{align}
 Conditionally on $\F_{t-1}$, we therefore have
 $Z_t\sim\N(0,I_d)$.
-
 The following two-sided form of Freedman's inequality follows from
 \citet[Theorem~3.10]{bercu2015concentration} applied to a martingale and its
 negative.
@@ -2935,9 +2953,25 @@ The next lemma is the two-sided form of
     \eqref{eq:H-score-second-moment}.
 \end{proof}
 
+The following chi-square upper-tail inequality follows from
+\citet[Lemma~1 and Eq.~(4.3)]{laurent2000adaptive}.
+\begin{lemma}[Chi-square upper-tail bound]
+    \label{lem:chi-square-upper-tail}
+    Let $V\sim\chi_d^2$. Then, for every $x>0$,
+    \begin{align}
+        \Pp\left(
+        V\geq d+2\sqrt{dx}+2x
+        \right)
+        \leq
+        \exp(-x).
+        \label{eq:chi-square-upper-tail}
+    \end{align}
+\end{lemma}
+
 \begin{proof}[Proof of \cref{prop:concentration}]
-    We first prove \eqref{eq:q-concentration}.
-    To this end, let $t\leq\tau$ be a generic time step.
+    \
+    \proofstep{1.}{Proving \eqref{eq:q-concentration}}
+    Let $t\leq\tau$ so that both focus and covariance conditions hold.
     Define
     \begin{align}
         Q_t
@@ -2951,17 +2985,17 @@ The next lemma is the two-sided form of
     which is a martingale-difference sequence.
     The plan is to upper bound the quantity
     \begin{align}
-        \sum_{t=1}^n
+        \sum_{t=1}^\tau
         \left(D_t^2 + \E_t[D_t^2]\right)
         \leq
-        \sum_{t=1}^n
+        \sum_{t=1}^\tau
         \left(
         2Q_t^2 + 2\E_t[Q_t]^2 +
         \E_t[Q_t^2] - \E_t[Q_t]^2
         \right)
         \leq
         2
-        \sum_{t=1}^n
+        \sum_{t=1}^\tau
         \left(
         Q_t^2 + \E_t[Q_t^2]
         \right)
@@ -2992,7 +3026,7 @@ The next lemma is the two-sided form of
         =R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1).
         \label{eq:q-score-representation}
     \end{align}
-    Since $R_t \leq 2\frac{b}{\lambda^2\ell}$ for $t\leq\tau$ by the focus condition \eqref{eq:safe-stopping-time}, we have
+    Since $R_t \leq \frac{\sqrt{2b}}{\lambda\sqrt{\ell}}$ for $t\leq\tau$ by the focus condition \eqref{eq:safe-stopping-time}, we have
     \begin{align}
         L_t^2
          & =
@@ -3000,40 +3034,39 @@ The next lemma is the two-sided form of
         R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1)
         \right)^2
         \leq
-        \left(
-        \frac{\sqrt{2b}}{\lambda \sqrt{\ell}}G_t+\frac{2b}{\lambda\ell}(G_t^2-1)
-        \right)^2
+        3R_t^2G_t^2
+        +\frac{3\lambda^2R_t^4}{4}
+        \left(G_t^4+1\right)
         \leq
-        \frac{4b^2}{\lambda^2}
-        \left(
-        \frac{G_t}{\sqrt{\ell}} + \frac{G_t^2}{\ell} - \frac{1}{\ell}
-        \right)^2
+        \frac{6b}{\lambda^2}\frac{G_t^2}{\ell}
+        +\frac{3b^2}{\lambda^2}
+        \frac{G_t^4+1}{\ell^2}
         \\
          & \leq
-        \frac{12b^2}{\lambda^2}
+        \frac{12b}{\lambda^2}
         \left(
         \frac{G_t^2}{\ell}
         +\frac{G_t^4}{\ell^2}
         +\frac{1}{\ell^2}
         \right)
-        =
-        \frac{12b^2}{\lambda^2}
+        \leq
+        \frac{12b}{\lambda^2}
         \left(\frac12+\frac{3}{2\ell^2}(G_t^2+1)^2\right)
         \,.
         \label{eq:q-score-square}
     \end{align}
-    We have
+    Therefore, to bound the second moment of $Q_t$, we have
     \begin{align}
         \E_t[Q_t^2]
         \leq
         \E_t[Y_t^2L_t^2]
         \explan{\leq}{a}
-        \frac{12b^2}{\lambda^2}
+        \frac{12b}{\lambda^2}
         \E_t\left[Y_t^2 \left(
             \frac12+\frac{3}{2\ell^2}(G_t^2+1)^2
             \right)\right]
         \explan{\leq}{b}
-        \frac{12b^2}{\lambda^2}
+        \frac{16b}{\lambda^2}
         \left(
         2^{15}\E_t[Y_t^2]+1
         \right),
@@ -3043,7 +3076,7 @@ The next lemma is the two-sided form of
     and the fact that $\ell\geq 1$.
 
     Let $\mathcal E_G=\left\{\max_{t\leq\tau}|G_t|\leq \sqrt\ell\right\}$.
-    Since $G_t$ is conditionally standard Gaussian,
+    Since $G_t$ is conditionally standard Gaussian and $\tau\leq n$, a union bound gives
     \begin{align}
         \Pp(\mathcal E_G^c)
         \leq 2n\exp(-\ell/2)
@@ -3062,8 +3095,14 @@ The next lemma is the two-sided form of
     \begin{align}
         |L_t| \leq |R_t||G_t| + \frac{\lambda R_t^2}{2}(|G_t^2| + 1)
         \leq
-        \frac{C}{\lambda\sqrt\ell}K\sqrt\ell + \frac{\lambda}{2} \cdot \frac{C^2}{\lambda^2\ell}(K^2\ell + 1)
-        \leq \frac{C}{\lambda}.
+        \frac{\sqrt{2b}}{\lambda\sqrt{\ell}}\sqrt\ell
+        +
+        \frac{\lambda}{2}\left(\frac{\sqrt{2b}}{\lambda\sqrt{\ell}}\right)^2(\ell+1)
+        \leq
+        \frac{\sqrt{2b}}{\lambda}
+        +
+        \frac{2b}{\lambda}
+        \leq \frac{4\sqrt{b}}{\lambda}.
         \label{eq:q-score-bound}
     \end{align}
     Therefore, on $\mathcal E_G$,
@@ -3072,66 +3111,123 @@ The next lemma is the two-sided form of
         =
         Y_t^2L_t^2
         \leq
-        \frac{C}{\lambda^2}
+        \frac{16b}{\lambda^2}
         Y_t^2\,.
         \label{eq:q-realised-score-energy}
     \end{align}
-    Let $\mathcal E_Y$ be the event from \cref{lem:feedback} on which
+    Let $\mathcal E_Y$ be the event from \cref{lem:feedback} on which $\sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2\leq 8n$, then, on
+    $\mathcal E_Y\cap\mathcal E_G$, we have
     \begin{align}
-        \sum_{t=1}^{\tau_{\mathrm{cov}}}Y_t^2\leq 8n\,,
-    \end{align}
-    then, since $\tau\leq\tau_{\mathrm{cov}}$, on
-    $\mathcal E_Y\cap\mathcal E_G$,
-    by \cref{lem:feedback} and \cref{eq:D-to-Q,eq:q-realised-score-energy,eq:q-predictable-second-moment} we have
-    \begin{align}
-        \sum_{t=1}^n
+        \sum_{t=1}^\tau
         \left(D_t^2+\E_t[D_t^2]\right)
-         & \leq
-        \frac{C}{\lambda^2}
+         & \explan{\leq}{a}
+        2
+        \sum_{t=1}^\tau
+        \left(
+        Q_t^2 + \E_t[Q_t^2]
+        \right)
+        \explan{\leq}{b}
+        2
+        \sum_{t=1}^\tau
+        \left(
+        \frac{16b}{\lambda^2} Y_t^2
+        +
+        \frac{16b}{\lambda^2}
+        \left(
+            2^{15}\E_t[Y_t^2]+1
+            \right)
+        \right)
+        \\
+         &
+        \leq
+        \frac{2^{20} b}{\lambda^2}
         \sum_{t=1}^\tau
         \left(
         Y_t^2
-        + \E_t[Y_t^2]
-        +1
+        +
+        \E_t[Y_t^2]+1
         \right)
-        \leq\frac{Cn}{\lambda^2}
+        \explan{\leq}{c}
+        \frac{2^{24}bn}{\lambda^2}\,,
         \label{eq:q-total-self-normaliser}
     \end{align}
+    where \reason{a} is by \eqref{eq:D-to-Q}, \reason{b} is by \cref{eq:q-realised-score-energy,eq:q-predictable-second-moment},
+    and \reason{c} is by \cref{lem:feedback} and the fact that $\tau\leq\tau_{\mathrm{cov}}$.
+
+
+    where we applied \cref{lem:self-normalised-martingale} with
+    \[
+        z=\frac{8\sqrt{n\ell}}{\lambda},
+        \qquad
+        v=\frac{2^{24}bn}{\lambda^2}.
+    \]
+    Indeed, using $b\leq2^{-14}$ and $C_0\geq64$, the last probability is at most
+    \[
+        2\exp\left(-\frac{\ell}{2^{19}b}\right)
+        \leq
+        2\exp\left(-\frac{\ell}{32}\right)
+        \leq
+        \frac{\delta}{64}.
+    \]
     Next, write
     \begin{align}
         \Pp\left(
-        \left|\sum_{t=1}^nD_t\right|>
-        \frac{C\sqrt{n\ell}}{\lambda}
+        \left|\sum_{t=1}^\tau D_t\right|>
+        \frac{2^9\sqrt{b} \sqrt{n\ell}}{\lambda}
         \right)
         \leq
         \Pp(\mathcal E_Y^c)
         +\Pp(\mathcal E_G^c)
         +
         \Pp\left(
-        \left|\sum_{t=1}^nD_t\right|>
-        \frac{C\sqrt{n\ell}}{\lambda},
-        \ \sum_{t=1}^n(D_t^2+\E_t[D_t^2])
-        \leq\frac{Cn}{\lambda^2}
+        \left|\sum_{t=1}^\tau D_t\right|>
+        \frac{2^9\sqrt{b} \sqrt{n\ell}}{\lambda},
+        \ \sum_{t=1}^\tau(D_t^2+\E_t[D_t^2])
+        \leq\frac{2^{24}bn}{\lambda^2}
         \right)
         \leq
         \frac{5\delta}{32}\,,
     \end{align}
-    where we applied \cref{lem:self-normalised-martingale} with constant $C$ sufficiently large
-    so that the last probability is at most $\delta/64$, which makes the total probability at most $\frac{\delta}{8} + \frac{\delta}{64} + \frac{\delta}{64} = \frac{5\delta}{32}$.
+    \alireza{Used $C_0> 128$}
+    where we applied \cref{lem:self-normalised-martingale} so that the last probability is at most $\delta/64$, which makes the total probability at most $\frac{\delta}{8} + \frac{\delta}{64} + \frac{\delta}{64} = \frac{5\delta}{32}$.
     This proves
     \eqref{eq:q-concentration}.
 
-    Next we prove \eqref{eq:gradient-energy}.
+    \proofstep{2.}{Proving \eqref{eq:gradient-energy}}
     The definition of $\widehat g_t$ gives the exact identity
-    $\normm{\widehat g_t}{\Sigma_t}^2=Y_t^2\norm{Z_t}^2$.
+    \begin{align}
+        \normm{\widehat g_t}{\Sigma_t}^2
+        =
+        \norm{Y_t\Sigma_t^{-1/2}Z_t}{\Sigma_t}^2
+        =
+        Y_t^2\norm{Z_t}^2\,.
+    \end{align}
+    From \cref{lem:chi-square-upper-tail}, and $3(d + \ell) \geq d + 2\sqrt{d\ell} + 2\ell$, we have
+    \begin{align}
+        \Pp\left(
+        \norm{Z_t}^2
+        \geq 3(d+\ell)
+        \right)
+        \leq
+        \Pp\left(
+        \norm{Z_t}^2
+        \geq
+        d + 2\sqrt{d\ell} + 2\ell
+        \right)
+        \leq
+        e^{-\ell}
+        \leq
+        \frac{\delta}{C_0 n}
+    \end{align}
     Let
     $\mathcal E_Z
         =\left\{
-        \max_{t\leq\tau}\norm{Z_t}^2\leq C(d+\ell)
+        \max_{t\leq\tau}\norm{Z_t}^2\leq 3(d+\ell)
         \right\}$.
-    A chi-square tail bound and a union bound give
+    conditionally and taking a union
+    bound give
     \begin{align}
-        \Pp(\mathcal E_Z^c)\leq\frac{\delta}{64}.
+        \Pp(\mathcal E_Z^c)\leq\frac{\delta}{128}\leq\frac{\delta}{64}
         \label{eq:Z-norm-union}
     \end{align}
     Hence, on $\mathcal E_Y\cap\mathcal E_Z$,
@@ -3139,83 +3235,32 @@ The next lemma is the two-sided form of
         \sum_{t=1}^{\tau}
         \normm{\widehat g_t}{\Sigma_t}^2
         \leq
-        C(d+\ell)\sum_{t=1}^{\tau}Y_t^2
-        \leq Cdn\ell,
+        3(d+\ell)\sum_{t=1}^{\tau}Y_t^2
+        \leq 48dn\ell,
     \end{align}
     which proves \eqref{eq:gradient-energy}.
 
-    We now prove \eqref{eq:H-concentration}.
-    We first record a deterministic range for the relevant metrics.
-    The spectral estimate \eqref{eq:predictable-spectrum} gives
+    \proofstep{3.}{Proving \eqref{eq:H-concentration}}
+    Let $M_\tau= \sum_{t=1}^{\tau}(\widehat H_t-H_t)$, then the goal is to show that
     \begin{align}
-        \lambda_{\max}(\overline\Sigma_t^{-1})
+        |x^\top M_\tau x|
         \leq
-        \left(
-        \sigma^{-1} + t
-        \right)^2
+        C_3\ell^{3/2}\sqrt{dn} \|x\|^2_{\overline\Sigma_{\tau+1}^{-1}}.
+    \end{align}
+    Let $\mathcal U$ be a $\left(2^9dn^2\right)^{-1}$-net of
+    $\mathbb S^{d-1}$ which, by the standard volumetric covering bound
+    \cite[Corollary~4.2.13]{vershynin2018high}, can be chosen so that
+    \begin{align}
+        \log\left(|\mathcal U|\right)
         \leq
-        C(d+n^2)
-        \leq e^{C\ell}
-        \qquad(t\leq\tau+1).
-        \label{eq:concentration-spectrum}
-    \end{align}
-    Indeed, $B_1\subseteq\K$ implies $\pi(U)\leq1$, so
-    $M\leq1$ and $\sigma^{-1}\leq\sqrt{2d}$.  Moreover,
-    \eqref{eq:parameters-one}--\eqref{eq:parameters-two} and
-    \eqref{eq:extension-lipschitz} give
-    \begin{align}
-        n\lambda\eta\Lip(e)
+        d\log\left(1+2^{10}dn^2\right)
         \leq
-        \frac{C c_\lambda c_\eta n}
-        {C_\eps d^{5/2}M\ell^6}
-        \leq Cn.
+        2d\log\left(
+        \frac{C_0nd}{\delta}
+        \right)\leq
+        \frac{2d\ell}{C_0}\,.
     \end{align}
-    The last inequality in \eqref{eq:concentration-spectrum} follows from the
-    definition of $\ell$.
-    Let $\Gamma=2 e^{C\ell}$.
-    Firstly, for every $t\leq\tau$, covariance comparison in \eqref{eq:covariance-comparison} gives
-    \begin{align}
-        I_d
-        \preceq
-        \frac{1}{2\sigma^2}I_d
-        =
-        \frac{1}{2} \overline\Sigma_1^{-1}
-        \preceq
-        \frac12\overline\Sigma_t^{-1}
-        \preceq
-        \Sigma_t^{-1}
-        \preceq
-        \frac32\overline\Sigma_t^{-1}
-        \preceq
-        \Gamma I_d\,,
-        \label{eq:roundwise-spectral-range}
-    \end{align}
-    where we used \eqref{eq:concentration-spectrum}
-    and $\sigma^{-2}=2dM^2\geq2$.
-    Secondly, for $t=\tau+1$, the fact that
-    $\overline\Sigma_{\tau+1}^{-1}\succeq\sigma^{-2}I_d$ and
-    \eqref{eq:concentration-spectrum}
-    give
-    \begin{align}
-        \kappa(\overline\Sigma_{\tau+1}^{-1})
-        \leq \frac{
-            e^{C\ell}
-        }{
-            \sigma^{-2}
-        }
-        \leq \Gamma\,.
-    \end{align}
-    Let $\mathcal U$ be a $(64\Gamma)^{-1}$-net of
-    $\mathbb S^{d-1}$.
-    By the standard volumetric bound for Euclidean covering numbers
-    \cite[Corollary~4.2.13]{vershynin2018high}, it may be chosen so that
-    \begin{align}
-        \log|\mathcal U|
-        \leq d\log(1+128\Gamma)
-        \leq Cd\ell.
-        \label{eq:H-net-cardinality}
-    \end{align}
-    Fix $u\in\mathcal U$ and define
+    For $u\in\mathcal U$, define
     \begin{align}
         a_{t,u}
         =
@@ -3230,8 +3275,10 @@ The next lemma is the two-sided form of
         }{Z_t}.
         \label{eq:H-standardisation}
     \end{align}
-    Observe that $G_{t,u}$ is conditionally standard Gaussian.  Moreover,
+    Observe that $G_{t,u}$ is conditionally standard Gaussian.
+    Moreover, let
     \begin{align}
+        Q_{t,u} =
         u^\top\widehat H_tu
         =
         Y_t\left(
@@ -3240,179 +3287,221 @@ The next lemma is the two-sided form of
         u^\top\Sigma_t^{-1}u
         \right)
         =
-        a_{t,u}Y_t(G_{t,u}^2-1).
+        a_{t,u}Y_t(G_{t,u}^2-1)\,,
         \label{eq:H-direction}
     \end{align}
+    and $D_{t,u}=Q_{t,u}-\E_t[Q_{t,u}]$.
+    Then since
+    \begin{align}
+        u^\top M_\tau u
+        =
+        u^\top\sum_{t=1}^{\tau}(\widehat H_t-H_t)u
+        =
+        u^\top\sum_{t=1}^{\tau}(\widehat H_t-\E_t[\widehat H_t])u
+        =
+        \sum_{t=1}^{\tau} Q_{t,u} - \E_t[Q_{t,u}]
+        =
+        \sum_{t=1}^{\tau} D_{t,u}
+        \,,
+    \end{align}
+    the plan is to control $\sum_{t=1}^{\tau} D_{t,u}$ for every $u\in\mathcal U$ and then extend to all $x\in\mathbb{S}^{d-1}$ by approximation.
+
+    We do this by controlling $\sum_{t=1}^{\tau} D_{t,u}^2 + \E[D_{t,u}^2]$
+    inside a high-probability event, and then applying \cref{lem:self-normalised-martingale}.
+    To this end, let
+    \begin{align}
+        a_u^\star = \max_{t\leq\tau} a_{t,u}\,,
+    \end{align}
+    and observe that
+    \begin{align}
+        \sum_{t=1}^{\tau} D_{t,u}^2 + \E[D_{t,u}^2]
+         & \leq
+        2\sum_{t=1}^{\tau} Q_{t,u}^2 + \E[Q_{t,u}^2] \\
+         & =
+        2\sum_{t=1}^{\tau} a_{t,u}^2\left(Y_t^2(G_{t,u}^2-1)^2
+        +
+        \E[Y_t^2(G_{t,u}^2-1)^2]\right)              \\
+         & \leq
+        2(a_u^\star)^2
+        \sum_{t=1}^{\tau}
+        \left(Y_t^2(G_{t,u}^2-1)^2
+        +
+        \E[Y_t^2(G_{t,u}^2-1)^2]
+        \right)
+        \,.
+    \end{align}
+
+    \proofstepinline{3.1}
     We first control
     $\sum_{t=1}^{\tau} Y_t^2(G_{t,u}^2-1)^2$
-    for every $u\in\mathcal U$, outside an event of probability $\delta/64$.
-    Let
+    for every $u\in\mathcal U$.
+    For $t\leq \tau$, define
     \begin{align}
-        \mathcal C_t
+        W_{t,u}=Y_t^2(G_{t,u}^2-1)^2 \1\left\{|Y_t|\leq\frac{32\ell}{\eps}\right\}\1\{\norm{Z_t}^2\leq 8d\ell\}
+        \quad\text{and}\quad
+        \mathcal{E}_W
         =
         \left\{
-        |Y_t|\leq\frac{C\ell}{\eps},
-        \quad
-        \norm{Z_t}^2\leq C(d+\ell)
-        \right\},
-        \qquad
-        W_{t,u}=Y_t^2(G_{t,u}^2-1)^2 \1\{\mathcal C_t\}
-        \1\{t\leq\tau\}
-        .
-    \end{align}
-    Since $G_{t,u}^2\leq\norm{Z_t}^2$, we have
-    \begin{align}
-        0\leq W_{t,u}\leq \Lambda,
-        \qquad\text{where}\quad
-        \Lambda=\frac{C\ell^2(d+\ell)^2}{\eps^2}\,.
-        \label{eq:H-score-energy-increment}
-    \end{align}
-    Let $R_{t,u}=W_{t,u}-\E_t[W_{t,u}]$ which is a martingale difference sequence.
-    Moreover,
-    \begin{align}
-        \sum_{t=1}^n
-        \E_t[R_{t,u}^2]
+        \max_{u\in\mathcal U}
+        \sum_{t=1}^\tau W_{t,u}
         \leq
-        \sum_{t=1}^n\E_t[W_{t,u}^2]
-        \leq
-        \Lambda\sum_{t=1}^n\E_t[W_{t,u}]
-        =
-        \Lambda\sum_{t=1}^{\tau}\E_t[W_{t,u}]
-        \leq
-        C\Lambda\ell^2n.
+        C\ell^2n
+        \right\}\,.
     \end{align}
-    where the last inequality follows from
-    \cref{lem:gaussian-score-localisation} and
-    \eqref{eq:predictable-Y2} which give
-    \begin{align}
-        \sum_{t=1}^\tau
-        \E_t[W_{t,u}]
-        \leq
-        \sum_{t=1}^\tau
-        \E_t[Y_t^2(G_{t,u}^2-1)^2]
-         & \leq
-        \sum_{t=1}^{\tau}
-        \left(
-        C\ell^2\E_t[Y_t^2]+e^{-4\ell}
-        \right)
-        \leq C\ell^2n.
-        \label{eq:H-score-energy-mean}
-    \end{align}
-    Now we are in a position to apply Freedman's inequality \cref{lem:freedman} to the martingale difference sequence $(R_{t,u})_{t=1}^n$ as
-    \begin{align}
-        |R_{t,u}|
-        \leq \Lambda,         \qquad \text{and}\qquad
-        \sum_{t=1}^n\E_t[R_{t,u}^2]
-        \leq C\Lambda\ell^2n.
-    \end{align}
-    Let $J = \lceil \log_2(\Gamma) \rceil$
-    and
-    \begin{align}
-        \alpha=\frac{\delta}{64|\mathcal U|}\,,
-        \qquad\text{and}\qquad
-        \rho
-        =
-        \log\frac{128|\mathcal U|(J+1)}{\delta}
-        \leq Cd\ell.
-    \end{align}
-    For each fixed $u\in\mathcal U$, Freedman's inequality
-    \cref{lem:freedman}, applied with $b=\Lambda$, and $s^2=C\Lambda\ell^2n$, gives, with probability at least $1-\alpha$,
-    \begin{align}
-        \left|
-        \sum_{t=1}^nR_{t,u}
-        \right|
-         & \leq
-        C\left(
-        \sqrt{
-            \Lambda\ell^2n
-            \log\frac{2}{\alpha}
-        }
-        +
-        \Lambda\log\frac{2}{\alpha}
-        \right)
-        \leq
-        C\left(
-        \sqrt{\Lambda\ell^2n\rho}
-        +
-        \Lambda\rho
-        \right),
-        \label{eq:H-score-energy-freedman}
-    \end{align}
-    where $\log\frac{2}{\alpha} = \log\frac{128|\mathcal U|}{\delta} \leq\rho$.
-    A union bound over $u\in\mathcal U$ shows that
-    \eqref{eq:H-score-energy-freedman} holds simultaneously for every
-    $u\in\mathcal U$, except on an event of probability at most $|\mathcal U|\alpha=\frac{\delta}{64}$.
-    Outside this exceptional event, for every $u\in\mathcal U$,
+    Let $R_{t,u}=W_{t,u}-\E_t[W_{t,u}]$ be a martingale difference sequence, so that
     \begin{align}
         \sum_{t=1}^nW_{t,u}
          & =
         \sum_{t=1}^n\E_t[W_{t,u}]
         +
-        \sum_{t=1}^nR_{t,u} \\
-         & \leq
-        C\ell^2n
-        +
-        C\sqrt{\Lambda\ell^2n\rho}
-        +
-        C\Lambda\rho        \\
-         & \leq
-        C\ell^2n
-        \left(
-        1+
-        \frac{(d+\ell)\sqrt\rho}{\eps\sqrt n}
-        +
-        \frac{(d+\ell)^2\rho}{\eps^2n}
-        \right)             \\
-         & \leq C\ell^2n\,,
-        \label{eq:H-score-energy}
+        \sum_{t=1}^nR_{t,u}\,.
+        \label{eq:W_t-upperbound}
     \end{align}
-    where the last inequality uses $d+\ell\leq2d\ell$, $\rho\leq Cd\ell$, and
-    $\eps\sqrt n=C_\eps d^2M\ell^4$, which give
+    Moreover,
     \begin{align}
-        \frac{(d+\ell)\sqrt\rho}{\eps\sqrt n}
+        \sum_{t=1}^{\tau}\E_t[W_{t,u}]
         \leq
-        \frac{C}{C_\eps\sqrt dM\ell^{5/2}}
-        \leq\frac{C}{C_\eps}.
-        \label{eq:H-score-energy-absorption}
+        \sum_{t=1}^\tau
+        \E_t[Y_t^2(G_{t,u}^2-1)^2]
+        \explan{\leq}{a}
+        \sum_{t=1}^{\tau}
+        \left(
+        2^{14} \ell^2\E_t[Y_t^2]+e^{-4\ell}
+        \right)
+        \explan{\leq}{b}
+        2^{18} \ell^2n.
+        \label{eq:W_t-control}
     \end{align}
-    On $\mathcal E_Y\cap\mathcal E_Z$, the event $\mathcal C_t$ holds
-    for every $t\leq\tau$.
-    Therefore, we have
+    where \reason{a} follows from
+    \cref{lem:gaussian-score-localisation}
+    and \reason{b} follows from \cref{lem:feedback}.
+    Since $G_{t,u}^2\leq\norm{Z_t}^2$, we have
+    $0\leq W_{t,u} \leq \frac{2^{16} d^2 \ell^4}{\eps^2}$,
+    % Let $\Lambda = \frac{2^{16} d^2 \ell^4}{\eps^2}$ and
+    which together with \eqref{eq:W_t-control} gives
+    \begin{align}
+        \sum_{t=1}^\tau
+        \E_t[R_{t,u}^2]
+         & \leq
+        \sum_{t=1}^\tau\E_t[W_{t,u}^2]
+        \leq
+        \frac{2^{16} d^2 \ell^4}{\eps^2} \sum_{t=1}^{\tau}\E_t[W_{t,u}]
+        \leq
+        \frac{2^{34} d^2 \ell^6 n}{\eps^2}\,.
+    \end{align}
+    Now we are in a position to apply \cref{lem:freedman} to the martingale difference sequence $(R_{t,u})_{t=1}^n$ as
+    \begin{align}
+        |R_{t,u}|
+        \leq
+        \frac{2^{16} d^2 \ell^4}{\eps^2},
+        \qquad \text{and}\qquad
+        \sum_{t=1}^n\E_t[R_{t,u}^2]
+        \leq
+        \frac{2^{34} d^2 \ell^6 n}{\eps^2}.
+    \end{align}
+    Next, \cref{lem:freedman} applied with $b=\frac{2^{16} d^2 \ell^4}{\eps^2}$, $s=\frac{2^{17} d \ell^3 \sqrt n}{\eps}$
+    and $z = \sqrt{2 \log\frac{128|\mathcal{U}|}{\delta}}\leq \sqrt{\frac{d\ell}{8}}$ gives, simultaneously for all $u\in\mathcal U$, with
+    probability at least $1-\frac{\delta}{64}$,
+    \begin{align}
+        \sum_{t=1}^nR_{t,u}
+         & \leq
+        sz+\frac{bz^2}{3}
+        \leq
+        \frac{2^{17}d\ell^3\sqrt n}{\eps}
+        \sqrt{\frac{d\ell}{8}}
+        +
+        \frac{2^{16}d^3\ell^5}{24\eps^2}
+        \leq
+        \frac{2^{16}n}{C_\eps\sqrt\ell}
+        +
+        \frac{2^{12}n}{C_\eps^2\ell^3}
+        \leq
+        2^6n.
+    \end{align}
+    \alireza{$C_\eps>2^{11}$.}
+    Therefore, on the event $\mathcal E_W\cap\mathcal E_Y\cap\mathcal E_Z$, by \eqref{eq:W_t-upperbound} and \eqref{eq:W_t-control}, we have
     \begin{align}
         \sum_{t=1}^{\tau}
         Y_t^2(G_{t,u}^2-1)^2
-        =
-        \sum_{t=1}^{\tau}
-        Y_t^2(G_{t,u}^2-1)^2
-        \1\{\mathcal C_t\}
         =
         \sum_{t=1}^n
         W_{t,u}
-        \leq C\ell^2n
+        \leq
+        2^{18}\ell^2n
+        +
+        2^6n
+        \leq
+        2^{19}\ell^2n,
         \label{eq:H-realised-score-energy}
     \end{align}
-    simultaneously for every $u\in\mathcal U$.
-
-    Define
+    \proofstepinline{3.2}
+    Next, we obtain an upper bound on
     \begin{align}
-        Q_{t,u}
+        a_u^\star
         =
-        \1\{t\leq\tau\}
-        a_{t,u}Y_t(G_{t,u}^2-1), \qquad
-        D_{t,u}
+        \max_{t\leq\tau} a_{t,u}
         =
-        Q_{t,u}-\E_t[Q_{t,u}],
-        \qquad\text{and}\qquad
-        a_u^\star=\max_{t\leq\tau}a_{t,u}.
+        \max_{t\leq\tau} u^\top\Sigma_t^{-1}u
+        \leq
+        \max_{t\leq\tau} \|\Sigma_t^{-1}\|_{\op}\,,
     \end{align}
-    Let
+    and the condition number of $\overline\Sigma_{\tau+1}^{-1}$.
+    We need the bound on the condition number of $\overline\Sigma_{\tau+1}^{-1}$ later to control the approximation error when extending the bound from the net $\mathcal U$ to all of $\mathbb S^{d-1}$.
+    For every $t\leq\tau$, covariance comparison in \eqref{eq:covariance-comparison} gives
     \begin{align}
-        M_\tau
+        I_d
+        \preceq
+        \frac{1}{2\sigma^2}I_d
         =
-        \sum_{t=1}^{\tau}(\widehat H_t-H_t).
+        \frac{1}{2} \overline\Sigma_1^{-1}
+        \preceq
+        \Sigma_t^{-1}
+        \preceq
+        \frac32\overline\Sigma_t^{-1}\,,
+        \label{eq:roundwise-spectral-range}
     \end{align}
-    Since $\E_t[\widehat H_t]=H_t$, we have
-    $\sum_{t=1}^nD_{t,u} = u^\top M_\tau u$.
+    where we used $\sigma^{-2}=2dM^2\geq2$.
+    From \eqref{eq:predictable-spectrum}, for every $t\leq\tau$, we have
+    \begin{align}
+        \|\overline\Sigma_{t+1}^{-1}\|_{\op}
+        \leq
+        \left(
+        \sigma^{-1} + t
+        \right)^2
+        \leq
+        \left(
+        M\sqrt{2d} + n
+        \right)^2
+        \leq
+        2(2d+n^2)
+        \leq
+        4dn^2
+        \label{eq:concentration-spectrum}
+    \end{align}
+    where we used the fact that $\mathbb{B}_1\subseteq\K$ implies $\pi(U)\leq1$, so
+    $M\leq1$ and $\sigma^{-1}\leq\sqrt{2d}$.
+    Note that \eqref{eq:concentration-spectrum} and \eqref{eq:roundwise-spectral-range} already give
+    $a_u^\star\leq 6dn^2$ for every $u\in\mathcal U$.
+    Secondly, for $t=\tau$, the fact that
+    $\overline\Sigma_{\tau+1}^{-1}\succeq\sigma^{-2}I_d$ and
+    \eqref{eq:concentration-spectrum}
+    give
+    \begin{align}
+        \frac{
+            \lambda_{\max}(\overline\Sigma_{\tau+1}^{-1})
+        }{
+            \lambda_{\min}(\overline\Sigma_{\tau+1}^{-1})
+        }
+        \leq \frac{
+            4dn^2
+        }{
+            \sigma^{-2}
+        }
+        \leq
+        2 d n^2
+        \,.
+    \end{align}
+    \proofstepinline{3.3}
     By \eqref{eq:H-realised-score-energy},
     \begin{align}
         \sum_{t=1}^nQ_{t,u}^2
@@ -3421,7 +3510,7 @@ The next lemma is the two-sided form of
         \sum_{t=1}^{\tau}
         Y_t^2(G_{t,u}^2-1)^2
         \leq
-        C(a_u^\star)^2\ell^2n.
+        2^{19}(a_u^\star)^2\ell^2n.
         \label{eq:H-directional-realised}
     \end{align}
     Similarly, \cref{lem:gaussian-score-localisation} and
@@ -3432,10 +3521,10 @@ The next lemma is the two-sided form of
         (a_u^\star)^2
         \sum_{t=1}^{\tau}
         \left(
-        C\ell^2\E_t[Y_t^2]+e^{-4\ell}
+        2^{14}\ell^2\E_t[Y_t^2]+e^{-4\ell}
         \right)
         \leq
-        C(a_u^\star)^2\ell^2n.
+        2^{17}(a_u^\star)^2\ell^2n.
         \label{eq:H-directional-predictable}
     \end{align}
     Therefore, combining \eqref{eq:H-directional-realised} and
@@ -3446,235 +3535,209 @@ The next lemma is the two-sided form of
         D_{t,u}^2+\E_t[D_{t,u}^2]
         \right)
         \leq
+        2
         \sum_{t=1}^n
         \left(
         Q_{t,u}^2+\E_t[Q_{t,u}^2]
         \right)
         \leq
-        C(a_u^\star)^2\ell^2n.
+        2^{20}(a_u^\star)^2\ell^2n.
         \label{eq:H-directional-self-normaliser}
     \end{align}
-    Let $b_j=2^j$.
+    Let $J = \lceil \log_2(6dn^2) \rceil$
+    so that $1\leq a_u^\star \leq 2^J$ for every $u\in\mathcal U$,
+    and let $b_j=2^j$.
     For every $u\in\mathcal U$, choose the unique $j$ such that
     \begin{align}
         b_{j-1}<a_u^\star\leq b_j.
     \end{align}
-    For each fixed pair
-    $(u,j)$, \cref{lem:self-normalised-martingale} gives
+    For each fixed pair $(u,j)$,
+    \cref{lem:self-normalised-martingale} gives
     \begin{align}
          & \Pp\left(
         \left|\sum_{t=1}^nD_{t,u}\right|
-        >Cb_j\ell\sqrt{n\rho},
+        >
+        2^{11}b_j\ell
+        \sqrt{
+            n\log\left(
+            \frac{128|\mathcal U|(J+1)}{\delta}
+            \right)
+        },
         \quad
         \sum_{t=1}^n
         \left(
         D_{t,u}^2+\E_t[D_{t,u}^2]
         \right)
-        \leq Cb_j^2\ell^2n
+        \leq
+        2^{21}b_j^2\ell^2n
+        \right)
+        \\
+         & \hspace{3cm}\leq
+        2\exp\left(
+        -\log\left(
+            \frac{128|\mathcal U|(J+1)}{\delta}
+            \right)
+        \right)
+        =
+        \frac{\delta}{64|\mathcal U|(J+1)}.
+    \end{align}
+    A union bound over $u\in\mathcal U$ and $0\leq j\leq J$
+    therefore gives failure probability at most $\delta/64$.
+
+    Moreover,
+    \begin{align}
+        \log\left(
+        \frac{128|\mathcal U|(J+1)}{\delta}
         \right)
         \leq
-        2\exp\left(
-        -\frac{C^2 b_j^2 \ell^2 n \rho}{C b_j^2 \ell^2 n}
-        \right)
-        \leq 2e^{-\rho}.
-    \end{align}
-    A union bound over $u\in\mathcal U$ and $0\leq j\leq J$ therefore has failure probability
-    at most
-    \begin{align}
-        2|\mathcal U|(J+1)e^{-\rho}
-        \leq \frac{\delta}{64}.
+        \frac{2d\ell}{C_0}
+        +
+        \frac{4\ell}{C_0}
+        \leq
+        \frac{d\ell}{8}.
     \end{align}
     Therefore, outside an event of probability $\delta/64$,
+    simultaneously for every $u\in\mathcal U$,
     \begin{align}
         |u^\top M_\tau u|
+         & \leq
+        2^{11}b_j\ell
+        \sqrt{
+            n\log\left(
+            \frac{128|\mathcal U|(J+1)}{\delta}
+            \right)
+        }
+        % \leq
+        % 2^{12}a_u^\star\ell
+        % \sqrt{
+        %     n\log\left(
+        %     \frac{128|\mathcal U|(J+1)}{\delta}
+        %     \right)
+        % }
         \leq
-        C a_u^\star\ell\sqrt{n\rho}
-        \leq
-        \Xi
-        \max_{t\leq\tau}u^\top\Sigma_t^{-1}u,
-        \qquad\text{where}\quad
-        \Xi =C\ell^{3/2}\sqrt{dn},
+        2^{11}\ell^{3/2}\sqrt{dn}\,
+        \max_{t\leq\tau}\|u\|_{\Sigma_t^{-1}}^2.
         \label{eq:H-net}
     \end{align}
-    simultaneously for every $u\in\mathcal U$.
 
-    It remains to extend \eqref{eq:H-net} from the finite net
-    $\mathcal U$ to the whole sphere.
-    Set $A=\frac32\overline\Sigma_{\tau+1}^{-1}$.
-    For every $t\leq\tau$, covariance comparison and monotonicity of
-    the predictable inverse covariance give
+    \proofstepinline{3.4}
+    Fix $v\in\mathbb S^{d-1}$ and choose $u\in\mathcal U$ such that $\|u-v\| \leq \frac{1}{2^9dn^2}$.
+    We start from
     \begin{align}
-        \Sigma_t^{-1}
+        |v^\top M_\tau v|
+        \leq
+        |u^\top M_\tau u|
+        +
+        |v^\top M_\tau v-u^\top M_\tau u|.
+    \end{align}
+    For the first term, covariance comparison and monotonicity of the
+    predictable inverse covariance give, for every $t\leq\tau$,
+    $\Sigma_t^{-1}
         \preceq
         \frac32\overline\Sigma_t^{-1}
         \preceq
-        \frac32\overline\Sigma_{\tau+1}^{-1}
-        =
-        A.
-        \label{eq:H-terminal-dominates}
-    \end{align}
-    Consequently, for every $u\in\mathcal U$,
-    we have
-    $\max_{t\leq\tau}u^\top\Sigma_t^{-1}u
-        \leq
-        u^\top Au$.
-    Combining this with \eqref{eq:H-net} gives
+        \frac32\overline\Sigma_{\tau+1}^{-1}$.
+    Therefore, \eqref{eq:H-net} gives
     \begin{align}
         |u^\top M_\tau u|
-        \leq
-        \Xi
+         & \leq
+        2^{11}\ell^{3/2}\sqrt{dn}\,
         \max_{t\leq\tau}u^\top\Sigma_t^{-1}u
         \leq
-        \Xi u^\top Au
-        \qquad(u\in\mathcal U).
-        \label{eq:H-net-relative}
+        3\cdot2^{10}\ell^{3/2}\sqrt{dn}\,
+        u^\top\overline\Sigma_{\tau+1}^{-1}u.
     \end{align}
-    Moreover, scaling does not change the condition number, so we have
-    $\kappa(A) = \kappa(\overline\Sigma_{\tau+1}^{-1}) \leq\Gamma$.
-    Let $r=\frac{1}{64\Gamma}$.
-    Fix $v\in\mathbb S^{d-1}$ and choose $u\in\mathcal U$ such that
-    $\norm{u-v}\leq r$. Since $M_\tau$ is symmetric and
-    $\norm{u}=\norm{v}=1$,
+    For the second term, the symmetry of $M_\tau$ gives
     \begin{align}
-        \left|
-        v^\top M_\tau v-u^\top M_\tau u
-        \right|
-        =
+        |v^\top M_\tau v-u^\top M_\tau u|
+         & =
         \left|
         (v-u)^\top M_\tau v
         +
         u^\top M_\tau(v-u)
         \right|
         \leq
-        2r\norm{M_\tau}_{\op}.
-        \label{eq:H-net-approximation}
+        \frac{1}{2^8dn^2}\|M_\tau\|_{\op}.
     \end{align}
-    It follows from \eqref{eq:H-net-relative} that
+    Consequently,
     \begin{align}
         |v^\top M_\tau v|
-        \leq
-        \Xi u^\top Au
+        %  & \leq
+        % 3\cdot2^{10}\ell^{3/2}\sqrt{dn}\,
+        % u^\top\overline\Sigma_{\tau+1}^{-1}u
+        % +
+        % \frac{1}{2^8dn^2}\|M_\tau\|_{\op}
+        % \\
+         & \leq
+        3\cdot2^{10}\ell^{3/2}\sqrt{dn}\,
+        \|\overline\Sigma_{\tau+1}^{-1}\|_{\op}
         +
-        2r\norm{M_\tau}_{\op}
+        \frac{1}{2^8dn^2}\|M_\tau\|_{\op}
         \leq
-        \Xi \lambda_{\max}(A)
+        3\cdot2^{10}\ell^{3/2}\sqrt{dn}\,
+        \|\overline\Sigma_{\tau+1}^{-1}\|_{\op}
         +
-        2r\norm{M_\tau}_{\op}.
+        \frac{1}{2}\|M_\tau\|_{\op}.
     \end{align}
-    Taking the supremum over $v\in\mathbb S^{d-1}$ and using the
-    symmetry of $M_\tau$ gives
+    Taking the supremum over $v\in\mathbb S^{d-1}$ gives
     \begin{align}
-        \norm{M_\tau}_{\op}
+        \|M_\tau\|_{\op}
         \leq
-        \Xi \lambda_{\max}(A)
-        +
-        2r\norm{M_\tau}_{\op}
-        \leq
-        2\Xi \lambda_{\max}(A),
-        \label{eq:H-operator-bound}
+        3\cdot2^{11}\ell^{3/2}\sqrt{dn}\,
+        \|\overline\Sigma_{\tau+1}^{-1}\|_{\op}.
     \end{align}
-    where the last inequality uses $2r\leq1/2$.
-
-    We now return to \eqref{eq:H-net-approximation}. Since
-    $\norm{u-v}\leq r$,
+    Moreover,
     \begin{align}
-        |u^\top Au-v^\top Av|
-         & =
         \left|
-        (u-v)^\top Au
-        +
-        v^\top A(u-v)
+        u^\top\overline\Sigma_{\tau+1}^{-1}u
+        -
+        v^\top\overline\Sigma_{\tau+1}^{-1}v
         \right|
         \leq
-        2r\lambda_{\max}(A).
-        \label{eq:H-A-net-approximation}
-    \end{align}
-    Therefore, by
-    \cref{eq:H-net-relative,eq:H-operator-bound,eq:H-A-net-approximation},
-    \begin{align}
-        |v^\top M_\tau v|
-         & \leq
-        \Xi u^\top Au
-        +
-        2r\norm{M_\tau}_{\op}   \\
-         & \leq
-        \Xi v^\top Av
-        +
-        2\Xi r\lambda_{\max}(A)
-        +
-        4\Xi r\lambda_{\max}(A) \\
-         & =
-        \Xi v^\top Av
-        +
-        6\Xi r\lambda_{\max}(A).
-    \end{align}
-    Since $\kappa(A)\leq\Gamma$ and $\norm{v}=1$,
-    \begin{align}
-        \lambda_{\max}(A)
-         & \leq
-        \Gamma\lambda_{\min}(A)
+        2\|u-v\|
+        \|\overline\Sigma_{\tau+1}^{-1}\|_{\op}
         \leq
-        \Gamma v^\top Av.
+        \frac{1}{2^8dn^2}
+        \|\overline\Sigma_{\tau+1}^{-1}\|_{\op}.
     \end{align}
-    Hence
+    The condition-number bound from Step~3.2 gives
     \begin{align}
-        6r\lambda_{\max}(A)
-        \leq
-        6r\Gamma v^\top Av
+        \|\overline\Sigma_{\tau+1}^{-1}\|_{\op}
         =
-        \frac{6}{64}v^\top Av
+        \lambda_{\max}
+        \left(\overline\Sigma_{\tau+1}^{-1}\right)
+         & \leq
+        2dn^2
+        \lambda_{\min}
+        \left(\overline\Sigma_{\tau+1}^{-1}\right)
         \leq
-        v^\top Av,
+        2dn^2
+        v^\top\overline\Sigma_{\tau+1}^{-1}v.
     \end{align}
-    and consequently
+    Substituting these bounds into the preceding estimate yields
     \begin{align}
         |v^\top M_\tau v|
+         & \leq
+        \left(
+        3\cdot2^{10}+72
+        \right)
+        \ell^{3/2}\sqrt{dn}\,
+        v^\top\overline\Sigma_{\tau+1}^{-1}v
         \leq
-        2\Xi v^\top Av.
+        2^{12}\ell^{3/2}\sqrt{dn}\,
+        v^\top\overline\Sigma_{\tau+1}^{-1}v.
     \end{align}
-    Since this holds for every $v\in\mathbb S^{d-1}$, we have
+    Since this holds for every $v\in\mathbb S^{d-1}$,
     \begin{align}
-        -2\Xi A
-        \preceq
-        M_\tau
-        \preceq
-        2\Xi A.
-    \end{align}
-    Recalling that
-    \begin{align}
-        A=\frac32\overline\Sigma_{\tau+1}^{-1},
-        \qquad
-        \Xi =C\ell^{3/2}\sqrt{dn},
-        \qquad
-        M_\tau=\sum_{t=1}^{\tau}(\widehat H_t-H_t),
-    \end{align}
-    and absorbing numerical constants into $C$, we obtain
-    \begin{align}
-        -C\ell^{3/2}\sqrt{dn}\,
+        -2^{12}\ell^{3/2}\sqrt{dn}\,
         \overline\Sigma_{\tau+1}^{-1}
         \preceq
         \sum_{t=1}^{\tau}(\widehat H_t-H_t)
         \preceq
-        C\ell^{3/2}\sqrt{dn}\,
+        2^{12}\ell^{3/2}\sqrt{dn}\,
         \overline\Sigma_{\tau+1}^{-1}.
     \end{align}
     This proves \eqref{eq:H-concentration}.
-
-    Finally, the total failure probability is at most
-    \begin{align}
-        \frac{\delta}{8}
-        +
-        5\frac{\delta}{64}
-        =
-        \frac{13\delta}{64}
-        <
-        \frac{\delta}{4}.
-    \end{align}
-    Here $\delta/8$ accounts for $\mathcal E_Y$, while the five terms
-    of size $\delta/64$ account for $\mathcal E_G$, the
-    self-normalised bound used for \eqref{eq:q-concentration},
-    $\mathcal E_Z$, \eqref{eq:H-score-energy}, and the final
-    self-normalised Hessian bound. This completes the proof.
 \end{proof}
 
 
