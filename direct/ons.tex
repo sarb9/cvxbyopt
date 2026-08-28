@@ -430,44 +430,29 @@ then completing the square gives the equivalent forms
 
 Fix $\delta\in(0,1/2)$ and let
 \begin{align}
-    \ell=C_0\log\frac{C_0nd}{\delta},
+    \ell=128\log\frac{128nd}{\delta}.
     \eqlabel{eq:ell}
 \end{align}
-where $C_0$ is a sufficiently large universal constant.
+In particular, $\ell\geq128$.
 
 \begin{theorem}
     \label{thm:main}
-    There are universal constants $c_\lambda,c_\eta,C_\eps,b>0$ for which the
-    following holds.  Define
-    \begin{align}
-        C
-        =\max\left\{
-        2C_\eps,
-        \sqrt2+C_\eps
-        +\frac4{c_\eta}
-        +72c_\eta
-        +\frac{2^9\sqrt b}{c_\lambda}
-        +\frac{17}{2c_\lambda c_\eta}
-        +1
-        \right\}.
-        \label{eq:main-constant-choice}
-    \end{align}
     Set
     \begin{align}
         \sigma  & =\frac1{M\sqrt{2d}},
                 &
-        \lambda & =\frac{c_\lambda}{d^{3/2}M\ell^2},
+        \lambda & =\frac{1}{2^{20}d^{3/2}M\ell^2},
         \label{eq:parameters-one}                     \\
-        \eta    & =\frac{c_\eta dM}{\sqrt n},
+        \eta    & =\frac{8dM}{\sqrt n},
                 &
-        \eps_0  & =\frac{C_\eps d^2M\ell^4}{\sqrt n}.
+        \eps_0  & =\frac{2^{30}d^2M\ell^4}{\sqrt n}.
         \label{eq:parameters-two}
     \end{align}
     If $\eps_0\leq1/2$, run \cref{alg:direct-hermite} with $\eps=\eps_0$.
     Otherwise play any fixed point in $\K$.  In the setting above,
     \begin{align}
         \operatorname{Reg}_n
-        \leq C d^2M\ell^4\sqrt n
+        \leq 2^{31}d^2M\ell^4\sqrt n
         \label{eq:main-regret}
     \end{align}
     with probability at least $1-\delta$.
@@ -739,9 +724,7 @@ By minimality and the equality $\Sigma_1^{-1}=\overline\Sigma_1^{-1}$,
 \end{align}
 \begin{lemma}
     \label{lem:trace}
-    % Suppose that $\sqrt{\frac32} \lambda\eta \Lip(e) \sigma \leq1$.
-    Suppose that $\frac{c_\lambda c_\eta}{C_\eps C_0^6}\leq\frac{1}{8}$.
-    Then it holds that
+    Suppose that $\eps=\eps_0\leq1/2$. Then
     \begin{align}
         \|\overline\Sigma_{t+1}^{-1}\|_{\op}^{\frac12}
         \leq
@@ -774,8 +757,7 @@ Define the feedback good event
 \end{align}
 \begin{lemma}
     \label{lem:feedback}
-    Suppose that $C_0\geq 64$, $C_\eps> 2^{11}$, $c_\lambda c_\eta C_\eps> 2^{12}$, $\eps\leq 1/2$,
-    $\ell\geq 1$, and $\frac{c_\lambda c_\eta}{C_\eps C_0^6}\leq\frac{1}{8}$.
+    Suppose that $\eps=\eps_0\leq 1/2$.
     Then
     \begin{align}
         \sum_{t=1}^{\tau_{\mathrm{cov}}}
@@ -805,8 +787,8 @@ minimizer of $e$.  Consequently,
     \E_t[e(X_t)]-e(x_\star)\geq0.
     \label{eq:stationarity-sign}
 \end{align}
-Fix the universal constant $b>0$ from \cref{thm:main} and define the focus radius
-$B=\frac{b}{\lambda^2\ell}$
+Define the focus radius
+$B=2^{26}d^3M^2\ell^3=(2^{14}\lambda^2\ell)^{-1}$
 and the stopping times
 \begin{align}
     \tau_{\mathrm{focus}}
@@ -826,13 +808,13 @@ and the stopping times
     \label{eq:safe-stopping-time}
 \end{align}
 Both are $(\F_t)$-stopping times.
-Under the condition $4c_\lambda^2\leq b$, the initial focus potential satisfies
+The initial focus potential satisfies
 \begin{align}
     \frac12\normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2
     \leq
     4d^3M^2
     \leq
-    \frac{b}{c_\lambda^2}d^3M^2\ell^3
+    2^{26}d^3M^2\ell^3
     =B,
     \label{eq:initial-focus}
 \end{align}
@@ -863,7 +845,7 @@ stability and regret arguments.
         \bigl(\widehat q_t(x_\star)-q_t(x_\star)\bigr)
         \right|
          & \leq
-        \frac{2^9\sqrt{b} \sqrt{n\ell}}{\lambda},
+        \frac{4\sqrt{n\ell}}{\lambda},
         \label{eq:q-concentration}
         \\
         \sum_{t=1}^{\tau_{\mathrm{safe}}}
@@ -889,64 +871,30 @@ stability and regret arguments.
 The proof is in \cref{app:concentration}.
 
 \begin{proof}[Proof of \cref{thm:main}]
-    Suppose that
-    \begin{align}
-        C_0                    \geq64,
-        \quad
-        C_\eps                 \geq1,
-        \quad
-        c_\lambda              \leq\frac18,
-        \quad
-        b                      \leq2^{-14},
-        \quad
-        4c_\lambda^2           \leq b,
-        \quad
-        \frac{c_\lambda}{C_0}  \leq2^{-8},
-        \label{eq:stability-constants-one}
-        \\
-        \frac{c_\lambda c_\eta}{C_\eps C_0^6}
-        \leq\frac18,
-        \quad
-        \frac{2^{12}c_\lambda c_\eta}{\sqrt{C_0}}
-        \leq\frac14,
-        \quad
-        4
-        +\frac{2^9\sqrt b\,c_\eta}{c_\lambda}
-        +72c_\eta^2
-        +\frac{16}{c_\lambda}
-        +c_\eta
-        \leq
-        \frac{b}{c_\lambda^2}.
-        \label{eq:stability-constants-two}
-    \end{align}
     If $\eps_0>1/2$, then
     \begin{align}
         \operatorname{Reg}_n
         \leq n
         =\sqrt n\sqrt n
-        <2C_\eps d^2M\ell^4\sqrt n
-        \leq C d^2M\ell^4\sqrt n,
+        <2^{31}d^2M\ell^4\sqrt n,
     \end{align}
     which proves \eqref{eq:main-regret}.  Suppose henceforth that
     $\eps=\eps_0\leq1/2$.
 
     \proofstep{1}{Stability}
     Write $\tau=\tau_{\mathrm{safe}}$.
-    By \eqref{eq:stability-constants-one} and \eqref{eq:initial-focus},
-    the stopped invariants \eqref{eq:stability-stopped-invariants} hold.
+    By \eqref{eq:initial-focus}, the stopped invariants
+    \eqref{eq:stability-stopped-invariants} hold.
     Work on the event in \cref{prop:concentration}, which has probability at
     least $1-\delta/4$.
 
     \proofstepinline{1.1}
     We first show that the covariance condition holds at round $\tau$.
-    By \eqref{eq:stability-constants-two},
     \begin{align}
         2^{12}\lambda\eta\ell^{3/2}\sqrt{dn}
         =
-        \frac{2^{12}c_\lambda c_\eta}{\sqrt\ell}
-        \leq
-        \frac{2^{12}c_\lambda c_\eta}{\sqrt{C_0}}
-        \leq\frac14\,.
+        \frac{1}{32\sqrt\ell}
+        \leq\frac1{32}\,.
         \label{eq:main-stability-H-small}
     \end{align}
     Therefore, multiplying \eqref{eq:H-concentration} by $\eta\lambda$ gives
@@ -1108,11 +1056,11 @@ The proof is in \cref{app:concentration}.
     The domain conditions in that proposition hold because
     \begin{align}
         0<e^{-\ell}
-         & \leq e^{-C_0}\leq\frac12,
+         & \leq e^{-128}\leq\frac12,
          &
         0<\lambda
-         & =\frac{c_\lambda}{d^{3/2}M\ell^2}
-        \leq c_\lambda\leq\frac18.
+         & =\frac{1}{2^{20}d^{3/2}M\ell^2}
+        \leq2^{-20}\leq\frac18.
     \end{align}
     Its remaining hypotheses hold for every $t\leq\tau$, since
     \begin{align}
@@ -1120,10 +1068,8 @@ The proof is in \cref{app:concentration}.
          & \leq
         \lambda\left(d+2\ell\right)
         \leq
-        \frac{c_\lambda}{\ell^2}
-        +\frac{2c_\lambda}{\ell}
-        \leq
-        \frac{4c_\lambda}{C_0}
+        \frac{1}{2^{20}\ell^2}
+        +\frac{1}{2^{19}\ell}
         \leq\frac1{64},
         \label{eq:main-stability-bracket-scale}
         \\
@@ -1132,24 +1078,34 @@ The proof is in \cref{app:concentration}.
         \sqrt{\log(2e^\ell)}
          & \leq
         \lambda\sqrt{2B}\sqrt{2\ell}
-        =2\sqrt b
-        \leq\frac1{64}.
+        =\frac1{64}.
         \label{eq:main-stability-bracket-focus}
     \end{align}
     Inequality \reason{d} uses
     $\Lip(e)\leq8/\eps$, $\norm{\mu_t-x_\star}\leq4d$, and
     $\normm{\mu_t-x_\star}{\Sigma_t^{-1}}\leq\sqrt{2B}$ for every
     $t\leq\tau$ by \eqref{eq:stability-stopped-invariants}.
-    Finally, \reason{e} follows by the choice of constants.
+    Finally, \reason{e} follows from
+    \begin{align}
+        \frac{32d\lambda}{\eps\sqrt\pi}\sqrt{2B}
+        =
+        \frac{\sqrt n}
+        {2^{31}\sqrt{2\pi}\,dM\ell^{9/2}}
+        \leq\sqrt n.
+    \end{align}
     Therefore,
     \begin{align}
         \eta\sum_{t=1}^{\tau}q_t(x_\star)
          & \leq
         2\eta\sum_{t=1}^{\tau}\tr(H_t\Sigma_t)
         +\eta\tau\sqrt{n}e^{-\ell}
+        \\
+         &
         \explan{\leq}{a}
         4\eta\sum_{t=1}^{\tau}\tr(H_t\overline\Sigma_t)
         +\eta\tau\sqrt{n}e^{-\ell}
+        \\
+         &
         \explan{\leq}{b}
         \frac{16d\log(2n)}{\lambda}
         +\eta n^{3/2}e^{-\ell}\,,
@@ -1171,7 +1127,7 @@ The proof is in \cref{app:concentration}.
         +\frac{\eta^2}{2}\sum_{t=1}^{\tau}
         \normm{\widehat g_t}{\Sigma_{t+1}}^2
         \leq
-        \frac{2^9\sqrt b\,\eta\sqrt{n\ell}}{\lambda}
+        \frac{4\eta\sqrt{n\ell}}{\lambda}
         +72\eta^2dn\ell.
     \end{align}
 
@@ -1186,7 +1142,7 @@ The proof is in \cref{app:concentration}.
         \normm{\mu_{\tau+1}-x_\star}{\Sigma_{\tau+1}^{-1}}^2
          & \leq
         4d^3M^2
-        +\frac{2^9\sqrt b\,\eta\sqrt{n\ell}}{\lambda}
+        +\frac{4\eta\sqrt{n\ell}}{\lambda}
         +72\eta^2dn\ell
         +\frac{16d\log(2n)}{\lambda}
         +\eta n^{3/2}e^{-\ell}
@@ -1194,14 +1150,17 @@ The proof is in \cref{app:concentration}.
          & \leq
         d^3M^2\ell^3\left(
         4
-        +\frac{2^9\sqrt b\,c_\eta}{c_\lambda}
-        +72c_\eta^2
-        +\frac{16}{c_\lambda}
-        +c_\eta
+        +2^{25}
+        +4608
+        +2^{24}
+        +8
         \right)
-        \leq B.
+        \leq
+        2^{26}d^3M^2\ell^3
+        =B.
     \end{align}
-    The last inequality uses \eqref{eq:stability-constants-two}.
+    The last inequality uses
+    $4+2^{25}+4608+2^{24}+8=50{,}336{,}268<2^{26}$.
     Thus the focus condition does not fail at round $\tau$.  In particular,
     if $\tau<n$, then
     $\tau=\tau_{\mathrm{safe}}<\tau_{\mathrm{focus}}$.
@@ -1273,7 +1232,7 @@ The proof is in \cref{app:concentration}.
         \label{eq:main-bracket-tail}
     \end{align}
     where the last inequality uses
-    $e^{-\ell}\leq n^{-C_0}\leq n^{-2}$.
+    $e^{-\ell}\leq n^{-128}\leq n^{-2}$.
     Returning to \eqref{eq:main-extension-switch} and applying
     \cref{prop:bracket} now gives
     \begin{align}
@@ -1323,7 +1282,7 @@ The proof is in \cref{app:concentration}.
          & \explan{\leq}{a}
         \frac{4d^3M^2}{\eta}
         +72\eta dn\ell
-        +\frac{2^9\sqrt b\,\sqrt{n\ell}}{\lambda}
+        +\frac{4\sqrt{n\ell}}{\lambda}
         +\frac{17d\log(1+n)}{2\lambda\eta}
         +1.
         \label{eq:main-extension-budget}
@@ -1336,25 +1295,27 @@ The proof is in \cref{app:concentration}.
     \begin{align}
          & \frac{4d^3M^2}{\eta}
         +72\eta dn\ell
-        +\frac{2^9\sqrt b\,\sqrt{n\ell}}{\lambda}
+        +\frac{4\sqrt{n\ell}}{\lambda}
         +\frac{17d\log(1+n)}{2\lambda\eta}
         +1
         \nonumber               \\
          & \quad\leq
-        \frac4{c_\eta}d^2M\sqrt n
-        +72c_\eta d^2M\ell\sqrt n
-        +\frac{2^9\sqrt b}{c_\lambda}d^{3/2}M\ell^{5/2}\sqrt n
-        +\frac{17}{2c_\lambda c_\eta}d^{3/2}\ell^3\sqrt n
+        \frac12d^2M\sqrt n
+        +576d^2M\ell\sqrt n
+        +2^{22}d^{3/2}M\ell^{5/2}\sqrt n
+        +17\cdot2^{16}d^{3/2}\ell^3\sqrt n
         +1
         \nonumber               \\
          & \quad\leq
         \left(
-        \frac4{c_\eta}
-        +72c_\eta
-        +\frac{2^9\sqrt b}{c_\lambda}
-        +\frac{17}{2c_\lambda c_\eta}
+        \frac12
+        +576
+        +2^{22}
+        +17\cdot2^{16}
         +1
-        \right)d^2M\ell^3\sqrt n.
+        \right)d^2M\ell^3\sqrt n
+        <
+        2^{23}d^2M\ell^3\sqrt n.
         \label{eq:main-extension-regret}
     \end{align}
     The last inequality uses $M\geq d^{-1/2}$ and
@@ -1390,35 +1351,23 @@ The proof is in \cref{app:concentration}.
         \nonumber           \\
          & \explan{\leq}{a}
         \sqrt{2n\ell}
-        +C_\eps d^2M\ell^4\sqrt n
-        +\left(
-        \frac4{c_\eta}
-        +72c_\eta
-        +\frac{2^9\sqrt b}{c_\lambda}
-        +\frac{17}{2c_\lambda c_\eta}
-        +1
-        \right)d^2M\ell^3\sqrt n
+        +2^{30}d^2M\ell^4\sqrt n
+        +2^{23}d^2M\ell^3\sqrt n
         \nonumber           \\
          & \explan{\leq}{b}
         \left(
-        \sqrt2+C_\eps
-        +\frac4{c_\eta}
-        +72c_\eta
-        +\frac{2^9\sqrt b}{c_\lambda}
-        +\frac{17}{2c_\lambda c_\eta}
-        +1
+        \sqrt2+2^{30}+2^{23}
         \right)d^2M\ell^4\sqrt n
         \nonumber           \\
-         & \explan{\leq}{c}
-        C d^2M\ell^4\sqrt n.
+         & <
+        2^{31}d^2M\ell^4\sqrt n.
     \end{align}
     Here \reason{a} uses \eqref{eq:action-martingale},
     \eqref{eq:shrink-comparator}, \eqref{eq:main-extension-regret},
-    $n\eps=C_\eps d^2M\ell^4\sqrt n$, and
+    $n\eps=2^{30}d^2M\ell^4\sqrt n$, and
     $f(A_t)\leq e(X_t)$.
     Inequality \reason{b} uses
-    $M\geq d^{-1/2}$ and $n,d,\ell\geq1$, while
-    \reason{c} uses \eqref{eq:main-constant-choice}.
+    $M\geq d^{-1/2}$ and $n,d,\ell\geq1$.
 \end{proof}
 
 \newpage
@@ -2013,9 +1962,9 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq
         \norm{\overline\Sigma_1^{-1}}_{\op}^{1/2} + t\lambda\eta L
         = \sigma^{-1}+t\lambda\eta L
-        \leq \sigma^{-1} + t \frac{c_\lambda}{d^{3/2}M\ell^2} \cdot \frac{c_\eta dM}{\sqrt n} \cdot \frac{8}{\eps}
         \leq
-        \sigma^{-1} + 8t\cdot \frac{c_\lambda c_\eta}{C_\eps C_0^6}
+        \sigma^{-1}
+        +\frac{t}{2^{44}d^{5/2}M\ell^6}
         \leq
         \sigma^{-1} + t\,,
     \end{align}
@@ -2054,16 +2003,13 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \end{align}
     The last inequality uses
     $\overline\Sigma_t\preceq\overline\Sigma_1=\sigma^2I_d$.
-    Therefore, by the lemma assumption
+    Therefore, using $\eps=\eps_0\leq1/2$,
     \begin{align}
         \norm{\eta\lambda\overline\Sigma_t^{1/2}H_t\overline\Sigma_t^{1/2}}_{\op}
         \leq
         \sqrt{\frac32}\lambda\eta L\sigma
         \leq
-        \sqrt{\frac32}\cdot\frac{c_\lambda}{d^{3/2}M\ell^2}\cdot\frac{c_\eta dM}{\sqrt n}\cdot\frac{8}{\eps}
-        \cdot\frac1{M\sqrt{2d}}
-        \leq
-        8\cdot \frac{c_\lambda c_\eta}{C_\eps C_0^6}
+        2^{-44}
         \leq
         1\,.
     \end{align}
@@ -2396,11 +2342,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \\
          & \explan{\leq}{d}
         4n
-        +
-        \frac{2^{12}n\ell}
-        {c_\lambda c_\eta C_\eps \sqrt d\,M\,\ell^{3/2}}
-        +
-        n
+        +\frac{n}{2\sqrt d\,M\sqrt\ell}
+        +2^{-55}n
         \explan{\leq}{e}
         6n
         \,,
@@ -2409,9 +2352,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     Here \reason{a} is \eqref{eq:feedback-start}, and
     \reason{b} follows by applying \eqref{eq:feedback-v2} for each
     $t\leq\tau_{\mathrm{cov}}$ and using $\tau_{\mathrm{cov}}\leq n$.
-    For \reason{c}, the hypothesis of \cref{lem:trace} is satisfied by the
-    assumption of the present lemma;  thus, \eqref{eq:covariance-comparison}
-    and \eqref{eq:trace-budget} give
+    For \reason{c}, \cref{lem:trace} applies; thus,
+    \eqref{eq:covariance-comparison} and \eqref{eq:trace-budget} give
     \begin{align}
         \sum_{t=1}^{\tau_{\mathrm{cov}}}
         \tr(H_t\Sigma_t)
@@ -2424,48 +2366,36 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \end{align}
     To justify \reason{d} and \reason{e}, the parameter definitions imply
     \begin{align}
-        \frac{d\sqrt\ell\log(1+n)}
+        \frac{2^{12}d\sqrt\ell\log(1+n)}
         {\lambda\eta\eps}
          & =
-        \frac{
-            n\log(1+n)
-        }{
-            c_\lambda c_\eta C_\eps
-            \sqrt d\,M\,\ell^{3/2}
-        }
+        \frac{n\log(1+n)}
+        {2\sqrt d\,M\ell^{3/2}}
         \leq
-        2^{-12}
-        n
-        ,\quad\text{and}\quad
-        \frac{e^{-\ell}}{\eps^2}
+        \frac{n}{2\sqrt d\,M\sqrt\ell},
+        \qquad\text{and}\qquad
+        \frac{32ne^{-\ell}}{\eps^2}
         =
-        \frac{
-            ne^{-\ell}
-        }{
-            C_\eps^2d^4M^2\ell^8
-        }
-        \leq1.
+        \frac{2^{-55}n(ne^{-\ell})}
+        {d^4M^2\ell^8}
+        \leq2^{-55}n.
     \end{align}
-    Indeed,
-    $1<\log(1+n)\leq\ell$,
-    $\sqrt d\,M\geq1$,
-    $c_\lambda c_\eta C_\eps\geq 2^{12}$, and
-    $ne^{-\ell}\leq1$; the fixed choice of the universal constants absorbs
-    the remaining numerical factors.
+    Here we used $\log(1+n)\leq\ell$, $\sqrt d\,M\geq1$,
+    $d^4M^2\ell^8\geq1$, and $ne^{-\ell}\leq1$.
 
     \proofstepinline{2}
     We next prove the realized bound.  Set
     \begin{align}
-        B=\frac{32\ell}{\eps},
+        B_Y=\frac{32\ell}{\eps},
         \qquad
         \widetilde Y_t
         =
-        Y_t\1\{|Y_t|\leq B\},
+        Y_t\1\{|Y_t|\leq B_Y\},
         \qquad
         \mathcal E_{\mathrm{tr}}
         =
         \left\{
-        |Y_t|\leq B
+        |Y_t|\leq B_Y
         \text{ for every }t\leq\tau_{\mathrm{cov}}
         \right\}.
     \end{align}
@@ -2528,7 +2458,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \right)
         \leq
         \frac{32\ell}{\eps}
-        =B.
+        =B_Y.
     \end{align}
     Since $\1\{t\leq\tau_{\mathrm{cov}}\}$ is
     $\F_{t-1}$-measurable, a union bound gives
@@ -2560,8 +2490,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     Then
     $\E_t[D_t]
         =0$,
-    $|D_t|\leq B^2$,
-    and, using $\widetilde Y_t^4\leq B^2\widetilde Y_t^2$,
+    $|D_t|\leq B_Y^2$,
+    and, using $\widetilde Y_t^4\leq B_Y^2\widetilde Y_t^2$,
     \begin{align}
         \sum_{t=1}^n\E_t[D_t^2]
          & \leq
@@ -2569,11 +2499,11 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \1\{t\leq\tau_{\mathrm{cov}}\}
         \E_t[\widetilde Y_t^4]
         \leq
-        B^2
+        B_Y^2
         \sum_{t=1}^{\tau_{\mathrm{cov}}}
         \E_t[\widetilde Y_t^2]
         \leq
-        B^2
+        B_Y^2
         \sum_{t=1}^{\tau_{\mathrm{cov}}}
         \E_t[Y_t^2]
         \leq
@@ -2582,7 +2512,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \end{align}
     Applying the Freedman inequality \cref{lem:freedman} with
     \begin{align}
-        b=B^2,
+        b=B_Y^2,
         \qquad
         s^2=6nB^2,
         \qquad
@@ -2608,9 +2538,9 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \frac{
             n
         }{
-            C_\eps^2d^4M^2\ell^5
+            2^{60}d^4M^2\ell^5
         }
-        \leq n$.
+        \leq2^{-60}n$.
     Hence, on event $\mathcal E_{\mathrm{tr}}$ and outside the Freedman event,
     \begin{align}
         \sum_{t=1}^{\tau_{\mathrm{cov}}}
@@ -2637,15 +2567,12 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         2^{11}\frac{\ell^3}{\eps^2}
         \leq
         6n
-        +
-        \frac{2^8n}{C_\eps}
-        +
-        \frac{2^{11}n}{C_\eps}
+        +2^{-22}n
+        +2^{-49}n
         \leq
         8n\,,
         \label{eq:feedback-truncated-sum}
     \end{align}
-    where the last inequality uses $C_\eps\geq2^{11}$.
     Combining
     \eqref{eq:feedback-realised-start},
     \eqref{eq:feedback-truncation-event}, and
@@ -2714,8 +2641,8 @@ The next lemma is the two-sided form of
 
 \begin{lemma}[Weighted Gaussian score moments]
     \label{lem:gaussian-score-localisation}
-    Suppose that $\sigma=(M\sqrt{2d})^{-1}$, $C_0\geq64$,
-    $C_\eps\geq1$, and $\eps=\eps_0\leq1/2$. Let $t\leq\tau$, let
+    Suppose that $\sigma=(M\sqrt{2d})^{-1}$ and
+    $\eps=\eps_0\leq1/2$. Let $t\leq\tau$, let
     $h_t$ be any $\F_{t-1}$-measurable unit vector, and put
     $G_t=\ip{h_t}{Z_t}$. Then
     \begin{align}
@@ -2830,7 +2757,6 @@ The next lemma is the two-sided form of
         \leq 1\,,
     \end{align}
     where \reason{a} and \reason{d} is Jensen's inequality, \reason{b} uses the fact that $W_t+\tilde Z$ has the same conditional law as $Z$, and \reason{c} uses the fact that the radius and direction of the isotropic Gaussian $Z$ are independent.
-    % The assumption $C_0\geq64$ and \eqref{eq:ell} give $\ell \geq 64\log128 >4,$where we used $n,d\geq1$ and $\delta<1/2$.\alireza{move to the table.}
 
 
     For the first factor, let $\Delta_t=\pi(W_t)-\E_t[\pi(W_t)]$.
@@ -2934,7 +2860,14 @@ The next lemma is the two-sided form of
         e^{-4\ell}
         \label{eq:score-tail-before-parameters}
     \end{align}
-    where \reason{a} uses $\eps^{-2} \leq e^\ell$\alireza{Record this} and \reason{b} uses $2^{17}<e^{12}\leq e^{3\ell}$.
+    Here \reason{a} uses
+    \begin{align}
+        \eps^{-2}
+        =\frac{n}{2^{60}d^4M^2\ell^8}
+        \leq n
+        \leq e^\ell,
+    \end{align}
+    and \reason{b} uses $2^{17}<e^{12}\leq e^{3\ell}$.
     Substituting this bound into \eqref{eq:score-localisation-split} proves
     \eqref{eq:H-score-second-moment}.
 \end{proof}
@@ -2955,7 +2888,6 @@ The following chi-square upper-tail inequality follows from
 \end{lemma}
 
 \begin{proof}[Proof of \cref{prop:concentration}]
-    \
     \proofstep{1.}{Proving \eqref{eq:q-concentration}}
     Let $t\leq\tau$ so that both focus and covariance conditions hold.
     Define
@@ -3012,31 +2944,34 @@ The following chi-square upper-tail inequality follows from
         =R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1).
         \label{eq:q-score-representation}
     \end{align}
-    Since $R_t \leq \frac{\sqrt{2b}}{\lambda\sqrt{\ell}}$ for $t\leq\tau$ by the focus condition \eqref{eq:safe-stopping-time}, we have
+    Since the focus condition \eqref{eq:safe-stopping-time} gives
+    $R_t\leq\sqrt{2B}\leq(64\lambda\sqrt\ell)^{-1}$ for
+    $t\leq\tau$, we have
     \begin{align}
         L_t^2
          & =
         \left(
         R_tG_t+\frac{\lambda R_t^2}{2}(G_t^2-1)
         \right)^2
+        \\
+         &
         \leq
         3R_t^2G_t^2
         +\frac{3\lambda^2R_t^4}{4}
         \left(G_t^4+1\right)
-        \leq
-        \frac{6b}{\lambda^2}\frac{G_t^2}{\ell}
-        +\frac{3b^2}{\lambda^2}
-        \frac{G_t^4+1}{\ell^2}
         \\
-         & \leq
-        \frac{12b}{\lambda^2}
+         &
+        \leq
+        \frac{3}{2^{12}\lambda^2}
         \left(
         \frac{G_t^2}{\ell}
         +\frac{G_t^4}{\ell^2}
         +\frac{1}{\ell^2}
         \right)
+        \\
+         &
         \leq
-        \frac{12b}{\lambda^2}
+        \frac{3}{2^{12}\lambda^2}
         \left(\frac12+\frac{3}{2\ell^2}(G_t^2+1)^2\right)
         \,.
         \label{eq:q-score-square}
@@ -3047,12 +2982,12 @@ The following chi-square upper-tail inequality follows from
         \leq
         \E_t[Y_t^2L_t^2]
         \explan{\leq}{a}
-        \frac{12b}{\lambda^2}
+        \frac{3}{2^{12}\lambda^2}
         \E_t\left[Y_t^2 \left(
             \frac12+\frac{3}{2\ell^2}(G_t^2+1)^2
             \right)\right]
         \explan{\leq}{b}
-        \frac{16b}{\lambda^2}
+        \frac{1}{2^{10}\lambda^2}
         \left(
         2^{15}\E_t[Y_t^2]+1
         \right),
@@ -3066,29 +3001,23 @@ The following chi-square upper-tail inequality follows from
     \begin{align}
         \Pp(\mathcal E_G^c)
         \leq 2n\exp(-\ell/2)
-        = 2n\exp\left(
-        -
-        \frac{C_0}{2}
-        \log\left(
-            \frac{C_0nd}{\delta}
-            \right)
-        \right)
+        =2n\left(\frac{128nd}{\delta}\right)^{-64}
         \leq \frac{\delta}{64}.
         \label{eq:q-gaussian-maximum}
     \end{align}
-    \alireza{$C_0>64$}
     On $\mathcal E_G$, the focus condition \eqref{eq:safe-stopping-time} gives
     \begin{align}
         |L_t| \leq |R_t||G_t| + \frac{\lambda R_t^2}{2}(|G_t^2| + 1)
         \leq
-        \frac{\sqrt{2b}}{\lambda\sqrt{\ell}}\sqrt\ell
+        \frac{1}{64\lambda\sqrt\ell}\sqrt\ell
         +
-        \frac{\lambda}{2}\left(\frac{\sqrt{2b}}{\lambda\sqrt{\ell}}\right)^2(\ell+1)
+        \frac{\lambda}{2}
+        \left(\frac{1}{64\lambda\sqrt\ell}\right)^2
+        (\ell+1)
         \leq
-        \frac{\sqrt{2b}}{\lambda}
-        +
-        \frac{2b}{\lambda}
-        \leq \frac{4\sqrt{b}}{\lambda}.
+        \frac{1}{64\lambda}
+        +\frac{1}{2^{12}\lambda}
+        \leq \frac{1}{32\lambda}.
         \label{eq:q-score-bound}
     \end{align}
     Therefore, on $\mathcal E_G$,
@@ -3097,7 +3026,7 @@ The following chi-square upper-tail inequality follows from
         =
         Y_t^2L_t^2
         \leq
-        \frac{16b}{\lambda^2}
+        \frac{1}{2^{10}\lambda^2}
         Y_t^2\,.
         \label{eq:q-realised-score-energy}
     \end{align}
@@ -3116,9 +3045,9 @@ The following chi-square upper-tail inequality follows from
         2
         \sum_{t=1}^\tau
         \left(
-        \frac{16b}{\lambda^2} Y_t^2
+        \frac{Y_t^2}{2^{10}\lambda^2}
         +
-        \frac{16b}{\lambda^2}
+        \frac{1}{2^{10}\lambda^2}
         \left(
             2^{15}\E_t[Y_t^2]+1
             \right)
@@ -3126,7 +3055,7 @@ The following chi-square upper-tail inequality follows from
         \\
          &
         \leq
-        \frac{2^{20} b}{\lambda^2}
+        \frac{2^6}{\lambda^2}
         \sum_{t=1}^\tau
         \left(
         Y_t^2
@@ -3134,48 +3063,50 @@ The following chi-square upper-tail inequality follows from
         \E_t[Y_t^2]+1
         \right)
         \explan{\leq}{c}
-        \frac{2^{24}bn}{\lambda^2}\,,
+        \frac{2^{10}n}{\lambda^2}\,,
         \label{eq:q-total-self-normaliser}
     \end{align}
-    where \reason{a} is by \eqref{eq:D-to-Q}, \reason{b} is by \cref{eq:q-realised-score-energy,eq:q-predictable-second-moment},
-    and \reason{c} is by \cref{lem:feedback} and the fact that $\tau\leq\tau_{\mathrm{cov}}$.
+    where \reason{a} is by \eqref{eq:D-to-Q}, \reason{b} is by
+    \cref{eq:q-realised-score-energy,eq:q-predictable-second-moment},
+    and \reason{c} is by \cref{lem:feedback} and the fact that
+    $\tau\leq\tau_{\mathrm{cov}}$.
 
-
-    where we applied \cref{lem:self-normalised-martingale} with
-    \[
-        z=\frac{8\sqrt{n\ell}}{\lambda},
-        \qquad
-        v=\frac{2^{24}bn}{\lambda^2}.
-    \]
-    Indeed, using $b\leq2^{-14}$ and $C_0\geq64$, the last probability is at most
-    \[
-        2\exp\left(-\frac{\ell}{2^{19}b}\right)
-        \leq
-        2\exp\left(-\frac{\ell}{32}\right)
-        \leq
-        \frac{\delta}{64}.
-    \]
     Next, write
     \begin{align}
         \Pp\left(
         \left|\sum_{t=1}^\tau D_t\right|>
-        \frac{2^9\sqrt{b} \sqrt{n\ell}}{\lambda}
+        \frac{4\sqrt{n\ell}}{\lambda}
         \right)
-        \leq
+         & \leq
         \Pp(\mathcal E_Y^c)
         +\Pp(\mathcal E_G^c)
-        +
+        \\
+         & \quad+
         \Pp\left(
         \left|\sum_{t=1}^\tau D_t\right|>
-        \frac{2^9\sqrt{b} \sqrt{n\ell}}{\lambda},
+        \frac{4\sqrt{n\ell}}{\lambda},
         \ \sum_{t=1}^\tau(D_t^2+\E_t[D_t^2])
-        \leq\frac{2^{24}bn}{\lambda^2}
+        \leq\frac{2^{10}n}{\lambda^2}
         \right)
-        \leq
+        \\
+         & \leq
         \frac{5\delta}{32}\,,
     \end{align}
-    \alireza{Used $C_0> 128$}
-    where we applied \cref{lem:self-normalised-martingale} so that the last probability is at most $\delta/64$, which makes the total probability at most $\frac{\delta}{8} + \frac{\delta}{64} + \frac{\delta}{64} = \frac{5\delta}{32}$.
+    where \cref{lem:self-normalised-martingale}, applied with
+    \begin{align}
+        z=\frac{4\sqrt{n\ell}}{\lambda},
+        \qquad
+        v=\frac{2^{10}n}{\lambda^2},
+    \end{align}
+    bounds the last probability by
+    \begin{align}
+        2\exp\left(-\frac{\ell}{128}\right)
+        =\frac{\delta}{64nd}
+        \leq\frac{\delta}{64}.
+    \end{align}
+    Together with
+    $\Pp(\mathcal E_Y^c)\leq\delta/8$ and
+    $\Pp(\mathcal E_G^c)\leq\delta/64$, this gives the displayed total.
     This proves
     \eqref{eq:q-concentration}.
 
@@ -3203,15 +3134,15 @@ The following chi-square upper-tail inequality follows from
         \leq
         e^{-\ell}
         \leq
-        \frac{\delta}{C_0 n}
+        \frac{\delta}{128n}.
     \end{align}
     Let
     $\mathcal E_Z
         =\left\{
         \max_{t\leq\tau}\norm{Z_t}^2\leq 3(d+\ell)
         \right\}$.
-    conditionally and taking a union
-    bound give
+    The preceding bound holds conditionally at every round, so a union bound
+    gives
     \begin{align}
         \Pp(\mathcal E_Z^c)\leq\frac{\delta}{128}\leq\frac{\delta}{64}
         \label{eq:Z-norm-union}
@@ -3242,9 +3173,9 @@ The following chi-square upper-tail inequality follows from
         d\log\left(1+2^{10}dn^2\right)
         \leq
         2d\log\left(
-        \frac{C_0nd}{\delta}
-        \right)\leq
-        \frac{2d\ell}{C_0}\,.
+        \frac{128nd}{\delta}
+        \right)
+        =\frac{d\ell}{64}\,.
     \end{align}
     For $u\in\mathcal U$, define
     \begin{align}
@@ -3398,13 +3329,12 @@ The following chi-square upper-tail inequality follows from
         +
         \frac{2^{16}d^3\ell^5}{24\eps^2}
         \leq
-        \frac{2^{16}n}{C_\eps\sqrt\ell}
+        \frac{2^{-14}n}{\sqrt\ell}
         +
-        \frac{2^{12}n}{C_\eps^2\ell^3}
+        \frac{2^{-48}n}{\ell^3}
         \leq
-        2^6n.
+        n.
     \end{align}
-    \alireza{$C_\eps>2^{11}$.}
     Therefore, on the event $\mathcal E_W\cap\mathcal E_Y\cap\mathcal E_Z$, by \eqref{eq:W_t-upperbound} and \eqref{eq:W_t-control}, we have
     \begin{align}
         \sum_{t=1}^{\tau}
@@ -3414,8 +3344,7 @@ The following chi-square upper-tail inequality follows from
         W_{t,u}
         \leq
         2^{18}\ell^2n
-        +
-        2^6n
+        +n
         \leq
         2^{19}\ell^2n,
         \label{eq:H-realised-score-energy}
@@ -3576,9 +3505,9 @@ The following chi-square upper-tail inequality follows from
         \frac{128|\mathcal U|(J+1)}{\delta}
         \right)
         \leq
-        \frac{2d\ell}{C_0}
+        \frac{d\ell}{64}
         +
-        \frac{4\ell}{C_0}
+        \frac{\ell}{32}
         \leq
         \frac{d\ell}{8}.
     \end{align}
@@ -3724,6 +3653,21 @@ The following chi-square upper-tail inequality follows from
         \overline\Sigma_{\tau+1}^{-1}.
     \end{align}
     This proves \eqref{eq:H-concentration}.
+
+    Finally, a union bound over all the exceptional events used in the three
+    steps gives total failure probability at most
+    \begin{align}
+        \frac{\delta}{8}
+        +\frac{\delta}{64}
+        +\frac{\delta}{64}
+        +\frac{\delta}{128}
+        +\frac{\delta}{64}
+        +\frac{\delta}{64}
+        =\frac{25\delta}{128}
+        <\frac{\delta}{4}.
+    \end{align}
+    This proves the simultaneous probability statement in
+    \cref{prop:concentration}.
 \end{proof}
 
 \end{document}
