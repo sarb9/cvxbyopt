@@ -130,7 +130,7 @@ We handle the first by comparing the random covariance with its
 predictable counterpart, and the second by bounding the extension value at the means and closing
 a feedback-moment budget through extension regret.
 
-The paper is organised as follows.  \Cref{sec:setting} introduces the problem,
+The paper is organized as follows.  \Cref{sec:setting} introduces the problem,
 the extension and the algorithm.
 The stability and regret analysis, including the trace, moment and
 concentration estimates, appears in \cref{sec:stability}, with the
@@ -639,7 +639,7 @@ $f$ on $\K_\eps$, and imagine that, in every round:
 With these two conveniences, \eqref{eq:time-indexed-regret-switch}
 already gets us started:
 \begin{align}
-    \sum_{t=1}^n\bigl(\E_t[e(X_t)]-e(x_\star)\bigr)
+    \overline{\operatorname{Reg}}_n \triangleq \sum_{t=1}^n\bigl(\E_t[e(X_t)]-e(x_\star)\bigr)
      & \leq\sum_{t=1}^n\bigl(q_t(\mu_t)-q_t(x_\star)\bigr)
     +\frac{17}{16}\sum_{t=1}^n\tr(H_t\Sigma_t)+\frac{n^{-7}}\eps.
 \end{align}
@@ -735,14 +735,7 @@ We first bound realized regret in terms of extension regret, as in \citet{lattim
     \end{align}
     Then $\Pp(\mathcal E_{\mathrm{reg}})\geq1-\delta/4$.
 \end{lemma}
-On $\mathcal E_{\mathrm{reg}}$, it therefore suffices to bound the extension regret in \eqref{eq:actual-to-extension},
-which we denote by
-\begin{align}
-    \overline{\operatorname{Reg}}_n
-    =
-    \sum_{t=1}^n\left(\E_t[e(X_t)]-e(x_\star)\right).
-    \label{eq:extension-regret}
-\end{align}
+On $\mathcal E_{\mathrm{reg}}$, it therefore suffices to bound the extension regret $\overline{\operatorname{Reg}}_n$.
 
 \proofstepinline{1}
 To apply \cref{cor:bracket-ell}, we need to ensure that $\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
@@ -786,38 +779,27 @@ Now for $t < \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{cov}}$ we have both the 
 since $0 \prec \widehat\Sigma_t \preceq 2\Sigma_t \preceq 2\sigma^2 I_d$.
 Therefore, by \cref{cor:regret-switch,cor:bracket-ell}, for $\tau_{\mathrm{f} \wedge \mathrm{c}} = \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{cov}}$, we get
 \begin{align}
-    \sum_{t=1}^{\tau_{\mathrm{f} \wedge \mathrm{c}}}
-    \E_t[e(X_t)]-e(x_\star)
+    \overline{\operatorname{Reg}}_{1:\tau_{\mathrm{f} \wedge \mathrm{c}}}(x_\star)
     \leq
-    \sum_{t=1}^{\tau_{\mathrm{f} \wedge \mathrm{c}}}
-    q_t(\mu_t)-q_t(x_\star) +
+    \operatorname{qReg}_{1:\tau_{\mathrm{f} \wedge \mathrm{c}}}(x_\star)
+    +
     2\sum_{t=1}^{\tau_{\mathrm{f} \wedge \mathrm{c}}}
     \tr(H_t\widehat\Sigma_t)
-    +\frac{\tau_{\mathrm{f} \wedge \mathrm{c}} n^{-7}}{\eps}.
+    +\frac{\tau_{\mathrm{f} \wedge \mathrm{c}} n^{-7}}{\eps}\,,
     \label{eq:regret-switch-focus}
 \end{align}
+where $\operatorname{qReg}_{s:u}(x)\triangleq\sum_{t=1}^{\tau_{\mathrm{f} \wedge \mathrm{c}}}q_t(\mu_t)-q_t(x_\star)$ is the quadratic regret.
 The last term is negligible since $\tau_{\mathrm{f} \wedge \mathrm{c}}\leq n$ and $\eps\geq n^{-1/2}$.
-The trace sum in \eqref{eq:regret-switch-focus} is controlled by the following lemma, which is proved in \cref{app:trace}.
-\begin{lemma}
-    \label{lem:trace}
-    We have
-    \begin{align}
-        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \tr(H_t\widehat{\Sigma}_t)
-        \leq
-        2\eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
-        \tr(H_t\Sigma_t)
-        \leq\frac{8d\log(1 + n)}{\lambda}.
-        \label{eq:trace-budget}
-    \end{align}
-\end{lemma}
+Next, we move on to bounding the quadratic regret sum and deal with the trace term in the end.
 
 \proofstepinline{2}
-Bounding the quadratic sum $\sum_{t=1}^{\tau_{\mathrm{f} \wedge \mathrm{c}}}q_t(\mu_t)-q_t(x_\star)$
-in \eqref{eq:regret-switch-focus} is more delicate.
+Bounding the quadratic regret $\operatorname{qReg}_{1:\tau_{\mathrm{f} \wedge \mathrm{c}}}(x_\star)$ in \eqref{eq:regret-switch-focus} is quite delicate.
+The main difficulty is that the quadratic $q_t$ is not observed directly, but only through the sampled quadratic $\widehat q_t$.
 The ONS identity in \eqref{eq:ons-regret-identity} lets us write the sum of sampled quadratics
 for \textbf{any time interval} $1\leq s \leq u \leq \tau_{\mathrm{f} \wedge \mathrm{c}}$ and \textbf{any $\F_{s-1}$-measurable comparator} $\bar{x}\in\R^d$ as
 \begin{align}
+    \widehat{\operatorname{qReg}}_{s:u}(\bar{x})
+    \triangleq
     \sum_{t=s}^{u}
     \widehat q_t(\mu_t)-\widehat q_t(\bar{x})
     =
@@ -825,24 +807,16 @@ for \textbf{any time interval} $1\leq s \leq u \leq \tau_{\mathrm{f} \wedge \mat
     +\frac{\eta}{2}\sum_{t=s}^{u}\normm{\widehat g_t}{\widehat\Sigma_{t+1}}^2.
     \label{eq:ons-telescope}
 \end{align}
-We will bound the right-hand side of \eqref{eq:ons-telescope} later.
-To use this identity in \eqref{eq:regret-switch-focus}, we first need to pass
-from the sampled quadratics $\widehat q_t$ to the population quadratics $q_t$.
-Writing $D_t(\bar{x})=q_t(\bar{x})-\widehat q_t(\bar{x})$,
+The reason for arbitrary intervals and comparators will become clear later and for now $\bar{x}$ can be thought of as $x_\star$,
+and $[s,u]$ as $[1,\tau_{\mathrm{f} \wedge \mathrm{c}}]$.
+To control \eqref{eq:regret-switch-focus} through this identity,
+we need to bound the difference between the sampled quadratics $\widehat q_t$
+and the population quadratics $q_t$.
+Writing $D_t(\bar{x})=q_t(\bar{x})-\widehat q_t(\bar{x})$, which satisfies $\E_t[D_t(\bar{x})]=0$,
 the resulting error is
 \begin{align}
     \left|
-    \left(
-    \sum_{t=s}^{u}
-    q_t(\mu_t)-q_t(\bar{x})
-    \right)
-    -
-    \left(
-    \sum_{t=s}^{u}
-    \left(
-    \widehat q_t(\mu_t)-\widehat q_t(\bar{x})
-    \right)
-    \right)
+    \operatorname{qReg}_{s:u}(\bar{x})-\widehat{\operatorname{qReg}}_{s:u}(\bar{x})
     \right|
     =
     \left|
@@ -851,9 +825,131 @@ the resulting error is
     \right|\,,
 \end{align}
 where we used $\widehat q_t(\mu_t)=q_t(\mu_t) = 0$.
-For each fixed comparator $\bar{x}$, unbiasedness gives
-$\E_t[D_t(\bar{x})]=0$, so
-$(D_t(\bar{x}))_t$ is a martingale difference sequence.
+Putting this back into \eqref{eq:ons-telescope} gives
+\begin{align}
+    \operatorname{qReg}_{s:u}(\bar{x})
+     & \leq
+    \frac{\normm{\mu_s-\bar{x}}{\widehat\Sigma_s^{-1}}^2 - \normm{\mu_{u+1}-\bar{x}}{\widehat\Sigma_{u+1}^{-1}}^2}{2\eta }
+    +\frac{\eta}{2}\sum_{t=s}^{u}\normm{\hat g_t}{\widehat\Sigma_{t+1}}^2
+    +\left|
+    \sum_{t=s}^{u}
+    D_t(\bar{x})
+    \right|\,.
+\end{align}
+
+\proofstepinline{3}
+First we bound the sum $\frac{\eta}{2}\sum_{t=s}^{u}\normm{\hat g_t}{\widehat\Sigma_{t+1}}^2$.
+We first work with $\widehat\Sigma_t$ in place of $\widehat\Sigma_{t+1}$;
+the comparison between them will require verifying covariance stability at the final update.
+By the definition of $\widehat g_t$ in \eqref{eq:sampled-hermite-coefficients},
+\begin{align}
+    \normm{\widehat g_t}{\widehat\Sigma_t}^2
+    =Y_t^2\norm{Z_t}^2.
+    \label{eq:energy-feedback-identity}
+\end{align}
+Thus we need to control the Gaussian norm $\norm{Z_t}$ and the feedback $Y_t$.
+Conditionally on $\F_{t-1}$, $Z_t$ has distribution $\N(0,I_d)$, so its squared norm has a chi-square distribution with $d$ degrees of freedom.
+Define
+\begin{align}
+    \mathcal E_Z
+    =\left\{\norm{Z_t}^2\leq3(d+\ell)
+    \text{ for all }1\leq t\leq\tau_{\mathrm{cov}}\right\},
+    \label{eq:gaussian-norm-event}
+\end{align}
+which holds with high probability by a chi-square tail bound and a union bound over the rounds.
+On $\mathcal E_Z$, for every $1\leq s\leq u\leq\tau_{\mathrm{cov}}$,
+\begin{align}
+    \frac{\eta}{2}\sum_{t=s}^{u}\normm{\widehat g_t}{\widehat\Sigma_t}^2
+    \leq\frac{3\eta(d+\ell)}{2}\sum_{t=s}^{u}Y_t^2.
+    \label{eq:energy-feedback-reduction}
+\end{align}
+It therefore remains to bound the realized feedback sum $\sum_{t=s}^{u}Y_t^2$.
+We apply the nonnegative version of Freedman's inequality in \cref{lem:freedman-nonnegative} to $Y_t^2$.
+This requires control of the sum of conditional second moments $\sum_{t=s}^{u}\E_t[Y_t^2]$ and the absolute size of $Y_t$.
+We begin with the latter.
+Recall that $Y_t=\pi_\eps(X_t)(f(A_t)+\xi_t)+2v(X_t)/\eps$.
+Since $f(A_t)\in[0,1]$,
+\begin{align}
+    |\eps Y_t| \leq\eps\pi_\eps(X_t)(1+|\xi_t|)+2v(X_t).
+    \label{eq:energy-feedback-decomposition}
+\end{align}
+Thus we need to control both the observation noise and how far the sample
+$X_t$ lies outside $\K_\eps$.
+For the noise, define
+\begin{align}
+    \mathcal E_{\mathrm{noise}}
+    =\left\{|\xi_t|\leq\sqrt\ell
+    \text{ for all }1\leq t\leq n\right\}.
+    \label{eq:noise-cutoff-event}
+\end{align}
+By \eqref{eq:noise}, $\Pp_t(|\xi_t|>\sqrt\ell)\leq2e^{-\ell}$,
+so a union bound gives $\Pp(\overline{\mathcal E}_{\mathrm{noise}})\leq2ne^{-\ell}$.
+For the sample, write $W_t=X_t-\mu_t$. Subadditivity of the gauge gives
+\begin{align}
+    v(X_t)\leq v(\mu_t)+\frac{\pi(W_t)}{1-\eps}
+    \leq v(\mu_t)+2\pi(W_t).
+    \label{eq:energy-sample-gauge}
+\end{align}
+The Gaussian displacement $W_t$ can be controlled by concentration.
+To this end, define
+\begin{align}
+    \mathcal E_{\mathrm{gauge}}
+    =\left\{\pi(W_t)\leq3+2\sqrt\ell
+    \text{ for all }1\leq t\leq\tau_{\mathrm{cov}}\right\}\,,
+    \label{eq:gauge-cutoff-event}
+\end{align}
+which we will show holds with high probability as $\pi$ is 1-Lipschitz and $W_t$ is conditionally Gaussian
+with covariance $\widehat\Sigma_t\preceq 2\Sigma_t\preceq2\Sigma_1=2\sigma^2I_d$.
+We also need to bound $v(\mu_t)$ in \eqref{eq:energy-sample-gauge}.
+Projecting the mean onto $\K_\eps$ would make this term zero; our unprojected mean can leave $\K_\eps$.
+We therefore introduce the stopping time
+\begin{align}
+    \tau_{\mathrm{shell}}
+    =\min\{t\in[n]:v(\mu_{t+1})>\ell\}\wedge n.
+    \label{eq:energy-shell-stopping-time}
+\end{align}
+Now, on $\mathcal E_{\mathrm{gauge}} \cap \mathcal E_{\mathrm{noise}}$,
+for every $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$, by \eqref{eq:energy-feedback-decomposition} and \eqref{eq:energy-sample-gauge} we have
+\begin{align}
+    |\eps Y_t|
+    \leq \eps\pi_\eps(X_t)(1+|\xi_t|)+2\left(v(\mu_t) + 2 \pi(W_t)\right)
+    \leq \frac32\ell(1+\sqrt\ell)+ 2\left(\ell + 6 + 4\sqrt\ell\right)
+    \leq 4\ell^{3/2},
+    \label{eq:energy-sample-gauge-bound}
+\end{align}
+where we used $v(X_t)\leq\ell+6+4\sqrt\ell\leq2\ell$ and $\pi_\eps(X_t)=1+v(X_t)\leq3\ell$ with
+numerical inequality $\ell\geq640$.
+
+To obtain the bounded increments required by Freedman's inequality, we truncate $Y_t^2$ above $16\ell^3/\eps^2$ and subtract the conditional expectation of the truncated square.
+The resulting increments have absolute value at most $16\ell^3/\eps^2$, and their accumulated conditional variance is at most $(16\ell^3/\eps^2)\sum_{t=s}^{u}\E_t[Y_t^2]$.
+Thus the remaining requirement is a bound on the conditional second-moment sum.
+For now, let $S>0$ be a deterministic budget and suppose that
+\begin{align}
+    \sum_{t=s}^{u}\E_t[Y_t^2]\leq S,
+    \qquad(1\leq s\leq u\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}).
+    \label{eq:energy-feedback-budget}
+\end{align}
+We will establish this budget separately in the global and local arguments.
+On $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$, \eqref{eq:energy-sample-gauge-bound} ensures that truncation leaves the sampled squares unchanged throughout the stopped interval.
+Since truncation can only decrease their conditional expectations, an upper bound on the centered truncated sum also bounds $\sum_{t=s}^{u}(Y_t^2-\E_t[Y_t^2])$.
+We record the resulting concentration bound as follows. For a fixed deterministic interval $[s,u]$, define $\mathcal E_Y^{(s:u)}(S)$ to be the event that
+\eqref{eq:energy-feedback-budget}, together with $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$, implies
+\begin{align}
+    \sum_{t=s}^{u}Y_t^2
+    \leq S+\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}.
+    \label{eq:interval-feedback-bound}
+\end{align}
+Applying Freedman's inequality with the increment and variance bounds above shows that $\mathcal E_Y^{(s:u)}(S)$ holds with high probability, as proved in \cref{lem:interval-feedback-concentration}.
+Returning to the energy term, on $\mathcal E_Z\cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}\cap\mathcal E_Y^{(s:u)}(S)$ and under \eqref{eq:energy-feedback-budget}, \eqref{eq:energy-feedback-reduction} gives
+\begin{align}
+    \frac{\eta}{2}\sum_{t=s}^{u}\normm{\widehat g_t}{\widehat\Sigma_t}^2
+    \leq\frac{3\eta(d+\ell)}{2}
+    \left(S+\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}\right).
+    \label{eq:interval-energy-bound}
+\end{align}
+
+\proofstepinline{4}
+For each fixed comparator $\bar{x}$, $(D_t(\bar{x}))_t$ is a martingale difference sequence.
 We use Freedman's inequality (\cref{lem:freedman}) to control its sum with high probability.
 To apply it, we need to bound both the absolute size of each increment,
 $|D_t(\bar{x})|$, and the accumulated conditional variance $\sum_{t=s}^{u}\E_t\left[D_t(\bar{x})^2\right]$.
@@ -1166,6 +1262,20 @@ the bias introduced by truncation.
 
 
 BREAK
+The trace sum in \eqref{eq:regret-switch-focus} is controlled by the following lemma, which is proved in \cref{app:trace}.
+\begin{lemma}
+    \label{lem:trace}
+    We have
+    \begin{align}
+        \eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\widehat{\Sigma}_t)
+        \leq
+        2\eta\sum_{t=1}^{\tau_{\mathrm{cov}}}
+        \tr(H_t\Sigma_t)
+        \leq\frac{8d\log(1 + n)}{\lambda}.
+        \label{eq:trace-budget}
+    \end{align}
+\end{lemma}
 For short intervals we also need a trace bound that does not grow with
 the dimension. The next estimate is uniform over the Gaussian mean.
 \begin{lemma}[Uniform trace bound]
@@ -2428,6 +2538,40 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \end{align}
 \end{proof}
 
+\begin{lemma}[Interval feedback concentration]
+    \label{lem:interval-feedback-concentration}
+    For every deterministic interval $[s,u]\subseteq[1,n]$ and deterministic $S>0$, the event $\mathcal E_Y^{(s:u)}(S)$ defined by \eqref{eq:interval-feedback-bound} satisfies
+    \begin{align}
+        \Pp\left(\overline{\mathcal E}_Y^{(s:u)}(S)\right)
+        \leq2e^{-\ell/16}.
+    \end{align}
+\end{lemma}
+\begin{proof}
+    Set $b=16\ell^3/\eps^2$ and, for $s\leq t\leq u$, define
+    \begin{align}
+        I_t=\1\{t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}\},
+        \qquad U_t=Y_t^2\1\{|\eps Y_t|\leq4\ell^{3/2}\}.
+    \end{align}
+    The indicator $I_t$ is predictable and $0\leq U_t\leq b$, so the centered increments $I_t(U_t-\E_t[U_t])$ have conditional mean zero and absolute value at most $b$.
+    Their accumulated conditional variance satisfies
+    \begin{align}
+        \sum_{t=s}^{u}\E_t\left[\left(I_t(U_t-\E_t[U_t])\right)^2\right]
+        \leq b\sum_{t=s}^{u}I_t\E_t[U_t]
+        \leq b\sum_{t=s}^{u}I_t\E_t[Y_t^2].
+    \end{align}
+    Apply \cref{lem:freedman} with variance budget $bS$ and $z=\sqrt{\ell/8}$, enlarging its linear term.
+    Except on an event of probability at most $2e^{-\ell/16}$, we then have
+    \begin{align}
+        \sum_{t=s}^{u}I_t(U_t-\E_t[U_t])
+        \leq\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}
+    \end{align}
+    whenever $\sum_{t=s}^{u}I_t\E_t[Y_t^2]\leq S$.
+    Under \eqref{eq:energy-feedback-budget}, every $I_t$ on the interval equals one.
+    If $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$ also holds, \eqref{eq:energy-sample-gauge-bound} gives $U_t=Y_t^2$ throughout the interval.
+    Finally, $\sum_{t=s}^{u}\E_t[U_t]\leq\sum_{t=s}^{u}\E_t[Y_t^2]\leq S$.
+    Adding this bound to the preceding martingale bound proves \eqref{eq:interval-feedback-bound}.
+\end{proof}
+
 Throughout this section, write $\tau=\tau_{\mathrm{stable}}$. Define
 \begin{align}
     \mathcal E_Y
@@ -2653,9 +2797,27 @@ negative.
     \end{align}
 \end{lemma}
 
+\begin{lemma}[Freedman's inequality for nonnegative adapted sequences]
+    \label{lem:freedman-nonnegative}
+    Let $(U_t)_{t=1}^n$ be a nonnegative adapted sequence.
+    Then, for every $b,S,z>0$,
+    \begin{align}
+        \Pp\left(
+        \sum_{t=1}^n U_t
+        \geq S+\sqrt{2bSz}+2bz,
+        \quad
+        \sum_{t=1}^n\E_t[U_t]\leq S,
+        \quad
+        \max_{1\leq t\leq n}U_t\leq b
+        \right)
+        \leq2e^{-z}.
+        \label{eq:freedman-nonnegative}
+    \end{align}
+\end{lemma}
+
 The next lemma is the two-sided form of
 \citet[Theorem~3.26]{bercu2015concentration}.
-\begin{lemma}[Self-normalised martingale bound]
+\begin{lemma}[Self-normalized martingale bound]
     \label{lem:self-normalised-martingale}
     Let $(D_t)_{t=1}^n$ be a square-integrable
     martingale-difference sequence. Then, for every $z,v>0$,
