@@ -722,21 +722,19 @@ Also in all that follows, we assume that $\eps\leq1/2$ and that the parameters $
 If $\eps>1/2$, then ....
 
 \proofstepinline{0}
-We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6].
+We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6]. The following lemma suggests that bounding the extension regret is sufficient to bound the realized regret.
 \begin{lemma}[{Adapted from \citet[Section~10.6, Eq.~(10.14)]{lattimore2026bandit}}]
     \label{lem:actual-to-extension}
     Let $\mathcal E_{\mathrm{reg}}$ be the event that
     \begin{align}
         \operatorname{Reg}_n
         \leq
-        \sum_{t=1}^n\left(\E_t[e(X_t)]-e(x_\star)\right)
+        \overline{\operatorname{Reg}}_n
         +n\eps+\sqrt{2n\ell}.
         \label{eq:actual-to-extension}
     \end{align}
     Then $\Pp(\mathcal E_{\mathrm{reg}})\geq1-\delta/4$.
 \end{lemma}
-On $\mathcal E_{\mathrm{reg}}$, it therefore suffices to bound the extension regret $\overline{\operatorname{Reg}}_n$.
-
 \proofstepinline{1}
 To apply \cref{cor:bracket-ell}, we need to ensure that $\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
 We handle both by introducing stopping times that track the first round when either of these conditions is violated.
@@ -914,39 +912,45 @@ for every $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$, by \eqref{eq:en
     |\eps Y_t|
     \leq \eps\pi_\eps(X_t)(1+|\xi_t|)+2\left(v(\mu_t) + 2 \pi(W_t)\right)
     \leq \frac32\ell(1+\sqrt\ell)+ 2\left(\ell + 6 + 4\sqrt\ell\right)
-    \leq 4\ell^{3/2},
+    \leq 4\ell^{3/2}
     \label{eq:energy-sample-gauge-bound}
 \end{align}
 where we used $v(X_t)\leq\ell+6+4\sqrt\ell\leq2\ell$ and $\pi_\eps(X_t)=1+v(X_t)\leq3\ell$ with
 numerical inequality $\ell\geq640$.
 
-To obtain the bounded increments required by Freedman's inequality, we truncate $Y_t^2$ above $16\ell^3/\eps^2$ and subtract the conditional expectation of the truncated square.
-The resulting increments have absolute value at most $16\ell^3/\eps^2$, and their accumulated conditional variance is at most $(16\ell^3/\eps^2)\sum_{t=s}^{u}\E_t[Y_t^2]$.
-Thus the remaining requirement is a bound on the conditional second-moment sum.
-For now, let $S>0$ be a deterministic budget and suppose that
+It remains to control the sum of conditional second moments, which we won't do.
+Instead, we leave it as a fixed free budget $S$ to be specified later;
+for a fixed $[s,u]$, define the event
 \begin{align}
-    \sum_{t=s}^{u}\E_t[Y_t^2]\leq S,
-    \qquad(1\leq s\leq u\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}).
-    \label{eq:energy-feedback-budget}
-\end{align}
-We will establish this budget separately in the global and local arguments.
-On $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$, \eqref{eq:energy-sample-gauge-bound} ensures that truncation leaves the sampled squares unchanged throughout the stopped interval.
-Since truncation can only decrease their conditional expectations, an upper bound on the centered truncated sum also bounds $\sum_{t=s}^{u}(Y_t^2-\E_t[Y_t^2])$.
-We record the resulting concentration bound as follows. For a fixed deterministic interval $[s,u]$, define $\mathcal E_Y^{(s:u)}(S)$ to be the event that
-\eqref{eq:energy-feedback-budget}, together with $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$, implies
-\begin{align}
+    \mathcal E_Y^{(s:u)}(S)
+    \triangleq
+    \left\{
     \sum_{t=s}^{u}Y_t^2
-    \leq S+\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}.
+    \leq S+\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}
+    \right\}\,.
     \label{eq:interval-feedback-bound}
 \end{align}
-Applying Freedman's inequality with the increment and variance bounds above shows that $\mathcal E_Y^{(s:u)}(S)$ holds with high probability, as proved in \cref{lem:interval-feedback-concentration}.
-Returning to the energy term, on $\mathcal E_Z\cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}\cap\mathcal E_Y^{(s:u)}(S)$ and under \eqref{eq:energy-feedback-budget}, \eqref{eq:energy-feedback-reduction} gives
+\begin{lemma}
+    Suppose that $u\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$ and
+    \begin{align}
+        \sum_{t=s}^{u}\E_t[Y_t^2]\leq S\,,
+        \label{eq:energy-feedback-budget}
+    \end{align}
+    hold almost surely. Then $\Pp(\overline{\mathcal E}_Y^{(s:u)}(S) \cap \mathcal E_Z \cap \mathcal{E}_{\mathrm{noise}} \cap \mathcal{E}_{\mathrm{gauge}} ) \leq2e^{-\ell/16}$.
+\end{lemma}
+\begin{proof}
+    On $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$, \eqref{eq:energy-sample-gauge-bound} gives $Y_t^2\leq16\ell^3/\eps^2$ for every $s\leq t\leq u$.
+    Applying \cref{lem:freedman-nonnegative} to $U_t=Y_t^2$ on this interval with $b=16\ell^3/\eps^2$ and $z=\ell/16$ therefore gives $\Pp(\overline{\mathcal E}_Y^{(s:u)}(S)\cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}})\leq2e^{-\ell/16}$.
+    Intersecting further with $\mathcal E_Z$ proves the claim.
+\end{proof}
+Returning all the way back to the goal of this step, on $\mathcal E_Z\cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}\cap\mathcal E_Y^{(s:u)}(S)$, we have
 \begin{align}
     \frac{\eta}{2}\sum_{t=s}^{u}\normm{\widehat g_t}{\widehat\Sigma_t}^2
     \leq\frac{3\eta(d+\ell)}{2}
-    \left(S+\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}\right).
+    \left(S+\frac{\sqrt{2S}\,\ell^2}{\eps}+\frac{2\ell^4}{\eps^2}\right)\,,
     \label{eq:interval-energy-bound}
 \end{align}
+as long as it is guaranteed that $\sum_{t=s}^{u}\E_t[Y_t^2]\leq S$.
 
 \proofstepinline{4}
 For each fixed comparator $\bar{x}$, $(D_t(\bar{x}))_t$ is a martingale difference sequence.
