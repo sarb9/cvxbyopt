@@ -736,7 +736,7 @@ We first bound realized regret in terms of extension regret, as in \citet{lattim
     Then $\Pp(\mathcal E_{\mathrm{reg}})\geq1-\delta/4$.
 \end{lemma}
 \proofstepinline{1}
-To apply \cref{cor:bracket-ell}, we need to ensure that $\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
+To apply \cref{cor:bracket-ell}, we need to ensure that $\widehat\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
 We handle both by introducing stopping times that track the first round when either of these conditions is violated.
 To this end, define the predictable (expected) counterpart of $\widehat \Sigma_t^{-1}$ as
 \begin{align}
@@ -773,7 +773,7 @@ $R_t(x)=\normm{\mu_t-x}{\widehat\Sigma_t^{-1}}$ and
     =\min\{t\in[n]:\tfrac12R_{t+1}(x_\star)^2>B\}\wedge n,
     \quad\text{with }B=\frac{1}{1000\lambda^2\ell^3}.
 \end{align}
-Now for $t < \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{cov}}$ we have both the focus condition in \eqref{eq:bracket-ell-focus} is satisfied as $B\leq \frac{1}{128^2\lambda^2\ell}$, and the covariance comparison in \eqref{eq:covariance-stopping-time} is satisfied
+Now for $t \leq \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{cov}}$ we have both the focus condition in \eqref{eq:bracket-ell-focus} is satisfied as $B\leq \frac{1}{128^2\lambda^2\ell}$, and the covariance comparison in \eqref{eq:covariance-stopping-time} is satisfied
 since $0 \prec \widehat\Sigma_t \preceq 2\Sigma_t \preceq 2\sigma^2 I_d$.
 Therefore, by \cref{cor:regret-switch,cor:bracket-ell}, for $\tau_{\mathrm{f} \wedge \mathrm{c}} = \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{cov}}$, we get
 \begin{align}
@@ -786,7 +786,7 @@ Therefore, by \cref{cor:regret-switch,cor:bracket-ell}, for $\tau_{\mathrm{f} \w
     +\frac{\tau_{\mathrm{f} \wedge \mathrm{c}} n^{-7}}{\eps}\,,
     \label{eq:regret-switch-focus}
 \end{align}
-where $\operatorname{qReg}_{s:u}(x)\triangleq\sum_{t=1}^{\tau_{\mathrm{f} \wedge \mathrm{c}}}q_t(\mu_t)-q_t(x_\star)$ is the quadratic regret.
+where $\operatorname{qReg}_{s:u}(x)\triangleq\sum_{t=s}^{u}\bigl(q_t(\mu_t)-q_t(x)\bigr)$ is the quadratic regret.
 The last term is negligible since $\tau_{\mathrm{f} \wedge \mathrm{c}}\leq n$ and $\eps\geq n^{-1/2}$.
 Next, we move on to bounding the quadratic regret sum and deal with the trace term in the end.
 
@@ -794,7 +794,8 @@ Next, we move on to bounding the quadratic regret sum and deal with the trace te
 Bounding the quadratic regret $\operatorname{qReg}_{1:\tau_{\mathrm{f} \wedge \mathrm{c}}}(x_\star)$ in \eqref{eq:regret-switch-focus} is quite delicate.
 The main difficulty is that the quadratic $q_t$ is not observed directly, but only through the sampled quadratic $\widehat q_t$.
 The ONS identity in \eqref{eq:ons-regret-identity} lets us write the sum of sampled quadratics
-for \textbf{any time interval} $1\leq s \leq u \leq \tau_{\mathrm{f} \wedge \mathrm{c}}$ and \textbf{any $\F_{s-1}$-measurable comparator} $\bar{x}\in\R^d$ as
+for \textbf{any time interval} $1\leq s \leq u \leq \tau_{\mathrm{f} \wedge \mathrm{c}}$ and \textbf{any $\F_{s-1}$-measurable comparator} $\bar{x}\in\R^d$,
+provided $\widehat\Sigma_{u+1}^{-1}\succ0$ so that the final update is valid:
 \begin{align}
     \widehat{\operatorname{qReg}}_{s:u}(\bar{x})
     \triangleq
