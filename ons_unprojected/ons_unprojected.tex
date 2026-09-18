@@ -94,7 +94,7 @@
     \end{align}
     with probability at least $1-\delta$, where $M$ is $\tilde{O}(d^{-1/2})$
     when $\frac1d \K$ is in L\"owner position,
-    which recovers the stationary rate of \citet{lattimore2023second}
+    which recovers the stationary rate of \citet{fokkema2024online}
     of $\widetilde O(d^{3/2}\sqrt n)$.
     % In this case, the regret is $\widetilde O(d^{3/2}\sqrt n)$.
 \end{abstract}
@@ -215,115 +215,51 @@ We use the queryable extension from
 \begin{align}
     e(x)
     =\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
-    +\frac{2}{\eps}v(x).
-    \label{eq:extension}
-\end{align}
-\begin{lemma}[{\citet[Proposition~3.23]{lattimore2026bandit}}]
-    \label{lem:extension}
-    The function $\bar{e}:
-        x
-        \longmapsto
-        \pi_\eps(x)
-        f\!\left(\frac{x}{\pi_\eps(x)}\right)
-        +
-        \frac{1-\eps}{\eps}v(x)
-    $ is convex, agrees with $f$ on $\K_\eps$, and
-    \begin{align}
-        \Lip(\bar e)\leq\frac{2}{\eps(1-\eps)}\,.
-    \end{align}
-    Moreover,
-    $e\!\left(\frac{x}{\pi_\eps(x)}\right)\leq e(x)$
-    for all $x\in\R^d$.
-\end{lemma}
-Now, observe that $e(x)=\bar e(x)+\frac{1+\eps}{\eps}v(x)$, so $e$ is also convex, agrees with $f$ on $\K_\eps$ since $v(x)=0$ for $x\in\K_\eps$.
-Moreover, $v$ is $1/(1-\eps)$-Lipschitz, so $e$ is also Lipschitz with
-\begin{align}
-    \Lip(e)\leq\frac{2}{\eps(1-\eps)}+\frac{1+\eps}{\eps}\cdot\frac{1}{1-\eps}\leq\frac{8}{\eps}\,,
+    +\frac{2}{\eps}v(x)\,,
+    \quad\text{and satisfies}
+    \Lip(e)\leq\frac{8}{\eps}\,.
     \label{eq:extension-lipschitz}
 \end{align}
-when $\eps\in(0,1/2]$.
+Moreover, the extension $e$ is convex and agrees with $f$ on $\K_\eps$.
+These properties are established in \cref{app:extension}.
 
-\subsection{Gaussian $L^2$ projection and Hermite basis}
-\label{sec:hermite-projection}
-The Gaussian space $L^2(\N(\mu,\Sigma))$ consists of the functions that are
-square-integrable under the law of $X \sim \N(\mu, \Sigma)$, i.e.
-$L^2(\N(\mu,\Sigma))
-    =
-    \left\{
-    r:\R^d\to\R:
-    \E[r(X)^2]<\infty
-    \right\}$.
-Since $e$ is Lipschitz, we have
-\begin{align}
-    \E\left[
-        e(X)^2
-        \right]
-    \leq
-    \E\left[
-        (e(0)+\Lip(e)\norm{X})^2
-        \right]
-    \leq
-    2e(0)^2 + 2\Lip(e)^2\E[\norm{X}^2] < \infty,
-\end{align}
-which implies that $e\in L^2(\N(\mu,\Sigma))$.
-Let $\mathcal Q_2$ be the space of quadratic polynomials on $\R^d$,
-each of which can be written uniquely as
-\begin{align}
-    x\mapsto c+\ip{a}{x}+\frac12 x^\top Bx,
-    \qquad
-    c\in\R,\quad a\in\R^d,\quad B\in\mathbb{R}_{\text{sym}}^{d\times d}.
-    \label{eq:quadratic-polynomial}
-\end{align}
-It is easy to check that $\mathcal Q_2\subset L^2(\N(\mu,\Sigma))$.
-Through defining the inner product $\ip{r}{s}_{L^2(\N(\mu,\Sigma))}=\E[r(X)s(X)]$, the space $L^2(\N(\mu,\Sigma))$ becomes a Hilbert space, and we can define the projection of $e$ onto the space of quadratic polynomials as
-\begin{align}
-    \mathcal P_{\mu,\Sigma}e
-    =
-    \argmin_{p\in\mathcal Q_2}
-    \E\left[
-        (e(X)-p(X))^2
-        \right]\,.
-    \label{eq:hermite-best-approximation}
-\end{align}
-\begin{lemma}
-    \label{lem:hermite-projection-convex}
-    Let $e:\R^d\to\R$ be a Lipschitz convex function.
-    Then its projection $\mathcal P_{\mu,\Sigma}e$ is
-    \begin{align}
-        \mathcal P_{\mu,\Sigma}e(x)
-        =
-        \E[e(X)]
-        +\ip{g}{x-\mu}
-        +\frac12
-        \left(
-        \|x-\mu\|^2_{H}
-        -\tr(H\Sigma)
-        \right),
-    \end{align}
-    where
-    $g = \langle De, \gamma_{\mu,\Sigma}\rangle$,
-    and
-    $H = \langle D^2e, \gamma_{\mu,\Sigma}\rangle$.
-    \alireza{We might as well use $\langle e, D^2\gamma_{\mu,\Sigma}\rangle=\E[e(x)\nabla^2\gamma_{\mu,\Sigma}(x)]$
-        as the definition of $H$ and avoid the distributional derivative in the main paper.}
-\end{lemma}
-\begin{proof}
-    \alireza{
-        Technically we can drop this lemma and just say that we define
-        $\mathcal P_{\mu,\Sigma}e(x)$ as such without any justification.
-        But it is nice to have a lemma that says that this is indeed the Hermite projection.
-    }
-    Lipschitzness of $e$ implies the temperedness of $e$, which ensures that $\langle De, \gamma_{\mu,\Sigma}\rangle$ and $\langle D^2e, \gamma_{\mu,\Sigma}\rangle$ are well-defined.
-    Convexity of $e$ implies that $D^2e$ is a positive-semidefinite matrix-valued tempered Radon measure, which ensures that $H$ is positive-semidefinite and justifies the notation $\|x-\mu\|^2_{H} = (x-\mu)^\top H (x-\mu)$.
-\end{proof}
-
-
-
-
-
-
+% \subsection{Gaussian $L^2$ projection and Hermite basis}
+% \label{sec:hermite-projection}
+% The Gaussian space $L^2(\N(\mu,\Sigma))$ consists of the functions that are
+% square-integrable under the law of $X \sim \N(\mu, \Sigma)$, i.e.
+% $L^2(\N(\mu,\Sigma))
+%     =
+%     \left\{
+%     r:\R^d\to\R:
+%     \E[r(X)^2]<\infty
+%     \right\}$.
+% Since $e$ is Lipschitz, we have
+% \begin{align}
+%     \E\left[
+%         e(X)^2
+%         \right]
+%     \leq
+%     \E\left[
+%         (e(0)+\Lip(e)\norm{X})^2
+%         \right]
+%     \leq
+%     2e(0)^2 + 2\Lip(e)^2\E[\norm{X}^2] < \infty,
+% \end{align}
+% which implies that $e\in L^2(\N(\mu,\Sigma))$.
+% Next, define
+% \begin{align}
+%     \mathcal P_{\mu,\Sigma}e(x)
+%     =
+%     \E[e(X)]
+%     +\ip{g}{x-\mu}
+%     +\frac12
+%     \left(
+%     \|x-\mu\|^2_{H}
+%     -\tr(H\Sigma)
+%     \right).
+%     \label{eq:hermite-best-approximation}
+% \end{align}
 \section{The algorithm}
-
 On an active round $t$, the learner samples
 $X_t\sim \N(\mu_t,\widehat\Sigma_t)$ and plays its radial contraction
 $A_t=X_t/\pi_\eps(X_t)\in\K$.
@@ -333,15 +269,11 @@ The resulting feedback is $f(A_t) + \xi_t$ which is converted into the feedback 
      & =
     \pi_\eps(X_t)\bigl(f(A_t)+\xi_t\bigr)
     +\frac2\eps\bigl(\pi_\eps(X_t)-1\bigr)
-    =e(X_t)+\pi_\eps(X_t)\xi_t,
-    \qquad
-    \E_t[Y_t\mid X_t]=e(X_t).
+    =e(X_t)+\pi_\eps(X_t)\xi_t\,,
     \label{eq:Y}
 \end{align}
+so $\E_t[Y_t\mid X_t]=e(X_t)$.
 Let $\lambda \in (0,1)$ be a damping parameter and define the quadratic surrogate
-\alireza{
-    The connection to the previous section is not clear.
-}
 \begin{align}
     q_t(x)
     =
@@ -352,9 +284,6 @@ Let $\lambda \in (0,1)$ be a damping parameter and define the quadratic surrogat
     \qquad
     H_t\triangleq \langle D^2e,\gamma_{\mu_t,\widehat\Sigma_t}\rangle.
 \end{align}
-\alireza{
-    Again, $g_t$ and $H_t$ can be defined through expectations to avoid distributional notation in the main paper.
-}
 The main observation is that $g_t$ and $H_t$ can be estimated from the single pair $(X_t, Y_t)$.
 More precisely, define
 \begin{align}
@@ -376,7 +305,7 @@ where for $Z_t\triangleq\widehat\Sigma_t^{-1/2}(X_t-\mu_t)$, we define
      & =Y_t\widehat\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\widehat\Sigma_t^{-1/2}\,,
     \label{eq:sampled-hermite-coefficients}
 \end{align}
-then from distributional integration by parts\alireza{More explanation needed here.} we get
+then from distributional integration by parts we get
 \begin{align}
     g_t & = \langle De, \gamma_{\mu_t,\widehat\Sigma_t}\rangle
     = - \langle e, \nabla \gamma_{\mu_t,\widehat\Sigma_t}\rangle
@@ -389,7 +318,7 @@ then from distributional integration by parts\alireza{More explanation needed he
 \end{align}
 and more importantly, $\E_t[\hat{q}_t]=q_t$.
 
-The algorithm is just unprojected online newton steps (ONS) applied to quadratic estimates $\widehat q_t$.\alireza{explanation on ONS is needed.}
+The algorithm is just unprojected online newton steps (ONS) applied to quadratic estimates $\widehat q_t$.
 If $\widehat\Sigma_t^{-1}+\lambda\eta\widehat H_t\succ0$,
 then completing the square gives the equivalent forms
 \begin{align}
@@ -402,8 +331,6 @@ then completing the square gives the equivalent forms
     =\mu_t-\eta\widehat\Sigma_{t+1}\widehat g_t.
     \label{eq:projected-ons-update}
 \end{align}
-\alireza{It should be clear from the update why the bias term $\E_t[e(X_t)]$ is dropped from $q_t$
-    as it does not affect the Newton step.}
 \begin{algorithm}[!t]
     \caption{Direct Hermite--ONS algorithm}
     \label{alg:direct-hermite}
@@ -837,9 +764,8 @@ Putting this back into \eqref{eq:ons-telescope} gives
 \end{align}
 
 \proofstepinline{3}
-First we bound the sum $\frac{\eta}{2}\sum_{t=s}^{u}\normm{\hat g_t}{\widehat\Sigma_{t+1}}^2$.
-We first work with $\widehat\Sigma_t$ in place of $\widehat\Sigma_{t+1}$;
-the comparison between them will require verifying covariance stability at the final update.
+First we bound the terms in the sum $\frac{\eta}{2}\sum_{t=s}^{u}\normm{\hat g_t}{\widehat\Sigma_{t+1}}^2$.
+We will work with the slightly time-perturbed quantity $\normm{\hat g_t}{\widehat\Sigma_{t}}^2$ in place of $\normm{\hat g_t}{\widehat\Sigma_{t+1}}^2$, and will show that they're at most a constant factor apart for all $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$.
 By the definition of $\widehat g_t$ in \eqref{eq:sampled-hermite-coefficients},
 \begin{align}
     \normm{\widehat g_t}{\widehat\Sigma_t}^2
@@ -855,13 +781,7 @@ Define
     \text{ for all }1\leq t\leq\tau_{\mathrm{cov}}\right\},
     \label{eq:gaussian-norm-event}
 \end{align}
-which holds with high probability by a chi-square tail bound and a union bound over the rounds.
-On $\mathcal E_Z$, for every $1\leq s\leq u\leq\tau_{\mathrm{cov}}$,
-\begin{align}
-    \frac{\eta}{2}\sum_{t=s}^{u}\normm{\widehat g_t}{\widehat\Sigma_t}^2
-    \leq\frac{3\eta(d+\ell)}{2}\sum_{t=s}^{u}Y_t^2.
-    \label{eq:energy-feedback-reduction}
-\end{align}
+which holds with high probability by a chi-square tail bound.
 It therefore remains to bound the realized feedback sum $\sum_{t=s}^{u}Y_t^2$.
 We apply the nonnegative version of Freedman's inequality in \cref{lem:freedman-nonnegative} to $Y_t^2$.
 This requires control of the sum of conditional second moments $\sum_{t=s}^{u}\E_t[Y_t^2]$ and the absolute size of $Y_t$.
@@ -918,7 +838,6 @@ for every $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$, by \eqref{eq:en
 \end{align}
 where we used $v(X_t)\leq\ell+6+4\sqrt\ell\leq2\ell$ and $\pi_\eps(X_t)=1+v(X_t)\leq3\ell$ with
 numerical inequality $\ell\geq640$.
-
 It remains to control the sum of conditional second moments, which we won't do.
 Instead, we leave it as a fixed free budget $S$ to be specified later;
 for a fixed $[s,u]$, define the event
@@ -932,12 +851,13 @@ for a fixed $[s,u]$, define the event
     \label{eq:interval-feedback-bound}
 \end{align}
 \begin{lemma}
+    \label{lem:energy-feedback-event}
     Suppose that $u\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$ and
     \begin{align}
-        \sum_{t=s}^{u}\E_t[Y_t^2]\leq S\,,
+        \sum_{t=s}^{u}\E_t[Y_t^2]\leq S\,.
         \label{eq:energy-feedback-budget}
     \end{align}
-    hold almost surely. Then $\Pp(\overline{\mathcal E}_Y^{(s:u)}(S) \cap \mathcal E_Z \cap \mathcal{E}_{\mathrm{noise}} \cap \mathcal{E}_{\mathrm{gauge}} ) \leq2e^{-\ell/16}$.
+    Then $\Pp(\overline{\mathcal E}_Y^{(s:u)}(S) \cap \mathcal E_Z \cap \mathcal{E}_{\mathrm{noise}} \cap \mathcal{E}_{\mathrm{gauge}} ) \leq2e^{-\ell/16}$.
 \end{lemma}
 \begin{proof}
     On $\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$, \eqref{eq:energy-sample-gauge-bound} gives $Y_t^2\leq16\ell^3/\eps^2$ for every $s\leq t\leq u$.
@@ -954,10 +874,10 @@ Returning all the way back to the goal of this step, on $\mathcal E_Z\cap\mathca
 as long as it is guaranteed that $\sum_{t=s}^{u}\E_t[Y_t^2]\leq S$.
 
 \proofstepinline{4}
-For each fixed comparator $\bar{x}$, $(D_t(\bar{x}))_t$ is a martingale difference sequence.
-We use Freedman's inequality (\cref{lem:freedman}) to control its sum with high probability.
-To apply it, we need to bound both the absolute size of each increment,
-$|D_t(\bar{x})|$, and the accumulated conditional variance $\sum_{t=s}^{u}\E_t\left[D_t(\bar{x})^2\right]$.
+For each fixed comparator $\bar{x}$, $(D_t(\bar{x}))_t$ is a martingale difference sequence,
+i.e., $\E_t[D_t(\bar{x})]=0$.
+We use the self-normalized martingale inequality \cref{lem:self-normalised-martingale} to control its sum with high probability.
+To apply it, we need to bound both the sum of conditional second moments $\sum_{t=s}^{u}\E_t[D_t(\bar{x})^2]$ and the realized sum of squares $\sum_{t=s}^{u}D_t(\bar{x})^2$.
 We first bound the conditional variance as
 \begin{align}
     \sum_{t=s}^{u}\E_t\left[D_t(\bar{x})^2\right]
@@ -987,32 +907,13 @@ Then just from the definition of $\hat{q}_t(\bar{x})$, we have
         R_t(\bar{x}) G_t(\bar{x})
         + \frac{\lambda}{2} R_t(\bar{x})^2 \left(G_t(\bar{x})^2 - 1\right)
         \right]\,.
-\end{align}
-Now, for the moment suppose that
-\begin{align}
-    \lambda R_t(\bar{x}) \leq 1
-    \qquad\text{and}
-    \qquad
-    R_t(\bar{x}) \leq \sqrt{2F},\,
-\end{align}
-for some $F>0$ to be specified later, then we can bound the second moment of $\hat{q}_t(\bar{x})$ as
-\begin{align}
-    \E_t\left[\hat{q}_t(\bar{x})^2\right]
-     & \leq R_t(\bar{x})^2\E_t\left[
-        Y_t^2\left(
-        |G_t(\bar{x})|+\frac12|G_t(\bar{x})^2-1|
-        \right)^2\right]
-    \\
-     & \quad
-    \leq 4R_t(\bar{x})^2\E_t\left[
-        Y_t^2\left(G_t(\bar{x})^2+1\right)^2\right]
-    \leq 8F\E_t\left[
-        Y_t^2\left(G_t(\bar{x})^2+1\right)^2\right].
+    \label{eq:quadratic-estimate-decomposition}
 \end{align}
 Now, observe that the direction defining $G_t(\bar{x})$ is then an
 $\F_{t-1}$-measurable unit vector, so the conditional distribution of
 $G_t(\bar{x})$ given $\F_{t-1}$ is $\N(0,1)$.
-Therefore, define the event that the Gaussian score is bounded on the interval $[s,u]$ as
+Therefore, $|G_t(\bar{x})| \leq 2\sqrt{\ell}$ with high probability by standard tail bounds.
+This justifies the definition of the event
 \begin{align}
     \mathcal E_G^{(s:u)}(\bar{x})
     =\left\{
@@ -1021,250 +922,194 @@ Therefore, define the event that the Gaussian score is bounded on the interval $
     \right\}\,.
     \label{eq:gaussian-score-event}
 \end{align}
-This event holds with high probability, as $\Pp_s\left(\overline{\mathcal E}_G^{(s:u)}(\bar{x})\right) \leq 2(u-s+1)e^{-2\ell}$.
-Next, we split the expectation according to the
-single-round event $\mathcal E_G^{(t:t)}(\bar{x})$ which gives
-\begin{align}
-    \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2\right]
-     & =\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
-    \1_{\mathcal E_G^{(t:t)}(\bar{x})}\right]
-    +\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
-    \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right]
-    \nonumber                               \\
-     & \leq25\ell^2\E_t[Y_t^2]
-    +\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
-    \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right].
-    \label{eq:gaussian-score-moment-split}
-\end{align}
-To control the remaining term, we first condition on $X_t$.
-By \eqref{eq:noise} and $\eps e(X_t)\leq(5/2)\pi_\eps(X_t)$,
-\begin{align}
-    \E_t[Y_t^2\mid X_t]
-     & =e(X_t)^2+\pi_\eps(X_t)^2\E_t[\xi_t^2\mid X_t]
-    \leq e(X_t)^2+\pi_\eps(X_t)^2
-    \leq\frac7{\eps^2}\pi_\eps(X_t)^2.
-\end{align}
-Since $G_t(\bar{x})$ is determined by $X_t$, conditioning
-first and then applying Cauchy--Schwarz gives
-\begin{align}
-    \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
-        \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]
-    % \nonumber                              \\
-    %  & \quad\leq\frac7{\eps^2}\E_t\left[
-    % \pi_\eps(X_t)^2(G_t(\bar{x})^2+1)^2
-    % \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]
-    % \nonumber                              \\
-    \leq\frac7{\eps^2}
-    \E_t[\pi_\eps(X_t)^4]^{1/2}
-    \E_t\left[(G_t(\bar{x})^2+1)^4
-        \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]^{1/2}.
-    \label{eq:gaussian-score-tail-separation}
-\end{align}
-We apply Cauchy--Schwarz once more to extract the small probability of the Gaussian tail:
-\begin{align}
-    \E_t\left[(G_t(\bar{x})^2+1)^4
-        \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]^{1/2}
-    \leq\E_t\left[(G_t(\bar{x})^2+1)^8\right]^{1/4}
-    \Pp_t\left(|G_t(\bar{x})|>2\sqrt\ell\right)^{1/4}
-    % \leq\bigl(2^8(15!!+1)\bigr)^{1/4}e^{-\ell/2}
-    \leq200e^{-\ell/2}\,,
-    \label{eq:gaussian-score-tail-factor}
-\end{align}
-where we used the fact that the sixteenth moment of a conditionally standard Gaussian is $15!!$, so $\E_t[(G_t(\bar{x})^2+1)^8]\leq2^7(15!!+1)$.
-It remains to control $\E_t[\pi_\eps(X_t)^4]^{1/2}$ in
-\eqref{eq:gaussian-score-tail-separation}. To do so, we work with the
-conditional $L^4$ norm. Subadditivity of the gauge gives
-\begin{align}
-    \pi_\eps(X_t)
-    \leq1+v(\mu_t)+\frac{\pi(X_t-\mu_t)}{1-\eps}
-    \leq1+v(\mu_t)+2\pi(X_t-\mu_t).
-\end{align}
-Taking the conditional $L^4$ norm and applying Minkowski's inequality,
-\begin{align}
-    \E_t[\pi_\eps(X_t)^4]^{1/4}
-    \leq1+v(\mu_t)+2\E_t[\pi(X_t-\mu_t)^4]^{1/4}
-    \leq v(\mu_t) + 7.
-\end{align}
-where the last inequality follows since \cref{lem:gaussian-gauge-fourth-moment} bounds
-the norm $\E_t[\pi(X_t-\mu_t)^4]^{1/4}$ by $3$.
-We are therefore left with controlling $v(\mu_t)$.
-Projecting the mean onto $\K_\eps$ would make this term zero, but our unprojected mean can
-leave $\K_\eps$.
-To track this quantity, we define our third stopping time
-\begin{align}
-    \tau_{\mathrm{shell}}
-    =\min\{t\in[n]:v(\mu_{t+1})>\ell\}\wedge n.
-    \label{eq:shell-stopping-time}
-\end{align}
-Since $v(\mu_1)=0$, we have $v(\mu_t)\leq\ell$ for every
-$t\leq\tau_{\mathrm{shell}}$. Thus the factor needed in
-\eqref{eq:gaussian-score-tail-separation} satisfies
-\begin{align}
-    \E_t[\pi_\eps(X_t)^4]^{1/2}\leq(\ell+7)^2\leq4\ell^2
-    \qquad(t\leq\tau_{\mathrm{cov}}\wedge \tau_{\mathrm{focus}} \wedge\tau_{\mathrm{shell}}).
-    \label{eq:stopped-extension-gauge-moment}
-\end{align}
-For these rounds, substituting
-\cref{eq:gaussian-score-tail-separation,eq:gaussian-score-tail-factor,eq:stopped-extension-gauge-moment}
-into \eqref{eq:gaussian-score-moment-split} gives
-\begin{align}
-    \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2\right]
-    \leq25\ell^2\E_t[Y_t^2]+\frac{5600\ell^2}{\eps^2}e^{-\ell/2}
-    \leq25\ell^2\E_t[Y_t^2]+\frac{e^{-\ell/4}}{\eps^2},
-    \label{eq:gaussian-score-weighted-second-moment}
-\end{align}
-where the last inequality uses $\ell\geq640$.
-Using $\E_t[D_t(\bar{x})^2]\leq\E_t[\hat{q}_t(\bar{x})^2]$ and
-summing over an interval $[s,u]$ on which the preceding conditions hold gives
-\begin{align}
-    \sum_{t=s}^{u}\E_t[D_t(\bar{x})^2]
-    \leq\sum_{t=s}^{u}\E_t[\widehat q_t(\bar{x})^2]
-    \leq200F\ell^2\sum_{t=s}^{u}\E_t[Y_t^2]
-    +\frac{8F(u-s+1)}{\eps^2}e^{-\ell/4}.
-    \label{eq:quadratic-conditional-variance}
-\end{align}
-For now, suppose that we have a bound on $\sum_{t=s}^{u}\E_t[Y_t^2]$.
-We will establish the required bound separately in the global and local
-arguments.
-We now turn to the other requirement of Freedman's inequality:
-a bound on the absolute size of the increments $D_t(\bar{x})$.
-An almost sure bound on the $|D_t(\bar{x})|$ is not possible, since both $Y_t$ and $G_t(\bar{x})$ are unbounded.
-However, the Gaussian score is already controlled on the event $\mathcal E_G^{(s:u)}(\bar{x})$.
-We do the same trick of introducing a high-probability event to control the feedback $Y_t$.
-Recall that
-$Y_t=\pi_\eps(X_t)(f(A_t)+\xi_t)+2v(X_t)/\eps$. Since
-$f(A_t)\in[0,1]$, we have
-\begin{align}
-    |\eps Y_t|
-    \leq\eps\pi_\eps(X_t)(1+|\xi_t|)+2v(X_t).
-    \label{eq:feedback-cutoff-decomposition}
-\end{align}
-Thus we need to control both the observation noise and how far the sample
-$X_t$ lies outside $\K_\eps$.
-For the noise, define
-\begin{align}
-    \mathcal E_{\mathrm{noise}}
-    =\left\{|\xi_t|\leq\sqrt\ell
-    \text{ for all }1\leq t\leq n\right\}.
-    \label{eq:noise-cutoff-event}
-\end{align}
-By \eqref{eq:noise}, $\Pp_t(|\xi_t|>\sqrt\ell)\leq2e^{-\ell}$,
-so a union bound gives $\Pp(\overline{\mathcal E}_{\mathrm{noise}})\leq2ne^{-\ell}$.
-For the sample, write $W_t=X_t-\mu_t$. Subadditivity of the gauge gives
-\begin{align}
-    v(X_t)\leq v(\mu_t)+\frac{\pi(W_t)}{1-\eps}
-    \leq v(\mu_t)+2\pi(W_t).
-\end{align}
-The shell condition already bounds $v(\mu_t)$, so it remains to control
-the Gaussian displacement $W_t$.
-To this end, define
-\begin{align}
-    \mathcal E_{\mathrm{gauge}}
-    =\left\{\pi(W_t)\leq3+2\sqrt\ell
-    \text{ for all }1\leq t\leq\tau_{\mathrm{cov}}\right\}\,,
-    \label{eq:gauge-cutoff-event}
-\end{align}
-which we will show holds with high probability as $\pi$ is 1-Lipschitz and $W_t$ is conditionally Gaussian
-with covariance $\widehat\Sigma_t\preceq2\sigma^2I_d$.
-On $\mathcal E_{\mathrm{gauge}}$, the shell condition now gives
-\begin{align}
-    v(X_t)\leq\ell+6+4\sqrt\ell\leq2\ell,
-    \qquad\pi_\eps(X_t)=1+v(X_t)\leq3\ell
-    \qquad(t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}).
-\end{align}
-If $\mathcal E_{\mathrm{noise}}$ also holds, substituting these bounds
-into \eqref{eq:feedback-cutoff-decomposition} yields
-\begin{align}
-    |\eps Y_t|
-    \leq\frac32\ell(1+\sqrt\ell)+4\ell
-    =\frac{11}{2}\ell+\frac32\ell^{3/2}
-    \leq4\ell^{3/2},
-    \label{eq:feedback-cutoff-bound}
-\end{align}
-where the numerical inequalities use $\ell\geq640$.
-Now, define the truncated quadratics
-\begin{align}
-    \widetilde q_t(\bar{x})
-    =\widehat q_t(\bar{x})\1_{\mathcal C_t(\bar{x})}\,
-    \quad\text{where}\quad
-    \mathcal C_t(\bar{x})
-    =\left\{|\xi_t|\leq\sqrt\ell\,,\,
-    \pi(W_t)\leq3+2\sqrt\ell\right\}
-    \cap\mathcal E_G^{(t:t)}(\bar{x})\,,
-    \label{eq:quadratic-cutoff-event}
-\end{align}
-which, unlike the original quadratics $\widehat q_t(\bar{x})$, satisfies the absolute bound
-\begin{align}
-    |\widetilde q_t(\bar{x})|
-    \leq2|Y_t|R_t(\bar{x})(G_t(\bar{x})^2+1)
-    \1_{\mathcal C_t(\bar{x})}
-    \leq\frac{40\sqrt{2F}\,\ell^{5/2}}{\eps}.
-    \label{eq:truncated-quadratic-bound}
-\end{align}
-To obtain martingale differences, we therefore center it at their own conditional mean:
-\begin{align}
-    \widetilde D_t(\bar{x})
-    =\E_t[\widetilde q_t(\bar{x})]-\widetilde q_t(\bar{x}).
-    \label{eq:truncated-martingale-difference}
-\end{align}
-By construction, $\E_t[\widetilde D_t(\bar{x})]=0$. Both the truncated
-estimate and its conditional mean satisfy the preceding absolute bound,
-so $|\widetilde D_t(\bar{x})| \leq\frac{80\sqrt{2F}\,\ell^{5/2}}{\eps}$.
-Quite similarly to \eqref{eq:martingale-variance}, the accumulated conditional variance of the truncated martingale differences is bounded by the sum of the conditional second moments of the original quadratics as
-\begin{align}
-    \sum_{t=s}^{u}\E_t[\widetilde D_t(\bar{x})^2]
-    \leq\sum_{t=s}^{u}\E_t[\widetilde q_t(\bar{x})^2]
-    \leq\sum_{t=s}^{u}\E_t[\widehat q_t(\bar{x})^2]
-    \leq200F\ell^2\sum_{t=s}^{u}\E_t[Y_t^2]
-    +\frac{8F(u-s+1)}{\eps^2}e^{-\ell/4},
-    \label{eq:truncated-variance-comparison}
-\end{align}
-where the last inequality follows from \eqref{eq:quadratic-conditional-variance}.
+Now that we have a handle on $|G_t(\bar{x})|$, we can bound the RHS of \eqref{eq:quadratic-estimate-decomposition} in terms of $Y_t$, if we assume some control on the $R_t(\bar{x})$ term too. This is what the following lemma does.
+\begin{lemma}
+    \label{lem:quadratic-second-moment}
+    Let $F>0$ and suppose that $\eps=\eps_0$ as in \cref{thm:main}.
+    On a round $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$,
+    let $\bar{x}$ be an $\F_{t-1}$-measurable comparator satisfying
+    \begin{align}
+        \lambda R_t(\bar{x})\leq1
+        \qquad\text{and}\qquad
+        R_t(\bar{x})\leq\sqrt{2F}.
+    \end{align}
+    Then
+    \begin{align}
+        \E_t[D_t(\bar{x})^2]
+        \leq\E_t[\widehat q_t(\bar{x})^2]
+        \leq200F\ell^2\E_t[Y_t^2]
+        +8Fe^{-\ell/8}.
+        \label{eq:quadratic-second-moment}
+    \end{align}
+    Moreover, on $\mathcal E_G^{(t:t)}(\bar{x})$,
+    \begin{align}
+        D_t(\bar{x})^2
+        \leq400F\ell^2\left(Y_t^2+\E_t[Y_t^2]\right)
+        +16Fe^{-\ell/8}.
+        \label{eq:realized-martingale-squares}
+    \end{align}
+\end{lemma}
+The proof is given in \cref{app:quadratic-second-moment}.
 
-We can now apply Freedman's inequality, leaving the feedback second-moment
-budget to be specified in the global and local arguments. Fix deterministic
-$F,S>0$. Let $\mathcal E_{\mathrm{Fr}}^{(s:u)}(\bar{x};S)$ be the event that,
-whenever the preceding stopping and radius conditions hold throughout
-$[s,u]$ and $\sum_{t=s}^{u}\E_t[Y_t^2]\leq S$, we have
+We can now combine the two moment bounds and apply \cref{lem:self-normalised-martingale}.
+Again, given the budget assumption \eqref{eq:energy-feedback-budget} of $\sum_{t=s}^u \E_t[Y_t^2]\leq S$.
+Define
 \begin{align}
-    \left|\sum_{t=s}^{u}\widetilde D_t(\bar{x})\right|
-    \leq\sqrt{25F\ell^3S+\frac{F(u-s+1)\ell}{\eps^2}e^{-\ell/4}}
-    +\frac{10\sqrt{2F}\,\ell^{7/2}}{3\eps}.
-    \label{eq:freedman-quadratic-bound}
+    V_{s:u}(F,S)
+    \triangleq1200F\ell^2\left(S+\frac{\ell^4}{\eps^2}\right)
+    +24F(u-s+1)e^{-\ell/8},
 \end{align}
-
-It remains to relate this martingale sum to the original error. On
-$\mathcal E_{\mathrm{Fr}}^{(s:u)}(\bar{x};S)
-    \cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}
-    \cap\mathcal E_G^{(s:u)}(\bar{x})$, every cutoff $\mathcal C_t(\bar{x})$
-holds for $s\leq t\leq u\leq\tau_{\mathrm{cov}}$.
-The sampled and truncated quadratics therefore agree on the interval.
-Their conditional means still differ by the expected contribution of
-the discarded samples. Summing these differences gives
+and the event
 \begin{align}
+    \mathcal E_{\mathrm{SN}}^{(s:u)}(\bar{x};F,S)
+    =\left\{
     \left|\sum_{t=s}^{u}D_t(\bar{x})\right|
-    \leq\left|\sum_{t=s}^{u}\widetilde D_t(\bar{x})\right|
-    +\sum_{t=s}^{u}\left|
-    \E_t\left[\widehat q_t(\bar{x})
-        \1_{\overline{\mathcal C_t(\bar{x})}}\right]\right|.
-    \label{eq:truncation-bias-decomposition}
+    \leq\sqrt{\frac{\ell V_{s:u}(F,S)}8}
+    \right\}.
+    \label{eq:self-normalized-quadratic-event}
 \end{align}
-On this intersection, under the preceding stopping and radius conditions
-and the feedback budget above, the first term is bounded by
-\eqref{eq:freedman-quadratic-bound}. It remains to bound the second term,
-the bias introduced by truncation.
+\begin{lemma}
+    \label{lem:interval-quadratic-concentration}
+    Suppose that the hypotheses of \cref{lem:quadratic-second-moment,lem:energy-feedback-event}
+    hold throughout $[s,u]$. Then
+    \begin{align}
+        \Pp\left(
+        \overline{\mathcal E}_{\mathrm{SN}}^{(s:u)}(\bar{x};F,S)
+        \cap\mathcal E_G^{(s:u)}(\bar{x})
+        \cap\mathcal E_Y^{(s:u)}(S)
+        \right)
+        \leq2e^{-\ell/16}.
+    \end{align}
+\end{lemma}
+\begin{proof}
+    On $\mathcal E_G^{(s:u)}(\bar{x})\cap\mathcal E_Y^{(s:u)}(S)$,
+    summing the two bounds in \cref{lem:quadratic-second-moment}
+    and applying the feedback budget gives
+    \begin{align}
+        \sum_{t=s}^{u}\left(D_t(\bar{x})^2+\E_t[D_t(\bar{x})^2]\right)
+        \leq V_{s:u}(F,S),
+        \label{eq:interval-self-normalizer}
+    \end{align}
+    where we also used \eqref{eq:interval-feedback-bound} and
+    $\sqrt{2S}\,\ell^2/\eps\leq S/2+\ell^4/\eps^2$.
+    Applying \cref{lem:self-normalised-martingale} with
+    $v=V_{s:u}(F,S)$ and $z=\sqrt{\ell V_{s:u}(F,S)/8}$ therefore
+    bounds the probability in the statement by $2e^{-\ell/16}$.
+\end{proof}
+\proofstepinline{5}
+The remaining input to Steps~3--4 is a
+deterministic budget for the sum of conditional feedback moments.
+We enforce this budget globally by introducing more stopping times:
+\begin{align}
+    \tau_{\mathrm{moment}}
+    =\min\left\{t\in[n]:\sum_{j=1}^t\E_j[Y_j^2]>16n\right\}\wedge n,
+    \,\,\text{and}\,\,
+    \tau_{\mathrm{stable}}
+    =\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{focus}}
+    \wedge\tau_{\mathrm{shell}}\wedge\tau_{\mathrm{moment}}.
+    \label{eq:global-stopping-time}
+\end{align}
+The sum can cross $16n$ on the stopping round. To control this overshoot,
+\cref{lem:single-round-feedback} in the appendix gives the uniform bound
+$\E_t[Y_t^2]\leq8\ell^2/\eps^2$ for every
+$t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$.
+Consequently, writing $\tau=\tau_{\mathrm{stable}}$,
+\begin{align}
+    S_{\mathrm{global}}\triangleq\sum_{t=1}^{\tau}\E_t[Y_t^2]
+    \leq16n+\frac{8\ell^2}{\eps^2}
+    \leq17n\,.
+    \label{eq:global-moment-budget}
+\end{align}
+Thus we can take $S=17n$ for $(s,u)=(1,\tau)$ in \cref{lem:energy-feedback-event,lem:interval-quadratic-concentration}.
+First, \cref{lem:energy-feedback-event}, with $S=17n$, gives
+\begin{align}
+    \sum_{t=1}^{\tau}Y_t^2
+    \leq17n+\frac{\sqrt{34n}\,\ell^2}{\eps}
+    +\frac{2\ell^4}{\eps^2}
+    \leq20n
+    \label{eq:global-feedback-bound}
+\end{align}
+on $\mathcal E_Z\cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}$,
+apart from an event of probability at most $2e^{-\ell/16}$.
 
+For the quadratic error, the initialization gives
+$\frac12R_1(x_\star)^2\leq4d^3M^2<B$.
+The focus stopping rule therefore gives
+$R_t(x_\star)\leq\sqrt{2B}$ and
+$\lambda R_t(x_\star)\leq\lambda\sqrt{2B}<1$ for $t\leq\tau$,
+so Step~4 applies with $F=B$.
+Using the deterministic bound $V_{1:n}(B,17n)$ for the stopped
+self-normalizer, its argument gives
+\begin{align}
+    \left|\sum_{t=1}^{\tau}D_t(x_\star)\right|
+    \leq\sqrt{\frac{\ell V_{1:n}(B,17n)}8}
+    \leq53\sqrt{Bn}\,\ell^{3/2}.
+    \label{eq:global-quadratic-error}
+\end{align}
+Here we used $\ell^4/\eps^2\leq n$ and
+$V_{1:n}(B,17n)\leq21624Bn\ell^2$.
+This costs another $2e^{-\ell/16}$ on the feedback event from Step~3
+and the score event $\{|G_t(x_\star)|\leq2\sqrt\ell\text{ for all }t\leq\tau\}$.
+The Gaussian and noise tail bounds give
+\begin{align}
+    \Pp\bigl(\overline{\mathcal E}_Z\cup
+    \overline{\mathcal E}_{\mathrm{noise}}\cup
+    \overline{\mathcal E}_{\mathrm{gauge}}\bigr)
+    \leq4ne^{-\ell},
+    \qquad
+    \Pp\left(\max_{t\leq\tau}|G_t(x_\star)|>2\sqrt\ell\right)
+    \leq2ne^{-2\ell}.
+\end{align}
+Therefore all these bounds hold together with probability at least
+$1-4ne^{-\ell}-2ne^{-2\ell}-4e^{-\ell/16}\geq1-\delta/4$.
 
-
-% To control this difference, we have to rely on a couple of high-probability events.
-% First, let
-% \begin{align}
-%     \mathcal{E}_{\mathrm{noise}} = \left\{...\right\}
-%     \quad\text{and}\quad
-%     \mathcal{E}_{\mathrm{gauge}} = \left\{...\right\}
-% \end{align}
-% where $\mathcal{E}_{\mathrm{noise}}$ is the event that the noise is well-behaved and $\mathcal{E}_{\mathrm{gauge}}$ is the event that 
-
+It remains to replace $\widehat\Sigma_t$ by $\widehat\Sigma_{t+1}$
+in the gradient energy, including at the final update.
+On the same event, the feedback and Gaussian norm bounds imply
+\begin{align}
+    \lambda\eta\left\|
+    \widehat\Sigma_t^{1/2}\widehat H_t\widehat\Sigma_t^{1/2}
+    \right\|_{\op}
+     & =\lambda\eta|Y_t|\|Z_tZ_t^\top-I_d\|_{\op}
+    \leq\frac{16\lambda\eta}{\eps}(d+\ell)\ell^{3/2}
+    <\frac12
+    \qquad(t\leq\tau),
+\end{align}
+where we used the parameter choices in \cref{thm:main} and $M\sqrt d\geq1$.
+The precision update thus satisfies
+\begin{align}
+    \frac12\widehat\Sigma_t^{-1}
+    \preceq\widehat\Sigma_{t+1}^{-1}
+    \preceq\frac32\widehat\Sigma_t^{-1},
+    \qquad
+    \widehat\Sigma_{t+1}\preceq2\widehat\Sigma_t
+    \qquad(t\leq\tau).
+    \label{eq:global-one-step-comparison}
+\end{align}
+In particular, the final update is positive definite, so the ONS
+identity is valid through round $\tau$.
+Combining \eqref{eq:energy-feedback-identity} and
+\eqref{eq:global-feedback-bound} now gives
+\begin{align}
+    \frac{\eta}{2}\sum_{t=1}^{\tau}
+    \normm{\widehat g_t}{\widehat\Sigma_{t+1}}^2
+    \leq\eta\sum_{t=1}^{\tau}
+    \normm{\widehat g_t}{\widehat\Sigma_t}^2
+    \leq60\eta n(d+\ell)
+    \leq80\eta dn\ell.
+    \label{eq:global-gradient-energy}
+\end{align}
+Substituting this and \eqref{eq:global-quadratic-error} into the bound
+from Step~2 yields the global quadratic-regret bound
+\begin{align}
+    \operatorname{qReg}_{1:\tau}(x_\star)
+    \leq
+    \frac{R_1(x_\star)^2-R_{\tau+1}(x_\star)^2}{2\eta}
+    +80\eta dn\ell+53\sqrt{Bn}\,\ell^{3/2}.
+    \label{eq:global-quadratic-regret}
+\end{align}
+This bound holds up to $\tau_{\mathrm{stable}}$; removing the stopping
+conditions and controlling the trace term are the remaining tasks.
 
 BREAK
 The trace sum in \eqref{eq:regret-switch-focus} is controlled by the following lemma, which is proved in \cref{app:trace}.
@@ -1669,6 +1514,14 @@ shell bounds, not the conclusion of \cref{thm:main}.
     \newblock \emph{Measure Theory and Fine Properties of Functions}.
     \newblock Revised edition, CRC Press, 2015.
 
+    \bibitem[Fokkema et al.(2024)Fokkema, van der Hoeven, Lattimore, and Mayo]{fokkema2024online}
+    Hidde Fokkema, Dirk van der Hoeven, Tor Lattimore, and Jack J. Mayo.
+    \newblock Online Newton method for bandit convex optimisation: Extended abstract.
+    \newblock In \emph{Proceedings of the 37th Conference on Learning Theory},
+    volume 247 of \emph{Proceedings of Machine Learning Research}, pages
+    1713--1714, 2024.
+    \newblock Full version: \href{https://arxiv.org/abs/2406.06506}{arXiv:2406.06506}.
+
     \bibitem[Lattimore(2026)]{lattimore2026bandit}
     Tor Lattimore.
     \newblock \emph{Bandit Convex Optimisation}.
@@ -1700,6 +1553,32 @@ shell bounds, not the conclusion of \cref{thm:main}.
 
 \newpage
 \appendix
+\section{Properties of the convex extension}
+\label{app:extension}
+\begin{lemma}[{\citet[Proposition~3.23]{lattimore2026bandit}}]
+    \label{lem:extension}
+    The function $\bar{e}:
+        x
+        \longmapsto
+        \pi_\eps(x)
+        f\!\left(\frac{x}{\pi_\eps(x)}\right)
+        +
+        \frac{1-\eps}{\eps}v(x)
+    $ is convex, agrees with $f$ on $\K_\eps$, and
+    \begin{align}
+        \Lip(\bar e)\leq\frac{2}{\eps(1-\eps)}\,.
+    \end{align}
+    Moreover,
+    $e\!\left(\frac{x}{\pi_\eps(x)}\right)\leq e(x)$
+    for all $x\in\R^d$.
+\end{lemma}
+Now, observe that $e(x)=\bar e(x)+\frac{1+\eps}{\eps}v(x)$, so $e$ is also convex, agrees with $f$ on $\K_\eps$ since $v(x)=0$ for $x\in\K_\eps$.
+Moreover, $v$ is $1/(1-\eps)$-Lipschitz, so $e$ is also Lipschitz with
+\begin{align}
+    \Lip(e)\leq\frac{2}{\eps(1-\eps)}+\frac{1+\eps}{\eps}\cdot\frac{1}{1-\eps}\leq\frac{8}{\eps}\,,
+\end{align}
+when $\eps\in(0,1/2]$.
+
 \section{Hessian Measures}
 First we record the standard fact that the distributional Hessian of a convex function is a positive-semidefinite matrix-valued Radon measure.
 \begin{lemma}[Hessian measure of a convex function]
@@ -2505,6 +2384,44 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
 
 \section{Feedback control}
 \label{app:feedback}
+\begin{lemma}[Single-round feedback moment]
+    \label{lem:single-round-feedback}
+    For every $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$,
+    \begin{align}
+        \E_t[Y_t^2]\leq\frac{8\ell^2}{\eps^2}.
+        \label{eq:single-round-feedback}
+    \end{align}
+\end{lemma}
+\begin{proof}
+    Write $W_t=X_t-\mu_t$ and $r_t=\pi_\eps(X_t)=1+v(X_t)$.
+    The covariance and shell conditions give
+    $\widehat\Sigma_t\preceq2\sigma^2I_d$ and $v(\mu_t)\leq\ell$.
+    By subadditivity of the gauge and $\eps\leq1/2$,
+    \begin{align}
+        r_t\leq1+\ell+2\pi(W_t).
+    \end{align}
+    Conditionally on $\F_{t-1}$, $W_t$ is centered Gaussian with
+    covariance $\widehat\Sigma_t$. Thus
+    \cref{lem:gaussian-gauge-fourth-moment} and Minkowski's inequality give
+    \begin{align}
+        \E_t[r_t^2]^{1/2}
+        \leq1+\ell+2\E_t[\pi(W_t)^2]^{1/2}
+        \leq\ell+7.
+    \end{align}
+    The noise assumption \eqref{eq:noise} gives conditional mean zero
+    and conditional second moment at most one. Since
+    $Y_t=e(X_t)+r_t\xi_t$ and
+    $0\leq\eps e(X_t)\leq(2+\eps)r_t\leq(5/2)r_t$,
+    \begin{align}
+        \eps^2\E_t[Y_t^2]
+        =\eps^2\E_t\left[e(X_t)^2+r_t^2\E_t[\xi_t^2\mid X_t]\right]
+        \leq7\E_t[r_t^2]
+        \leq7(\ell+7)^2
+        \leq8\ell^2,
+    \end{align}
+    where the last inequality uses $\ell\geq640$.
+\end{proof}
+
 \begin{lemma}[Gaussian gauge fourth moment]
     \label{lem:gaussian-gauge-fourth-moment}
     Let $\sigma=(M\sqrt{2d})^{-1}$ and $W\sim\N(0,\Sigma)$ with
@@ -2765,6 +2682,256 @@ Throughout this section, write $\tau=\tau_{\mathrm{stable}}$. Define
     \end{align}
     where the final inequality follows by substituting
     $e^{-\ell/16}=(128nd/\delta)^{-8}$.
+\end{proof}
+
+\section{Proof of \cref{lem:quadratic-second-moment}}
+\label{app:quadratic-second-moment}
+% RESERVED BETTER PROOF WRITING
+% Now, for the moment suppose that
+% \begin{align}
+%     \lambda R_t(\bar{x}) \leq 1
+%     \qquad\text{and}
+%     \qquad
+%     R_t(\bar{x}) \leq \sqrt{2F},\,
+% \end{align}
+% for some $F>0$ to be specified later, then we can bound the second moment of $\hat{q}_t(\bar{x})$ as
+% \begin{align}
+%     \E_t\left[\hat{q}_t(\bar{x})^2\right]
+%      & \leq R_t(\bar{x})^2\E_t\left[
+%         Y_t^2\left(
+%         |G_t(\bar{x})|+\frac12|G_t(\bar{x})^2-1|
+%         \right)^2\right]
+%     \\
+%      & \quad
+%     \leq 4R_t(\bar{x})^2\E_t\left[
+%         Y_t^2\left(G_t(\bar{x})^2+1\right)^2\right]
+%     \leq 8F\E_t\left[
+%         Y_t^2\left(G_t(\bar{x})^2+1\right)^2\right].
+% \end{align}
+% Now, observe that the direction defining $G_t(\bar{x})$ is then an
+% $\F_{t-1}$-measurable unit vector, so the conditional distribution of
+% $G_t(\bar{x})$ given $\F_{t-1}$ is $\N(0,1)$.
+% Therefore, define the event that the Gaussian random variable is bounded on the interval $[s,u]$ as
+% \begin{align}
+%     \mathcal E_G^{(s:u)}(\bar{x})
+%     =\left\{
+%     |G_t(\bar{x})|\leq2\sqrt\ell
+%     \text{ for all }s\leq t\leq u
+%     \right\}\,.
+%     \label{eq:gaussian-score-event}
+% \end{align}
+% This event holds with high probability, as $\Pp_s\left(\overline{\mathcal E}_G^{(s:u)}(\bar{x})\right) \leq 2(u-s+1)e^{-2\ell}$.
+% Next, we split the expectation according to the
+% single-round event $\mathcal E_G^{(t:t)}(\bar{x})$ which gives
+% \begin{align}
+%     \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2\right]
+%      & =\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+%     \1_{\mathcal E_G^{(t:t)}(\bar{x})}\right]
+%     +\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+%     \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right]
+%     \nonumber                               \\
+%      & \leq25\ell^2\E_t[Y_t^2]
+%     +\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+%     \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right].
+%     \label{eq:gaussian-score-moment-split}
+% \end{align}
+% To control the remaining term, we first condition on $X_t$.
+% By \eqref{eq:noise} and $\eps e(X_t)\leq(5/2)\pi_\eps(X_t)$,
+% \begin{align}
+%     \E_t[Y_t^2\mid X_t]
+%      & =e(X_t)^2+\pi_\eps(X_t)^2\E_t[\xi_t^2\mid X_t]
+%     \leq e(X_t)^2+\pi_\eps(X_t)^2
+%     \leq\frac7{\eps^2}\pi_\eps(X_t)^2.
+% \end{align}
+% Since $G_t(\bar{x})$ is determined by $X_t$, conditioning
+% first and then applying Cauchy--Schwarz gives
+% \begin{align}
+%     \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+%         \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]
+%     % \nonumber                              \\
+%     %  & \quad\leq\frac7{\eps^2}\E_t\left[
+%     % \pi_\eps(X_t)^2(G_t(\bar{x})^2+1)^2
+%     % \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]
+%     % \nonumber                              \\
+%     \leq\frac7{\eps^2}
+%     \E_t[\pi_\eps(X_t)^4]^{1/2}
+%     \E_t\left[(G_t(\bar{x})^2+1)^4
+%         \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]^{1/2}.
+%     \label{eq:gaussian-score-tail-separation}
+% \end{align}
+% We apply Cauchy--Schwarz once more to extract the small probability of the Gaussian tail:
+% \begin{align}
+%     \E_t\left[(G_t(\bar{x})^2+1)^4
+%         \1_{\{|G_t(\bar{x})|>2\sqrt\ell\}}\right]^{1/2}
+%     \leq\E_t\left[(G_t(\bar{x})^2+1)^8\right]^{1/4}
+%     \Pp_t\left(|G_t(\bar{x})|>2\sqrt\ell\right)^{1/4}
+%     % \leq\bigl(2^8(15!!+1)\bigr)^{1/4}e^{-\ell/2}
+%     \leq200e^{-\ell/2}\,,
+%     \label{eq:gaussian-score-tail-factor}
+% \end{align}
+% where we used the fact that the sixteenth moment of a conditionally standard Gaussian is $15!!$, so $\E_t[(G_t(\bar{x})^2+1)^8]\leq2^7(15!!+1)$.
+% It remains to control $\E_t[\pi_\eps(X_t)^4]^{1/2}$ in
+% \eqref{eq:gaussian-score-tail-separation}. To do so, we work with the
+% conditional $L^4$ norm. Subadditivity of the gauge gives
+% \begin{align}
+%     \pi_\eps(X_t)
+%     \leq1+v(\mu_t)+\frac{\pi(X_t-\mu_t)}{1-\eps}
+%     \leq1+v(\mu_t)+2\pi(X_t-\mu_t).
+% \end{align}
+% Taking the conditional $L^4$ norm and applying Minkowski's inequality,
+% \begin{align}
+%     \E_t[\pi_\eps(X_t)^4]^{1/4}
+%     \leq1+v(\mu_t)+2\E_t[\pi(X_t-\mu_t)^4]^{1/4}
+%     \leq v(\mu_t) + 7.
+% \end{align}
+% where the last inequality follows since \cref{lem:gaussian-gauge-fourth-moment} bounds
+% the norm $\E_t[\pi(X_t-\mu_t)^4]^{1/4}$ by $3$.
+% We are therefore left with controlling $v(\mu_t)$.
+% Projecting the mean onto $\K_\eps$ would make this term zero, but our unprojected mean can
+% leave $\K_\eps$.
+% To track this quantity, we define our third stopping time
+% \begin{align}
+%     \tau_{\mathrm{shell}}
+%     =\min\{t\in[n]:v(\mu_{t+1})>\ell\}\wedge n.
+%     \label{eq:shell-stopping-time}
+% \end{align}
+% Since $v(\mu_1)=0$, we have $v(\mu_t)\leq\ell$ for every
+% $t\leq\tau_{\mathrm{shell}}$. Thus the factor needed in
+% \eqref{eq:gaussian-score-tail-separation} satisfies
+% \begin{align}
+%     \E_t[\pi_\eps(X_t)^4]^{1/2}\leq(\ell+7)^2\leq4\ell^2
+%     \qquad(t\leq\tau_{\mathrm{cov}}\wedge \tau_{\mathrm{focus}} \wedge\tau_{\mathrm{shell}}).
+%     \label{eq:stopped-extension-gauge-moment}
+% \end{align}
+% For these rounds, substituting
+% \cref{eq:gaussian-score-tail-separation,eq:gaussian-score-tail-factor,eq:stopped-extension-gauge-moment}
+% into \eqref{eq:gaussian-score-moment-split} gives
+% \begin{align}
+%     \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2\right]
+%     \leq25\ell^2\E_t[Y_t^2]+\frac{5600\ell^2}{\eps^2}e^{-\ell/2}
+%     \leq25\ell^2\E_t[Y_t^2]+\frac{e^{-\ell/4}}{\eps^2},
+%     \label{eq:gaussian-score-weighted-second-moment}
+% \end{align}
+% where the last inequality uses $\ell\geq640$.
+% Using $\E_t[D_t(\bar{x})^2]\leq\E_t[\hat{q}_t(\bar{x})^2]$ and
+% summing over an interval $[s,u]$ on which the preceding conditions hold gives
+% \begin{align}
+%     \sum_{t=s}^{u}\E_t[D_t(\bar{x})^2]
+%     \leq\sum_{t=s}^{u}\E_t[\widehat q_t(\bar{x})^2]
+%     \leq200F\ell^2\sum_{t=s}^{u}\E_t[Y_t^2]
+%     +\frac{8F(u-s+1)}{\eps^2}e^{-\ell/4}.
+%     \label{eq:quadratic-conditional-variance}
+% \end{align}
+% For now, suppose that we have a bound on $\sum_{t=s}^{u}\E_t[Y_t^2]$.
+% We will establish the required bound separately in the global and local
+% arguments.
+\begin{proof}
+    Fix a round $t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}$
+    satisfying the radius conditions. The scalar representation of
+    $\widehat q_t(\bar{x})$, together with $\lambda R_t(\bar{x})\leq1$, gives
+    \begin{align}
+        |\widehat q_t(\bar{x})|
+        \leq|Y_t|R_t(\bar{x})
+        \left(|G_t(\bar{x})|+\frac12|G_t(\bar{x})^2-1|\right)
+        \leq2|Y_t|R_t(\bar{x})(G_t(\bar{x})^2+1).
+    \end{align}
+    Since $R_t(\bar{x})^2\leq2F$, it follows that
+    \begin{align}
+        \E_t[\widehat q_t(\bar{x})^2]
+        \leq8F\E_t[Y_t^2(G_t(\bar{x})^2+1)^2].
+    \end{align}
+    To bound this weighted second moment, split according to the
+    single-round Gaussian-score event $\mathcal E_G^{(t:t)}(\bar{x})$.
+    On this event, $(G_t(\bar{x})^2+1)^2\leq25\ell^2$, so
+    \begin{align}
+        \E_t[Y_t^2(G_t(\bar{x})^2+1)^2]
+        \leq25\ell^2\E_t[Y_t^2]
+        +\E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+        \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right].
+    \end{align}
+    For the remaining term, we first condition on $X_t$ to remove the
+    observation noise. By \eqref{eq:noise} and
+    $\eps e(X_t)\leq(5/2)\pi_\eps(X_t)$,
+    \begin{align}
+        \E_t[Y_t^2\mid X_t]
+        =e(X_t)^2+\pi_\eps(X_t)^2\E_t[\xi_t^2\mid X_t]
+        \leq\frac7{\eps^2}\pi_\eps(X_t)^2.
+    \end{align}
+    Because $G_t(\bar{x})$ is determined by $X_t$, Cauchy--Schwarz
+    therefore gives
+    \begin{align}
+        \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+        \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right]
+        \leq\frac7{\eps^2}
+        \E_t[\pi_\eps(X_t)^4]^{1/2}
+        \E_t\left[(G_t(\bar{x})^2+1)^4
+        \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right]^{1/2}.
+    \end{align}
+    The second factor is small because $G_t(\bar{x})$ is conditionally
+    standard Gaussian. Applying Cauchy--Schwarz again,
+    \begin{align}
+        \E_t\left[(G_t(\bar{x})^2+1)^4
+        \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right]^{1/2}
+        \leq\E_t[(G_t(\bar{x})^2+1)^8]^{1/4}
+        \Pp_t\left(\overline{\mathcal E}_G^{(t:t)}(\bar{x})\right)^{1/4}
+        \leq200e^{-\ell/2}.
+    \end{align}
+    Here we used
+    $\E_t[(G_t(\bar{x})^2+1)^8]\leq2^7(15!!+1)$ and the Gaussian tail
+    bound $\Pp_t(|G_t(\bar{x})|>2\sqrt\ell)\leq2e^{-2\ell}$.
+
+    For the first factor, subadditivity of the gauge and Minkowski's
+    inequality yield
+    \begin{align}
+        \E_t[\pi_\eps(X_t)^4]^{1/4}
+        \leq1+v(\mu_t)+2\E_t[\pi(W_t)^4]^{1/4}
+        \leq\ell+7.
+    \end{align}
+    The last inequality uses the shell condition $v(\mu_t)\leq\ell$
+    and \cref{lem:gaussian-gauge-fourth-moment}, which applies because
+    $\widehat\Sigma_t\preceq2\sigma^2I_d$.
+    Thus $\E_t[\pi_\eps(X_t)^4]^{1/2}\leq4\ell^2$.
+    Combining the two factors gives
+    \begin{align}
+        \E_t\left[Y_t^2(G_t(\bar{x})^2+1)^2
+        \1_{\overline{\mathcal E}_G^{(t:t)}(\bar{x})}\right]
+        \leq\frac{5600\ell^2}{\eps^2}e^{-\ell/2}
+        \leq\frac{e^{-\ell/4}}{\eps^2},
+    \end{align}
+    where the last inequality uses $\ell\geq640$.
+    By the parameter choices in \cref{thm:main} and $M\geq d^{-1/2}$,
+    $\eps^{-2}=n/(10^4d^4M^2\ell^{16})\leq n\leq e^{\ell/128}$.
+    Hence $\eps^{-2}e^{-\ell/4}\leq e^{-\ell/8}$.
+    Substituting into the weighted second-moment bound proves
+    \begin{align}
+        \E_t[\widehat q_t(\bar{x})^2]
+        \leq200F\ell^2\E_t[Y_t^2]
+        +8Fe^{-\ell/8}.
+    \end{align}
+    Since $q_t(\bar{x})=\E_t[\widehat q_t(\bar{x})]$,
+    \begin{align}
+        \E_t[D_t(\bar{x})^2]
+        =\E_t[\widehat q_t(\bar{x})^2]-q_t(\bar{x})^2
+        \leq\E_t[\widehat q_t(\bar{x})^2].
+    \end{align}
+    This proves \eqref{eq:quadratic-second-moment}.
+
+    For the realized square, on $\mathcal E_G^{(t:t)}(\bar{x})$,
+    \eqref{eq:quadratic-estimate-decomposition} and the radius conditions give
+    \begin{align}
+        \widehat q_t(\bar{x})^2
+        \leq8FY_t^2(G_t(\bar{x})^2+1)^2
+        \leq200F\ell^2Y_t^2.
+        \label{eq:realized-quadratic-squares}
+    \end{align}
+    Jensen's inequality also gives
+    \begin{align}
+        D_t(\bar{x})^2
+        \leq2\widehat q_t(\bar{x})^2+2q_t(\bar{x})^2
+        \leq2\widehat q_t(\bar{x})^2+2\E_t[\widehat q_t(\bar{x})^2].
+    \end{align}
+    Using the conditional second-moment bound just proved yields
+    \eqref{eq:realized-martingale-squares}.
 \end{proof}
 
 \section{Concentration}

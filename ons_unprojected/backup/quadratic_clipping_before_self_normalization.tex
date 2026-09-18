@@ -1,0 +1,140 @@
+We now turn to the other requirement of Freedman's inequality:
+a bound on the absolute size of the increments $D_t(\bar{x})$.
+An almost sure bound on the $|D_t(\bar{x})|$ is not possible, since both $Y_t$ and $G_t(\bar{x})$ are unbounded.
+However, the Gaussian score is already controlled on the event $\mathcal E_G^{(s:u)}(\bar{x})$.
+We do the same trick of introducing a high-probability event to control the feedback $Y_t$.
+Recall that
+$Y_t=\pi_\eps(X_t)(f(A_t)+\xi_t)+2v(X_t)/\eps$. Since
+$f(A_t)\in[0,1]$, we have
+\begin{align}
+    |\eps Y_t|
+    \leq\eps\pi_\eps(X_t)(1+|\xi_t|)+2v(X_t).
+    \label{eq:feedback-cutoff-decomposition}
+\end{align}
+Thus we need to control both the observation noise and how far the sample
+$X_t$ lies outside $\K_\eps$.
+For the noise, define
+\begin{align}
+    \mathcal E_{\mathrm{noise}}
+    =\left\{|\xi_t|\leq\sqrt\ell
+    \text{ for all }1\leq t\leq n\right\}.
+    \label{eq:noise-cutoff-event}
+\end{align}
+By \eqref{eq:noise}, $\Pp_t(|\xi_t|>\sqrt\ell)\leq2e^{-\ell}$,
+so a union bound gives $\Pp(\overline{\mathcal E}_{\mathrm{noise}})\leq2ne^{-\ell}$.
+For the sample, write $W_t=X_t-\mu_t$. Subadditivity of the gauge gives
+\begin{align}
+    v(X_t)\leq v(\mu_t)+\frac{\pi(W_t)}{1-\eps}
+    \leq v(\mu_t)+2\pi(W_t).
+\end{align}
+The shell condition already bounds $v(\mu_t)$, so it remains to control
+the Gaussian displacement $W_t$.
+To this end, define
+\begin{align}
+    \mathcal E_{\mathrm{gauge}}
+    =\left\{\pi(W_t)\leq3+2\sqrt\ell
+    \text{ for all }1\leq t\leq\tau_{\mathrm{cov}}\right\}\,,
+    \label{eq:gauge-cutoff-event}
+\end{align}
+which we will show holds with high probability as $\pi$ is 1-Lipschitz and $W_t$ is conditionally Gaussian
+with covariance $\widehat\Sigma_t\preceq2\sigma^2I_d$.
+On $\mathcal E_{\mathrm{gauge}}$, the shell condition now gives
+\begin{align}
+    v(X_t)\leq\ell+6+4\sqrt\ell\leq2\ell,
+    \qquad\pi_\eps(X_t)=1+v(X_t)\leq3\ell
+    \qquad(t\leq\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{shell}}).
+\end{align}
+If $\mathcal E_{\mathrm{noise}}$ also holds, substituting these bounds
+into \eqref{eq:feedback-cutoff-decomposition} yields
+\begin{align}
+    |\eps Y_t|
+    \leq\frac32\ell(1+\sqrt\ell)+4\ell
+    =\frac{11}{2}\ell+\frac32\ell^{3/2}
+    \leq4\ell^{3/2},
+    \label{eq:feedback-cutoff-bound}
+\end{align}
+where the numerical inequalities use $\ell\geq640$.
+Now, define the truncated quadratics
+\begin{align}
+    \widetilde q_t(\bar{x})
+    =\widehat q_t(\bar{x})\1_{\mathcal C_t(\bar{x})}\,
+    \quad\text{where}\quad
+    \mathcal C_t(\bar{x})
+    =\left\{|\xi_t|\leq\sqrt\ell\,,\,
+    \pi(W_t)\leq3+2\sqrt\ell\right\}
+    \cap\mathcal E_G^{(t:t)}(\bar{x})\,,
+    \label{eq:quadratic-cutoff-event}
+\end{align}
+which, unlike the original quadratics $\widehat q_t(\bar{x})$, satisfies the absolute bound
+\begin{align}
+    |\widetilde q_t(\bar{x})|
+    \leq2|Y_t|R_t(\bar{x})(G_t(\bar{x})^2+1)
+    \1_{\mathcal C_t(\bar{x})}
+    \leq\frac{40\sqrt{2F}\,\ell^{5/2}}{\eps}.
+    \label{eq:truncated-quadratic-bound}
+\end{align}
+To obtain martingale differences, we therefore center it at their own conditional mean:
+\begin{align}
+    \widetilde D_t(\bar{x})
+    =\E_t[\widetilde q_t(\bar{x})]-\widetilde q_t(\bar{x}).
+    \label{eq:truncated-martingale-difference}
+\end{align}
+By construction, $\E_t[\widetilde D_t(\bar{x})]=0$. Both the truncated
+estimate and its conditional mean satisfy the preceding absolute bound,
+so $|\widetilde D_t(\bar{x})| \leq\frac{80\sqrt{2F}\,\ell^{5/2}}{\eps}$.
+Quite similarly to \eqref{eq:martingale-variance}, the accumulated conditional variance of the truncated martingale differences is bounded by the sum of the conditional second moments of the original quadratics as
+\begin{align}
+    \sum_{t=s}^{u}\E_t[\widetilde D_t(\bar{x})^2]
+    \leq\sum_{t=s}^{u}\E_t[\widetilde q_t(\bar{x})^2]
+    \leq\sum_{t=s}^{u}\E_t[\widehat q_t(\bar{x})^2]
+    \leq200F\ell^2\sum_{t=s}^{u}\E_t[Y_t^2]
+    +\frac{8F(u-s+1)}{\eps^2}e^{-\ell/4},
+    \label{eq:truncated-variance-comparison}
+\end{align}
+where the last inequality follows from \eqref{eq:quadratic-conditional-variance}.
+
+We can now apply Freedman's inequality, leaving the feedback second-moment
+budget to be specified in the global and local arguments. Fix deterministic
+$F,S>0$. Let $\mathcal E_{\mathrm{Fr}}^{(s:u)}(\bar{x};S)$ be the event that,
+whenever the preceding stopping and radius conditions hold throughout
+$[s,u]$ and $\sum_{t=s}^{u}\E_t[Y_t^2]\leq S$, we have
+\begin{align}
+    \left|\sum_{t=s}^{u}\widetilde D_t(\bar{x})\right|
+    \leq\sqrt{25F\ell^3S+\frac{F(u-s+1)\ell}{\eps^2}e^{-\ell/4}}
+    +\frac{10\sqrt{2F}\,\ell^{7/2}}{3\eps}.
+    \label{eq:freedman-quadratic-bound}
+\end{align}
+
+It remains to relate this martingale sum to the original error. On
+$\mathcal E_{\mathrm{Fr}}^{(s:u)}(\bar{x};S)
+    \cap\mathcal E_{\mathrm{noise}}\cap\mathcal E_{\mathrm{gauge}}
+    \cap\mathcal E_G^{(s:u)}(\bar{x})$, every cutoff $\mathcal C_t(\bar{x})$
+holds for $s\leq t\leq u\leq\tau_{\mathrm{cov}}$.
+The sampled and truncated quadratics therefore agree on the interval.
+Their conditional means still differ by the expected contribution of
+the discarded samples. Summing these differences gives
+\begin{align}
+    \left|\sum_{t=s}^{u}D_t(\bar{x})\right|
+    \leq\left|\sum_{t=s}^{u}\widetilde D_t(\bar{x})\right|
+    +\sum_{t=s}^{u}\left|
+    \E_t\left[\widehat q_t(\bar{x})
+        \1_{\overline{\mathcal C_t(\bar{x})}}\right]\right|.
+    \label{eq:truncation-bias-decomposition}
+\end{align}
+On this intersection, under the preceding stopping and radius conditions
+and the feedback budget above, the first term is bounded by
+\eqref{eq:freedman-quadratic-bound}. It remains to bound the second term,
+the bias introduced by truncation.
+
+
+
+% To control this difference, we have to rely on a couple of high-probability events.
+% First, let
+% \begin{align}
+%     \mathcal{E}_{\mathrm{noise}} = \left\{...\right\}
+%     \quad\text{and}\quad
+%     \mathcal{E}_{\mathrm{gauge}} = \left\{...\right\}
+% \end{align}
+% where $\mathcal{E}_{\mathrm{noise}}$ is the event that the noise is well-behaved and $\mathcal{E}_{\mathrm{gauge}}$ is the event that 
+
+
