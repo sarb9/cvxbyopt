@@ -538,7 +538,6 @@ We first bound realized regret in terms of extension regret, as in \citet{lattim
 \end{lemma}
 \proofstepinline{1}
 To apply \cref{cor:bracket-ell}, we need to ensure that $\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
-We handle both by introducing stopping times that track the first round when either of these conditions is violated.
 To this end, define the predictable (expected) counterpart of $\Sigma_t^{-1}$ as
 \begin{align}
     \bar{\Sigma}_1^{-1}=\Sigma_1^{-1}=\sigma^{-2}I_d,
@@ -563,7 +562,6 @@ Then, define the stopping time $\tau_{\mathrm{cov}}$ when the empirical covarian
     \label{eq:covariance-stopping-time}
 \end{align}
 Both $\Sigma_{t+1}^{-1} = \Sigma_t^{-1} + \lambda\eta H_t$ and $\bar{\Sigma}_{t+1}^{-1}$ are $\F_t$-measurable, so $\tau_{\mathrm{cov}}$ is an $\F_t$-adapted stopping time.
-
 For $t \leq \tau_{\mathrm{cov}}$, the empirical covariance $\Sigma_t$ remains positive definite, which let us define the focus radius around $\mu_t$ as
 \begin{align}
     R_t = \left\|\mu_t - x_\star\right\|_{\Sigma_t^{-1}}\,, \quad t \leq \tau_{\mathrm{cov}}.
@@ -584,13 +582,14 @@ Also define the two additional stopping times
     =\min\{t\in[n]:v(\mu_{t})>\ell\}\wedge (n+1)\,,
     \label{eq:energy-shell-stopping-time}
 \end{align}
-and for some parameter $S > 0$ to be fixed later, define the stopping time
+and
 \begin{align}
     \tau_{\mathrm{moment}}
     =\min\left\{
     t \in [n]: \sum_{i=1}^{t} \E_i[Y_i^2] > S
-    \right\}\wedge (n+1)\,.
+    \right\}\wedge (n+1)\,,
 \end{align}
+for some parameter $S > 0$ to be fixed later.
 Finally, let $\tau = \tau_{\mathrm{cov}} \wedge \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{shell}} \wedge \tau_{\mathrm{moment}}.$
 
 Moreover, in various steps in the proof we use high-probability events to control the behavior of the random quantities.
@@ -1751,41 +1750,41 @@ First we record the standard fact that the distributional Hessian of a convex fu
 \begin{proof}
     This is standard; see \citet[Section~6.3]{evansgariepy2015measure}.
 \end{proof}
-Next lemma gives the Gaussian averaging identity for the Hessian measure, which is the key to the direct Hermite coefficients.
-\begin{lemma}[Gaussian averaging of the Hessian measure]
-    \label{lem:gaussian-hessian-average}
-    Let $r:\R^d\to\R$ be convex and Lipschitz, let
-    $X=\mu+\Sigma^{1/2}Z$, where $Z\sim\N(0,I_d)$ and $\Sigma\succ0$, and
-    let $\gamma_{\mu,\Sigma}$ be the density of $X$.  Then
-    \begin{align}
-        \langle D^2r,\gamma_{\mu,\Sigma}\rangle
-        =
-        \int_{\R^d}
-        \gamma_{\mu,\Sigma}(x)\,D^2r(dx)
-        =
-        \E\left[
-            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
-            \right].
-        \label{eq:gaussian-hessian-average}
-    \end{align}
-\end{lemma}
-\begin{proof}
-    By \cref{lem:convex-hessian-measure}
-    $D^2r$ is a positive-semidefinite matrix-valued Radon measure.
-    Since $r$ is Lipschitz, $D^2r \in \mathcal S'(\R^d)$ is a tempered distribution,
-    and the Gaussian density $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$ is a Schwartz function,
-    which means that $\langle D^2r,\gamma_{\mu,\Sigma}\rangle < \infty$ and
-    \begin{align}
-        \langle D^2r,\gamma_{\mu,\Sigma}\rangle
-        =
-        \langle r,D^2\gamma_{\mu,\Sigma}\rangle
-        =
-        \E\left[
-            r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
-            \right],
-    \end{align}
-    where the first equality is integration by parts applied twice.
-\end{proof}
+% Next lemma gives the Gaussian averaging identity for the Hessian measure, which is the key to the direct Hermite coefficients.
+% \begin{lemma}[Gaussian averaging of the Hessian measure]
+%     \label{lem:gaussian-hessian-average}
+%     Let $r:\R^d\to\R$ be convex and Lipschitz, let
+%     $X=\mu+\Sigma^{1/2}Z$, where $Z\sim\N(0,I_d)$ and $\Sigma\succ0$, and
+%     let $\gamma_{\mu,\Sigma}$ be the density of $X$.  Then
+%     \begin{align}
+%         \langle D^2r,\gamma_{\mu,\Sigma}\rangle
+%         =
+%         \int_{\R^d}
+%         \gamma_{\mu,\Sigma}(x)\,D^2r(dx)
+%         =
+%         \E\left[
+%             r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
+%             \right].
+%         \label{eq:gaussian-hessian-average}
+%     \end{align}
+% \end{lemma}
+% \begin{proof}
+%     By \cref{lem:convex-hessian-measure}
+%     $D^2r$ is a positive-semidefinite matrix-valued Radon measure.
+%     Since $r$ is Lipschitz, $D^2r \in \mathcal S'(\R^d)$ is a tempered distribution,
+%     and the Gaussian density $\gamma_{\mu,\Sigma}\in\mathcal S(\R^d)$ is a Schwartz function,
+%     which means that $\langle D^2r,\gamma_{\mu,\Sigma}\rangle < \infty$ and
+%     \begin{align}
+%         \langle D^2r,\gamma_{\mu,\Sigma}\rangle
+%         =
+%         \langle r,D^2\gamma_{\mu,\Sigma}\rangle
+%         =
+%         \E\left[
+%             r(X)\Sigma^{-1/2}(ZZ^\top-I_d)\Sigma^{-1/2}
+%             \right],
+%     \end{align}
+%     where the first equality is integration by parts applied twice.
+% \end{proof}
 
 \section{Regret switching}
 \label{app:regret-switch}
@@ -2804,19 +2803,27 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
 \begin{lemma}[Weighted Gaussian tail]
     \label{lem:weighted-gaussian-tail}
     Assume the parameter choices of \cref{thm:main} with $\eps=\eps_0\leq1/2$.
-    For every fixed comparator $x_{\circ}$ and every
-    $t\leq\tau_{\mathrm{cov}}$ with $t<\tau_{\mathrm{shell}}$,
+    For a fixed comparator $x_{\circ}$ and $1\leq t\leq n\wedge\tau_{\mathrm{cov}}$,
+    define
+    \begin{align}
+        R_t(x_{\circ})=\normm{x_{\circ}-\mu_t}{\Sigma_t^{-1}},
+        \qquad
+        G_t(x_{\circ})=
+        \ip{\Sigma_t^{-1/2}(x_{\circ}-\mu_t)/R_t(x_{\circ})}{Z_t}
+    \end{align}
+    when $R_t(x_{\circ})>0$, and set $G_t(x_{\circ})=0$ otherwise.
+    For every such round with $t<\tau_{\mathrm{shell}}$,
     \begin{align}
         \E_t\left[Y_t^2(G_t(x_{\circ})^2+1)^2
-        \1_{\overline{\mathcal E}_G^{(t:t)}(x_{\circ})}\right]
+            \1_{\{|G_t(x_{\circ})|>2\sqrt\ell\}}\right]
         \leq\frac{e^{-\ell/4}}{\eps^2}
         \leq e^{-\ell/8}.
     \end{align}
     Consequently, for every interval
-    $1\leq s\leq u\leq\tau_{\mathrm{cov}}$ with $u<\tau_{\mathrm{shell}}$,
+    $1\leq s\leq u\leq n\wedge\tau_{\mathrm{cov}}$ with $u<\tau_{\mathrm{shell}}$,
     \begin{align}
         \sum_{t=s}^{u}\E_t\left[Y_t^2(G_t(x_{\circ})^2+1)^2
-        \1_{\overline{\mathcal E}_G^{(t:t)}(x_{\circ})}\right]
+            \1_{\{|G_t(x_{\circ})|>2\sqrt\ell\}}\right]
         \leq e^{-\ell/16}.
     \end{align}
 \end{lemma}
@@ -2843,19 +2850,19 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \E_t[(G_t(x_{\circ})^2+1)^8]
          & \leq2^7(15!!+1),
          &
-        \Pp_t\left(\overline{\mathcal E}_G^{(t:t)}(x_{\circ})\right)
+        \Pp_t\left(|G_t(x_{\circ})|>2\sqrt\ell\right)
          & \leq2e^{-2\ell}.
     \end{align}
     Since $G_t(x_{\circ})$ is determined by $X_t$, conditioning first on
     $X_t$ and applying Cauchy--Schwarz twice yields
     \begin{align}
          & \E_t\left[Y_t^2(G_t(x_{\circ})^2+1)^2
-        \1_{\overline{\mathcal E}_G^{(t:t)}(x_{\circ})}\right]
+            \1_{\{|G_t(x_{\circ})|>2\sqrt\ell\}}\right]
         \nonumber                                         \\
          & \quad\leq\frac7{\eps^2}
         \E_t[\pi_\eps(X_t)^4]^{1/2}
         \E_t[(G_t(x_{\circ})^2+1)^8]^{1/4}
-        \Pp_t\left(\overline{\mathcal E}_G^{(t:t)}(x_{\circ})\right)^{1/4}
+        \Pp_t\left(|G_t(x_{\circ})|>2\sqrt\ell\right)^{1/4}
         \nonumber                                         \\
          & \qquad\leq\frac{5600\ell^2}{\eps^2}e^{-\ell/2}
         \leq\frac{e^{-\ell/4}}{\eps^2},
@@ -2994,22 +3001,6 @@ negative.
         2\exp\left(-\frac{z^2}{2}\right).
     \end{align}
 \end{lemma}
-
-% Preserve \label across autonum's handling of the repeated align environment.
-\begingroup
-\LetLtxMacro{\restatementlabel}{\label}
-\freedmannonnegative*
-\GlobalLetLtxMacro{\label}{\restatementlabel}
-\endgroup
-
-The next lemma is the two-sided form of
-\citet[Theorem~3.26]{bercu2015concentration}.
-% Preserve \label across autonum's handling of the repeated align environment.
-\begingroup
-\LetLtxMacro{\restatementlabel}{\label}
-\selfnormalisedmartingale*
-\GlobalLetLtxMacro{\label}{\restatementlabel}
-\endgroup
 
 \begin{lemma}[Weighted Gaussian score moments]
     \label{lem:gaussian-score-localisation}
