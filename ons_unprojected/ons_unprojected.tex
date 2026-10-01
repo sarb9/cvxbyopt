@@ -25,8 +25,10 @@
     {\jmlrpreauthor \ignorespaces\@author \jmlrpostauthor}
     {\ifx\@author\@empty\vskip\aftermaketitskip\else\jmlrpreauthor \ignorespaces\@author \jmlrpostauthor\fi}
     {}{\errmessage{Title layout patch failed}}
-\patchcmd{\@begintheorem}{\hskip\labelsep}{\MakeLinkTarget{\@currentcounter}\hskip\labelsep}{}{\errmessage{Theorem hyperlink patch failed}}
-\patchcmd{\@opargbegintheorem}{\hskip\labelsep}{\MakeLinkTarget{\@currentcounter}\hskip\labelsep}{}{\errmessage{Named theorem hyperlink patch failed}}
+\ifdefined\MakeLinkTarget
+    \patchcmd{\@begintheorem}{\hskip\labelsep}{\MakeLinkTarget{\@currentcounter}\hskip\labelsep}{}{\errmessage{Theorem hyperlink patch failed}}
+    \patchcmd{\@opargbegintheorem}{\hskip\labelsep}{\MakeLinkTarget{\@currentcounter}\hskip\labelsep}{}{\errmessage{Named theorem hyperlink patch failed}}
+\fi
 \makeatother
 
 \crefname{equality}{equality}{equalities}
@@ -522,7 +524,8 @@ Let $x_\star \in\argmin_{x\in\K_\eps}f(x)$ be a minimizer of $f$ on the contract
 Also in all that follows, we assume that $\eps=\eps_0\leq1/2$ and that the parameters $\sigma,\lambda,\eta$ are as in \cref{thm:main}.
 If $\eps>1/2$, then ....
 
-\proofstepinline{0}
+\proofstep{}{1}
+\proofstepinline{1}
 We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6]. The following lemma suggests that bounding the extension regret is sufficient to bound the realized regret.
 \begin{lemma}[{Adapted from \citet[Section~10.6, Eq.~(10.14)]{lattimore2026bandit}}]
     \label{lem:actual-to-extension}
@@ -536,7 +539,7 @@ We first bound realized regret in terms of extension regret, as in \citet{lattim
     \end{align}
     Then $\Pp(\mathcal E_{\mathrm{reg}})\geq1-\delta/4$.
 \end{lemma}
-\proofstepinline{1}
+\proofstepinline{2}
 To apply \cref{cor:bracket-ell}, we need to ensure that $\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
 To this end, define the predictable (expected) counterpart of $\Sigma_t^{-1}$ as
 \begin{align}
@@ -618,11 +621,18 @@ The displacement $X_t - \mu_t$ is Gaussian with bounded covariance $\Sigma_t\pre
     \label{eq:gauge-cutoff-event}
 \end{align}
 Let $\mathcal E_{\mathrm{global}} = \mathcal E_Z \cap \mathcal E_{\mathrm{noise}} \cap \mathcal E_{\mathrm{gauge}}$.
-\begin{lemma}
-    The event $\mathcal E_{\mathrm{global}}$ holds with high probability.
+\begin{lemma}[Global sample event]
+    \label{lem:global-event}
+    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
+    \begin{align}
+        \Pp(\mathcal E_{\mathrm{global}}^c)
+        \leq4ne^{-\ell}\leq\frac\delta4.
+        \label{eq:global-event-probability}
+    \end{align}
 \end{lemma}
+The proof is in Appendix~\ref{app:concentration}.
 
-\proofstepinline{2}
+\proofstepinline{3}
 The comparison in
 \eqref{eq:time-indexed-regret-switch} requires $x_\star$ to remain
 in an ellipsoid around $\mu_t$.
@@ -642,8 +652,6 @@ Therefore, by \cref{eq:time-indexed-regret-switch} we obtain
     +\frac{(\tau -1) n^{-7}}{\eps}\,.
     \label{eq:regret-switch-focus}
 \end{align}
-
-\proofstepinline{3.1}
 Bounding the quadratic regret $
     \overline{\operatorname{qReg}}_{1:\tau -1}(x_{\star})
     \triangleq
@@ -651,6 +659,21 @@ Bounding the quadratic regret $
     \left(\bar{q}_t(\mu_t)-\bar{q}_t(x_{\star})\right)
 $ in \eqref{eq:regret-switch-focus} is quite delicate.
 The main difficulty is that the quadratic $\bar{q}_t$ is not observed directly, but only through the sampled stochastic quadratic $q_t$.
+Writing $D_t=\bar{q}_t(x_{\star})-q_t(x_{\star})$, which satisfies $\E_t[D_t]=0$,
+the difference between the observed and expected quadratic regret is
+\begin{align}
+    \left|
+    \overline{\operatorname{qReg}}_{1:\tau-1}(x_{\star})-\operatorname{qReg}_{1:\tau-1}(x_{\star})
+    \right|
+    =
+    \left|
+    \sum_{t=1}^{\tau-1}
+    D_t
+    \right|\,,
+\end{align}
+where $\operatorname{qReg}_{1:\tau-1}(x_{\star})$ is the observed quadratic regret,
+and we used $q_t(\mu_t)=\bar{q}_t(\mu_t) = 0$.
+Next, the following lemma provides an identity for the ONS update that will be useful in analyzing the observed quadratic regret.
 \begin{lemma}
     \label{lem:ons-identity}
     For $t < \tau$, we have the following identity:
@@ -683,11 +706,10 @@ The main difficulty is that the quadratic $\bar{q}_t$ is not observed directly, 
         +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2.
     \end{align}
 \end{proof}
-The ONS identity from \cref{lem:ons-identity} gives us
-the following telescoping identity for the stochastic quadratic regret
+Now, the ONS identity from \cref{lem:ons-identity} gives us the following telescoping identity for the observed quadratic regret
 \begin{align}
     \operatorname{qReg}_{1:\tau -1}(x_{\star})
-    \triangleq
+    =
     \sum_{t=1}^{\tau-1}
     q_t(\mu_t)-q_t(x_\star)
     =
@@ -695,40 +717,62 @@ the following telescoping identity for the stochastic quadratic regret
     +\frac{\eta}{2}\sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_{t+1}}^2.
     \label{eq:ons-telescope}
 \end{align}
-To control \eqref{eq:regret-switch-focus} through this identity,
-we need to bound the difference between the sampled quadratics $q_t$
-and the population quadratics $\bar{q}_t$.
-Writing $D_t=\bar{q}_t(x_{\star})-q_t(x_{\star})$, which satisfies $\E_t[D_t]=0$,
-the resulting error is
-\begin{align}
-    \left|
-    \overline{\operatorname{qReg}}_{1:\tau-1}(x_{\star})-\operatorname{qReg}_{1:\tau-1}(x_{\star})
-    \right|
-    =
-    \left|
-    \sum_{t=1}^{\tau-1}
-    D_t
-    \right|\,,
-\end{align}
-where we used $q_t(\mu_t)=\bar{q}_t(\mu_t) = 0$.
-Putting this back into \eqref{eq:ons-telescope} gives
-\begin{align}
-    \sum_{t=1}^{\tau-1}
-    \bar{q}_t(\mu_t)-\bar{q}_t(x_\star)
-     & \leq
-    \frac{R_1^2}{2\eta }
-    +\frac{\eta}{2}\sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_{t+1}}^2
-    +\left|
-    \sum_{t=1}^{\tau-1}
-    D_t
-    \right|\,,
-\end{align}
 
-\proofstepinline{3.2}
+Now, starting from the definition of the extension regret and the stopping time $\tau$, we have
+\begin{align}
+    \operatorname{eReg}_{1:\tau -1}(x_{\star})
+     &
+    \explan{\leq}{a}
+    \overline{\operatorname{qReg}}_{1:\tau -1}(x_{\star})
+    +
+    2\sum_{t=1}^{\tau -1}
+    \tr(\bar{H}_t\Sigma_t)
+    +\frac{(\tau -1) n^{-7}}{\eps}
+    \\
+     &
+    \explan{\leq}{b}
+    \operatorname{qReg}_{1:\tau -1}(x_{\star})
+    +
+    \left|
+    \sum_{t=1}^{\tau-1} D_t
+    \right|
+    +
+    2\sum_{t=1}^{\tau -1}
+    \tr(\bar{H}_t\Sigma_t)
+    +1
+    \\
+     &
+    \explan{\leq}{c}
+    \frac{R_1^2 - R_\tau^2}{2\eta}
+    +
+    \frac{\eta}{2}
+    \sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_{t+1}}^2
+    +
+    \left|
+    \sum_{t=1}^{\tau-1} D_t
+    \right|
+    +
+    2\sum_{t=1}^{\tau -1}
+    \tr(\bar{H}_t\Sigma_t)
+    +1\,,
+    \label{eq:stopped-regret-after-trace}
+\end{align}
+where \reason{a} follows from \cref{eq:regret-switch-focus},
+\reason{b} follows from the definition of $D_t$ in Step~3.1 and
+$(\tau-1)n^{-7}/\eps\leq1$, and \reason{c} follows from
+\cref{eq:ons-telescope}.
+
+The derivation of\cref{eq:stopped-regret-after-trace} is the real skeleton of the regret analysis.
+The rest of the proof consists of two main parts: first controlling the terms on the right-hand side of \eqref{eq:stopped-regret-after-trace} in a high probability event, and second showing that $\tau = n+1$ with high probability
+so the bound in \eqref{eq:stopped-regret-after-trace} effectively gives a high probability control over the actual extension regret up to time $n$.
+
+
+\proofstep{}{2}
+In the steps that follow, we will assume that the high probability event $\mathcal E_{\mathrm{global}}$ holds.
+\proofstepinline{1}
 First, we deal with the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$.
 We will work with the slightly time-perturbed quantity $\normm{g_t}{\Sigma_{t}}^2$ in place of $\normm{g_t}{\Sigma_{t+1}}^2$ for now.
-By the definition of $g_t$ in \eqref{eq:sampled-hermite-coefficients},
-on the event $\mathcal E_{\mathrm{global}}$, we have
+By the definition of $g_t$ in \eqref{eq:sampled-hermite-coefficients}, we have
 \begin{align}
     \normm{g_t}{\Sigma_t}^2
     =Y_t^2\norm{Z_t}^2
@@ -808,11 +852,15 @@ Now, let
     \label{eq:interval-feedback-bound}
 \end{align}
 \begin{lemma}
-    The event $\mathcal E_\mathrm{global} \cap \mathcal E_Y^c$ holds with probability at most $\cdots$.
+    \label{lem:feedback-square-sum}
+    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
+    \begin{align}
+        \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c\right)
+        \leq2e^{-\ell/64}\leq\frac\delta8.
+        \label{eq:feedback-square-sum-probability}
+    \end{align}
 \end{lemma}
-\begin{proof}
-    Apply \cref{lem:freedman-nonnegative}, with  $z=\ell/64$ and $b=16\ell^3/\eps^2$...
-\end{proof}
+The proof is in Appendix~\ref{app:concentration}.
 Therefore, on the event $\mathcal E_\mathrm{global} \cap \mathcal E_Y$, we get
 \begin{align}
     \frac{\eta}{2}\sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_t}^2
@@ -861,7 +909,7 @@ Thus, \eqref{eq:interval-energy-bound} gives
     \label{eq:interval-energy-bound-final}
 \end{align}
 
-\proofstepinline{3.3}
+\proofstepinline{2}
 Going back to the quadratic regret, we now need to control the martingale difference sum $\sum_{t=1}^{\tau}D_t$, which is a martingale difference sequence as $\E_t[D_t]=0$.
 We use the following self-normalized martingale inequality \citet[Theorem~3.26]{bercu2015concentration} to control this sum.
 \begin{restatable}{lemma}{selfnormalisedmartingale}
@@ -959,7 +1007,7 @@ Now, on the event $\mathcal E_G$, we can bound the realized part of the RHS of \
     \,,
     \label{eq:quadratic-bound}
 \end{align}
-and similarly for the conditional part of the RHS of \eqref{eq:martingale-variance}:
+and the conditional part as
 \begin{align}
     2\sum_{t=1}^{\tau-1}
     \E_t[q_t(x_\star)^2]
@@ -977,14 +1025,24 @@ and similarly for the conditional part of the RHS of \eqref{eq:martingale-varian
     \,,
 \end{align}
 where the last inequality uses \cref{lem:weighted-gaussian-tail} to bound the summed weighted Gaussian tails.
-Now, we can reuse our bounds from the previous step.
-Then, on \eqref{eq:interval-feedback-bound} we also have $\sum_{t=1}^{\tau-1}Y_t^2\leq2S+4d\ell^5/\eps^2$.
 Thus, absorbing the tail term into the coefficient gives
 \begin{align}
     \sum_{t=1}^{\tau-1}\left(D_t^2+\E_t[D_t^2]\right)
-     & \leq300F\ell^2\left(3S+\frac{4d\ell^5}{\eps^2}\right).
+     & \leq
+    200 F \ell^2
+    \left(
+    \sum_{t=1}^{\tau-1}
+    Y_t^2
+    +
+    \E_t[Y_t^2]
+    \right)
+    + 8Fe^{-\ell/16}
+    \\
+     &
+    \leq300F\ell^2\left(3S+\frac{4d\ell^5}{\eps^2}\right)\,,
 \end{align}
-Define the event
+where we used that on \eqref{eq:interval-feedback-bound} we have $\sum_{t=1}^{\tau-1}Y_t^2\leq2S+4d\ell^5/\eps^2$.
+Now, define the event
 \begin{align}
     \mathcal E_{q}
     =\left\{
@@ -2981,6 +3039,104 @@ Stopped increments are extended by zero after round $n\wedge\tau$.
 Since $\{t\leq\tau\}\in\F_{t-1}$, retaining round $\tau$ preserves
 predictability; any additional activity cutoffs used below are also checked
 before sampling the round.
+
+\begin{proof}[Proof of \cref{lem:global-event}]
+    Fix $1\leq t\leq n$ and work conditionally on $\F_{t-1}$ on
+    $\{t\leq\tau\}$. Since $\tau\leq\tau_{\mathrm{cov}}$ and
+    the covariance stopping rule tests the update at $t+1$, we have
+    \begin{align}
+        0\prec\Sigma_t\preceq2\bar\Sigma_t
+        \preceq2\sigma^2I_d\preceq I_d.
+    \end{align}
+    Here $\bar H_i\succeq0$ makes $\bar\Sigma_t\preceq\bar\Sigma_1$,
+    and $2\sigma^2=(dM^2)^{-1}\leq1$.
+
+    First, $\norm{Z_t}^2$ is conditionally $\chi_d^2$.
+    By \cref{lem:chi-square-upper-tail} with $x=\ell$, and
+    $d+2\sqrt{d\ell}+2\ell\leq2d+3\ell\leq4d\ell$ since $\ell\geq640$,
+    \begin{align}
+        \Pp_t\left(\norm{Z_t}^2>4d\ell\right)\leq e^{-\ell}.
+    \end{align}
+    Second, conditional Markov's inequality and \eqref{eq:noise} give
+    \begin{align}
+        \Pp_t\left(|\xi_t|>\sqrt\ell\right)
+        \leq e^{-\ell}\E_t[\exp(\xi_t^2)]\leq2e^{-\ell}.
+    \end{align}
+    Third, write $W_t=X_t-\mu_t$. By
+    \cref{lem:gaussian-gauge-fourth-moment},
+    $\E_t[\pi(W_t)]\leq\E_t[\pi(W_t)^4]^{1/4}\leq3$.
+    The map $z\mapsto\pi(\Sigma_t^{1/2}z)$ is $1$-Lipschitz,
+    because $\pi$ is $1$-Lipschitz and $\Sigma_t\preceq I_d$.
+    Gaussian concentration therefore gives
+    \begin{align}
+        \Pp_t\left(\pi(W_t)>3+2\sqrt\ell\right)
+        \leq
+        \Pp_t\left(\pi(W_t)>\E_t[\pi(W_t)]+2\sqrt\ell\right)
+        \leq e^{-2\ell}.
+    \end{align}
+
+    Since $\{t\leq\tau\}\in\F_{t-1}$, multiplying each conditional
+    bound by $\1_{\{t\leq\tau\}}$ and taking expectations bounds
+    the probability that the corresponding cutoff fails at a retained
+    round. A union bound over the three cutoffs and $1\leq t\leq n$ yields
+    \begin{align}
+        \Pp(\mathcal E_{\mathrm{global}}^c)
+        \leq n\left(3e^{-\ell}+e^{-2\ell}\right)
+        \leq4ne^{-\ell}
+        =4n\left(\frac{\delta}{128nd}\right)^{128}
+        \leq\frac{\delta}{32d}\leq\frac\delta4.
+    \end{align}
+\end{proof}
+
+\begin{proof}[Proof of \cref{lem:feedback-square-sum}]
+    For $1\leq t\leq n$, let
+    \begin{align}
+        U_t=\begin{cases}
+                Y_t & \text{if }t<\tau, \\
+                0   & \text{otherwise},
+            \end{cases}
+        \qquad
+        I_t=\1\left\{t\leq\tau,\ \sum_{i=1}^t\E_i[Y_i^2]\leq S\right\},
+    \end{align}
+    where $I_t=0$ after $\tau$. The sequence $(U_t)_{t=1}^n$ is
+    adapted. Since $\{t\leq\tau\}\in\F_{t-1}$ and the conditional
+    moment budget through round $t$ is $\F_{t-1}$-measurable,
+    $I_t$ is predictable. Also $\tau\leq\tau_{\mathrm{moment}}$ gives
+    $\1_{\{t<\tau\}}\leq I_t$, and hence
+    \begin{align}
+        \sum_{t=1}^n\E_t[U_t^2]
+        \leq\sum_{t=1}^n I_t\E_t[Y_t^2]\leq S.
+    \end{align}
+    The last inequality follows because the cumulative conditional
+    second moments are nondecreasing and $I_t$ retains only rounds
+    for which their sum through that round is at most $S$.
+    Terms with $I_t=0$ are interpreted as zero.
+
+    On $\mathcal E_{\mathrm{global}}$,
+    \eqref{eq:energy-sample-gauge-bound} gives
+    $\max_{1\leq t\leq n}U_t^2\leq b$ with
+    $b=16\ell^3/\eps^2$. Take $z=\ell/64$. Since
+    \begin{align}
+        4bz=\frac{\ell^4}{\eps^2}
+        \leq\frac{4d\ell^5}{\eps^2},
+    \end{align}
+    the event $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c$
+    is contained in
+    \begin{align}
+        \left\{
+        \sum_{t=1}^nU_t^2\geq2S+4bz,\quad
+        \sum_{t=1}^n\E_t[U_t^2]\leq S,\quad
+        \max_{1\leq t\leq n}U_t^2\leq b
+        \right\}.
+    \end{align}
+    Applying \cref{lem:freedman-nonnegative} with $T=n$ therefore yields
+    \begin{align}
+        \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c\right)
+        \leq2e^{-\ell/64}
+        =2\left(\frac{\delta}{128nd}\right)^2
+        \leq\frac\delta8.
+    \end{align}
+\end{proof}
 
 The following two-sided form of Freedman's inequality follows from
 \citet[Theorem~3.10]{bercu2015concentration} applied to a martingale and its
