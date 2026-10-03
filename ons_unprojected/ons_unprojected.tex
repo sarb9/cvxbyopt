@@ -520,10 +520,11 @@ final-distance term leaves exactly the quadratic-regret bound we need:
 \section{Stability and regret}
 \label{sec:stability}
 \label{sec:stochastic-control}
-Let $x_\star \in\argmin_{x\in\K_\eps}f(x)$ be a minimizer of $f$ on the contracted set $\K_\eps$.
-Also in all that follows, we assume that $\eps=\eps_0\leq1/2$ and that the parameters $\sigma,\lambda,\eta$ are as in \cref{thm:main}.
-If $\eps>1/2$, then ....
 
+Let $x_\star \in\argmin_{x\in\K_\eps}f(x)$ be a minimizer of $f$ on the contracted set $\K_\eps$.
+First, if $\eps>1/2$, then
+...?
+So in all that follows, we assume that $\eps=\eps_0\leq1/2$ and that the parameters $\sigma,\lambda,\eta$ are as in \cref{thm:main}.
 \proofstep{}{1}
 \proofstepinline{1}
 We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6]. The following lemma suggests that bounding the extension regret is sufficient to bound the realized regret.
@@ -1032,9 +1033,9 @@ Thus, absorbing the tail term into the coefficient gives
     200 F \ell^2
     \left(
     \sum_{t=1}^{\tau-1}
-    Y_t^2
-    +
-    \E_t[Y_t^2]
+    \left(Y_t^2
+        +
+        \E_t[Y_t^2]\right)
     \right)
     + 8Fe^{-\ell/16}
     \\
@@ -1051,11 +1052,18 @@ Now, define the event
     \right\},
     \label{eq:self-normalized-quadratic-event}
 \end{align}
-which holds by high probability due to \cref{lem:self-normalised-martingale}.
+The following lemma controls its failure probability.
 \begin{lemma}
-    The event $\mathcal E_{\mathrm{global}} \cap \mathcal E_G \cap \mathcal E_{q}^c$ holds with probability at most ...
+    \label{lem:quadratic-concentration}
+    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
+    \begin{align}
+        \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_q^c\right)
+        \leq4e^{-\ell/64}\leq\frac\delta8.
+        \label{eq:quadratic-concentration-probability}
+    \end{align}
 \end{lemma}
-\proofstepinline{4}
+The proof is in Appendix~\ref{app:concentration}.
+\proofstepinline{3}
 Starting from the definition of the extension regret and the stopping time $\tau$, we have
 \begin{align}
     \operatorname{eReg}_{1:\tau -1}(x_{\star})
@@ -1170,7 +1178,7 @@ $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q$.
 On that event, \eqref{eq:global-stopped-regret} bounds the full-horizon
 extension regret.
 
-\proofstep{}{Showing $\tau=n+1$}
+\proofstep{}{3}
 We show that $\tau=n+1$ through a proof by contradiction argument:
 \begin{align}
     \text{suppose for contradiction that } \tau \leq n\,.
@@ -3136,6 +3144,84 @@ before sampling the round.
         =2\left(\frac{\delta}{128nd}\right)^2
         \leq\frac\delta8.
     \end{align}
+\end{proof}
+
+\begin{proof}[Proof of \cref{lem:quadratic-concentration}]
+    We first sharpen the second-moment bound on
+    $\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_Y$.
+    For $t<\tau$, the focus condition gives $R_t^2\leq F$ and
+    $\lambda R_t\leq1/(128\sqrt\ell)$. Whenever $|G_t|\leq2\sqrt\ell$,
+    we have $|G_t^2-1|\leq4\ell$, and hence
+    \begin{align}
+        \left|R_tG_t+\frac\lambda2R_t^2(G_t^2-1)\right|
+        \leq R_t\left(2\sqrt\ell+2\lambda R_t\ell\right)
+        \leq\left(2+\frac1{64}\right)R_t\sqrt\ell
+        \leq\sqrt{5F\ell}.
+    \end{align}
+    Thus $q_t(x_\star)^2\leq5F\ell Y_t^2$ on this cutoff.
+    For the conditional second moment, use this sharper bound on
+    $\{|G_t|\leq2\sqrt\ell\}$ and retain
+    \eqref{eq:quadratic-estimate-decomposition} on its complement:
+    \begin{align}
+        \E_t[q_t(x_\star)^2]
+        \leq5F\ell\E_t[Y_t^2]
+        +4F\E_t\left[Y_t^2(G_t^2+1)^2
+            \1_{\{|G_t|>2\sqrt\ell\}}\right].
+    \end{align}
+    Combining \cref{eq:martingale-variance,lem:weighted-gaussian-tail},
+    the definition of $\mathcal E_Y$, and the moment stopping rule gives
+    \begin{align}
+        \sum_{t=1}^{\tau-1}\left(D_t^2+\E_t[D_t^2]\right)
+         & \leq10F\ell\sum_{t=1}^{\tau-1}
+        \left(Y_t^2+\E_t[Y_t^2]\right)+8Fe^{-\ell/16}         \\
+         & \leq10F\ell\left(3S+\frac{4d\ell^5}{\eps^2}\right)
+        +8Fe^{-\ell/16}                                       \\
+         & \leq48F\ell\left(S+\frac{d\ell^5}{\eps^2}\right).
+        \label{eq:quadratic-sharp-variance}
+    \end{align}
+    The last inequality uses $d\ell^5/\eps^2\geq1$ and $\ell\geq640$.
+
+    To apply the martingale inequality at the random endpoint $\tau-1$,
+    define, for $1\leq t\leq n$, the predictable indicators
+    \begin{align}
+        I_t=\1\left\{t\leq\tau,\ R_t^2\leq F,\ v(\mu_t)\leq\ell,\
+        \sum_{i=1}^t\E_i[Y_i^2]\leq S\right\},
+        \qquad U_t=I_tD_t,
+    \end{align}
+    interpreting both quantities as zero after $\tau$.
+    All the cutoffs in $I_t$ are $\F_{t-1}$-measurable, so
+    $(U_t)_{t=1}^n$ is a martingale-difference sequence and
+    $\E_t[U_t^2]=I_t\E_t[D_t^2]$.
+    Moreover, $I_t=1$ for every $t<\tau$.
+    Apply \cref{lem:self-normalised-martingale} to $(U_t)_{t=1}^m$
+    for each deterministic $1\leq m\leq n$, with
+    \begin{align}
+        z=\sqrt{F\ell^3\left(S+\frac{d\ell^5}{\eps^2}\right)},
+        \qquad
+        v=48F\ell\left(S+\frac{d\ell^5}{\eps^2}\right).
+    \end{align}
+    A union bound shows that the probability of any prefix satisfying
+    $|\sum_{t=1}^mU_t|>z$ and
+    $\sum_{t=1}^m(U_t^2+\E_t[U_t^2])\leq v$ is at most
+    $2n\exp(-\ell^2/96)$.
+    If $\tau=1$, then $\mathcal E_q$ holds trivially. Otherwise,
+    on $\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_Y
+        \cap\mathcal E_q^c$, take $m=\tau-1$.
+    The retained sums coincide with the original sums through $\tau-1$,
+    and \eqref{eq:quadratic-sharp-variance} bounds their combined
+    second moments by $v$. Therefore this event has probability at most
+    $2n\exp(-\ell^2/96)$.
+
+    Finally, \cref{lem:feedback-square-sum} bounds the contribution
+    from $\mathcal E_Y^c$, giving
+    \begin{align}
+        \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_q^c\right)
+         & \leq2e^{-\ell/64}+2ne^{-\ell^2/96} \\
+         & \leq4e^{-\ell/64}\leq\frac\delta8.
+    \end{align}
+    Here $\log n\leq\ell/128$ and $\ell\geq640$ imply
+    $ne^{-\ell^2/96}\leq e^{-\ell/64}$, while
+    $4e^{-\ell/64}=4(\delta/(128nd))^2\leq\delta/8$.
 \end{proof}
 
 The following two-sided form of Freedman's inequality follows from
