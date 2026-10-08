@@ -31,24 +31,33 @@
 \fi
 \makeatother
 
-\crefname{equality}{equality}{equalities}
-\Crefname{equality}{Equality}{Equalities}
-\crefname{inequality}{inequality}{inequalities}
-\Crefname{inequality}{Inequality}{Inequalities}
+\crefname{equation}{Eq.}{Eqs.}
+\Crefname{equation}{Eq.}{Eqs.}
+\crefname{equality}{Eq.}{Eqs.}
+\Crefname{equality}{Eq.}{Eqs.}
+\crefname{inequality}{Ineq.}{Ineqs.}
+\Crefname{inequality}{Ineq.}{Ineqs.}
+\creflabelformat{equality}{\textup{(#2#1#3)}}
+\creflabelformat{inequality}{\textup{(#2#1#3)}}
+\crefrangelabelformat{equality}{\textup{(#3#1#4)--(#5#2#6)}}
+\crefrangelabelformat{inequality}{\textup{(#3#1#4)--(#5#2#6)}}
 \newcommand{\eqlabel}[1]{\label[equality]{#1}}
 \newcommand{\ineqlabel}[1]{\label[inequality]{#1}}
-\newcommand{\proofstep}[2]{%
-    \par\medskip
+\newcommand{\proofpart}[2]{%
+    \par\addvspace{1.2\baselineskip}
     \noindent
-    \textcolor{blue!55!black}{\rule{2pt}{1.2em}}%
+    \textcolor{blue!55!black}{\rule[-0.2ex]{2pt}{1.25em}}%
     \hspace{0.6em}%
-    {\sffamily\bfseries\color{blue!55!black}Step #1}%
-    \quad
-    {\sffamily #2}%
-    \par\smallskip
+    {\sffamily\bfseries\color{blue!55!black}Part #1}%
+    \hspace{0.8em}%
+    {\sffamily\bfseries #2}%
+    \par\nobreak\smallskip
+    \noindent\ignorespaces
 }
 \newcommand{\proofstepinline}[1]{%
-    {\normalfont\normalsize\bfseries\color{blue!55!black}Step #1.}\enspace
+    \par\addvspace{0.6\baselineskip}
+    \noindent
+    {\normalfont\normalsize\bfseries\color{blue!55!black}Step #1.}\enspace\ignorespaces
 }
 \newcommand{\reason}[1]{\texttt{(#1)}}
 \newcommand{\explan}[2]{\stackrel{\reason{#2}}{#1}}
@@ -162,7 +171,7 @@ The quantity of interest is the realized (\textit{pseudo-})regret
 \begin{align}
     \operatorname{Reg}_n
     =\sum_{t=1}^n\left(f(A_t)-\inf_{x\in\K}f(x)\right).
-    \label{eq:regret}
+    \eqlabel{eq:regret}
 \end{align}
 
 Let $\pi(x)=\inf\{r>0:x\in r\K\}$ be the Minkowski functional of $\K$ and let
@@ -170,7 +179,7 @@ $U$ be uniform on the Euclidean unit sphere.
 The only geometric quantity in the result is
 \begin{align}
     M=\max\left\{\frac1{\sqrt d},\E[\pi(U)]\right\}.
-    \label{eq:M}
+    \eqlabel{eq:M}
 \end{align}
 The rounding  $\mathbb{B}_1\subseteq\K$ implies that $\pi$ is $1$-Lipschitz.
 Write $\gamma_{\mu,\Sigma}$ for the density of
@@ -190,7 +199,7 @@ Fix $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
          \pi(x)/(1-\eps) & \text{otherwise}\,,
      \end{cases}
     \quad\text{and}\quad v(x)=\pi_\eps(x)-1\,.
-    \label{eq:extension-notation}
+    \eqlabel{eq:extension-notation}
 \end{align}
 We use the queryable extension from
 \citet[Eq.~(10.6)]{lattimore2026bandit} which is defined for all $x\in\R^d$ by
@@ -252,7 +261,7 @@ The resulting feedback is $f(A_t) + \xi_t$ which is converted into the feedback 
     \pi_\eps(X_t)\bigl(f(A_t)+\xi_t\bigr)
     +\frac2\eps\bigl(\pi_\eps(X_t)-1\bigr)
     =e(X_t)+\pi_\eps(X_t)\xi_t\,,
-    \label{eq:Y}
+    \eqlabel{eq:Y}
 \end{align}
 so $\E_t[Y_t\mid X_t]=e(X_t)$.
 Let $\lambda \in (0,1)$ be a damping parameter and define the quadratic surrogate
@@ -284,7 +293,7 @@ where for $Z_t\triangleq\Sigma_t^{-1/2}(X_t-\mu_t)$, we define
     H_t & \triangleq
     \frac{Y_t \nabla^2 \gamma_{\mu_t,\Sigma_t}(X_t)}{\gamma_{\mu_t,\Sigma_t}(X_t)}
     =Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}\,,
-    \label{eq:sampled-hermite-coefficients}
+    \eqlabel{eq:sampled-hermite-coefficients}
 \end{align}
 then from distributional integration by parts we get
 \begin{align}
@@ -295,7 +304,7 @@ then from distributional integration by parts we get
     \bar{H}_t & = \langle D^2e, \gamma_{\mu_t,\Sigma_t}\rangle
     = \langle e, \nabla^2 \gamma_{\mu_t,\Sigma_t}\rangle
     = \E_t[H_t]\,,
-    \label{eq:sampled-hermite-unbiasedness}
+    \eqlabel{eq:sampled-hermite-unbiasedness}
 \end{align}
 and more importantly, $\E_t[q_t]=\bar{q}_t$.
 
@@ -310,7 +319,7 @@ then completing the square gives the equivalent forms
     +\eta q_t(\mu)
     \right\}
     =\mu_t-\eta\Sigma_{t+1}g_t.
-    \label{eq:projected-ons-update}
+    \eqlabel{eq:projected-ons-update}
 \end{align}
 \begingroup
 \RestyleAlgo{ruled}
@@ -355,15 +364,15 @@ then completing the square gives the equivalent forms
         \eta    & =\frac{8dM}{\sqrt n},
                 &
         \eps_0  & =\frac{100d^2M\ell^8}{\sqrt n}.
-        \label{eq:parameters-one}
-        \label{eq:parameters-two}
+        \eqlabel{eq:parameters-one}
+        \eqlabel{eq:parameters-two}
     \end{align}
     If $\eps_0\leq1/2$, run \cref{alg:direct-hermite} with $\eps=\eps_0$.
     Otherwise play any fixed point in $\K$.  In the setting above,
     \begin{align}
         \operatorname{Reg}_n
         \leq 200d^2M\ell^8\sqrt n
-        \label{eq:main-regret}
+        \ineqlabel{eq:main-regret}
     \end{align}
     with probability at least $1-\delta$.
 \end{theorem}
@@ -385,7 +394,7 @@ then completing the square gives the equivalent forms
     In L\"owner position,
     $\E[\pi(U)]=O(\sqrt{\log(ed)/d})$; see
     \citet[Table~10.1(a)]{lattimore2026bandit}.  Substitute this bound in
-    \eqref{eq:main-regret}.
+    \cref{eq:main-regret}.
 \end{proof}
 
 \section{Regret switching}
@@ -396,7 +405,7 @@ For a convex Lipschitz function $e$, and a differentiable point $z$, the Bregman
 \begin{align}
     D_e(x\,\|\,z)
     =e(x)-e(z)-\ip{\nabla e(z)}{x-z}.
-    \label{eq:bregman}
+    \eqlabel{eq:bregman}
 \end{align}
 
 \begin{corollary}[Regret switching]
@@ -410,7 +419,7 @@ For a convex Lipschitz function $e$, and a differentiable point $z$, the Bregman
         +\tr(\bar{H}\Sigma)
         +\frac\lambda2\normm{x-\mu}{\bar{H}}^2
         -\E[D_e(x\,\|\,X)].
-        \label{eq:q-regret-switch}
+        \eqlabel{eq:q-regret-switch}
     \end{align}
 \end{corollary}
 This identity follows from \cref{lem:regret-switch} in Appendix~\ref{app:regret-switch} and the definition of $\bar{q}$.
@@ -431,7 +440,7 @@ The general result and this specialization are proved in Appendix~\ref{app:brack
     \begin{align}
         \frac12\normm{\mu-x}{\Sigma^{-1}}^2
         \leq\frac{1}{128^2\lambda^2\ell},
-        \label{eq:bracket-ell-focus}
+        \ineqlabel{eq:bracket-ell-focus}
     \end{align}
     it holds that
     \begin{align}
@@ -439,7 +448,7 @@ The general result and this specialization are proved in Appendix~\ref{app:brack
         -\E[D_e(x\,\|\,X)]
         \leq\frac1{16}\tr(\bar{H}\Sigma)
         +\frac{n^{-8}}{\eps}.
-        \label{eq:bracket-ell}
+        \ineqlabel{eq:bracket-ell}
     \end{align}
 \end{corollary}
 
@@ -453,7 +462,7 @@ $\frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2\leq\frac{1}{128^2\lambda^2\ell}$, then
     \leq \bar{q}_t(\mu_t)-\bar{q}_t(x)
     +\frac{17}{16}\tr(\bar{H}_t\Sigma_t)
     +\frac{n^{-8}}{\eps}.
-    \label{eq:time-indexed-regret-switch}
+    \ineqlabel{eq:time-indexed-regret-switch}
 \end{align}
 
 \section{Population-level Analysis}
@@ -468,7 +477,7 @@ $f$ on $\K_\eps$, and imagine that, in every round:
     $\normm{\mu_t-x_\star}{\bar{\Sigma}_t^{-1}}<\sqrt{2B}$.
 \end{center}
 
-With these two conveniences, \eqref{eq:time-indexed-regret-switch}
+With these two conveniences, \cref{eq:time-indexed-regret-switch}
 already gets us started:
 \begin{align}
     \operatorname{eReg}_n \triangleq \sum_{t=1}^n\bigl(\E_t[e(X_t)]-e(x_\star)\bigr)
@@ -506,7 +515,7 @@ recognizing $\bar{q}_t$ gives
      & =\frac12\normm{\mu_t-x_\star}{\bar{\Sigma}_t^{-1}}^2
     +\eta\bigl(\bar{q}_t(x_\star)-\bar{q}_t(\mu_t)\bigr)
     +\frac{\eta^2}{2}\normm{\bar{g}_t}{\bar{\Sigma}_{t+1}}^2.
-    \label{eq:ons-regret-identity}
+    \eqlabel{eq:ons-regret-identity}
 \end{align}
 Rearrange to isolate $\bar{q}_t(\mu_t)-\bar{q}_t(x_\star)$ and sum over $t$.
 The successive squared distances telescope; dropping the negative
@@ -522,10 +531,13 @@ final-distance term leaves exactly the quadratic-regret bound we need:
 \label{sec:stochastic-control}
 
 Let $x_\star \in\argmin_{x\in\K_\eps}f(x)$ be a minimizer of $f$ on the contracted set $\K_\eps$.
-First, if $\eps>1/2$, then
-...?
+First, if $\eps_0>1/2$, then, since $f$ takes values in $[0,1]$,
+\begin{align}
+    \operatorname{Reg}_n\leq n<2n\eps_0=200d^2M\ell^8\sqrt n,
+\end{align}
+so \cref{thm:main} holds deterministically when we play any fixed point in $\K$.
 So in all that follows, we assume that $\eps=\eps_0\leq1/2$ and that the parameters $\sigma,\lambda,\eta$ are as in \cref{thm:main}.
-\proofstep{}{1}
+\proofpart{I}{Reduction to stopped regret}
 \proofstepinline{1}
 We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6]. The following lemma suggests that bounding the extension regret is sufficient to bound the realized regret.
 \begin{lemma}[{Adapted from \citet[Section~10.6, Eq.~(10.14)]{lattimore2026bandit}}]
@@ -536,7 +548,7 @@ We first bound realized regret in terms of extension regret, as in \citet{lattim
         \leq
         \operatorname{eReg}_n
         +n\eps+\sqrt{2n\ell}.
-        \label{eq:actual-to-extension}
+        \ineqlabel{eq:actual-to-extension}
     \end{align}
     Then $\Pp(\mathcal E_{\mathrm{reg}})\geq1-\delta/4$.
 \end{lemma}
@@ -548,7 +560,7 @@ To this end, define the predictable (expected) counterpart of $\Sigma_t^{-1}$ as
     \qquad
     \bar{\Sigma}_{t+1}^{-1}
     =\bar{\Sigma}_t^{-1}+\lambda\eta \bar{H}_t.
-    \label{eq:predictable-covariance}
+    \eqlabel{eq:predictable-covariance}
 \end{align}
 Then, define the stopping time $\tau_{\mathrm{cov}}$ when the empirical covariance $\Sigma_t$ deviates from its predictable counterpart $\bar{\Sigma}_t$ by more than a constant factor as
 \begin{align}
@@ -563,7 +575,7 @@ Then, define the stopping time $\tau_{\mathrm{cov}}$ when the empirical covarian
     \frac32 \bar{\Sigma}_{t+1}^{-1}
     \text{ fails}
     \right\}\wedge (n + 1).
-    \label{eq:covariance-stopping-time}
+    \eqlabel{eq:covariance-stopping-time}
 \end{align}
 Both $\Sigma_{t+1}^{-1} = \Sigma_t^{-1} + \lambda\eta H_t$ and $\bar{\Sigma}_{t+1}^{-1}$ are $\F_t$-measurable, so $\tau_{\mathrm{cov}}$ is an $\F_t$-adapted stopping time.
 For $t \leq \tau_{\mathrm{cov}}$, the empirical covariance $\Sigma_t$ remains positive definite, which let us define the focus radius around $\mu_t$ as
@@ -584,7 +596,7 @@ Also define the two additional stopping times
 \begin{align}
     \tau_{\mathrm{shell}}
     =\min\{t\in[n]:v(\mu_{t})>\ell\}\wedge (n+1)\,,
-    \label{eq:energy-shell-stopping-time}
+    \eqlabel{eq:energy-shell-stopping-time}
 \end{align}
 and
 \begin{align}
@@ -604,38 +616,38 @@ First, we define the high-probability event controlling the norm of the Gaussian
     =\left\{\norm{Z_t}^2\leq4d\ell\,\,
     \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
     % \text{ for all }1\leq t\leq n\right\}.
-    \label{eq:gaussian-norm-event}
+    \eqlabel{eq:gaussian-norm-event}
 \end{align}
-For the noise, the sub-Gaussian assumption in \eqref{eq:noise} gives the high-probability event
+For the noise, the sub-Gaussian assumption in \cref{eq:noise} gives the high-probability event
 \begin{align}
     \mathcal E_{\mathrm{noise}}
     =\left\{|\xi_t|\leq\sqrt\ell\,\,
     \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
     % \text{ for all }1\leq t\leq n\right\}.
-    \label{eq:noise-cutoff-event}
+    \eqlabel{eq:noise-cutoff-event}
 \end{align}
 The displacement $X_t - \mu_t$ is Gaussian with bounded covariance $\Sigma_t\preceq 2\bar{\Sigma}_t \preceq 2 \bar{\Sigma}_1 =2\sigma^2I_d$, and $\pi$ is 1-Lipschitz, so we can control $\pi(X_t - \mu_t)$ with high probability by defining the event
 \begin{align}
     \mathcal E_{\mathrm{gauge}}
     =\left\{\pi(X_t - \mu_t)\leq3+2\sqrt\ell\,\,
     \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
-    \label{eq:gauge-cutoff-event}
+    \eqlabel{eq:gauge-cutoff-event}
 \end{align}
 Let $\mathcal E_{\mathrm{global}} = \mathcal E_Z \cap \mathcal E_{\mathrm{noise}} \cap \mathcal E_{\mathrm{gauge}}$.
 \begin{lemma}[Global sample event]
     \label{lem:global-event}
-    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
+    It holds that
     \begin{align}
         \Pp(\mathcal E_{\mathrm{global}}^c)
         \leq4ne^{-\ell}\leq\frac\delta4.
-        \label{eq:global-event-probability}
+        \ineqlabel{eq:global-event-probability}
     \end{align}
 \end{lemma}
 The proof is in Appendix~\ref{app:concentration}.
 
 \proofstepinline{3}
 The comparison in
-\eqref{eq:time-indexed-regret-switch} requires $x_\star$ to remain
+\cref{eq:time-indexed-regret-switch} requires $x_\star$ to remain
 in an ellipsoid around $\mu_t$.
 For $t < \tau$ both requirements of \cref{cor:bracket-ell} are satisfied:
 we have $\frac12R_t^2 \leq \frac{1}{128^2\lambda^2\ell}$, and
@@ -651,14 +663,14 @@ Therefore, by \cref{eq:time-indexed-regret-switch} we obtain
     2\sum_{t=1}^{\tau -1}
     \tr(\bar{H}_t\Sigma_t)
     +\frac{(\tau -1) n^{-7}}{\eps}\,.
-    \label{eq:regret-switch-focus}
+    \ineqlabel{eq:regret-switch-focus}
 \end{align}
 Bounding the quadratic regret $
     \overline{\operatorname{qReg}}_{1:\tau -1}(x_{\star})
     \triangleq
     \sum_{t=1}^{\tau -1}
     \left(\bar{q}_t(\mu_t)-\bar{q}_t(x_{\star})\right)
-$ in \eqref{eq:regret-switch-focus} is quite delicate.
+$ in \cref{eq:regret-switch-focus} is quite delicate.
 The main difficulty is that the quadratic $\bar{q}_t$ is not observed directly, but only through the sampled stochastic quadratic $q_t$.
 Writing $D_t=\bar{q}_t(x_{\star})-q_t(x_{\star})$, which satisfies $\E_t[D_t]=0$,
 the difference between the observed and expected quadratic regret is
@@ -668,12 +680,19 @@ the difference between the observed and expected quadratic regret is
     \right|
     =
     \left|
+    \sum_{t=1}^{\tau -1}
+    \bar{q}_t(\mu_t) - \bar{q}_t(x_{\star})
+    +
+    q_t(\mu_t) - q_t(x_{\star})
+    \right|
+    =
+    \left|
     \sum_{t=1}^{\tau-1}
     D_t
     \right|\,,
 \end{align}
 where $\operatorname{qReg}_{1:\tau-1}(x_{\star})$ is the observed quadratic regret,
-and we used $q_t(\mu_t)=\bar{q}_t(\mu_t) = 0$.
+and the last equality follows from the fact that $q_t(\mu_t)=\bar{q}_t(\mu_t)=0$.
 Next, the following lemma provides an identity for the ONS update that will be useful in analyzing the observed quadratic regret.
 \begin{lemma}
     \label{lem:ons-identity}
@@ -716,7 +735,7 @@ Now, the ONS identity from \cref{lem:ons-identity} gives us the following telesc
     =
     \frac{R_1^2 - R_\tau^2}{2\eta }
     +\frac{\eta}{2}\sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_{t+1}}^2.
-    \label{eq:ons-telescope}
+    \eqlabel{eq:ons-telescope}
 \end{align}
 
 Now, starting from the definition of the extension regret and the stopping time $\tau$, we have
@@ -756,31 +775,32 @@ Now, starting from the definition of the extension regret and the stopping time 
     2\sum_{t=1}^{\tau -1}
     \tr(\bar{H}_t\Sigma_t)
     +1\,,
-    \label{eq:stopped-regret-after-trace}
+    \ineqlabel{eq:stopped-regret-after-trace}
 \end{align}
 where \reason{a} follows from \cref{eq:regret-switch-focus},
-\reason{b} follows from the definition of $D_t$ in Step~3.1 and
+\reason{b} follows from the definition of $D_t$ in Step~3 and
 $(\tau-1)n^{-7}/\eps\leq1$, and \reason{c} follows from
 \cref{eq:ons-telescope}.
 
-The derivation of\cref{eq:stopped-regret-after-trace} is the real skeleton of the regret analysis.
-The rest of the proof consists of two main parts: first controlling the terms on the right-hand side of \eqref{eq:stopped-regret-after-trace} in a high probability event, and second showing that $\tau = n+1$ with high probability
-so the bound in \eqref{eq:stopped-regret-after-trace} effectively gives a high probability control over the actual extension regret up to time $n$.
+The derivation of \cref{eq:stopped-regret-after-trace} is the real skeleton of the regret analysis.
+The rest of the proof consists of two main parts: first controlling the terms on the right-hand side of \cref{eq:stopped-regret-after-trace} in a high probability event, and second showing that $\tau = n+1$ with high probability
+so the bound in \cref{eq:stopped-regret-after-trace} effectively gives a high probability control over the actual extension regret up to time $n$.
 
 
-\proofstep{}{2}
-In the steps that follow, we will assume that the high probability event $\mathcal E_{\mathrm{global}}$ holds.
-\proofstepinline{1}
-First, we deal with the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$.
+\proofpart{II}{Bounding the stopped regret}
+In all the steps in this part of the proof, we will assume that the high probability event $\mathcal E_{\mathrm{global}}$ holds.
+\proofstepinline{4}
+First, we deal with the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$
+in \cref{eq:stopped-regret-after-trace}.
 We will work with the slightly time-perturbed quantity $\normm{g_t}{\Sigma_{t}}^2$ in place of $\normm{g_t}{\Sigma_{t+1}}^2$ for now.
-By the definition of $g_t$ in \eqref{eq:sampled-hermite-coefficients}, we have
+By the definition of $g_t$ in \cref{eq:sampled-hermite-coefficients}, we have
 \begin{align}
     \normm{g_t}{\Sigma_t}^2
     =Y_t^2\norm{Z_t}^2
     \leq
     4d\ell Y_t^2
     ,
-    \label{eq:energy-feedback-identity}
+    \ineqlabel{eq:energy-feedback-identity}
 \end{align}
 where we used the bound $\norm{Z_t}^2\leq 4d\ell$ on the event $\mathcal E_{\mathrm{global}}$.
 Next, to control the sum $\sum_{t=1}^{\tau-1}Y_t^2$ we use the following version of Freedman's inequality.
@@ -798,7 +818,7 @@ Next, to control the sum $\sum_{t=1}^{\tau-1}Y_t^2$ we use the following version
         \max_{1\leq i\leq T}U_i^2\leq b
         \right)
         \leq2e^{-z}.
-        \label{eq:freedman-nonnegative}
+        \ineqlabel{eq:freedman-nonnegative}
     \end{align}
 \end{restatable}
 To apply this lemma, with $U_t=Y_t$, we first bound the absolute size of the feedback $|Y_t|^2$.
@@ -806,40 +826,47 @@ since $f(A_t)\in[0,1]$, we have
 \begin{align}
     |Y_t|=\left|\pi_\eps(X_t)(f(A_t)+\xi_t)+\frac{2v(X_t)}{\eps}\right|
     \leq
-    \pi_\eps(X_t)(1+|\xi_t|)+\frac{2v(X_t)}{\eps}.
-    \label{eq:energy-feedback-decomposition}
+    (v(X_t) + 1)(1+|\xi_t|)+\frac{2v(X_t)}{\eps}.
+    \ineqlabel{eq:energy-feedback-decomposition}
 \end{align}
-Thus we need to control both the observation noise $|\xi_t|$ and the capped Minkowski functional $v(X_t)$.
+For the noise $|\xi_t|$, we have the bound $|\xi_t|\leq\sqrt\ell$ on the event $\mathcal E_{\mathrm{global}}$.
+% Thus we need to control both the observation noise $|\xi_t|$ and the capped Minkowski functional $v(X_t)$.
 To bound $v(X_t)$ for $t < \tau$, write $W_t=X_t-\mu_t$, then the subadditivity of $\pi(\cdot)$ gives
 \begin{align}
     v(X_t)\leq v(\mu_t)+\frac{\pi(W_t)}{1-\eps}
     \leq v(\mu_t)+2\pi(W_t)
     \leq v(\mu_t)+2(3 + 2\sqrt\ell)
     \,,
-    \label{eq:energy-sample-gauge}
+    \ineqlabel{eq:energy-sample-gauge}
 \end{align}
 where we used the bound $\pi(W_t)\leq 3 + 2\sqrt\ell$ on the event $\mathcal E_{\mathrm{global}}$.
-We also need to bound $v(\mu_t)$ in \eqref{eq:energy-sample-gauge}.
+We also need to bound $v(\mu_t)$ in \cref{eq:energy-sample-gauge}.
 Projecting the mean onto $\K_\eps$ would make this term zero; our unprojected mean can leave $\K_\eps$.
-Instead, we use the stopping time $\tau_{\mathrm{shell}}$ defined in \eqref{eq:energy-shell-stopping-time}.
-On $\mathcal E_{\mathrm{global}}$, for every $t < \tau$, by \eqref{eq:energy-feedback-decomposition} and \eqref{eq:energy-sample-gauge} we have
+Instead, we use the stopping time $\tau_{\mathrm{shell}}$ defined in \cref{eq:energy-shell-stopping-time},
+which gives
+\begin{align}
+    v(X_t)
+    \leq v(\mu_t) + 2(3 + 2\sqrt\ell)
+    \leq 3\ell\,,
+\end{align}
+where we used $\ell \geq 640$.
+Then, for every $t < \tau$, by \cref{eq:energy-feedback-decomposition,eq:energy-sample-gauge} we have
 \begin{align}
     |Y_t|
-    \leq \pi_\eps(X_t)(1+|\xi_t|)+2\frac{\left(v(\mu_t) + 2 \pi(W_t)\right)}{\eps}
+    \leq (3\ell + 1)(1+\sqrt\ell)+\frac{6\ell}{\eps}
     \leq \frac{4\ell^{3/2}}{\eps}
-    \label{eq:energy-sample-gauge-bound}
+    \ineqlabel{eq:energy-sample-gauge-bound}
 \end{align}
-where we used
-the numerical inequality $\ell\geq640$.
-All together,
-for $t < \tau$, on the event $\mathcal E_{\mathrm{global}}$, we have
+where we again used $\ell\geq640$.
+Now, by \cref{eq:energy-feedback-identity,eq:energy-sample-gauge-bound}
+for $t < \tau$, we have
 \begin{align}
     \normm{g_t}{\Sigma_t}^2
     =Y_t^2\norm{Z_t}^2
     \leq\frac{64d\ell^4}{\eps^2}\,.
-    \label{eq:energy-sample-gauge-bound-2}
+    \ineqlabel{eq:energy-sample-gauge-bound-2}
 \end{align}
-To apply \cref{lem:freedman-nonnegative}, we also need to bound the conditional second moment $\sum_{t=1}^{\tau-1}\E_t[Y_t^2]$,
+To apply \cref{lem:freedman-nonnegative}, it remains to bound the conditional second moment $\sum_{t=1}^{\tau-1}\E_t[Y_t^2]$,
 which is bounded by $S$ since $\tau \leq \tau_{\mathrm{moment}}$.
 Now, let
 \begin{align}
@@ -850,18 +877,19 @@ Now, let
     \leq
     2S + \frac{4d\ell^5}{\eps^2}
     \right\}\,.
-    \label{eq:interval-feedback-bound}
+    \eqlabel{eq:interval-feedback-bound}
 \end{align}
 \begin{lemma}
     \label{lem:feedback-square-sum}
-    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
+    It holds that
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c\right)
         \leq2e^{-\ell/64}\leq\frac\delta8.
-        \label{eq:feedback-square-sum-probability}
+        \ineqlabel{eq:feedback-square-sum-probability}
     \end{align}
 \end{lemma}
-The proof is in Appendix~\ref{app:concentration}.
+The proof is an application of \cref{lem:freedman-nonnegative} and is
+in Appendix~\ref{app:concentration}.
 Therefore, on the event $\mathcal E_\mathrm{global} \cap \mathcal E_Y$, we get
 \begin{align}
     \frac{\eta}{2}\sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_t}^2
@@ -875,10 +903,10 @@ Therefore, on the event $\mathcal E_\mathrm{global} \cap \mathcal E_Y$, we get
     \left(
     S + \frac{2d\ell^5}{\eps^2}
     \right)\,.
-    \label{eq:interval-energy-bound}
+    \ineqlabel{eq:interval-energy-bound}
 \end{align}
 Finally, we compare $\normm{g_t}{\Sigma_t}^2$ and $\normm{g_t}{\Sigma_{t+1}}^2$.
-On $\mathcal E_{\mathrm{global}}$, for every $t<\tau$, we have
+For every $t<\tau$, we have
 \begin{align}
     \lambda\eta\left\|
     \Sigma_t^{1/2}H_t\Sigma_t^{1/2}
@@ -887,7 +915,9 @@ On $\mathcal E_{\mathrm{global}}$, for every $t<\tau$, we have
     \leq\frac{16\lambda\eta d\ell^{5/2}}{\eps}
     \leq\frac12,
 \end{align}
-where the last inequality follows from our parameter choices.
+where the first inequality follows from
+$\|Z_tZ_t^\top-I_d\|_{\op} \leq \max\{1,\|Z_t\|^2\} \leq 4d\ell$,
+and the last inequality follows from our parameter choices.
 The update $\Sigma_{t+1}^{-1}
     =\Sigma_t^{-1}+\lambda\eta H_t$ therefore implies
 $\frac23\Sigma_t
@@ -899,7 +929,7 @@ $
     \leq\normm{g_t}{\Sigma_{t+1}}^2
     \leq2\normm{g_t}{\Sigma_t}^2
 $.
-Thus, \eqref{eq:interval-energy-bound} gives
+Thus, \cref{eq:interval-energy-bound} gives
 \begin{align}
     \frac{\eta}{2}\sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_{t+1}}^2
     \leq
@@ -907,11 +937,12 @@ Thus, \eqref{eq:interval-energy-bound} gives
     \left(
     S + \frac{2d\ell^5}{\eps^2}
     \right)\,.
-    \label{eq:interval-energy-bound-final}
+    \ineqlabel{eq:interval-energy-bound-final}
 \end{align}
 
-\proofstepinline{2}
-Going back to the quadratic regret, we now need to control the martingale difference sum $\sum_{t=1}^{\tau}D_t$, which is a martingale difference sequence as $\E_t[D_t]=0$.
+\proofstepinline{5}
+Next, going back to \cref{eq:stopped-regret-after-trace},
+we control the sum $\sum_{t=1}^{\tau}D_t$, which is a martingale difference sequence as $\E_t[D_t]=0$.
 We use the following self-normalized martingale inequality \citet[Theorem~3.26]{bercu2015concentration} to control this sum.
 \begin{restatable}{lemma}{selfnormalisedmartingale}
     \label{lem:self-normalised-martingale}
@@ -923,7 +954,7 @@ We use the following self-normalized martingale inequality \citet[Theorem~3.26]{
         \right)
         \leq
         2\exp\left(-\frac{z^2}{2v}\right).
-        \label{eq:self-normalised-martingale}
+        \ineqlabel{eq:self-normalised-martingale}
     \end{align}
 \end{restatable}
 To apply it, we bound the realized and conditional second moments together.
@@ -936,7 +967,7 @@ Since $\bar{q}_t(x_{\star})=\E_t[q_t(x_\star)]$, a straightforward calculation g
     +
     2\sum_{t=1}^{\tau-1}
     \E_t[q_t(x_{\star})^2]\,,
-    \label{eq:martingale-variance}
+    \ineqlabel{eq:martingale-variance}
 \end{align}
 where we used $-2\bar{q}_t(x_{\star})q_t(x_{\star}) \leq \bar{q}_t(x_{\star})^2+q_t(x_{\star})^2$ and Jensen's inequality
 $\bar{q}_t(x_{\star})^2\leq\E_t[q_t(x_{\star})^2]$.
@@ -977,9 +1008,9 @@ Then just from the definition of $q_t(x_\star)$, we have
     \leq
     4F Y_t^2\left(G_t^2+1\right)^2
     \,,
-    \label{eq:quadratic-estimate-decomposition}
+    \ineqlabel{eq:quadratic-estimate-decomposition}
 \end{align}
-where we used $(a+b)^2\leq2a^2+2b^2$ and the focus bound $R_t^2\leq\frac{2}{128^2\lambda^2 \ell}$, which also gives $\lambda R_t<1$.
+where we used $(a+b)^2\leq2a^2+2b^2$ and the focus bound $R_t^2\leq 2F \leq \frac{2}{128^2\lambda^2 \ell}$, which also gives $\lambda R_t<1$.
 Now, observe that the direction defining $G_t$ is then an
 $\F_{t-1}$-measurable unit vector, so as long as $R_t>0$, the conditional distribution of
 $G_t$ given $\F_{t-1}$ is $\N(0,1)$.
@@ -992,10 +1023,10 @@ This justifies the definition of the event
     \text{ for all }1\leq t< \tau
     \right\}
     \,,
-    \label{eq:gaussian-score-event}
+    \eqlabel{eq:gaussian-score-event}
 \end{align}
 on which we have $(G_t^2+1)^2\leq25\ell^2$.
-Now, on the event $\mathcal E_G$, we can bound the realized part of the RHS of \eqref{eq:martingale-variance} as
+Now, on the event $\mathcal E_G$, we can bound the realized part of the RHS of \cref{eq:martingale-variance} as
 \begin{align}
     2\sum_{t=1}^{\tau-1}
     q_t(x_\star)^2
@@ -1005,10 +1036,10 @@ Now, on the event $\mathcal E_G$, we can bound the realized part of the RHS of \
     \leq
     200 F \ell^2 \sum_{t=1}^{\tau-1}
     Y_t^2
-    \,,
-    \label{eq:quadratic-bound}
+    \,.
+    \ineqlabel{eq:quadratic-bound}
 \end{align}
-and the conditional part as
+For the conditional part of the RHS of \cref{eq:martingale-variance} using the event $\mathcal E_G$ we have
 \begin{align}
     2\sum_{t=1}^{\tau-1}
     \E_t[q_t(x_\star)^2]
@@ -1026,7 +1057,8 @@ and the conditional part as
     \,,
 \end{align}
 where the last inequality uses \cref{lem:weighted-gaussian-tail} to bound the summed weighted Gaussian tails.
-Thus, absorbing the tail term into the coefficient gives
+Thus, starting from \cref{eq:martingale-variance} and
+absorbing the tail term into the coefficient gives
 \begin{align}
     \sum_{t=1}^{\tau-1}\left(D_t^2+\E_t[D_t^2]\right)
      & \leq
@@ -1042,7 +1074,7 @@ Thus, absorbing the tail term into the coefficient gives
      &
     \leq300F\ell^2\left(3S+\frac{4d\ell^5}{\eps^2}\right)\,,
 \end{align}
-where we used that on \eqref{eq:interval-feedback-bound} we have $\sum_{t=1}^{\tau-1}Y_t^2\leq2S+4d\ell^5/\eps^2$.
+where we used the event $\mathcal{E}_Y$ in \cref{eq:interval-feedback-bound} which gives $\sum_{t=1}^{\tau-1}Y_t^2\leq2S+4d\ell^5/\eps^2$.
 Now, define the event
 \begin{align}
     \mathcal E_{q}
@@ -1050,63 +1082,33 @@ Now, define the event
     \left|\sum_{t=1}^{\tau-1}D_t\right|
     \leq\sqrt{F\ell^3\left(S+\frac{d\ell^5}{\eps^2}\right)}
     \right\},
-    \label{eq:self-normalized-quadratic-event}
+    \eqlabel{eq:self-normalized-quadratic-event}
 \end{align}
 The following lemma controls its failure probability.
 \begin{lemma}
     \label{lem:quadratic-concentration}
-    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
+    It holds that
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_q^c\right)
         \leq4e^{-\ell/64}\leq\frac\delta8.
-        \label{eq:quadratic-concentration-probability}
+        \ineqlabel{eq:quadratic-concentration-probability}
     \end{align}
 \end{lemma}
-The proof is in Appendix~\ref{app:concentration}.
-\proofstepinline{3}
-Starting from the definition of the extension regret and the stopping time $\tau$, we have
-\begin{align}
-    \operatorname{eReg}_{1:\tau -1}(x_{\star})
-     &
-    \explan{\leq}{a}
-    \overline{\operatorname{qReg}}_{1:\tau -1}(x_{\star})
-    +
-    2\sum_{t=1}^{\tau -1}
-    \tr(\bar{H}_t\Sigma_t)
-    +\frac{(\tau -1) n^{-7}}{\eps}
-    \\
-     &
-    \explan{\leq}{b}
-    \operatorname{qReg}_{1:\tau -1}(x_{\star})
-    +
-    \left|
-    \sum_{t=1}^{\tau-1} D_t
-    \right|
-    +
-    2\sum_{t=1}^{\tau -1}
-    \tr(\bar{H}_t\Sigma_t)
-    +1
-    \\
-     &
-    \explan{\leq}{c}
-    \frac{R_1^2 - R_\tau^2}{2\eta}
-    +
-    \frac{\eta}{2}
-    \sum_{t=1}^{\tau-1}\normm{g_t}{\Sigma_{t+1}}^2
-    +
-    \left|
-    \sum_{t=1}^{\tau-1} D_t
-    \right|
-    +
-    2\sum_{t=1}^{\tau -1}
-    \tr(\bar{H}_t\Sigma_t)
-    +1\,,
-    \label{eq:stopped-regret-after-trace}
-\end{align}
-where \reason{a} follows from \cref{eq:regret-switch-focus},
-\reason{b} follows from the definition of $D_t$ in Step~3.1 and
-$(\tau-1)n^{-7}/\eps\leq1$, and \reason{c} follows from
-\cref{eq:ons-telescope}.
+The proof is an application of \cref{lem:self-normalised-martingale} and is in Appendix~\ref{app:concentration}.
+\proofstepinline{6}
+It remains to control the trace sum $\sum_{t=1}^{\tau-1}\tr(\bar H_t\Sigma_t)$ in \cref{eq:stopped-regret-after-trace}.
+\begin{lemma}
+    \label{lem:stopped-trace}
+    It holds that
+    \begin{align}
+        \eta\sum_{t=1}^{\tau-1}\tr(\bar H_t\Sigma_t)
+        \leq
+        2\eta\sum_{t=1}^{\tau-1}\tr(\bar H_t\bar\Sigma_t)
+        \leq\frac{8d\log(1+n)}{\lambda}.
+        \ineqlabel{eq:stopped-trace-budget}
+    \end{align}
+\end{lemma}
+The proof is in \cref{app:trace}.
 
 Fix the two unspecified thresholds as
 \begin{align}
@@ -1114,7 +1116,7 @@ Fix the two unspecified thresholds as
     \qquad
     F=\frac{1}{1000\lambda^2\ell^3}
     =1000d^3M^2\ell^5.
-    \label{eq:global-threshold-choices}
+    \eqlabel{eq:global-threshold-choices}
 \end{align}
 Then, on the event
 $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q$,
@@ -1126,37 +1128,24 @@ from \cref{eq:interval-energy-bound-final} we have
     \leq288dn\ell\,,
 \end{align}
 where we used
-$d\ell^5/\eps^2=n/(10^4d^3M^2\ell^{11})\leq n$.
-Similarly, from \cref{eq:self-normalized-quadratic-event} we have
+$d\ell^5/\eps^2=n/(10^4d^3M^2\ell^{11})\leq n$;
+from \cref{eq:self-normalized-quadratic-event} we have
 \begin{align}
     \left|\sum_{t=1}^{\tau-1}D_t\right|
     \leq\sqrt{F\ell^3\left(S+\frac{d\ell^5}{\eps^2}\right)}
     \leq\sqrt{17Fn\ell^3}
-    =\sqrt{17000}\,d^{3/2}M\ell^4\sqrt n\,.
+    =\sqrt{17000}\,d^{3/2}M\ell^4\sqrt n\,;
 \end{align}
-Also, from the initialization in \cref{alg:direct-hermite},
-$\norm{x_\star}\leq2d$, and the parameters in \cref{thm:main}, we have
+and from the initialization in \cref{alg:direct-hermite},
+$\norm{x_\star}\leq2d$, we have
 \begin{align}
     \frac{R_1^2}{2\eta}
     =\frac{\norm{x_\star}^2}{2\eta\sigma^2}
     \leq\frac{4d^3M^2}{\eta}
     =\frac12d^2M\sqrt n.
 \end{align}
-It remains to control the trace sum $\sum_{t=1}^{\tau-1}\tr(\bar H_t\Sigma_t)$ in \eqref{eq:stopped-regret-after-trace}.
-\begin{lemma}
-    \label{lem:stopped-trace}
-    Under the parameter choices of \cref{thm:main}, with $\eps=\eps_0\leq1/2$,
-    \begin{align}
-        \eta\sum_{t=1}^{\tau-1}\tr(\bar H_t\Sigma_t)
-        \leq
-        2\eta\sum_{t=1}^{\tau-1}\tr(\bar H_t\bar\Sigma_t)
-        \leq\frac{8d\log(1+n)}{\lambda}.
-        \label{eq:stopped-trace-budget}
-    \end{align}
-\end{lemma}
-This bound holds pathwise; its proof is in \cref{app:trace}.
 
-Plugging these bounds into \eqref{eq:stopped-regret-after-trace} gives a complete control over the extension regret before the stopping time:
+Plugging these bounds into \cref{eq:stopped-regret-after-trace} gives a complete control over the extension regret before the stopping time:
 \begin{align}
     \operatorname{eReg}_{1:\tau-1}(x_\star)
      & \leq \frac{1}{2} d^2 M \sqrt n
@@ -1167,7 +1156,7 @@ Plugging these bounds into \eqref{eq:stopped-regret-after-trace} gives a complet
     \\
      & \leq
     \frac{125}{4}d^2M\ell^5\sqrt n.
-    \label{eq:global-stopped-regret}
+    \ineqlabel{eq:global-stopped-regret}
 \end{align}
 The last inequality uses $\eta=8dM/\sqrt n$,
 $\log(1+n)\leq\ell/128$, $\ell\geq640$, and $M\sqrt d\geq1$.
@@ -1175,10 +1164,10 @@ $\log(1+n)\leq\ell/128$, $\ell\geq640$, and $M\sqrt d\geq1$.
 The remaining steps of the proof are devoted to showing that $\tau=n+1$
 on a high-probability event contained in
 $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q$.
-On that event, \eqref{eq:global-stopped-regret} bounds the full-horizon
+On that event, \cref{eq:global-stopped-regret} bounds the full-horizon
 extension regret.
 
-\proofstep{}{3}
+\proofpart{III}{Ruling out early stopping}
 We show that $\tau=n+1$ through a proof by contradiction argument:
 \begin{align}
     \text{suppose for contradiction that } \tau \leq n\,.
@@ -1192,19 +1181,19 @@ We will show that under this assumption
 \end{align}
 which contradicts the definition of $\tau$ as the minimum of these stopping times.
 
-\proofstepinline{1}
+\proofstepinline{7}
 We first prove that $\tau_{\mathrm{focus}} > \tau$.
 On the event
 $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q$,
-\eqref{eq:stopped-regret-after-trace} and the same estimates used in
-\eqref{eq:global-stopped-regret} give
+\cref{eq:stopped-regret-after-trace} and the same estimates used in
+\cref{eq:global-stopped-regret} give
 \begin{align}
     \operatorname{eReg}_{1:\tau-1}(x_\star)
     +\frac{R_\tau^2}{2\eta}
     \leq\frac{125}{4}d^2M\ell^5\sqrt n.
 \end{align}
 Since $x_\star$ minimizes $f$ on $\K_\eps$, the extension formula
-\eqref{eq:extension-lipschitz} gives
+\cref{eq:extension-lipschitz} gives
 $e(x)\geq f(x/\pi_\eps(x))\geq f(x_\star)=e(x_\star)$ for every $x\in\R^d$.
 Thus $\operatorname{eReg}_{1:\tau-1}(x_\star)\geq0$, and consequently
 \begin{align}
@@ -1213,32 +1202,34 @@ Thus $\operatorname{eReg}_{1:\tau-1}(x_\star)\geq0$, and consequently
     =500d^3M^2\ell^5
     =\frac F2<F,
 \end{align}
-where we used $\eta=8dM/\sqrt n$ and \eqref{eq:global-threshold-choices}.
-As $\tau\leq n\wedge\tau_{\mathrm{cov}}$, the focus condition is defined
+where we used $\eta=8dM/\sqrt n$ and \cref{eq:global-threshold-choices}.
+As $\tau\leq n\wedge\tau_{\mathrm{cov}}$ the focus condition is well-defined
 and holds at $\tau$, so $\tau_{\mathrm{focus}}>\tau$.
 
-\proofstepinline{2}
-We next prove that $\tau_{\mathrm{shell}}>\tau$ by showing that
-$v(\mu_\tau)<\ell$.
-Nonnegativity of $f$ and the extension formula \eqref{eq:extension-lipschitz} give
+\proofstepinline{8}
+Proving that $\tau_{\mathrm{shell}}>\tau$ is more involved.
+The proof relies on a local regret analysis over short intervals and turning these local bounds into a pointwise control of the extension value at the current iterate, proving that $v(\mu_\tau)<\ell$ in the end.
+
+Nonnegativity of $f$ and the extension formula \cref{eq:extension-lipschitz} give
 \begin{align}
     2v(x)\leq\eps e(x)\qquad\text{for every }x\in\R^d,
 \end{align}
-so it suffices to control the extension value at $\mu_\tau$.
-The global regret bound controls a sum of extension losses and still allows
-individual iterates to have large extension values.
-We will use regret bounds on short intervals to obtain the pointwise
-control needed here.
+so it suffices to upper bound the extension value $e(\mu_\tau)$.
+By convexity and Jensen's inequality, we have
+\begin{align}
+    e(\mu_t) \leq \E_t[e(X_t)]\,,
+\end{align}
+which is the expected extension loss at time $t$,
+which suggests that a control over the expected extension loss $\E_t[e(X_t)]$ will lead to a control over $e(\mu_t)$.
 
-We first bound the regret on a short interval against its starting mean.
-By a short interval, we mean an interval $[s,u]$ of length at most
+We consider an interval $[s,u]$ of length at most
 \begin{align}
     k=\left\lceil\frac{\eps F}{\eta}\right\rceil\,,
 \end{align}
-so that it length $L=u-s+1$ satisfies $L\leq k$.
+so that its length $L=u-s+1$ satisfies $L\leq k$.
 A crude bound on the number of such short intervals is $n^2$, which suffices for a union bound over all of them in our subsequent probabilistic analysis.
 
-\proofstepinline{2.1}
+\proofstepinline{8.1}
 In the rest of this step, consider a fixed short local interval
 \begin{align}
     [s,u]\quad\text{with }\quad u<\tau \quad\text{and}\quad L=u-s+1\leq k\,.
@@ -1256,7 +1247,7 @@ Similar to the global definition, define a local focus stopping time for the int
     \tilde{\tau}_{\mathrm{focus}}=\inf\{t \in [s,u]:\tilde{R_t}^2>F_{L}\}
     \wedge (u+1)\,,\qquad
     \text{with }\quad F_L = 16\frac{\eta}{\eps}L\ell.
-    \label{eq:shell-local-parameters}
+    \eqlabel{eq:shell-local-parameters}
 \end{align}
 
 Let
@@ -1300,7 +1291,7 @@ and write, for every $s\leq j<\tilde{\tau}$,
     2\sum_{t=s}^{j}
     \tr(\bar{H}_t\Sigma_t)
     +1\,,
-    \label{eq:stopped-regret-after-trace-local}
+    \ineqlabel{eq:stopped-regret-after-trace-local}
 \end{align}
 where \reason{a} follows from \cref{eq:time-indexed-regret-switch}
 since $\eta/\eps=2/(25d\ell^8)\leq F$, our choice of $k$ gives
@@ -1316,13 +1307,13 @@ $(j-s+1)n^{-7}/\eps\leq1$; and \reason{c} follows from
     \tilde{R}_s^2 = \normm{\mu_s-\mu_s}{\Sigma_s^{-1}}^2 = 0.
 \end{align}
 
-So far this perfectly matches the counterpart analysis of the global regret in \eqref{eq:stopped-regret-after-trace} with the exception of $R_s^2$ being zero for the local comparator.
+So far this perfectly matches the counterpart analysis of the global regret in \cref{eq:stopped-regret-after-trace} with the exception of $R_s^2$ being zero for the local comparator.
 For the trace term, we use the bound from \cref{lem:uniform-trace} for the local interval, which ensures
 \begin{align}
     \sum_{t=s}^{u}\tr(\bar H_t\Sigma_t)\leq\frac{5L}{\eps},
 \end{align}
 On $\mathcal E_{\mathrm{global}}$,
-$\Sigma_{t+1}\preceq2\Sigma_t$ from Step~3.2 give
+$\Sigma_{t+1}\preceq2\Sigma_t$ from Step~4 give
 \begin{align}
     \frac{\eps\eta}{2}\sum_{t=s}^{u}\normm{g_t}{\Sigma_{t+1}}^2
     \leq
@@ -1331,38 +1322,51 @@ $\Sigma_{t+1}\preceq2\Sigma_t$ from Step~3.2 give
     \eps\eta\sum_{t=s}^{u} Y_t^2 \|Z_t\|^2
     \leq64\frac{\eta}{\eps}Ld\ell^4
     =\frac{128L}{25\ell^4}\leq L\,,
-    \label{eq:shell-local-energy}
+    \ineqlabel{eq:shell-local-energy}
 \end{align}
-where the second to last inequality uses \eqref{eq:energy-sample-gauge-bound-2}
+where the second to last inequality uses \cref{eq:energy-sample-gauge-bound-2}
 and the last inequality uses $\ell\geq 640$.
 
-Moreover, we need the equivalent of the martingale bound from Step~3.3 for the local comparator.
+Moreover, we need the equivalent of the martingale bound from Step~5 for the local comparator.
 The second major difference in the local argument is using the deterministic bound
 from \cref{lem:single-round-feedback} which gives
 \begin{align}
     \sum_{t=s}^{u}\E_t[Y_t^2]\leq\frac{8L\ell^2}{\eps^2}.
 \end{align}
-With this bound in hand, we define the counterpart of the event in \eqref{eq:self-normalized-quadratic-event} as
+With this bound in hand, we define the counterpart of the event in \cref{eq:self-normalized-quadratic-event} as
 \begin{align}
     \mathcal E_{q,\mathrm{loc}} = \left\{ \forall [s,j]\subseteq[s,\tilde{\tau}-1]:
     \left|\sum_{t=s}^{j}\tilde D_t\right|
     \leq\sqrt{F_L\ell^3\left(\frac{8L\ell^2}{\eps^2}
         +\frac{d\ell^5}{\eps^2}\right)}
     \right\}\,.
-    \label{eq:shell-local-martingale-event}
+    \eqlabel{eq:shell-local-martingale-event}
 \end{align}
-\begin{lemma}
-    The event $\mathcal E_{\mathrm{global}}\cap \mathcal E_{q,\mathrm{loc}}^c$ has low probability.
+\begin{lemma}[Local quadratic concentration]
+    \label{lem:local-quadratic-concentration}
+    Fix a deterministic interval $1\leq s\leq u\leq n$ with
+    $L=u-s+1\leq k$, and let $\mathcal E_{q,\mathrm{loc}}$ be the
+    event in \cref{eq:shell-local-martingale-event}. Then
+    \begin{align}
+        \Pp\left(\mathcal E_{\mathrm{global}}\cap
+        \mathcal E_{q,\mathrm{loc}}^c\right)
+        \leq6e^{-\ell/64}\leq\frac{\delta}{8n^2}.
+        \ineqlabel{eq:local-quadratic-concentration-probability}
+    \end{align}
+    Consequently, the probability that $\mathcal E_{\mathrm{global}}$
+    holds but one of these local events fails over the at most $n^2$
+    short intervals is at most $\delta/8$.
 \end{lemma}
+The proof is in Appendix~\ref{app:concentration}.
 On $\mathcal E_{\mathrm{global}}\cap \mathcal E_{q,\mathrm{loc}}$, we have
 \begin{align}
     \eps\left|\sum_{t=s}^{j}\tilde D_t\right|
     \leq\sqrt{\frac{256L^2}{25d\ell^2}+\frac{32L\ell}{25}}
     \leq L+2\sqrt{L\ell}.
-    \label{eq:shell-local-martingale}
+    \ineqlabel{eq:shell-local-martingale}
 \end{align}
 Then, on $\mathcal E_{\mathrm{global}}\cap\mathcal E_{q,\mathrm{loc}}$ and using the above bounds into
-\eqref{eq:stopped-regret-after-trace-local} we get, for every $s\leq j<\tilde\tau$,
+\cref{eq:stopped-regret-after-trace-local} we get, for every $s\leq j<\tilde\tau$,
 \begin{align}
     \eps\operatorname{eReg}_{s:j}(\mu_s)
     +\frac{\eps}{2\eta}\tilde R_{j+1}^2
@@ -1372,7 +1376,7 @@ Then, on $\mathcal E_{\mathrm{global}}\cap\mathcal E_{q,\mathrm{loc}}$ and using
     +2\eps\sum_{t=s}^{j}\tr(\bar H_t\Sigma_t)
     +1\nonumber                    \\
      & \quad\leq13L+2\sqrt{L\ell}.
-    \label{eq:shell-local-potential}
+    \ineqlabel{eq:shell-local-potential}
 \end{align}
 
 We now show that $\tilde\tau=u+1$, so that the preceding bound applies
@@ -1388,7 +1392,7 @@ Therefore, nonnegativity of $e$ implies that, for every $s\leq j<\tilde\tau$,
     \geq-(j-s+1)\eps e(\mu_s)
     \geq-3L\ell.
 \end{align}
-Substituting this lower bound into \eqref{eq:shell-local-potential} gives
+Substituting this lower bound into \cref{eq:shell-local-potential} gives
 \begin{align}
     \tilde R_{j+1}^2
     \leq\frac{2\eta}{\eps}
@@ -1404,30 +1408,30 @@ $\tilde R_{\tilde\tau}^2>F_L$, a contradiction.
 Hence $\tilde\tau=u+1$, and the same bound for every prefix shows that
 \begin{align}
     \max_{s\leq t\leq u+1}\tilde R_t^2\leq F_L.
-    \label{eq:shell-local-focus}
+    \ineqlabel{eq:shell-local-focus}
 \end{align}
-Taking $j=u$ in \eqref{eq:shell-local-potential} and dropping the
+Taking $j=u$ in \cref{eq:shell-local-potential} and dropping the
 nonnegative terminal-distance term gives the desired local regret bound.
 Finally, Jensen's inequality gives $e(\mu_t)\leq\E_t[e(X_t)]$, so
 \begin{align}
     \eps\sum_{t=s}^{u}\bigl(e(\mu_t)-e(\mu_s)\bigr)
     \leq\eps\operatorname{eReg}_{s:u}(\mu_s)
     \leq13L+2\sqrt{L\ell}.
-    \label{eq:shell-local-regret}
+    \ineqlabel{eq:shell-local-regret}
 \end{align}
 
-\proofstepinline{2.2}
+\proofstepinline{8.2}
 We next bound the average extension value over the most recent $k$
 rounds, or over all rounds so far if fewer than $k$ rounds have elapsed.
 Work on $\mathcal E_{\mathrm{global}}$ and the local events
-$\mathcal E_{q,\mathrm{loc}}$ from Step~2.1 for all short interval $[s,u]$ before $\tau$.
+$\mathcal E_{q,\mathrm{loc}}$ from Step~8.1 for all short interval $[s,u]$ before $\tau$.
 Fix $1\leq t<\tau$, and set
 \begin{align}
     m=\min\{k,t\},\qquad s=t-m+1.
 \end{align}
 
 If $t<k$, then $m=t$ and $s=1$.
-Applying \eqref{eq:shell-local-regret} on $[1,t]$ with comparator $\mu_1$
+Applying \cref{eq:shell-local-regret} on $[1,t]$ with comparator $\mu_1$
 gives
 \begin{align}
     \frac{\eps}{t}\sum_{j=1}^{t}e(\mu_j)
@@ -1439,7 +1443,7 @@ $\eps e(\mu_1)=\eps f(0)\leq\eps\leq1/2$.
 
 If $t\geq k$, then $m=k$ and $s=t-k+1$.
 Recall that $D_j=\bar q_j(x_\star)-q_j(x_\star)$ is the martingale difference
-from Step~3.1.
+from Step~3.
 We use $x_\star$ as comparator on $[s,t]$.
 Let $\mathcal E_{q,\mathrm{local}}$ denote the event
 \begin{align}
@@ -1450,10 +1454,10 @@ Let $\mathcal E_{q,\mathrm{local}}$ denote the event
     \leq\sqrt{F\ell^3\left(\frac{8k\ell^2}{\eps^2}
         +\frac{d\ell^5}{\eps^2}\right)}
     \right\}\,,
-    \label{eq:shell-window-martingale-event}
+    \eqlabel{eq:shell-window-martingale-event}
 \end{align}
 which is the local version of the event $\mathcal E_{q,\mathrm{local}}$
-in \eqref{eq:self-normalized-quadratic-event} with the local feedback moment budget
+in \cref{eq:self-normalized-quadratic-event} with the local feedback moment budget
 $\sum_{j=t-k+1}^{t}\E_j[Y_j^2]\leq \frac{8k\ell^2}{\eps^2}$.
 \begin{lemma}
     The event $\mathcal{E}_{q,\mathrm{local}} \cap \mathcal{E}_{\mathrm{global}}$ holds with high probability.
@@ -1464,12 +1468,12 @@ Now, on $\mathcal E_{q,\mathrm{local}}$, the choice $k=\lceil\eps F/\eta\rceil$ 
     \leq\frac{\sqrt{F\ell^3(8k\ell^2+d\ell^5)}}{k}
     \leq\sqrt{\frac{16}{25d\ell^3}+\frac{2}{25k}}
     \leq1,
-    \label{eq:shell-window-martingale}
+    \ineqlabel{eq:shell-window-martingale}
 \end{align}
 where we used $F/k\leq\eta/\eps=2/(25d\ell^8)$.
 
 Repeating the regret-switching and ONS calculation in
-\eqref{eq:stopped-regret-after-trace-local} on $[s,t]$ with comparator
+\cref{eq:stopped-regret-after-trace-local} on $[s,t]$ with comparator
 $x_\star$, and using Jensen's inequality, yields
 \begin{align}
     \frac{\eps}{k}\sum_{j=s}^{t}e(\mu_j)
@@ -1484,8 +1488,8 @@ $x_\star$, and using Jensen's inequality, yields
 \end{align}
 The second inequality uses $R_s^2\leq F$,
 $\eps e(x_\star)=\eps f(x_\star)\leq1/2$,
-\eqref{eq:shell-local-energy} with $L=k$,
-\eqref{eq:shell-window-martingale}, and \cref{lem:uniform-trace}.
+\cref{eq:shell-local-energy} with $L=k$,
+\cref{eq:shell-window-martingale}, and \cref{lem:uniform-trace}.
 The last inequality uses $\eps F/(\eta k)\leq1$ and $\eps/k\leq1/2$.
 
 Thus, on the intersection of the events above, both cases give
@@ -1493,12 +1497,12 @@ Thus, on the intersection of the events above, both cases give
     \frac{\eps}{m}\sum_{j=t-m+1}^{t}e(\mu_j)
     \leq14+2\sqrt{\frac{\ell}{m}},
     \qquad m=\min\{k,t\},\quad 1\leq t<\tau.
-    \label{eq:shell-window-average}
+    \ineqlabel{eq:shell-window-average}
 \end{align}
 
-\proofstepinline{2.3}
-Step~2.2 bounds the average extension value on a recent window.
-To control its last mean, we use Step~2.1 to bound how much this average
+\proofstepinline{8.3}
+Step~8.2 bounds the average extension value on a recent window.
+To control its last mean, we use Step~8.1 to bound how much this average
 can increase as we remove the earliest terms of the window.
 The following deterministic lemma expresses this implication for an
 arbitrary real sequence.
@@ -1509,35 +1513,35 @@ arbitrary real sequence.
     \begin{align}
         \frac{1}{u-s+1}\sum_{j=s}^{u}a_j
         \leq a_s+13+2\sqrt{\frac{\ell}{u-s+1}}.
-        \label{eq:sequence-local-average}
+        \ineqlabel{eq:sequence-local-average}
     \end{align}
     Suppose also that, for every $1\leq u\leq n$,
     \begin{align}
         \frac{1}{\min\{k,u\}}
         \sum_{j=\max\{1,u-k+1\}}^{u}a_j
         \leq14+2\sqrt{\frac{\ell}{\min\{k,u\}}}.
-        \label{eq:sequence-window-average}
+        \ineqlabel{eq:sequence-window-average}
     \end{align}
     Then, for every $1\leq u\leq n$,
     \begin{align}
         a_u\leq27+13\log u+8\sqrt\ell.
-        \label{eq:sequence-pointwise-bound}
+        \ineqlabel{eq:sequence-pointwise-bound}
     \end{align}
 \end{lemma}
 The proof is in \cref{app:averages-to-pointwise}.
 
-We apply the lemma on the same intersection of events as in Step~2.2.
+We apply the lemma on the same intersection of events as in Step~8.2.
 Fix $1\leq t<\tau$ and take $a_j=\eps e(\mu_j)$ for $1\leq j\leq t$.
-Dividing \eqref{eq:shell-local-regret} by the interval length gives
-\eqref{eq:sequence-local-average}, and \eqref{eq:shell-window-average}
-gives \eqref{eq:sequence-window-average}.
+Dividing \cref{eq:shell-local-regret} by the interval length gives
+\cref{eq:sequence-local-average}, and \cref{eq:shell-window-average}
+gives \cref{eq:sequence-window-average}.
 Thus \cref{lem:averages-to-pointwise} yields
 \begin{align}
     \eps e(\mu_t)
     \leq27+13\log t+8\sqrt\ell
     \leq\frac\ell2,
     \qquad 1\leq t<\tau.
-    \label{eq:shell-pointwise-extension}
+    \ineqlabel{eq:shell-pointwise-extension}
 \end{align}
 For the last inequality, use $\log t\leq\log n\leq\ell/128$,
 and $\ell\geq640$.
@@ -1545,19 +1549,19 @@ Finally, the extension bound $2v(\mu_t)\leq\eps e(\mu_t)$ gives
 \begin{align}
     v(\mu_t)\leq\frac\ell4,
     \qquad 1\leq t<\tau\,.
-    \label{eq:shell-pointwise-gauge}
+    \ineqlabel{eq:shell-pointwise-gauge}
 \end{align}
 
-\proofstepinline{2.4}
+\proofstepinline{8.4}
 It remains to control the final update from $\mu_{\tau-1}$ to $\mu_\tau$.
-We work on the same intersection of events as in Step~2.3.
+We work on the same intersection of events as in Step~8.3.
 If $\tau=1$, then $v(\mu_\tau)=v(0)=0<\ell$.
-Otherwise, \eqref{eq:shell-pointwise-gauge} gives
+Otherwise, \cref{eq:shell-pointwise-gauge} gives
 $v(\mu_{\tau-1})\leq\ell/4$, so it suffices to show that the final
 update cannot use up the remaining distance to the shell threshold.
 
 Since $\tau-1<\tau\leq\tau_{\mathrm{cov}}$, the covariance bounds and
-the comparison from Step~3.2 give
+the comparison from Step~4 give
 \begin{align}
     \Sigma_{\tau-1}\preceq2\sigma^2I_d\preceq I_d,
     \qquad
@@ -1580,7 +1584,7 @@ The mean update in \cref{alg:direct-hermite}, together with
     \norm{\Sigma_\tau\Sigma_{\tau-1}^{-1/2}Z_{\tau-1}}
     \leq2\eta|Y_{\tau-1}|\norm{Z_{\tau-1}}
     \leq16\frac{\eta}{\eps}\sqrt d\,\ell^2.
-    \label{eq:shell-final-update}
+    \ineqlabel{eq:shell-final-update}
 \end{align}
 Since $v$ is $1/(1-\eps)\leq2$-Lipschitz, this bounds the increase in
 the shell value:
@@ -1596,10 +1600,10 @@ Thus the shell condition holds at $\tau$ in both cases.
 It also holds at every earlier round by the definition of $\tau$,
 so $\tau_{\mathrm{shell}}>\tau$.
 
-\proofstepinline{3}
+\proofstepinline{9}
 We next prove that $\tau_{\mathrm{moment}}>\tau$.
 Work on the intersection of the events used for
-\eqref{eq:global-stopped-regret} and Step~2.
+\cref{eq:global-stopped-regret} and Step~8.
 We first use the extension-regret bound to control the conditional
 feedback moments through round $\tau-1$, and then add the final round.
 
@@ -1614,9 +1618,9 @@ Applying \cref{lem:feedback} with $u=\tau-1$ therefore gives
     \leq4n+\frac{10n}{\ell^2}
     +\frac{32ne^{-\ell}}{\eps^2}
     \leq6n.
-    \label{eq:moment-prefix-improvement}
+    \ineqlabel{eq:moment-prefix-improvement}
 \end{align}
-Here \eqref{eq:global-stopped-regret} and the value of $\eps$ give
+Here \cref{eq:global-stopped-regret} and the value of $\eps$ give
 \begin{align}
     \frac{32\ell}{\eps}\operatorname{eReg}_{1:\tau-1}(x_\star)
     \leq\frac{32\ell}{\eps}\cdot\frac{125}{4}d^2M\ell^5\sqrt n
@@ -1626,7 +1630,7 @@ The remaining tail term is at most $n$, since
 $\eps^{-2}=n/(10^4d^4M^2\ell^{16})\leq n$ and
 $32ne^{-\ell}\leq1$.
 
-To include round $\tau$, use the shell condition proved in Step~2.4:
+To include round $\tau$, use the shell condition proved in Step~8.4:
 $v(\mu_\tau)<\ell$.
 Also, $\tau\leq\tau_{\mathrm{cov}}$ ensures
 $0\prec\Sigma_\tau\preceq2\sigma^2I_d$.
@@ -1638,21 +1642,21 @@ Thus \cref{lem:single-round-feedback} applies at $\tau$ and yields
     \leq n,
 \end{align}
 where the last inequality uses $M\sqrt d\geq1$ and $\ell\geq640$.
-Combining this with \eqref{eq:moment-prefix-improvement}, we obtain
+Combining this with \cref{eq:moment-prefix-improvement}, we obtain
 \begin{align}
     \sum_{t=1}^{\tau}\E_t[Y_t^2]\leq7n<16n=S.
-    \label{eq:moment-no-exit}
+    \ineqlabel{eq:moment-no-exit}
 \end{align}
 The moment threshold is therefore not exceeded at $\tau$.
 Since $\tau\leq\tau_{\mathrm{moment}}$ by definition,
 this proves $\tau_{\mathrm{moment}}>\tau$.
 
-\proofstepinline{4}
+\proofstepinline{10}
 We finally prove that $\tau_{\mathrm{cov}}>\tau$.
 Intersect the events used in the preceding steps with
 $\mathcal E_H$ from \cref{lem:hessian-concentration}.
-Step~2 gives $v(\mu_t)\leq\ell$ for every $t\leq\tau$, and
-\eqref{eq:moment-no-exit} gives
+Step~8 gives $v(\mu_t)\leq\ell$ for every $t\leq\tau$, and
+\cref{eq:moment-no-exit} gives
 $\sum_{t=1}^{\tau}\E_t[Y_t^2]\leq7n<16n$.
 Thus, under our assumption $\tau\leq n$, all the hypotheses of
 \cref{lem:hessian-concentration} hold, so
@@ -1661,7 +1665,7 @@ Thus, under our assumption $\tau\leq n$, all the hypotheses of
     \preceq\sum_{t=1}^{\tau}(H_t-\bar H_t)
     \preceq100\ell^{3/2}\sqrt{dn}\,\bar\Sigma_{\tau+1}^{-1}.
 \end{align}
-The proposed precision update and \eqref{eq:predictable-covariance}
+The proposed precision update and \cref{eq:predictable-covariance}
 start from the same matrix, hence
 \begin{align}
     \Sigma_{\tau+1}^{-1}-\bar\Sigma_{\tau+1}^{-1}
@@ -1677,14 +1681,14 @@ Consequently,
     \frac34\bar\Sigma_{\tau+1}^{-1}
     \preceq\Sigma_{\tau+1}^{-1}
     \preceq\frac54\bar\Sigma_{\tau+1}^{-1}.
-    \label{eq:covariance-no-exit}
+    \ineqlabel{eq:covariance-no-exit}
 \end{align}
 In particular, the proposed matrix is positive definite and satisfies
-the covariance condition in \eqref{eq:covariance-stopping-time} at
+the covariance condition in \cref{eq:covariance-stopping-time} at
 round $\tau$. Since $\tau\leq\tau_{\mathrm{cov}}$, this proves
 $\tau_{\mathrm{cov}}>\tau$.
 
-Together with Steps~1--3, all four stopping times are strictly greater
+Together with Steps~7--9, all four stopping times are strictly greater
 than $\tau$, contradicting its definition as their minimum.
 Therefore $\tau=n+1$ on the intersection of the events used above.
 
@@ -1860,13 +1864,13 @@ First we record the standard fact that the distributional Hessian of a convex fu
     \begin{align}
         \E[e(X)]-e(x)
         =\tr(\bar{H}\Sigma)+\ip{\bar{g}}{\mu-x}-\E[D_e(x\,\|\,X)]\,,
-        \label{eq:regret-switch}
+        \eqlabel{eq:regret-switch}
     \end{align}
     where $\bar{g}=\langle De,\gamma_{\mu,\Sigma}\rangle$ and
     $\bar{H}=\langle D^2e,\gamma_{\mu,\Sigma}\rangle$.
 \end{lemma}
 \begin{proof}
-    Splitting $X-x=(X-\mu)+(\mu-x)$ in a rearrangement of \eqref{eq:bregman} and taking expectations gives
+    Splitting $X-x=(X-\mu)+(\mu-x)$ in a rearrangement of \cref{eq:bregman} and taking expectations gives
     \begin{align}
         \E[e(X)]-e(x)
          & =
@@ -1958,7 +1962,7 @@ for the algorithm parameters, and then prove the general result.
     \begin{align}
         \lambda\normm{\mu-x}{\Sigma^{-1}}
         \sqrt{\log\frac2\beta}                \leq \frac{1}{64},
-        \label{eq:bracket-focus}
+        \ineqlabel{eq:bracket-focus}
     \end{align}
     it holds that
     \begin{align}
@@ -1968,7 +1972,7 @@ for the algorithm parameters, and then prove the general result.
         \frac1{16}\tr(\bar{H}\Sigma)
         +\frac{\lambda L\beta}{\sqrt{\pi}}
         \norm{\mu-x}\normm{\mu-x}{\Sigma^{-1}}.
-        \label{eq:bracket}
+        \ineqlabel{eq:bracket}
     \end{align}
 \end{proposition}
 
@@ -1985,11 +1989,11 @@ the focus region once the covariance is bounded by $2\sigma^2I_d$.
         \leq\frac{1+2\ell}{1000\ell^4}
         \leq\frac1{64}.
     \end{align}
-    The condition on $x$ implies \eqref{eq:bracket-focus} because
+    The condition on $x$ implies \cref{eq:bracket-focus} because
     $\log(2e^\ell)\leq2\ell$.
     Moreover, the covariance bound gives
     $\norm{\mu-x}\leq\sqrt2\,\sigma\normm{\mu-x}{\Sigma^{-1}}$.
-    Together with \eqref{eq:bracket-ell-focus}, this bounds the remainder by
+    Together with \cref{eq:bracket-ell-focus}, this bounds the remainder by
     \begin{align}
         \frac{8\lambda e^{-\ell}}{\eps\sqrt\pi}
         \norm{\mu-x}\normm{\mu-x}{\Sigma^{-1}}
@@ -2026,7 +2030,7 @@ $b$, we use the notation
     \triangleq
     \int_B
     \rho(z)b(z)^\top Q(z)b(z)\,\nu(dz).
-    \label{eq:matrix-measure-quadratic-form}
+    \eqlabel{eq:matrix-measure-quadratic-form}
 \end{align}
 In particular, this integral is nonnegative, possibly with value $+\infty$.
 
@@ -2041,7 +2045,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \int_0^1\frac1s
         \int_{\R^d}
         p_s(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})\,ds.
-        \label{eq:averaged-bregman-curvature}
+        \eqlabel{eq:averaged-bregman-curvature}
     \end{align}
 \end{lemma}
 \begin{proof}
@@ -2127,7 +2131,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
             +
             \int_{\mathcal A^c}\gamma(z)\bar{x}^\top D^2h(dz)\bar{x}
         \end{aligned}
-        \label{eq:standardized-comparator-curvature}
+        \eqlabel{eq:standardized-comparator-curvature}
     \end{align}
     In step 1, we upper bound the integral over $\mathcal A$ by the sum of expected Bregman divergence $\E[D_e(x\,\|\,X)]$ and a trace term $\tr(\bar{H}\Sigma)$.
     In step 2, we upper bound the integral over $\mathcal A^c$ by a tail term that is small under the assumptions of the proposition.
@@ -2142,11 +2146,11 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \int_0^1\frac1s
         \int_{\R^d}
         p_s(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})\,ds\,,
-        \label{eq:bregman-density}
+        \eqlabel{eq:bregman-density}
     \end{align}
     where $p_s$ denotes the density of $(1-s)\bar{x}+sZ$.
     Define the set\footnote{
-        If $\bar{x}=0$, then the left-hand side of \eqref{eq:bracket} is nonpositive, so the inequality holds trivially.
+        If $\bar{x}=0$, then the left-hand side of \cref{eq:bracket} is nonpositive, so the inequality holds trivially.
     }
     \begin{align}
         \mathcal A=\left\{z:
@@ -2157,7 +2161,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \left|\ip{\frac{\bar{x}}{\norm{\bar{x}}}}{z}\right|^2
         \leq4\log\frac{2\sqrt2}{\beta}
         \right\}.
-        \label{eq:A}
+        \eqlabel{eq:A}
     \end{align}
 
     \proofstepinline{1.1}
@@ -2170,7 +2174,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         -\frac{1-s^2}{2s^2}\norm{z}^2
         +\frac{1-s}{s^2}\ip{\bar{x}}{z}
         -\frac{(1-s)^2}{2s^2}\norm{\bar{x}}^2\,.
-        \label{eq:density-ratio}
+        \eqlabel{eq:density-ratio}
     \end{align}
     For $s\in[1-2\lambda,1]$, the assumption $\lambda\leq1/8$ implies $s\geq\frac34$, and $0\leq1-s\leq2\lambda$.
     Consequently,
@@ -2192,14 +2196,14 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq4\lambda^2.
     \end{align}
     Moreover, $-d\log s\geq0$. Therefore,
-    \eqref{eq:density-ratio} yields
+    \cref{eq:density-ratio} yields
     \begin{align}
         \log\frac{p_s(z)}{\gamma(z)}
         \geq
         -4\lambda\norm{z}^2
         -4\lambda\left|\ip{\bar{x}}{z}\right|
         -4\lambda^2\norm{\bar{x}}^2.
-        \label{eq:density-ratio-lower}
+        \ineqlabel{eq:density-ratio-lower}
     \end{align}
     Now suppose for $z\in\mathcal A$, then
     together with the assumption $\lambda\left(d+\log\frac2\beta\right)\leq \frac{1}{64}$ we have
@@ -2213,7 +2217,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         4\lambda\left(d+\log\left(\frac2\beta\right)\right)
         \leq
         \frac{1}{16}\,,
-        \label{ineq:lambda-z-squared-bound}
+        \ineqlabel{ineq:lambda-z-squared-bound}
     \end{align}
     and, again, from $z\in\mathcal A$ we get
     \begin{align}
@@ -2239,7 +2243,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     where in the penultimate inequality we used $
         \frac12\log2
         \leq \frac14\log\left(\frac{2}{\beta}\right)$ since $\beta<1/2$,
-    and in the last inequality we used \eqref{eq:bracket-focus}.
+    and in the last inequality we used \cref{eq:bracket-focus}.
     The last inequality also gives
     $\lambda^2\norm{\bar{x}}^2
         \leq
@@ -2247,7 +2251,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq
         \frac{1}{2^{12} \log4}$.
     Substituting these three bounds into
-    \eqref{eq:density-ratio-lower} gives
+    \cref{eq:density-ratio-lower} gives
     \begin{align}
         \log\frac{p_s(z)}{\gamma(z)}
         \geq
@@ -2265,7 +2269,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     $z\in\mathcal A$.
 
     \proofstepinline{1.2}
-    Since the measure integrand in \eqref{eq:bregman-density} is
+    Since the measure integrand in \cref{eq:bregman-density} is
     nonnegative, we may restrict both integrals to
     $s\in[1-2\lambda,1]$ and $z\in\mathcal A$,
     which together with $-\log(1-2\lambda)\geq2\lambda$ gives
@@ -2291,9 +2295,9 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \lambda
         \int_{\mathcal A}
         \gamma(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x}).
-        \label{eq:bregman-lower}
+        \ineqlabel{eq:bregman-lower}
     \end{align}
-    Apply \eqref{eq:matrix-measure-polar} to $D^2h$ and write
+    Apply \cref{eq:matrix-measure-polar} to $D^2h$ and write
     $\nu=\tr(D^2h)$, and $D^2h(dz)=Q(z)\nu(dz)$,
     where $Q(z)\succeq0$ and $\tr Q(z)=1$ for $\nu$-almost every $z$.
     For every positive-semidefinite matrix $G$, by the triangle inequality we have
@@ -2323,7 +2327,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \norm{z}^2\tr Q(z)
         =
         \norm{z}^2.$
-    On $\mathcal A$, \eqref{ineq:lambda-z-squared-bound} gives $\lambda\norm{z}^2\leq1/16$.
+    On $\mathcal A$, \cref{ineq:lambda-z-squared-bound} gives $\lambda\norm{z}^2\leq1/16$.
     Hence,
     \begin{align}
         \lambda
@@ -2337,7 +2341,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \int_{\R^d}\gamma(z)\tr(D^2h)(dz)
         =
         \frac1{16}\tr(\bar{H}\Sigma),
-        \label{eq:trace-upper-bound}
+        \ineqlabel{eq:trace-upper-bound}
     \end{align}
     where the last equality is followed from
     \begin{align}
@@ -2353,7 +2357,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \tr(\Sigma^{\frac12}\bar{H}\Sigma^{\frac12})
         =
         \tr(\bar{H}\Sigma).
-        \label{eq:standardized-trace-curvature}
+        \eqlabel{eq:standardized-trace-curvature}
     \end{align}
     Finally, combining \cref{eq:bregman-lower,eq:bregman-lower,eq:trace-upper-bound} we obtain
     \begin{align}
@@ -2364,7 +2368,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \E[D_h(\bar{x}\,\|\,Z)]
         +
         \frac1{16}\tr(\bar{H}\Sigma)\,,
-        \label{eq:bracket-step1}
+        \ineqlabel{eq:bracket-step1}
     \end{align}
     which concludes step 1.
 
@@ -2390,7 +2394,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
              & \leq
             \frac\beta2\gamma_{I_d+uu^\top}(z).
         \end{aligned}
-        \label{eq:directional-tail}
+        \ineqlabel{eq:directional-tail}
     \end{align}
     Since $\mathcal A^c$ is contained in the union of the two events above
     and $D^2_{\bar{x}}$ is nonnegative, integrating these inequalities gives
@@ -2403,10 +2407,10 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         +
         \int_{\R^d}\gamma_{I_d+uu^\top}(z)\,D^2_{\bar{x}}(dz)
         \right).
-        \label{eq:tail-curvature-domination}
+        \ineqlabel{eq:tail-curvature-domination}
     \end{align}
     We next bound each integral on the right-hand side of
-    \eqref{eq:tail-curvature-domination}.  Fix $V\in\{2I_d,I_d+uu^\top\}$.
+    \cref{eq:tail-curvature-domination}.  Fix $V\in\{2I_d,I_d+uu^\top\}$.
     Since $D^2_{\bar{x}}=\bar{x}^\top D^2h\,\bar{x}$, distributional integration by parts against the Schwartz function
     $\gamma_V$ gives
     \begin{align}
@@ -2421,7 +2425,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \ip{\nabla h(z)}{\bar{x}}
         \ip{V^{-1}\bar{x}}{z}
         \gamma_V(z)\,dz,
-        \label{eq:wider-gaussian-ibp}
+        \eqlabel{eq:wider-gaussian-ibp}
     \end{align}
     where we used
     $\nabla\gamma_V(z)=-V^{-1}z\,\gamma_V(z)$.
@@ -2454,7 +2458,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         L\norm{x-\mu}
         \sqrt{\frac{2}{\pi}}
         \sqrt{\bar{x}^\top V^{-1}\bar{x}}.
-        \label{eq:wider-gaussian-bound}
+        \ineqlabel{eq:wider-gaussian-bound}
     \end{align}
     For $V=2I_d$, we have
     $\bar{x}^\top V^{-1}\bar{x}=\frac12\norm{\bar{x}}^2$.
@@ -2472,28 +2476,28 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     $V\in\{2I_d,I_d+uu^\top\}$,
     we have
     $\sqrt{\bar{x}^\top V^{-1}\bar{x}} = \frac{\norm{\bar{x}}}{\sqrt2}$.
-    Substituting this into \eqref{eq:wider-gaussian-bound} gives
+    Substituting this into \cref{eq:wider-gaussian-bound} gives
     \begin{align}
         \int_{\R^d}\gamma_V(z)\,D^2_{\bar{x}}(dz)
         \leq
         \frac{L}{\sqrt\pi}
         \norm{x-\mu}\norm{\bar{x}}.
-        \label{eq:wider-gaussian}
+        \ineqlabel{eq:wider-gaussian}
     \end{align}
-    Combining \eqref{eq:tail-curvature-domination} and
-    \eqref{eq:wider-gaussian} now yields
+    Combining \cref{eq:tail-curvature-domination} and
+    \cref{eq:wider-gaussian} now yields
     \begin{align}
         \frac{\lambda}{2}\int_{\mathcal A^c}\gamma(z)\,D^2_{\bar{x}}(dz)
         \leq
         \frac{\beta L \lambda}{2\sqrt\pi}
         \norm{x-\mu}\norm{\bar{x}}.
-        \label{eq:bracket-step2}
+        \ineqlabel{eq:bracket-step2}
     \end{align}
     Finally, the definition of $\bar{x}$ gives
     $\norm{\bar{x}}^2=\normm{\mu-x}{\Sigma^{-1}}^2$,
     completing the second step.
-    Plugging \eqref{eq:bracket-step1} and \eqref{eq:bracket-step2}
-    into \eqref{eq:standardized-comparator-curvature}
+    Plugging \cref{eq:bracket-step1} and \cref{eq:bracket-step2}
+    into \cref{eq:standardized-comparator-curvature}
     completes the proof.
 \end{proof}
 
@@ -2510,13 +2514,13 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \sigma^{-1}+t\,,
         % \lambda\eta\Lip(e)
         \qquad(1\leq t\leq n\wedge\tau_{\mathrm{cov}}),
-        \label{eq:predictable-spectrum}
+        \ineqlabel{eq:predictable-spectrum}
     \end{align}
 \end{lemma}
 
 \begin{proof}[Proof of \cref{lem:predictable-spectrum}]
     Let $L=\Lip(e)$.
-    To prove \eqref{eq:predictable-spectrum}, write
+    To prove \cref{eq:predictable-spectrum}, write
     \begin{align}
         \norm{\bar{\Sigma}_{t+1}^{-1}}_{\op}
         =
@@ -2549,7 +2553,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         L \|v\|_{\Sigma_t^{-1}}
         =
         L \norm{\Sigma_t^{-1}}_{\op}^{1/2},
-        \label{eq:H-quadratic-bound}
+        \ineqlabel{eq:H-quadratic-bound}
     \end{align}
     where the inequality is by Cauchy--Schwarz and the Lipschitz property of $e$.
     Plugging this bound into the previous inequality gives
@@ -2565,9 +2569,9 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
              & \leq
             \left(\norm{\bar{\Sigma}_{t}^{-1}}_{\op}^{1/2} + \lambda\eta L\right)^2\,,
         \end{aligned}
-        \label{eq:predictable-spectrum-bound}
+        \ineqlabel{eq:predictable-spectrum-bound}
     \end{align}
-    where the second inequality uses \eqref{eq:covariance-stopping-time}.
+    where the second inequality uses \cref{eq:covariance-stopping-time}.
     Now, by taking square roots and iterating, we get
     \begin{align}
         \norm{\bar{\Sigma}_{t+1}^{-1}}_{\op}^{1/2}
@@ -2580,7 +2584,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq
         \sigma^{-1} + t\,,
     \end{align}
-    which proves \eqref{eq:predictable-spectrum}.
+    which proves \cref{eq:predictable-spectrum}.
 \end{proof}
 
 \begin{lemma}[Trace sum]
@@ -2592,7 +2596,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \eta\sum_{t=1}^u\tr(\bar H_t\Sigma_t)
         \leq2\eta\sum_{t=1}^u\tr(\bar H_t\bar\Sigma_t)
         \leq\frac{8d\log(1+n)}{\lambda}.
-        \label{eq:trace-budget}
+        \ineqlabel{eq:trace-budget}
     \end{align}
 \end{lemma}
 \begin{proof}[Proof of \cref{lem:trace}]
@@ -2602,7 +2606,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     $\Sigma_t\preceq2\bar{\Sigma}_t$.
     Since $\bar{H}_t\succeq0$, we have
     $\tr(\bar{H}_t\Sigma_t)\leq2\tr(\bar{H}_t\bar{\Sigma}_t)$,
-    which proves the first inequality in \eqref{eq:trace-budget}.
+    which proves the first inequality in \cref{eq:trace-budget}.
     To prove the second, let $L=\Lip(e)$.
     By cyclicity of the trace,
     \begin{align}
@@ -2614,11 +2618,11 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \lambda\eta\bar{\Sigma}_t^{1/2}\bar{H}_t
         \bar{\Sigma}_t^{1/2}
         \right).
-        \label{eq:normalised-trace-sum}
+        \eqlabel{eq:normalised-trace-sum}
     \end{align}
     For every $t\leq u$ and every unit vector $v$, distributional
     integration by parts, Cauchy--Schwarz, and
-    \eqref{eq:covariance-stopping-time} give
+    \cref{eq:covariance-stopping-time} give
     \begin{align}
         v^\top\bar{\Sigma}_t^{1/2}\bar{H}_t
         \bar{\Sigma}_t^{1/2}v
@@ -2631,7 +2635,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \norm{\bar{\Sigma}_t^{1/2}v}
         \leq
         \sqrt{\frac32}\,L\sigma.
-        \label{eq:normalised-H}
+        \ineqlabel{eq:normalised-H}
     \end{align}
     The last inequality uses
     $\bar{\Sigma}_t\preceq\bar{\Sigma}_1=\sigma^2I_d$.
@@ -2646,7 +2650,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         1\,.
     \end{align}
     Returning to
-    \eqref{eq:normalised-trace-sum} and applying
+    \cref{eq:normalised-trace-sum} and applying
     $s\leq2\log(1+s)$ to eigenvalues of $\lambda\eta\bar{\Sigma}_t^{1/2}\bar{H}_t\bar{\Sigma}_t^{1/2}$
     which are in $[0,1]$, we obtain
     \begin{align}
@@ -2685,7 +2689,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     where the last inequality
     uses \cref{lem:predictable-spectrum},
     $\sigma\leq1$, and $u\leq n$. Multiplying this bound by two
-    completes \eqref{eq:trace-budget}.
+    completes \cref{eq:trace-budget}.
 \end{proof}
 
 
@@ -2755,7 +2759,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     $v(\mu_t)\leq\ell$,
     \begin{align}
         \E_t[Y_t^2]\leq\frac{8\ell^2}{\eps^2}.
-        \label{eq:single-round-feedback}
+        \ineqlabel{eq:single-round-feedback}
     \end{align}
 \end{lemma}
 \begin{proof}
@@ -2774,7 +2778,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq1+\ell+2\E_t[\pi(W_t)^2]^{1/2}
         \leq\ell+7.
     \end{align}
-    The noise assumption \eqref{eq:noise} gives conditional mean zero
+    The noise assumption \cref{eq:noise} gives conditional mean zero
     and conditional second moment at most one. Since
     $Y_t=e(X_t)+r_t\xi_t$ and
     $0\leq\eps e(X_t)\leq(2+\eps)r_t\leq(5/2)r_t$,
@@ -2833,7 +2837,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     satisfying $v(\mu_t)\leq\ell$,
     \begin{align}
         \Pp_t\left(|\eps Y_t|>4\ell^{3/2}\right)\leq3e^{-\ell}.
-        \label{eq:conditional-feedback-cap}
+        \ineqlabel{eq:conditional-feedback-cap}
     \end{align}
 \end{lemma}
 \begin{proof}
@@ -2842,7 +2846,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     $\Sigma_t\preceq2\sigma^2I_d\preceq I_d$, and
     \cref{lem:gaussian-gauge-fourth-moment} gives
     $\E_t[\pi(W_t)]\leq3$. Since $\pi$ is $1$-Lipschitz,
-    Gaussian concentration and the noise assumption \eqref{eq:noise}
+    Gaussian concentration and the noise assumption \cref{eq:noise}
     imply
     \begin{align}
         \Pp_t\left(\pi(W_t)>3+2\sqrt\ell\right)\leq e^{-2\ell},
@@ -2896,7 +2900,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
 \begin{proof}
     If $R_t(x_{\circ})=0$, then $G_t(x_{\circ})=0$ and the tail term vanishes.
     Otherwise, $G_t(x_{\circ})$ is conditionally standard Gaussian.
-    The noise assumption \eqref{eq:noise} and
+    The noise assumption \cref{eq:noise} and
     $0\leq\eps e(X_t)\leq(5/2)\pi_\eps(X_t)$ give
     \begin{align}
         \E_t[Y_t^2\mid X_t]
@@ -2955,7 +2959,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \sum_{t=1}^u\E_t[Y_t^2]
         \leq4u+\frac{32\ell}{\eps}\operatorname{eReg}_{1:u}(x_\star)
         +\frac{32ue^{-\ell}}{\eps^2}.
-        \label{eq:feedback-self-bound}
+        \ineqlabel{eq:feedback-self-bound}
     \end{align}
 \end{lemma}
 \begin{proof}
@@ -2969,7 +2973,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         v(X_t)
          & \leq v(\mu_t)+\frac{\pi(W_t)}{1-\eps}
         \leq \ell+2\pi(W_t).
-        \label{eq:feedback-v-minkowski}
+        \ineqlabel{eq:feedback-v-minkowski}
     \end{align}
     The stopped covariance comparison gives
     $\Sigma_t\preceq2\sigma^2I_d\preceq I_d$, and
@@ -2980,30 +2984,30 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \Pp_t\left(\pi(W_t)>\E_t[\pi(W_t)]+s\right)
         \leq\exp\left(-\frac{s^2}{2\|\Sigma_t\|_{\op}}\right)
         \leq e^{-s^2/2}.
-        \label{eq:feedback-minkowski-tail}
+        \ineqlabel{eq:feedback-minkowski-tail}
     \end{align}
     In particular,
     \begin{align}
         \Pp_t(2\pi(W_t)>s)\leq e^{-s^2/32}
         \qquad(s\geq12).
-        \label{eq:feedback-v-tail}
+        \ineqlabel{eq:feedback-v-tail}
     \end{align}
-    Conditioning on $X_t$ first, the noise assumption \eqref{eq:noise} gives
+    Conditioning on $X_t$ first, the noise assumption \cref{eq:noise} gives
     \begin{align}
         \E_t[Y_t^2\mid X_t]
          & =e(X_t)^2+r_t^2\E_t[\xi_t^2\mid X_t]
         \leq e(X_t)^2+r_t^2.
-        \label{eq:Y2-conditional-simple}
+        \ineqlabel{eq:Y2-conditional-simple}
     \end{align}
     Using $e(X_t)\leq1+3v(X_t)/\eps$ and $r_t=1+v(X_t)$, we obtain
     \begin{align}
         \sum_{t=1}^u\E_t[Y_t^2]
         \leq4u+\frac{32}{\eps^2}
         \sum_{t=1}^u\E_t[v(X_t)^2].
-        \label{eq:feedback-start}
+        \ineqlabel{eq:feedback-start}
     \end{align}
     Set $a=16\sqrt\ell$. Splitting at $\ell+a$, and then integrating
-    \eqref{eq:feedback-v-tail}, yields
+    \cref{eq:feedback-v-tail}, yields
     \begin{align}
         \E_t[v(X_t)^2]
          & \leq(\ell+a)\E_t[v(X_t)]
@@ -3013,7 +3017,7 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         +\left(2\ell^2+2a^2+64\right)e^{-a^2/32}
         \\
          & \leq2\ell\E_t[v(X_t)]+e^{-\ell}.
-        \label{eq:feedback-v2-split}
+        \ineqlabel{eq:feedback-v2-split}
     \end{align}
     Indeed, the tail event implies $2\pi(W_t)>a$, and on that event
     $v(X_t)^2\leq2\ell^2+2(2\pi(W_t))^2$. Also $a\leq \ell$ and
@@ -3025,10 +3029,10 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         e(X_t)-e(x_\star)
          & =r_tf(A_t)-f(x_\star)+\frac2\eps v(X_t)
         \geq\frac2\eps v(X_t).
-        \label{eq:extension-violation}
+        \ineqlabel{eq:extension-violation}
     \end{align}
     Combining \cref{eq:feedback-start,eq:feedback-v2-split,eq:extension-violation}
-    proves \eqref{eq:feedback-self-bound}.
+    proves \cref{eq:feedback-self-bound}.
 
 \end{proof}
 
@@ -3039,7 +3043,7 @@ Throughout this section, $\tau$ denotes the common stopping time from
 \begin{align}
     y_t=\eps Y_t,
     \qquad N=n\eps^2=10^4d^4M^2\ell^{16}.
-    \label{eq:normalised-feedback}
+    \eqlabel{eq:normalised-feedback}
 \end{align}
 Conditionally on $\F_{t-1}$, the standardized sample
 $Z_t=\Sigma_t^{-1/2}(X_t-\mu_t)$ has law $\N(0,I_d)$.
@@ -3065,7 +3069,7 @@ before sampling the round.
     \begin{align}
         \Pp_t\left(\norm{Z_t}^2>4d\ell\right)\leq e^{-\ell}.
     \end{align}
-    Second, conditional Markov's inequality and \eqref{eq:noise} give
+    Second, conditional Markov's inequality and \cref{eq:noise} give
     \begin{align}
         \Pp_t\left(|\xi_t|>\sqrt\ell\right)
         \leq e^{-\ell}\E_t[\exp(\xi_t^2)]\leq2e^{-\ell}.
@@ -3121,7 +3125,7 @@ before sampling the round.
     Terms with $I_t=0$ are interpreted as zero.
 
     On $\mathcal E_{\mathrm{global}}$,
-    \eqref{eq:energy-sample-gauge-bound} gives
+    \cref{eq:energy-sample-gauge-bound} gives
     $\max_{1\leq t\leq n}U_t^2\leq b$ with
     $b=16\ell^3/\eps^2$. Take $z=\ell/64$. Since
     \begin{align}
@@ -3161,7 +3165,7 @@ before sampling the round.
     Thus $q_t(x_\star)^2\leq5F\ell Y_t^2$ on this cutoff.
     For the conditional second moment, use this sharper bound on
     $\{|G_t|\leq2\sqrt\ell\}$ and retain
-    \eqref{eq:quadratic-estimate-decomposition} on its complement:
+    \cref{eq:quadratic-estimate-decomposition} on its complement:
     \begin{align}
         \E_t[q_t(x_\star)^2]
         \leq5F\ell\E_t[Y_t^2]
@@ -3177,7 +3181,7 @@ before sampling the round.
          & \leq10F\ell\left(3S+\frac{4d\ell^5}{\eps^2}\right)
         +8Fe^{-\ell/16}                                       \\
          & \leq48F\ell\left(S+\frac{d\ell^5}{\eps^2}\right).
-        \label{eq:quadratic-sharp-variance}
+        \ineqlabel{eq:quadratic-sharp-variance}
     \end{align}
     The last inequality uses $d\ell^5/\eps^2\geq1$ and $\ell\geq640$.
 
@@ -3208,7 +3212,7 @@ before sampling the round.
     on $\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_Y
         \cap\mathcal E_q^c$, take $m=\tau-1$.
     The retained sums coincide with the original sums through $\tau-1$,
-    and \eqref{eq:quadratic-sharp-variance} bounds their combined
+    and \cref{eq:quadratic-sharp-variance} bounds their combined
     second moments by $v$. Therefore this event has probability at most
     $2n\exp(-\ell^2/96)$.
 
@@ -3222,6 +3226,95 @@ before sampling the round.
     Here $\log n\leq\ell/128$ and $\ell\geq640$ imply
     $ne^{-\ell^2/96}\leq e^{-\ell/64}$, while
     $4e^{-\ell/64}=4(\delta/(128nd))^2\leq\delta/8$.
+\end{proof}
+
+\begin{proof}[Proof of \cref{lem:local-quadratic-concentration}]
+    Fix the deterministic interval $[s,u]$. For $s\leq t\leq u$, let
+    \begin{align}
+        I_t=\1\left\{t\leq\tau,\ \tilde R_t^2\leq F_L,
+        \ v(\mu_t)\leq\ell\right\},
+        \qquad U_t=I_t\tilde D_t,
+    \end{align}
+    interpreting all retained quantities as zero when $\tau<s$ or
+    $t>\tau$. Since $\mu_s$ is $\F_{s-1}$-measurable, $I_t$ is
+    predictable and $(U_t)_{t=s}^u$ is a martingale-difference sequence.
+    Moreover, $I_t=1$ for every $s\leq t<\tilde\tau$. If
+    $\tilde\tau\leq s$, the local event holds vacuously.
+
+    On each retained round, \cref{lem:single-round-feedback} gives
+    $\E_t[Y_t^2]\leq8\ell^2/\eps^2$. Thus
+    \begin{align}
+        \sum_{t=s}^u\E_t[(I_tY_t)^2]
+        \leq\frac{8L\ell^2}{\eps^2}.
+    \end{align}
+    On $\mathcal E_{\mathrm{global}}$, the calculation in
+    \cref{eq:energy-sample-gauge-bound} also gives
+    $|I_tY_t|\leq4\ell^{3/2}/\eps$.
+    Apply \cref{lem:freedman-nonnegative} to $(I_tY_t)_{t=s}^u$
+    with $b=16\ell^3/\eps^2$, moment budget $8L\ell^2/\eps^2$,
+    and $z=\ell/64$. Since $4bz=\ell^4/\eps^2\leq4d\ell^5/\eps^2$,
+    outside an event whose intersection with $\mathcal E_{\mathrm{global}}$
+    has probability at most $2e^{-\ell/64}$, we have
+    \begin{align}
+        \sum_{t=s}^u I_tY_t^2
+        \leq\frac{16L\ell^2}{\eps^2}
+        +\frac{4d\ell^5}{\eps^2}.
+    \end{align}
+
+    On a retained round with $\tilde R_t>0$, define
+    \begin{align}
+        \tilde G_t
+        =\ip{\Sigma_t^{-1/2}(\mu_s-\mu_t)/\tilde R_t}{Z_t},
+    \end{align}
+    and set $\tilde G_t=0$ otherwise. Its direction is predictable,
+    so a conditional Gaussian tail bound and a union bound show that
+    $|\tilde G_t|\leq2\sqrt\ell$ on every retained round except on
+    an event of probability at most $2Le^{-2\ell}$.
+    Since $F_L\leq1/(128^2\lambda^2\ell)$, the same calculation as
+    in the proof of \cref{lem:quadratic-concentration} gives
+    \begin{align}
+        q_t(\mu_s)^2\leq5F_L\ell Y_t^2
+    \end{align}
+    on these rounds. The conditional tail estimate in
+    \cref{lem:weighted-gaussian-tail} applies to $\mu_s$ as well:
+    its proof only requires the comparator to be
+    $\F_{t-1}$-measurable. Consequently, on the intersection of the
+    preceding events and $\mathcal E_{\mathrm{global}}$,
+    \begin{align}
+        \sum_{t=s}^u\left(U_t^2+\E_t[U_t^2]\right)
+        &\leq10F_L\ell\sum_{t=s}^u
+        I_t\left(Y_t^2+\E_t[Y_t^2]\right)+8F_Le^{-\ell/16}
+        \\
+        &\leq48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
+        +\frac{d\ell^5}{\eps^2}\right).
+    \end{align}
+    This also bounds the combined second moments of every prefix.
+
+    Apply \cref{lem:self-normalised-martingale} to $(U_t)_{t=s}^j$
+    for each deterministic $s\leq j\leq u$, with
+    \begin{align}
+        z=\sqrt{F_L\ell^3\left(\frac{8L\ell^2}{\eps^2}
+        +\frac{d\ell^5}{\eps^2}\right)},
+        \qquad
+        v=48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
+        +\frac{d\ell^5}{\eps^2}\right).
+    \end{align}
+    A union bound over the $L$ prefixes gives probability at most
+    $2Le^{-\ell^2/96}$. For $j<\tilde\tau$, their sums coincide
+    with $\sum_{t=s}^j\tilde D_t$. Combining the three failure
+    probabilities therefore yields
+    \begin{align}
+        \Pp\left(\mathcal E_{\mathrm{global}}\cap
+        \mathcal E_{q,\mathrm{loc}}^c\right)
+        &\leq2e^{-\ell/64}+2Le^{-2\ell}+2Le^{-\ell^2/96}
+        \\
+        &\leq6e^{-\ell/64}
+        =6\left(\frac{\delta}{128nd}\right)^2
+        \leq\frac{\delta}{8n^2}.
+    \end{align}
+    Here we used $L\leq n$, $\log n\leq\ell/128$, and
+    $\ell\geq640$. A union bound over at most $n^2$ short intervals
+    proves the final assertion.
 \end{proof}
 
 The following two-sided form of Freedman's inequality follows from
@@ -3253,14 +3346,14 @@ negative.
     \begin{align}
         \E_t[y_t^2(G_t^2+1)^2]
         \leq25\ell^2\E_t[y_t^2]+e^{-\ell/4}.
-        \label{eq:H-score-second-moment}
+        \ineqlabel{eq:H-score-second-moment}
     \end{align}
 \end{lemma}
 \begin{proof}
     Write $r_t=\pi_\eps(X_t)$.
     On $\mathcal A_t=\{|G_t|\leq2\sqrt\ell\}$, we have
     $(G_t^2+1)^2\leq25\ell^2$. Thus it suffices to bound the integral on
-    $\overline{\mathcal A_t}$. The noise assumption \eqref{eq:noise} and
+    $\overline{\mathcal A_t}$. The noise assumption \cref{eq:noise} and
     $0\leq\eps e(X_t)\leq(5/2)r_t$ give
     $\E_t[y_t^2\mid X_t]\leq7r_t^2$. Consequently,
     \begin{align}
@@ -3294,7 +3387,7 @@ negative.
 We will truncate only in the proof, never in the algorithm. Define
 \begin{align}
     C_t=\{|y_t|\leq4\ell^{3/2},\ \norm{Z_t}^2\leq3(d+\ell)\}.
-    \label{eq:common-truncation}
+    \eqlabel{eq:common-truncation}
 \end{align}
 On a round $t\leq n\wedge\tau$ satisfying $v(\mu_t)\leq\ell$,
 \cref{lem:conditional-feedback-cap} and the
@@ -3310,7 +3403,7 @@ The following chi-square upper-tail inequality follows from
         \right)
         \leq
         \exp(-x).
-        \label{eq:chi-square-upper-tail}
+        \ineqlabel{eq:chi-square-upper-tail}
     \end{align}
 \end{lemma}
 
@@ -3320,7 +3413,7 @@ satisfy, for every $z>0$,
 \begin{align}
     \Pp\left(\left|\sum_tD_t\right|>\sqrt{2wz}+2bz\right)
     \leq2e^{-z}.
-    \label{eq:freedman-convenient}
+    \ineqlabel{eq:freedman-convenient}
 \end{align}
 The bounds $b$ and $w$ are deterministic; the Hessian argument below
 handles random directional scales by truncating at deterministic
@@ -3346,7 +3439,7 @@ dyadic levels.
         -100\ell^{3/2}\sqrt{dn}\,\bar{\Sigma}_{\tau+1}^{-1}
         \preceq\sum_{t=1}^{\tau}(H_t-\bar{H}_t)
         \preceq100\ell^{3/2}\sqrt{dn}\,\bar{\Sigma}_{\tau+1}^{-1}.
-        \label{eq:H-concentration}
+        \ineqlabel{eq:H-concentration}
     \end{align}
 \end{lemma}
 \begin{proof}
@@ -3357,7 +3450,7 @@ dyadic levels.
         t\leq\tau,\quad v(\mu_t)\leq\ell,\quad
         \sum_{i=1}^t\E_i[Y_i^2]\leq16n
         \right\},\qquad 1\leq t\leq n.
-        \label{eq:H-predictable-cutoffs}
+        \eqlabel{eq:H-predictable-cutoffs}
     \end{align}
     All three conditions are $\F_{t-1}$-measurable. Quantities multiplied
     by $I_t$ are interpreted as zero when $I_t=0$, so no sample after
@@ -3365,7 +3458,7 @@ dyadic levels.
     second moments gives, on every path,
     \begin{align}
         \sum_{t=1}^n I_t\E_t[y_t^2]\leq16N.
-        \label{eq:H-retained-moment-budget}
+        \ineqlabel{eq:H-retained-moment-budget}
     \end{align}
     Under the hypotheses of the lemma, $I_t=1$ for every $t\leq\tau$.
     It therefore suffices to control
@@ -3378,7 +3471,7 @@ dyadic levels.
     $t\leq n\wedge\tau$. By \cref{lem:chi-square-upper-tail}, this
     extra Gaussian event fails with probability at most $ne^{-\ell}$.
     On $\mathcal E_{\mathrm{global}}$, the shell cutoff and the
-    calculation in \eqref{eq:energy-sample-gauge-bound} give
+    calculation in \cref{eq:energy-sample-gauge-bound} give
     $|y_t|\leq4\ell^{3/2}$ whenever $I_t=1$, including at $t=\tau$.
     Thus $C_t$ holds on every retained round if this extra Gaussian
     event also holds.
@@ -3389,7 +3482,7 @@ dyadic levels.
     \begin{align}
         \log|\mathcal U|
         \leq d\log(1+1024dn^2)\leq\frac{d\ell}{64}.
-        \label{eq:H-net-size}
+        \ineqlabel{eq:H-net-size}
     \end{align}
     For $u\in\mathcal U$ and $t\leq n\wedge\tau$, define
     \begin{align}
@@ -3397,20 +3490,20 @@ dyadic levels.
         \qquad
         G_{t,u}=
         \ip{\Sigma_t^{-1/2}u/\sqrt{a_{t,u}}}{Z_t}.
-        \label{eq:H-standardisation}
+        \eqlabel{eq:H-standardisation}
     \end{align}
     Then
     \begin{align}
         \eps u^\top H_tu
         =a_{t,u}y_t(G_{t,u}^2-1).
-        \label{eq:H-direction}
+        \eqlabel{eq:H-direction}
     \end{align}
     By covariance comparison and \cref{lem:predictable-spectrum},
     \begin{align}
         1\leq a_{t,u}\leq12dn^2,
         \qquad
         \kappa(A)\leq3dn^2.
-        \label{eq:concentration-spectrum}
+        \ineqlabel{eq:concentration-spectrum}
     \end{align}
     These comparisons hold also at $t=\tau$, since the covariance
     stopping rule tests $\Sigma_{t+1}^{-1}$. To verify the bounds, use
@@ -3426,27 +3519,27 @@ dyadic levels.
 
     Set $J=\lceil\log_2(12dn^2)\rceil$ and $b_j=2^j$ for
     $0\leq j\leq J$. For a fixed $(u,j)$, truncate the score in
-    \eqref{eq:H-direction} on $C_t$, center it, and multiply by
+    \cref{eq:H-direction} on $C_t$, center it, and multiply by
     the predictable indicator $I_t\1\{a_{t,u}\leq b_j\}$.
     Since $\norm{Z_t}^2+1\leq4d\ell$ on $C_t$, these centered increments
     have absolute value at most $32b_jd\ell^{5/2}$.
     By \cref{lem:gaussian-score-localisation} and
-    \eqref{eq:H-retained-moment-budget}, their total conditional
+    \cref{eq:H-retained-moment-budget}, their total conditional
     variance is at most
     \begin{align}
         b_j^2\sum_{t=1}^n I_t
         \left(25\ell^2\E_t[y_t^2]+e^{-\ell/4}\right)
         \leq401b_j^2N\ell^2\leq426b_j^2N\ell^2.
-        \label{eq:H-directional-predictable}
+        \ineqlabel{eq:H-directional-predictable}
     \end{align}
-    Apply \eqref{eq:freedman-convenient} with $z=d\ell/16$. The resulting
+    Apply \cref{eq:freedman-convenient} with $z=d\ell/16$. The resulting
     bound is
     \begin{align}
         b_j\left(
         \sqrt{\frac{426}{8}}\sqrt{dN}\,\ell^{3/2}
         +4d^2\ell^{7/2}\right)
         \leq8b_j\sqrt{dN}\,\ell^{3/2}.
-        \label{eq:H-peeled-bound}
+        \ineqlabel{eq:H-peeled-bound}
     \end{align}
     For the last inequality, divide the second term by
     $b_j\sqrt{dN}\ell^{3/2}$ and use
@@ -3480,12 +3573,12 @@ dyadic levels.
     no directional summand is removed and
     $b_j\leq2a_u^\star\leq3u^\top Au$. Hence, on
     $\mathcal E_{\mathrm{global}}$, the extra Gaussian event, and all
-    the Freedman events used in \eqref{eq:H-peeled-bound}, we obtain
+    the Freedman events used in \cref{eq:H-peeled-bound}, we obtain
     \begin{align}
         |u^\top Tu|
         \leq30\sqrt{dN}\,\ell^{3/2}u^\top Au
         \qquad(u\in\mathcal U).
-        \label{eq:H-net}
+        \ineqlabel{eq:H-net}
     \end{align}
     The dyadic level is selected only after applying the inequalities
     simultaneously to all deterministic levels.
@@ -3493,7 +3586,7 @@ dyadic levels.
     To pass from the net to all directions, write
     $r=(512dn^2)^{-1}$ and $c=30\sqrt{dN}\ell^{3/2}$.
     For any unit vector $w$, choose $u\in\mathcal U$ with
-    $\norm{w-u}\leq r$. First \eqref{eq:H-net} implies
+    $\norm{w-u}\leq r$. First \cref{eq:H-net} implies
     $\|T\|_{\op}\leq2c\|A\|_{\op}$, since $2r\leq1/2$.
     Applying the approximation once more gives
     \begin{align}
@@ -3506,11 +3599,11 @@ dyadic levels.
         \preceq100\sqrt{dN}\ell^{3/2}A$. Under the hypotheses of the
     lemma, the retained sum equals the sum through $\tau$ and
     $A=\bar{\Sigma}_{\tau+1}^{-1}$. Dividing by $\eps$ proves
-    \eqref{eq:H-concentration}.
+    \cref{eq:H-concentration}.
 
     Define $\mathcal E_H$ as the intersection of the extra Gaussian
     event and all the Freedman events for $(u,j)\in\mathcal U\times
-        \{0,\ldots,J\}$. By \eqref{eq:H-net-size} and
+        \{0,\ldots,J\}$. By \cref{eq:H-net-size} and
     $\log(J+1)\leq\ell/128$, its failure probability is at most
     \begin{align}
         ne^{-\ell}+2|\mathcal U|(J+1)e^{-d\ell/16}
@@ -3529,7 +3622,7 @@ dyadic levels.
         A_r=\frac1r\sum_{j=u-r+1}^{u}a_j,
         \qquad 1\leq r\leq\min\{k,u\}.
     \end{align}
-    The window assumption \eqref{eq:sequence-window-average} bounds
+    The window assumption \cref{eq:sequence-window-average} bounds
     $A_{\min\{k,u\}}$, while $A_1=a_u$ is the quantity we want to control.
 
     Removing $a_{u-r}$ from a window of length $r+1$ changes its average by
@@ -3539,7 +3632,7 @@ dyadic levels.
         \sum_{j=u-r+1}^{u}(a_j-a_{u-r}).
     \end{align}
     The sum is unchanged if we include its zero summand at $j=u-r$.
-    We may therefore apply \eqref{eq:sequence-local-average} to
+    We may therefore apply \cref{eq:sequence-local-average} to
     $[u-r,u]$, whose length is $r+1\leq k$, to obtain
     \begin{align}
         A_r-A_{r+1}
