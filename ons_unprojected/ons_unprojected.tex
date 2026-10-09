@@ -6,6 +6,8 @@
 \usepackage{times}
 \usepackage{mathtools}
 \usepackage{microtype}
+\usepackage{tikz}
+\usepackage{wrapfig}
 \setlength{\marginparwidth}{1in}
 \setlength{\marginparsep}{0.15in}
 \usepackage{todonotes}
@@ -144,8 +146,8 @@ a feedback-moment budget through extension regret.
 The paper is organized as follows.  \Cref{sec:setting} introduces the problem,
 the extension and the algorithm.
 The stability and regret analysis, including the trace, moment and
-concentration estimates, appears in \cref{sec:stability}, with the
-supporting proofs deferred to the appendices.
+concentration estimates, appears in Appendix~\ref{sec:stability}, with the
+supporting proofs in the remaining appendices.
 
 \section{Problem formulation and algorithm}
 \label{sec:setting}
@@ -182,15 +184,14 @@ The only geometric quantity in the result is
     \eqlabel{eq:M}
 \end{align}
 The rounding  $\mathbb{B}_1\subseteq\K$ implies that $\pi$ is $1$-Lipschitz.
-Write $\gamma_{\mu,\Sigma}$ for the density of
+Write $\gamma_{\mu,\Sigma}$ for the density of the multivariate normal distribution
 $\N(\mu,\Sigma)$, for $\mu\in\R^d$ and $\Sigma\in\R^{d\times d}$ symmetric positive semidefinite.
-
 We write $Dh$ and $D^2h$ for the first and second distributional derivatives of $h$;
 see Appendix~\ref{app:distributional-derivatives} for their definitions.
 
-\subsection{A queryable convex extension}
-
-Fix $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
+The loss function $f$ has the restriction of being only defined on the convex body $\K$.
+To overcome this limitation, we construct a queryable convex extension of $f$ to the entire space $\R^d$.
+For some $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
 \begin{align}
     \pi_\eps(x)
      & =\max\left\{1,\frac{\pi(x)}{1-\eps}\right\}
@@ -201,13 +202,13 @@ Fix $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
     \quad\text{and}\quad v(x)=\pi_\eps(x)-1\,.
     \eqlabel{eq:extension-notation}
 \end{align}
-We use the queryable extension from
+Then, we use the queryable extension from
 \citet[Eq.~(10.6)]{lattimore2026bandit} which is defined for all $x\in\R^d$ by
 \begin{align}
     e(x)
     =\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
     +\frac{2}{\eps}v(x)\,,
-    \quad\text{and satisfies}
+    \quad\text{and satisfies }\,\,
     \Lip(e)\leq\frac{8}{\eps}\,.
     \label{eq:extension-lipschitz}
 \end{align}
@@ -397,135 +398,709 @@ then completing the square gives the equivalent forms
     \cref{eq:main-regret}.
 \end{proof}
 
-\section{Regret switching}
-\label{sec:analysis}
-We fix a time step $t$ and drop the subscript $t$ from the remaining notation in this subsection.
-The proof rests on relating the regret of the quadratic surrogate $\bar{q}$ to the regret of the original loss $e$.
-For a convex Lipschitz function $e$, and a differentiable point $z$, the Bregman divergence is
+\section{Idealized Behavior}
+We will now describe the idealized behavior of the algorithm, assuming access to exact expectations rather than noisy observations as we discuss later.
+The purpose of this chapter is to provide intuition about both the behavior of the algorithm and the structure of the regret analysis.
+The formal proof is presented in Appendix~\ref{sec:stability}, where we rigorously handle the noisy observations and establish the regret bounds.
+
+First, we argue that we should think of $e$ as the primary loss function and control the regret with respect to $e$.
+The key observation is that, for every comparator $x\in\K$,
 \begin{align}
-    D_e(x\,\|\,z)
-    =e(x)-e(z)-\ip{\nabla e(z)}{x-z}.
-    \eqlabel{eq:bregman}
+    f(A_t)-f(x)
+    \leq e(X_t)-e((1-\eps)x)+\eps.
+\end{align}
+Thus controlling regret for $e$ against the contracted comparator controls
+the original regret, with an additional cost of at most $n\eps \leq 100 d^2 M \ell^8 \sqrt{n}$ when $\eps=\eps_0$.\footnote{
+    For $\eps_0>1/2$ the regret bound is immediate as explained in the main proof.
+}
+We therefore work directly with $e$ as the loss and $Y$ as its noisy
+observation, satisfying $\E[Y\mid X]=e(X)$.
+
+\subsection{Single Point Second Order Approximation}
+Learning $e$ from noisy observations $(X_t,Y_t)$ is challenging, especially
+because the space of convex functions is infinite dimensional. This is
+quite different from linear bandits, where we only need to estimate a
+finite-dimensional loss vector, which can be easily estimated, for example through least squares.
+What is possible to estimate is a local quadratic approximation to a smoothed version of $e$ around the mean $\mu_t$ of the Gaussian distribution as we explain next.
+
+For a covariance matrix $\Sigma_t$, define the \textit{Gaussian-smoothing} of $e$ around $\mu_t$ as
+\begin{align}
+    F_{\Sigma_t}(y)
+    =\E[e(y+Z)],\qquad Z\sim\N(0,\Sigma_t).
+\end{align}
+Note that $F_{\Sigma_t}(\mu_t)$ is the expected loss the algorithm actually incurs when it samples $X_t \sim \N(\mu_t, \Sigma_t)$.
+Therefore, the regret in round $t$ can be expressed as\footnote{Recall that $x_\star = \argmin_{x \in \mathcal{K}_\eps}e(x)$.}
+\begin{align}
+    \E_t[e(X_t)]-e(x_\star)
+    = F_{\Sigma_t}(\mu_t) - e(x_\star).
+\end{align}
+It's also worth mentioning that $F_{\Sigma_t}$ is infinitely differentiable and by Jensen's inequality upper bounds the original function $e$ uniformly, i.e., $F_{\Sigma_t}(y) \ge e(y)$ for all $y \in \R^d$.
+
+In round $t$, the algorithm samples $X_t \sim \N(\mu_t, \Sigma_t)$, and it is easy to see that the loss $Y_t$ it observes
+is an unbiased estimate of the Gaussian-smoothed loss $F_{\Sigma_t}(\mu_t)$, i.e.,
+\begin{align}
+    \E_t[Y_t] = \E_t[\E_t[Y_t\mid X_t]] = F_{\Sigma_t}(\mu_t)\,.
+\end{align}
+However, the algorithm can do more than just estimate the Gaussian-smoothed loss at the mean; it can also estimate
+the first and the second derivatives of $F_{\Sigma_t}$ at $\mu_t$.
+To see this, let's start with the gradient first as
+\begin{align}
+    \nabla F_{\Sigma_t}(\mu_t) & = \E_t[\nabla e(X_t)] = \int_{\R^d} \nabla e(x) \gamma_{\mu_t,\Sigma_t}(x) \, dx
+    = -\int_{\R^d} e(x) \nabla \gamma_{\mu_t, \Sigma_t}(x) \, dx                                                  \\
+                               & = \E_t\!\left[\Sigma_t^{-1}(X_t-\mu_t)e(X_t)\right]
+    = \E_t\!\left[\Sigma_t^{-1}(X_t-\mu_t)Y_t\right]
+    \,,
+\end{align}
+where the third inequality follows from integration by parts and the fact that the Gaussian density vanishes at infinity, so we can drop
+the boundary terms, and the final inequality follows from $E_t[Y_t\mid X_t] = e(X_t)$.
+Note that this provides $\Sigma_t^{-1}(X_t-\mu_t)e(X_t)$ as an unbiased estimator of the gradient $\nabla F_{\Sigma_t}(\mu_t)$.
+Similarly, one can obtain an unbiased estimator of the Hessian $\nabla^2 F_{\Sigma_t}(\mu_t)$ as
+\begin{align}
+    \nabla^2 F_{\Sigma_t}(\mu_t) = \E_t\!\left[\left(\Sigma_t^{-1}(X_t-\mu_t)(X_t-\mu_t)^\top \Sigma_t^{-1} - \Sigma_t^{-1}\right) Y_t\right]\,.
+\end{align}
+Let $g_t = Y_t\Sigma_t^{-1}(X_t-\mu_t)$ and $H_t = Y_t \Sigma_t^{-1}\left((X_t-\mu_t)(X_t-\mu_t)^\top- \Sigma_t\right) \Sigma_t^{-1}$.
+Let $\lambda>0$ be a scaling parameter for the quadratic term, whose purpose will be clarified later, and define
+\begin{align}
+    q_t^\lambda(x) = Y_t + \ip{g_t}{x-\mu_t} + \frac\lambda2 (x-\mu_t)^\top H_t (x-\mu_t)\,,
+\end{align}
+which is an unbiased estimator of the second-order Taylor expansion of $F_{\Sigma_t}$ around $\mu_t$ as
+\begin{align}
+    \bar{q}_t^\lambda(x) : = F_{\Sigma_t}(\mu_t) + \ip{\nabla F_{\Sigma_t}(\mu_t)}{x-\mu_t} + \frac\lambda2 \|(x-\mu_t)\|_{\nabla^2 F_{\Sigma_t}(\mu_t)}^2 \, = \E_t[q_t(x)].
 \end{align}
 
-\begin{corollary}[Regret switching]
-    \label{cor:regret-switch}
-    For
-    $\bar{q}(x)=\ip{\bar{g}}{x-\mu}+\frac\lambda2\normm{x-\mu}{\bar{H}}^2$,
+\begin{figure}[!t]
+    \centering
+    \begingroup
+    \definecolor{onsloss}{HTML}{46515B}
+    \definecolor{onssmooth}{HTML}{147D92}
+    \definecolor{onsquad}{HTML}{C46A29}
+    % Exact example: e(x)=|x|+0.35x, slopes -0.65 and 1.35, Sigma_t=9/4, mu_t=0.7.
+    % The wider Gaussian keeps the smoothing visibly above the loss.
+    \def\onsSmoothCoordinates{%
+        (-2.200,1.52482059)
+        (-2.150,1.49967445)
+        (-2.100,1.47500443)
+        (-2.050,1.45083354)
+        (-2.000,1.42718535)
+        (-1.950,1.40408389)
+        (-1.900,1.38155369)
+        (-1.850,1.35961973)
+        (-1.800,1.33830735)
+        (-1.750,1.31764229)
+        (-1.700,1.29765058)
+        (-1.650,1.27835853)
+        (-1.600,1.25979267)
+        (-1.550,1.24197969)
+        (-1.500,1.22494641)
+        (-1.450,1.20871970)
+        (-1.400,1.19332643)
+        (-1.350,1.17879341)
+        (-1.300,1.16514733)
+        (-1.250,1.15241467)
+        (-1.200,1.14062170)
+        (-1.150,1.12979434)
+        (-1.100,1.11995812)
+        (-1.050,1.11113813)
+        (-1.000,1.10335894)
+        (-0.950,1.09664452)
+        (-0.900,1.09101820)
+        (-0.850,1.08650255)
+        (-0.800,1.08311939)
+        (-0.750,1.08088967)
+        (-0.700,1.07983342)
+        (-0.650,1.07996969)
+        (-0.600,1.08131651)
+        (-0.550,1.08389080)
+        (-0.500,1.08770834)
+        (-0.450,1.09278373)
+        (-0.400,1.09913030)
+        (-0.350,1.10676011)
+        (-0.300,1.11568391)
+        (-0.250,1.12591106)
+        (-0.200,1.13744957)
+        (-0.150,1.15030599)
+        (-0.100,1.16448547)
+        (-0.050,1.17999168)
+        (0.000,1.19682684)
+        (0.050,1.21499168)
+        (0.100,1.23448547)
+        (0.150,1.25530599)
+        (0.200,1.27744957)
+        (0.250,1.30091106)
+        (0.300,1.32568391)
+        (0.350,1.35176011)
+        (0.400,1.37913030)
+        (0.450,1.40778373)
+        (0.500,1.43770834)
+        (0.550,1.46889080)
+        (0.600,1.50131651)
+        (0.650,1.53496969)
+        (0.700,1.56983342)
+        (0.750,1.60588967)
+        (0.800,1.64311939)
+        (0.850,1.68150255)
+        (0.900,1.72101820)
+        (0.950,1.76164452)
+        (1.000,1.80335894)
+        (1.050,1.84613813)
+        (1.100,1.88995812)
+        (1.150,1.93479434)
+        (1.200,1.98062170)
+        (1.250,2.02741467)
+        (1.300,2.07514733)
+        (1.350,2.12379341)
+        (1.400,2.17332643)
+        (1.450,2.22371970)
+        (1.500,2.27494641)
+        (1.550,2.32697969)
+        (1.600,2.37979267)
+        (1.650,2.43335853)
+        (1.700,2.48765058)
+        (1.750,2.54264229)
+        (1.800,2.59830735)
+        (1.850,2.65461973)
+        (1.900,2.71155369)
+        (1.950,2.76908389)
+        (2.000,2.82718535)
+        (2.050,2.88583354)
+        (2.100,2.94500443)
+        (2.150,3.00467445)
+        (2.200,3.06482059)
+    }
+    % Left panel.
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \begin{tikzpicture}[
+                x=1.34cm,y=1.00cm,
+                line cap=round,line join=round,
+                every node/.style={font=\footnotesize}]
+            % A compact legend: distinct widths and dashes remain legible at contact.
+            \draw[onsloss,line width=0.9pt] (-2.12,3.65) -- (-1.72,3.65);
+            \node[anchor=west,text=onsloss] at (-1.65,3.65) {$e$};
+            \draw[onssmooth,line width=1.5pt] (-0.48,3.65) -- (-0.08,3.65);
+            \node[anchor=west,text=onssmooth] at (-0.01,3.65) {$F_{\Sigma_t}$};
+            \draw[onsquad,line width=0.9pt,dash pattern=on 3pt off 2.5pt]
+            (1.25,3.65) -- (1.65,3.65);
+            \node[anchor=west,text=onsquad] at (1.72,3.65) {$\bar q_t^1$};
+
+            \draw[black!35,line width=0.5pt,->] (-2.43,0) -- (2.48,0)
+            node[right,text=black!70] {$x$};
+            \draw[black!35,line width=0.5pt] (0,0.035) -- (0,-0.035);
+            \node[below=5pt,text=black!70] at (0,0) {$0$};
+            \draw[black!35,line width=0.5pt] (0.7,0.035) -- (0.7,-0.035);
+            \node[below=5pt,text=black!70] at (0.7,0) {$\mu_t$};
+
+            % Jensen's gap, with one copy of the smoothing data shared by fill and line.
+            \path[fill=onssmooth!7] plot[smooth] coordinates {\onsSmoothCoordinates}
+            -- (2.2,2.97) -- (0,0) -- (-2.2,1.43) -- cycle;
+            \draw[onsloss,line width=0.9pt] (-2.2,1.43) -- (0,0) -- (2.2,2.97);
+            \draw[onssmooth,line width=1.5pt]
+            plot[smooth] coordinates {\onsSmoothCoordinates};
+            \draw[onsquad,line width=0.9pt,dash pattern=on 3pt off 2.5pt,
+                domain=-2.2:2.2,samples=101]
+            plot (\x,{1.5698334202+0.7092616182*(\x-0.7)+0.2385222861*(\x-0.7)^2});
+
+            \draw[black!35,line width=0.5pt,densely dashed]
+            (0.7,0.09) -- (0.7,1.5028334202);
+            \draw[black!40,line width=0.5pt] (0.65,1.6898334202) -- (0.2,2.31);
+            \node[align=center,text=black!75,font=\scriptsize] at (-0.1,2.64)
+            {Same value, slope,\\and curvature at $\mu_t$};
+            \fill[white] (0.7,1.5698334202) circle[radius=2.7pt];
+            \fill[black!70] (0.7,1.5698334202) circle[radius=1.6pt];
+        \end{tikzpicture}
+    \end{minipage}\hfill
+    % Right panel: shrinking and recentering the focus region in two dimensions.
+    \begin{minipage}[t]{0.48\linewidth}
+        \centering
+        \begin{tikzpicture}[
+                x=1cm,y=1cm,
+                line cap=round,line join=round,
+                every node/.style={font=\footnotesize}]
+            \draw[onssmooth,line width=1pt,dash pattern=on 4pt off 2.5pt]
+            (-2.60,3.65) -- (-2.08,3.65);
+            \node[anchor=west,text=onssmooth] at (-1.98,3.65) {Round $t$};
+            \draw[onsquad,line width=1.3pt] (0.10,3.65) -- (0.62,3.65);
+            \node[anchor=west,text=onsquad] at (0.72,3.65) {Round $t+1$};
+
+            \draw[black!25,line width=0.5pt,->] (-3.38,0) -- (2.48,0)
+            node[right,text=black!60] {$x_1$};
+            \draw[black!25,line width=0.5pt,->] (-3.38,0) -- (-3.38,3.20)
+            node[above,text=black!60] {$x_2$};
+
+            % Both ellipses have principal axes rotated by 20 degrees.
+            % Squared semiaxes decrease from (6.5025,1.5625) to (2.1025,0.5184),
+            % so their shape matrices satisfy strict Loewner shrinkage.
+            \path[fill=onssmooth!6,rotate around={20:(-0.7,1.8)}]
+            (-0.7,1.8) ellipse[x radius=2.55cm,y radius=1.25cm];
+            \path[fill=onsquad!11,rotate around={20:(0.85,2.2)}]
+            (0.85,2.2) ellipse[x radius=1.45cm,y radius=0.72cm];
+            % Draw both boundaries after the fills so neither outline is obscured.
+            \draw[onssmooth,line width=1pt,dash pattern=on 4pt off 2.5pt,
+                rotate around={20:(-0.7,1.8)}]
+            (-0.7,1.8) ellipse[x radius=2.55cm,y radius=1.25cm];
+            \draw[onsquad,line width=1.3pt,rotate around={20:(0.85,2.2)}]
+            (0.85,2.2) ellipse[x radius=1.45cm,y radius=0.72cm];
+
+            \draw[black!65,line width=0.8pt,->,shorten <=4pt,shorten >=5pt]
+            (-0.7,1.8) -- (0.85,2.2);
+            % node[midway,above=5pt,sloped,font=\scriptsize] {mean update};
+            \fill[onssmooth] (-0.7,1.8) circle[radius=2pt];
+            \node[below=5pt,text=onssmooth] at (-0.7,1.8) {$\mu_t$};
+            \fill[onsquad] (0.85,2.2) circle[radius=2pt];
+            \node[below=5pt,text=onsquad] at (0.85,2.2) {$\mu_{t+1}$};
+
+            % x_star lies inside both ellipses, but outside the smaller ellipse
+            % if it were kept at the old mean: normalized squared radius 2.208.
+            \fill[white] (1.35,2.25) circle[radius=3pt];
+            \fill[black!80] (1.35,2.25) circle[radius=1.9pt];
+            \node[above=6pt,text=black!80] at (1.35,2.25) {$x_\star$};
+            \node[text=black!70] at (-0.35,-0.30) {$\Sigma_{t+1}\preceq\Sigma_t$};
+        \end{tikzpicture}
+    \end{minipage}
+    \endgroup
+    \caption{Left: The loss function $e(x)=|x|+0.35x$, its Gaussian smoothing with
+        $\Sigma_t=9/4$, and the second-order Taylor polynomial $\bar q$ at $\mu_t=0.7$.
+        Right: successive focus regions in two dimensions. The covariance shrinks,
+        while the mean moves so that $x_\star$ remains in both regions.
+    }
+    \label{fig:gaussian-quadratic}
+\end{figure}
+\FloatBarrier
+
+\subsection{The focus region}
+At this point, it is unclear if this quadratic approximation is a good surrogate for regret minimization.
+The following theorem provides a connection between the regret of the quadratic surrogate and the regret of the original loss.\alireza{Consider adding the proof of this in the main text.}
+\begin{lemma}[Regret switching]
+    \label{lem:regret-switch-main}
+    Let $\bar{H}_t = \E_t[H_t]$.
+    Then for any $x_0 \in \R^d$, we have
     \begin{align}
-        \E[e(X)]-e(x)
+        F_{\Sigma_t}(\mu_t) - e(x_0)
         =
-        \bigl(\bar{q}(\mu) - \bar{q}(x)\bigr)
-        +\tr(\bar{H}\Sigma)
-        +\frac\lambda2\normm{x-\mu}{\bar{H}}^2
-        -\E[D_e(x\,\|\,X)].
+        \bigl(\bar{q}_t^\lambda(\mu_t) - \bar{q}_t^\lambda(x_0)\bigr)
+        +\tr(\bar{H}_t\Sigma_t)
+        +\frac\lambda2\normm{x_0-\mu_t}{\bar{H}_t}^2
+        -\E_t[D_e(x_0\,\|\,X_t)].
         \eqlabel{eq:q-regret-switch}
     \end{align}
-\end{corollary}
-This identity follows from \cref{lem:regret-switch} in Appendix~\ref{app:regret-switch} and the definition of $\bar{q}$.
-To transfer a bound on quadratic regret to the expected loss regret
-$\E[e(X)]-e(x)$, it remains to upper bound
-$\lambda\normm{\mu-x}{\bar{H}}^2/2-\E[D_e(x\,\|\,X)]$.
-The following corollary controls this difference on the focus region.
-It is obtained from the general comparison in \cref{prop:bracket} using the parameters in \cref{thm:main}.
-The general result and this specialization are proved in Appendix~\ref{app:bracket}.
-
+\end{lemma}
+Let us emphasize that this lemma provides a direct link between the regret of the quadratic surrogate and the regret of the original loss,
+as the term on the LHS $F_{\Sigma_t}(\mu_t) - e(x_0)$ represents the conditional expected regret against the original loss function $e$ and
+the term on the RHS $\bigl(\bar{q}_t^\lambda(\mu_t) - \bar{q}_t^\lambda(x_0)\bigr)$ represents the regret of the quadratic surrogate.
+However, there are other terms on the RHS.
+We deal with the trace term later and for now we focus on the remaining terms.
+The next corollary shows as long as the comparator point $x_\star$ lies within a certain ellipsoid centered around the current mean $\mu_t$, which is referred to as the \textit{focus region}, the remaining terms on the RHS of \eqref{eq:q-regret-switch} are well controlled.
 \begin{corollary}[Curvature comparison]
     \label{cor:bracket-ell}
     % Let $\ell$, $\lambda$ and $\sigma$ be as in \cref{thm:main}, and let $\eps>0$.
-    Let $e:\R^d\to\R$ be convex and
-    $(8/\eps)$-Lipschitz, and let $X\sim\N(\mu,\Sigma)$ with
-    $0\prec\Sigma\preceq2\sigma^2I_d$.
-    For every $x\in\R^d$ satisfying
+    Suppose that $0\prec\Sigma_t\preceq2\sigma^2I_d$.
+    Then for every $x_0\in\R^d$ satisfying
     \begin{align}
-        \frac12\normm{\mu-x}{\Sigma^{-1}}^2
+        \frac12\normm{\mu_t-x_0}{\Sigma_t^{-1}}^2
         \leq\frac{1}{128^2\lambda^2\ell},
         \ineqlabel{eq:bracket-ell-focus}
     \end{align}
     it holds that
     \begin{align}
-        \frac\lambda2\normm{\mu-x}{\bar{H}}^2
-        -\E[D_e(x\,\|\,X)]
-        \leq\frac1{16}\tr(\bar{H}\Sigma)
+        \frac\lambda2\normm{\mu_t-x_0}{\bar{H}_t}^2
+        -\E_t[D_e(x_0\,\|\,X_t)]
+        \leq\tr(\bar{H}_t\Sigma_t)
         +\frac{n^{-8}}{\eps}.
         \ineqlabel{eq:bracket-ell}
     \end{align}
 \end{corollary}
+Corollary~\ref{cor:bracket-ell} is obtained from the general comparison in \cref{prop:bracket} in Appendix~\ref{app:bracket} using the parameters in \cref{thm:main}.
 
-Together, \cref{cor:regret-switch,cor:bracket-ell} bound convex regret by
-quadratic regret, a trace term, and a negligible error, provided the comparator
-stays in the focus ellipsoid. Restoring the time indices, if
-$0\prec\Sigma_t\preceq2\sigma^2I_d$ and
-$\frac12\normm{\mu_t-x}{\Sigma_t^{-1}}^2\leq\frac{1}{128^2\lambda^2\ell}$, then
+The implication here is that as long as the comparator point $x_\star$ lies withing the focus region, we have the following upper bound on the conditional expected regret
 \begin{align}
-    \E_t[e(X_t)]-e(x)
-    \leq \bar{q}_t(\mu_t)-\bar{q}_t(x)
-    +\frac{17}{16}\tr(\bar{H}_t\Sigma_t)
-    +\frac{n^{-8}}{\eps}.
-    \ineqlabel{eq:time-indexed-regret-switch}
+    \sum_{t=1}^n \E_t[e(X_t) - e(x_\star)]
+    \leq
+    \sum_{t=1}^n (\bar{q}_t^\lambda(\mu_t) - \bar{q}_t^\lambda(x_\star))
+    + 2 \sum_{t=1}^n \tr(\bar{H}_t\Sigma_t)
+    +\frac{n^{-7}}{\eps}.
 \end{align}
+It is not trivial to ensure that the comparator point $x_\star$ always lies within the focus region.
+More precisely, if we again consider the idealized scenario where $q_t$ perfectly matches $\bar{q}_t$,
+and so $H_t = \bar{H}_t$,  the update to the covariance matrix $\Sigma_{t+1} = \Sigma_t + \lambda \eta \bar{H}_t$,
+would shrink the size of the focus region in each round as $\bar{H}_t = \nabla^2 F_{\Sigma_t}(\mu_t)$ is a psd matrix by the convexity
+of $F_{\Sigma_t}$.
+Therefore, the tracking of the comparator point $x_\star$ within the focus region becomes challenging as the focus region shrinks over time.
+Note that the choice of $\lambda$ directly controls the shrinkage rate of the focus region.
+We will show later that the Online Newton Step update rule can maintain this invariant throughout the rounds, where this would be crucial to choose $\lambda < 1$ appropriately.
 
-\section{Population-level Analysis}
-\label{sec:proof-sketch}
-Let's first worry about the expected convex regret of the extension,
-even though this is not quite our final target. Let $x_\star$ minimize
-$f$ on $\K_\eps$, and imagine that, in every round:
-\begin{center}
-    \textcolor{blue!55!black}{\textbf{(1)}} We observe $\bar{g}_t,\bar{H}_t$ exactly
-    \qquad
-    \textcolor{blue!55!black}{\textbf{(2)}}
-    $\normm{\mu_t-x_\star}{\bar{\Sigma}_t^{-1}}<\sqrt{2B}$.
-\end{center}
+\subsection{Online Newton Step}
+If we forget about the estimation error and suppose that $q_t$ perfectly matches $\bar{q}_t$ in an idealized setting,
+then the Online Newton Step (ONS) algorithm is corresponding to choosing a distribution $p_{t+1}$ in round $t+1$ which is
+the \textit{contineouous exponential weights} applied to the history of quadratic losses $(q_i)_{i\in[t]}$:
+\begin{align}
+    p_{t+1}(x) \propto \exp\Bigl(-\eta \sum_{i=1}^t q_i(x) - \|x\|^2_{\Sigma_1} \Bigr)\,.
+\end{align}
+This is a Gaussian distribution since the exponent is a quadratic function of $x$.
+Next, we show that the Online Newton Step update rule controls both: the regret of the quadratic surrogate losses and the tracking of the comparator point within the shrinking focus region.
+Just from the definition of $\bar{q}_t^\lambda$ and the Online Newton Step update rule, we have
+\begin{align}
+    \frac12\normm{\mu_{t+1}-x_\star}{\Sigma_{t+1}^{-1}}^2
+     & =\frac12\normm{\mu_t-x_\star-\eta\Sigma_{t+1}g_t}
+    {\Sigma_{t+1}^{-1}}^2                                                   \\
+     & =\frac12\normm{\mu_t-x_\star}{\Sigma_{t+1}^{-1}}^2
+    +\eta\ip{g_t}{x_\star-\mu_t}
+    +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2                            \\
+     & =\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
+    +\frac{\lambda\eta}{2}(\mu_t-x_\star)^\top H_t (\mu_t-x_\star)\nonumber \\
+     & \quad +\eta\ip{g_t}{x_\star-\mu_t}
+    +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2                            \\
+     & =\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
+    +\eta\bigl(q_t^\lambda(x_\star)-q_t^\lambda(\mu_t)\bigr)
+    +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2.
+\end{align}
+By telescoping the above identity over $t$, we obtain
+\begin{align}
+    \sum_{t=1}^n
+    \bigl(\bar{q}_t^\lambda(\mu_t) - \bar{q}_t^\lambda(x_\star)\bigr)
+     & =
+    \frac{\norm{x_\star - \mu_1}_{\Sigma_1^{-1}}^2 - \norm{x_\star - \mu_{n+1}}_{\Sigma_{n+1}^{-1}}^2}{2\eta}
+    +\frac\eta2\sum_{t=1}^n\normm{g_t}{\Sigma_{t+1}}^2.
+    \eqlabel{eq:population-ons-regret}
+\end{align}
+Next, we show why the sum including the gradient norms $\sum_{t=1}^n\normm{g_t}{\Sigma_{t+1}}^2$ is controlled, under this idealized setting.
+\subsection{The Decrease in the expected loss}
+\begin{wrapfigure}{r}{0.40\textwidth}
+    \vspace{-6pt}
+    \centering
+    \definecolor{onspotentialold}{HTML}{147D92}
+    \definecolor{onspotentialnew}{HTML}{C46A29}
+    \definecolor{onspotentialloss}{HTML}{46515B}
+    % Exact Gaussian smoothings of e(y)=|y|+0.35y:
+    % Sigma_t=9/4 and Sigma_{t+1}=9/25. Reverse the second path for the fill.
+    \def\onsWideCoordinates{%
+        (-1.8,1.3383074)
+        (-1.7,1.2976506)
+        (-1.6,1.2597927)
+        (-1.5,1.2249464)
+        (-1.4,1.1933264)
+        (-1.3,1.1651473)
+        (-1.2,1.1406217)
+        (-1.1,1.1199581)
+        (-1.0,1.1033589)
+        (-0.9,1.0910182)
+        (-0.8,1.0831194)
+        (-0.7,1.0798334)
+        (-0.6,1.0813165)
+        (-0.5,1.0877083)
+        (-0.4,1.0991303)
+        (-0.3,1.1156839)
+        (-0.2,1.1374496)
+        (-0.1,1.1644855)
+        (0.0,1.1968268)
+        (0.1,1.2344855)
+        (0.2,1.2774496)
+        (0.3,1.3256839)
+        (0.4,1.3791303)
+        (0.5,1.4377083)
+        (0.6,1.5013165)
+        (0.7,1.5698334)
+        (0.8,1.6431194)
+        (0.9,1.7210182)
+        (1.0,1.8033589)
+        (1.1,1.8899581)
+        (1.2,1.9806217)
+        (1.3,2.0751473)
+        (1.4,2.1733264)
+        (1.5,2.2749464)
+        (1.6,2.3797927)
+        (1.7,2.4876506)
+        (1.8,2.5983074)
+    }
+    \def\onsNarrowCoordinates{%
+        (1.8,2.4304586)
+        (1.7,2.2958162)
+        (1.6,2.1614180)
+        (1.5,2.0274050)
+        (1.4,1.8939833)
+        (1.3,1.7614448)
+        (1.2,1.6301888)
+        (1.1,1.5007451)
+        (1.0,1.3737919)
+        (0.9,1.2501682)
+        (0.8,1.1308741)
+        (0.7,1.0170569)
+        (0.6,0.9099786)
+        (0.5,0.8109659)
+        (0.4,0.7213436)
+        (0.3,0.6423559)
+        (0.2,0.5750833)
+        (0.1,0.5203644)
+        (0.0,0.4787307)
+        (-0.1,0.4503644)
+        (-0.2,0.4350833)
+        (-0.3,0.4323559)
+        (-0.4,0.4413436)
+        (-0.5,0.4609659)
+        (-0.6,0.4899786)
+        (-0.7,0.5270569)
+        (-0.8,0.5708741)
+        (-0.9,0.6201682)
+        (-1.0,0.6737919)
+        (-1.1,0.7307451)
+        (-1.2,0.7901888)
+        (-1.3,0.8514448)
+        (-1.4,0.9139833)
+        (-1.5,0.9774050)
+        (-1.6,1.0414180)
+        (-1.7,1.1058162)
+        (-1.8,1.1704586)
+    }
+    \begin{tikzpicture}[
+            x=1.30cm,y=0.88cm,
+            line cap=round,line join=round,
+            every node/.style={font=\footnotesize}]
+        \draw[onspotentialold,line width=1.2pt] (-1.65,3.10) -- (-1.30,3.10);
+        \node[anchor=west,text=onspotentialold] at (-1.23,3.10) {$F_{\Sigma_t}$};
+        \draw[onspotentialnew,line width=1.2pt] (0.14,3.10) -- (0.49,3.10);
+        \node[anchor=west,text=onspotentialnew] at (0.56,3.10) {$F_{\Sigma_{t+1}}$};
 
-With these two conveniences, \cref{eq:time-indexed-regret-switch}
-already gets us started:
-\begin{align}
-    \operatorname{eReg}_n \triangleq \sum_{t=1}^n\bigl(\E_t[e(X_t)]-e(x_\star)\bigr)
-     & \leq\sum_{t=1}^n\bigl(\bar{q}_t(\mu_t)-\bar{q}_t(x_\star)\bigr)
-    +\frac{17}{16}\sum_{t=1}^n\tr(\bar{H}_t\bar{\Sigma}_t)+\frac{n^{-7}}\eps.
-\end{align}
+        \draw[black!30,line width=0.5pt,->] (-1.98,0) -- (1.97,0)
+        node[right,text=black!65] {$y$};
+        \draw[black!30,line width=0.5pt] (0,0.035) -- (0,-0.035);
+        \node[anchor=north west,xshift=3pt,yshift=-3pt,text=onspotentialloss]
+        at (0,0) {$x_\star$};
 
-We have traded a general convex loss for quadratic losses, which makes
-life easier. The catch is that $\bar{q}_t$ now changes from round to round,
-even though $e$ is fixed. Thankfully, this is where ONS shines: its
-regret identity works even for adversarial sequences of quadratics.
-Starting from $\mu_1=0$ and $\bar{\Sigma}_1=\sigma^2I_d$, apply ONS to $\bar{q}_t$:
-\begin{align}
-    \bar{\Sigma}_{t+1}^{-1}
-    =\bar{\Sigma}_t^{-1}+\lambda\eta \bar{H}_t,\qquad
-    \mu_{t+1}
-    =\argmin_{x\in\R^d}
-    \left\{\frac12\normm{x-\mu_t}{\bar{\Sigma}_t^{-1}}^2+\eta \bar{q}_t(x)\right\}
-    =\mu_t-\eta\bar{\Sigma}_{t+1}\bar{g}_t.
-\end{align}
-To see what this buys us, track the squared distance to $x_\star$.
-Expanding the update, substituting the covariance update, and then
-recognizing $\bar{q}_t$ gives
-\begin{align}
-    \frac12\normm{\mu_{t+1}-x_\star}{\bar{\Sigma}_{t+1}^{-1}}^2
-     & =\frac12\normm{\mu_t-x_\star-\eta\bar{\Sigma}_{t+1}\bar{g}_t}
-    {\bar{\Sigma}_{t+1}^{-1}}^2                                      \\
-     & =\frac12\normm{\mu_t-x_\star}{\bar{\Sigma}_{t+1}^{-1}}^2
-    +\eta\ip{\bar{g}_t}{x_\star-\mu_t}
-    +\frac{\eta^2}{2}\normm{\bar{g}_t}{\bar{\Sigma}_{t+1}}^2         \\
-     & =\frac12\normm{\mu_t-x_\star}{\bar{\Sigma}_t^{-1}}^2
-    +\frac{\lambda\eta}{2}\normm{\mu_t-x_\star}{\bar{H}_t}^2
-    +\eta\ip{\bar{g}_t}{x_\star-\mu_t}
-    +\frac{\eta^2}{2}\normm{\bar{g}_t}{\bar{\Sigma}_{t+1}}^2         \\
-     & =\frac12\normm{\mu_t-x_\star}{\bar{\Sigma}_t^{-1}}^2
-    +\eta\bigl(\bar{q}_t(x_\star)-\bar{q}_t(\mu_t)\bigr)
-    +\frac{\eta^2}{2}\normm{\bar{g}_t}{\bar{\Sigma}_{t+1}}^2.
-    \eqlabel{eq:ons-regret-identity}
-\end{align}
-Rearrange to isolate $\bar{q}_t(\mu_t)-\bar{q}_t(x_\star)$ and sum over $t$.
-The successive squared distances telescope; dropping the negative
-final-distance term leaves exactly the quadratic-regret bound we need:
-\begin{align}
-    \sum_{t=1}^n\bigl(\bar{q}_t(\mu_t)-\bar{q}_t(x_\star)\bigr)
-    \leq\frac{\normm{\mu_1-x_\star}{\bar{\Sigma}_1^{-1}}^2}{2\eta}
-    +\frac\eta2\sum_{t=1}^n\normm{\bar{g}_t}{\bar{\Sigma}_{t+1}}^2.
-\end{align}
+        \path[fill=onspotentialold!9]
+        plot[smooth] coordinates {\onsWideCoordinates}
+        -- plot[smooth] coordinates {\onsNarrowCoordinates} -- cycle;
+        \draw[onspotentialloss,line width=0.8pt,dash pattern=on 2.5pt off 2pt]
+        (-1.8,1.17) -- (0,0) -- (1.8,2.43);
+        \fill[onspotentialloss] (0,0) circle[radius=1.6pt];
+        \node[text=onspotentialloss] at (-1.55,0.59) {$e$};
+        \draw[onspotentialold,line width=1.2pt]
+        plot[smooth] coordinates {\onsWideCoordinates};
+        \draw[onspotentialnew,line width=1.2pt]
+        plot[smooth] coordinates {\onsNarrowCoordinates};
+        % Compare the losses at the same points, independently of the mean update.
+        \draw[black!45,line width=0.65pt,->,shorten <=2pt,shorten >=3pt]
+        (0,1.1968268) -- (0,0.4787307);
+        \draw[black!45,line width=0.65pt,->,shorten <=2pt,shorten >=3pt]
+        (1,1.8033589) -- (1,1.3737919);
+        % Exact illustrative ONS step: mu_t=-0.35 -> mu_{t+1}=-1,
+        % lambda=0.4131848102, eta=10.9095313965, x_star=0.
+        % Distance increases from 0.35 to 1, while expected regret
+        % decreases from 1.1067601104 to 0.6737918620 (e(x_star)=0).
+        \draw[onspotentialold!45,line width=0.5pt,densely dotted]
+        (-0.35,0.04) -- (-0.35,1.1067601);
+        \draw[onspotentialnew!55,line width=0.5pt,densely dotted]
+        (-1,0.04) -- (-1,0.6737919);
+        % The arrow connects the two rounds' expected losses.
+        \draw[black!60,line width=0.7pt,->,shorten <=4pt,shorten >=4pt]
+        (-0.35,1.1067601) -- (-1,0.6737919);
+        \fill[white] (-0.35,1.1067601) circle[radius=2.8pt];
+        \fill[onspotentialold] (-0.35,1.1067601) circle[radius=1.8pt];
+        \fill[white] (-1,0.6737919) circle[radius=2.8pt];
+        \fill[onspotentialnew] (-1,0.6737919) circle[radius=1.8pt];
+        \draw[onspotentialold,line width=0.6pt] (-0.35,0.035) -- (-0.35,-0.035);
+        \draw[onspotentialnew,line width=0.6pt] (-1,0.035) -- (-1,-0.035);
+        \node[below=5pt,text=onspotentialold] at (-0.35,0) {$\mu_t$};
+        \node[below=5pt,text=onspotentialnew] at (-1,0) {$\mu_{t+1}$};
+    \end{tikzpicture}
+    \caption{The expected regret decreases even if $\mu_t$ gets further from $x_\star$.}
+    \label{fig:covariance-smoothing-decrease}
+    \vspace{-4pt}
+\end{wrapfigure}
+To control the sum of gradient norms, we use the expected loss $F_{\Sigma_t}(\mu_t)$ as a second potential.
+We continue in the idealized setting, where $g_t=\bar g_t=\nabla F_{\Sigma_t}(\mu_t)$ and $H_t=\bar H_t\succeq0$.
+% We will show that each update decreases this potential by at least $\eta\normm{g_t}{\Sigma_{t+1}}^2/2$.
+First, shrinking the covariance can only decrease the expected loss at a fixed mean.
+Indeed, the update $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\lambda\eta\bar H_t$ gives
+$\Sigma_{t+1}\preceq\Sigma_t\preceq\sigma^2I_d$.
+% A Gaussian with covariance $\Sigma_t$ can be obtained by adding independent, centered Gaussian noise to one with covariance $\Sigma_{t+1}$.
+Convexity of $e$ and Jensen's inequality therefore give
+$F_{\Sigma_{t+1}}(y)\leq F_{\Sigma_t}(y)$ for every $y\in\R^d$.
 
+It remains to check that moving the mean also decreases the potential.
+The mean moves in a descent direction, but the step must be small enough to avoid overshooting.
+Gaussian integration by parts and the Lipschitz property of $e$ give the uniform curvature bound
+\begin{align}
+    \nabla^2F_{\Sigma_t}(y)
+    \preceq\sigma\Lip(e)\,\Sigma_t^{-1}
+    \qquad\text{for every }y\in\R^d,
+    \label{eq:population-loss-curvature}
+\end{align}
+where we used $\Sigma_t\preceq\sigma^2I_d$.
+For the parameter choices in \cref{thm:main}, the step size satisfies
+\begin{align}
+    \eta\sigma\Lip(e)
+    \leq\frac{8\eta\sigma}{\eps}
+    =\frac{16\sigma}{25d\ell^8}
+    \leq1.
+\end{align}
+Applying the curvature bound to the mean update $\mu_{t+1}=\mu_t-\eta\Sigma_{t+1}g_t$, we obtain
+\begin{align}
+    F_{\Sigma_{t+1}}(\mu_{t+1})
+     & \leq F_{\Sigma_t}(\mu_{t+1})
+    \leq F_{\Sigma_t}(\mu_t)
+    -\eta\normm{g_t}{\Sigma_{t+1}}^2
+    +\frac{\eta^2\sigma\Lip(e)}2
+    g_t^\top\Sigma_{t+1}\Sigma_t^{-1}\Sigma_{t+1}g_t\nonumber \\
+     & \leq F_{\Sigma_t}(\mu_t)
+    -\frac\eta2\normm{g_t}{\Sigma_{t+1}}^2,
+    \ineqlabel{eq:population-loss-descent}
+\end{align}
+where the last inequality uses
+$\Sigma_{t+1}\Sigma_t^{-1}\Sigma_{t+1}\preceq\Sigma_{t+1}$ and the step-size bound above.
+Telescoping now bounds the gradient term in the ONS regret inequality by the total decrease in expected loss:
+\begin{align}
+    \frac\eta2\sum_{t=1}^n\normm{g_t}{\Sigma_{t+1}}^2
+     & \leq F_{\Sigma_1}(\mu_1)
+    -F_{\Sigma_{n+1}}(\mu_{n+1}).
+    \ineqlabel{eq:population-gradient-budget}
+\end{align}
+It's also worth mentioning that \cref{eq:population-loss-descent} also shows that the expected regret $\E_{t+1}[e(X_t)]=F_{\Sigma_{t+1}}(\mu_{t+1})$ in round $t+1$ is never greater than that in round $t$, i.e., $\E_{t+1}[e(X_{t+1})] \leq \E_{t}[e(X_{t})]$, which implies that the expected loss is non-increasing over time.
+
+\subsection{The Trace Term}
+It remains to control $\sum_{t=1}^n\tr(\bar H_t\Sigma_t)$, which appears in the regret-switching bound.
+For the quadratic surrogate, this trace measures the extra expected loss caused by sampling around the mean:
+\begin{align}
+    \E_t[\bar q_t^\lambda(X_t)]-\bar q_t^\lambda(\mu_t)
+    =\frac\lambda2\tr(\bar H_t\Sigma_t).
+\end{align}
+Large curvature in a direction with large sampling variance makes this term large.
+The covariance update responds by reducing the variance in that direction.
+We use this reduction to control the accumulated trace cost through the potential $\log\det(\Sigma_t^{-1})$.
+In the idealized setting, the covariance update gives
+\begin{align}
+    \log\frac{\det(\Sigma_{t+1}^{-1})}{\det(\Sigma_t^{-1})}
+    =\log\det\!\left(I_d+\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}\right).
+\end{align}
+The curvature bound from \cref{eq:population-loss-curvature} in the preceding subsection ensures that
+\begin{align}
+    0\preceq\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}
+    \preceq\lambda\eta\sigma\Lip(e)I_d
+    \preceq I_d,
+\end{align}
+and thus the relative change is small in every direction, i.e.
+the eigenvalues of $\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}$ are all in $[0,1]$.
+Applying $s\leq2\log(1+s)$ to these eigenvalues, yields
+\begin{align}
+    \tr(\lambda\eta \bar H_t\Sigma_t)
+    \leq2
+    \log\det\!\left(I_d+\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}\right)
+    =2
+    \left(\log\det(\Sigma_{t+1}^{-1})-\log\det(\Sigma_t^{-1})\right).
+\end{align}
+Telescoping bounds the total trace cost by the logarithm of the total covariance shrinkage:
+\begin{align}
+    \sum_{t=1}^n\tr(\bar H_t\Sigma_t)
+     & \leq\frac{2}{\lambda\eta}
+    \log\frac{\det(\Sigma_1)}{\det(\Sigma_{n+1})}
+    \leq\frac{4d}{\lambda\eta}\log(1+n).
+    \ineqlabel{eq:population-trace-budget}
+\end{align}
+For the last inequality, \cref{lem:predictable-spectrum} gives
+$\|\Sigma_{n+1}^{-1}\|_{\op}^{1/2}\leq\sigma^{-1}+n$, since the predictable covariance agrees with $\Sigma_t$ in the idealized setting.
+Together with $\Sigma_1=\sigma^2I_d$ and $\sigma\leq1$, this bounds the determinant ratio by $(1+n)^{2d}$.
+% Appendix~\ref{app:trace} establishes the corresponding trace bound in the presence of estimation error.
+
+\subsection{The Regret Bound}
+We can now combine the preceding bounds to control regret in the idealized setting.
+For now, suppose that $x_\star$ remains in the focus region in every round, so that the regret-switching bound applies throughout.
+The ONS identity controls the quadratic regret by the initial distance to $x_\star$ and the sum of gradient norms.
+The decrease in expected loss controls the gradient sum, while the log-determinant potential controls the trace sum.
+Combining \cref{eq:population-ons-regret,eq:population-gradient-budget,eq:population-trace-budget} and dropping the nonnegative terminal-distance term gives
+\begin{align}
+    \sum_{t=1}^n\E_t[e(X_t)-e(x_\star)]
+     & \leq\frac{\normm{x_\star-\mu_1}{\Sigma_1^{-1}}^2}{2\eta}
+    +F_{\Sigma_1}(\mu_1)
+    % -F_{\Sigma_{n+1}}(\mu_{n+1})
+    +\frac{8d\ell}{\lambda\eta}
+    +1.
+    \ineqlabel{eq:population-regret-bound}
+\end{align}
+The initialization $\mu_1=0$, $\Sigma_1=\sigma^2I_d$ and the containment $x_\star\in\K_\eps\subseteq\mathbb B_{2d}$ give
+\begin{align}
+    \frac{\normm{x_\star-\mu_1}{\Sigma_1^{-1}}^2}{2\eta}
+    \leq\frac{2d^2}{\eta\sigma^2}.
+\end{align}
+For the expected-loss potential, the initial sample $X_1\sim\N(0,\sigma^2I_d)$ is spread around the origin, where $e(0)=f(0)\leq1$.
+Lipschitz property of $e$ bounds the extra loss from sampling away from the origin by $(8/\eps)\norm{X_1}$, so
+\begin{align}
+    F_{\Sigma_1}(0)
+     & =\E[e(X_1)]
+    \leq e(0)+\frac8\eps\E[\norm{X_1}]
+    \leq1+\frac8\eps\sqrt{\E[\norm{X_1}^2]}
+    =1+\frac{8\sigma\sqrt d}{\eps},
+\end{align}
+where we used Cauchy--Schwarz and $\E[\norm{X_1}^2]=\tr(\Sigma_1)=d\sigma^2$.
+Returning to the original loss adds at most $n\eps$.
+Combining \cref{eq:population-regret-bound} with the two initialization bounds gives
+\begin{align}
+    \E[\operatorname{Reg}_n]
+          & \leq n\eps+\sum_{t=1}^n\E[e(X_t)-e(x_\star)]
+    \leq n\eps+\frac{2d^2}{\eta\sigma^2}
+    +\frac{8\sigma\sqrt d}{\eps}
+    +\frac{8d\ell}{\lambda\eta}+2                        \\
+    \quad & =O\!\left(d^2M\ell^8\sqrt n\right)
+    =\widetilde O\!\left(d^2M\sqrt n\right)\,,
+    \ineqlabel{eq:population-original-regret}
+\end{align}
+which proves the intended regret bound.
+% The only remaining task is to ensure that the focus region is maintained and that the estimation error from noisy observations is properly controlled, as discussed in Appendix~\ref{sec:stability}.
+% where the last line substitutes the parameters from \cref{thm:main}, with $\eps=\eps_0\leq1/2$.
+% This bound is conditional on maintaining the focus region; Appendix~\ref{sec:stability} handles this tracking requirement together with the estimation error from noisy observations.
+
+\newpage
+\begin{thebibliography}{9}
+    \raggedright
+
+    \bibitem[Bercu et al.(2015)Bercu, Delyon, and Rio]{bercu2015concentration}
+    Bernard Bercu, Bernard Delyon, and Emmanuel Rio.
+    \newblock \emph{Concentration Inequalities for Sums and Martingales}.
+    \newblock SpringerBriefs in Mathematics. Springer, Cham, 2015.
+    \newblock \href{https://doi.org/10.1007/978-3-319-22099-4}
+    {doi:10.1007/978-3-319-22099-4}.
+
+    \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
+    Lawrence C. Evans and Ronald F. Gariepy.
+    \newblock \emph{Measure Theory and Fine Properties of Functions}.
+    \newblock Revised edition, CRC Press, 2015.
+
+    \bibitem[Fokkema et al.(2024)Fokkema, van der Hoeven, Lattimore, and Mayo]{fokkema2024online}
+    Hidde Fokkema, Dirk van der Hoeven, Tor Lattimore, and Jack J. Mayo.
+    \newblock Online Newton method for bandit convex optimisation: Extended abstract.
+    \newblock In \emph{Proceedings of the 37th Conference on Learning Theory},
+    volume 247 of \emph{Proceedings of Machine Learning Research}, pages
+    1713--1714, 2024.
+    \newblock Full version: \href{https://arxiv.org/abs/2406.06506}{arXiv:2406.06506}.
+
+    \bibitem[Lattimore(2026)]{lattimore2026bandit}
+    Tor Lattimore.
+    \newblock \emph{Bandit Convex Optimisation}.
+    \newblock Cambridge University Press, 2026.
+    \newblock \href{https://doi.org/10.1017/9781009607551}{doi:10.1017/9781009607551}.
+
+    \bibitem[Lattimore and Gy\"orgy(2023)]{lattimore2023second}
+    Tor Lattimore and Andr\'as Gy\"orgy.
+    \newblock A second-order method for stochastic bandit convex optimisation.
+    \newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
+    volume 195 of \emph{Proceedings of Machine Learning Research}, pages
+    2067--2094, 2023.
+
+    \bibitem[Laurent and Massart(2000)]{laurent2000adaptive}
+    B\'eatrice Laurent and Pascal Massart.
+    \newblock Adaptive estimation of a quadratic functional by model selection.
+    \newblock \emph{The Annals of Statistics}, 28(5):1302--1338, 2000.
+    \newblock \href{https://doi.org/10.1214/aos/1015957395}
+    {doi:10.1214/aos/1015957395}.
+
+    \bibitem[Vershynin(2018)]{vershynin2018high}
+    Roman Vershynin.
+    \newblock \emph{High-Dimensional Probability: An Introduction with
+        Applications in Data Science}.
+    \newblock Cambridge University Press, 2018.
+
+
+\end{thebibliography}
+
+\newpage
+\appendix
 \section{Stability and regret}
 \label{sec:stability}
 \label{sec:stochastic-control}
@@ -1692,71 +2267,6 @@ Together with Steps~7--9, all four stopping times are strictly greater
 than $\tau$, contradicting its definition as their minimum.
 Therefore $\tau=n+1$ on the intersection of the events used above.
 
-
-
-
-
-
-
-
-
-
-
-\newpage
-\begin{thebibliography}{9}
-    \raggedright
-
-    \bibitem[Bercu et al.(2015)Bercu, Delyon, and Rio]{bercu2015concentration}
-    Bernard Bercu, Bernard Delyon, and Emmanuel Rio.
-    \newblock \emph{Concentration Inequalities for Sums and Martingales}.
-    \newblock SpringerBriefs in Mathematics. Springer, Cham, 2015.
-    \newblock \href{https://doi.org/10.1007/978-3-319-22099-4}
-    {doi:10.1007/978-3-319-22099-4}.
-
-    \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
-    Lawrence C. Evans and Ronald F. Gariepy.
-    \newblock \emph{Measure Theory and Fine Properties of Functions}.
-    \newblock Revised edition, CRC Press, 2015.
-
-    \bibitem[Fokkema et al.(2024)Fokkema, van der Hoeven, Lattimore, and Mayo]{fokkema2024online}
-    Hidde Fokkema, Dirk van der Hoeven, Tor Lattimore, and Jack J. Mayo.
-    \newblock Online Newton method for bandit convex optimisation: Extended abstract.
-    \newblock In \emph{Proceedings of the 37th Conference on Learning Theory},
-    volume 247 of \emph{Proceedings of Machine Learning Research}, pages
-    1713--1714, 2024.
-    \newblock Full version: \href{https://arxiv.org/abs/2406.06506}{arXiv:2406.06506}.
-
-    \bibitem[Lattimore(2026)]{lattimore2026bandit}
-    Tor Lattimore.
-    \newblock \emph{Bandit Convex Optimisation}.
-    \newblock Cambridge University Press, 2026.
-    \newblock \href{https://doi.org/10.1017/9781009607551}{doi:10.1017/9781009607551}.
-
-    \bibitem[Lattimore and Gy\"orgy(2023)]{lattimore2023second}
-    Tor Lattimore and Andr\'as Gy\"orgy.
-    \newblock A second-order method for stochastic bandit convex optimisation.
-    \newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
-    volume 195 of \emph{Proceedings of Machine Learning Research}, pages
-    2067--2094, 2023.
-
-    \bibitem[Laurent and Massart(2000)]{laurent2000adaptive}
-    B\'eatrice Laurent and Pascal Massart.
-    \newblock Adaptive estimation of a quadratic functional by model selection.
-    \newblock \emph{The Annals of Statistics}, 28(5):1302--1338, 2000.
-    \newblock \href{https://doi.org/10.1214/aos/1015957395}
-    {doi:10.1214/aos/1015957395}.
-
-    \bibitem[Vershynin(2018)]{vershynin2018high}
-    Roman Vershynin.
-    \newblock \emph{High-Dimensional Probability: An Introduction with
-        Applications in Data Science}.
-    \newblock Cambridge University Press, 2018.
-
-
-\end{thebibliography}
-
-\newpage
-\appendix
 \section{Properties of the convex extension}
 \label{app:extension}
 \begin{lemma}[{\citet[Proposition~3.23]{lattimore2026bandit}}]
@@ -3282,10 +3792,10 @@ before sampling the round.
     preceding events and $\mathcal E_{\mathrm{global}}$,
     \begin{align}
         \sum_{t=s}^u\left(U_t^2+\E_t[U_t^2]\right)
-        &\leq10F_L\ell\sum_{t=s}^u
+         & \leq10F_L\ell\sum_{t=s}^u
         I_t\left(Y_t^2+\E_t[Y_t^2]\right)+8F_Le^{-\ell/16}
         \\
-        &\leq48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
+         & \leq48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
         +\frac{d\ell^5}{\eps^2}\right).
     \end{align}
     This also bounds the combined second moments of every prefix.
@@ -3294,7 +3804,7 @@ before sampling the round.
     for each deterministic $s\leq j\leq u$, with
     \begin{align}
         z=\sqrt{F_L\ell^3\left(\frac{8L\ell^2}{\eps^2}
-        +\frac{d\ell^5}{\eps^2}\right)},
+            +\frac{d\ell^5}{\eps^2}\right)},
         \qquad
         v=48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
         +\frac{d\ell^5}{\eps^2}\right).
@@ -3306,9 +3816,9 @@ before sampling the round.
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap
         \mathcal E_{q,\mathrm{loc}}^c\right)
-        &\leq2e^{-\ell/64}+2Le^{-2\ell}+2Le^{-\ell^2/96}
+         & \leq2e^{-\ell/64}+2Le^{-2\ell}+2Le^{-\ell^2/96}
         \\
-        &\leq6e^{-\ell/64}
+         & \leq6e^{-\ell/64}
         =6\left(\frac{\delta}{128nd}\right)^2
         \leq\frac{\delta}{8n^2}.
     \end{align}
