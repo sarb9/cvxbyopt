@@ -252,76 +252,29 @@ These properties are established in \cref{app:extension}.
 %     \label{eq:hermite-best-approximation}
 % \end{align}
 \section{The algorithm}
-On an active round $t$, the learner samples
-$X_t\sim \N(\mu_t,\Sigma_t)$ and plays its radial contraction
-$A_t=X_t/\pi_\eps(X_t)\in\K$.
-The resulting feedback is $f(A_t) + \xi_t$ which is converted into the feedback from the queryable extension $e$ as
+The algorithm maintains a Gaussian sampling distribution and uses one observation per round to update its mean and covariance.
+In round $t$, it samples $X_t\sim\N(\mu_t,\Sigma_t)$, plays the radial contraction
+$A_t=X_t/\pi_\eps(X_t)\in\K$, and observes $f(A_t)+\xi_t$.
+The extension defined above lets us turn this observation into feedback for $e$:
 \begin{align}
     Y_t
-     & =
-    \pi_\eps(X_t)\bigl(f(A_t)+\xi_t\bigr)
-    +\frac2\eps\bigl(\pi_\eps(X_t)-1\bigr)
-    =e(X_t)+\pi_\eps(X_t)\xi_t\,,
+     & =\pi_\eps(X_t)\bigl(f(A_t)+\xi_t\bigr)
+    +\frac2\eps\bigl(\pi_\eps(X_t)-1\bigr)\nonumber \\
+     & =e(X_t)+\pi_\eps(X_t)\xi_t,
     \eqlabel{eq:Y}
 \end{align}
 so $\E_t[Y_t\mid X_t]=e(X_t)$.
-Let $\lambda \in (0,1)$ be a damping parameter and define the quadratic surrogate
+From the pair $(X_t,Y_t)$, we compute $Z_t =\Sigma_t^{-1/2}(X_t-\mu_t)$,
 \begin{align}
-    \bar{q}_t(x)
-    =
-    \ip{\bar{g}_t}{x-\mu_t}
-    +\frac\lambda2\normm{x-\mu_t}{\bar{H}_t}^2,
-    \qquad
-    \bar{g}_t\triangleq \langle De,\gamma_{\mu_t,\Sigma_t}\rangle,
-    \qquad
-    \bar{H}_t\triangleq \langle D^2e,\gamma_{\mu_t,\Sigma_t}\rangle.
-\end{align}
-The main observation is that $\bar{g}_t$ and $\bar{H}_t$ can be estimated from the single pair $(X_t, Y_t)$.
-More precisely, define
-\begin{align}
-    q_t(x)
-    \triangleq
-    \ip{g_t}{x-\mu_t}
-    +
-    \frac\lambda2(x-\mu_t)^\top H_t(x-\mu_t)\,,
-\end{align}
-where for $Z_t\triangleq\Sigma_t^{-1/2}(X_t-\mu_t)$, we define
-\begin{align}
-    g_t
-        & \triangleq - \frac{Y_t \nabla \gamma_{\mu_t,\Sigma_t}(X_t)}{\gamma_{\mu_t,\Sigma_t}(X_t)}
-    =
-    Y_t\Sigma_t^{-1/2}Z_t,\nonumber                                                                 \\
-    H_t & \triangleq
-    \frac{Y_t \nabla^2 \gamma_{\mu_t,\Sigma_t}(X_t)}{\gamma_{\mu_t,\Sigma_t}(X_t)}
-    =Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}\,,
+    g_t =Y_t\Sigma_t^{-1/2}Z_t\qquad \text{and}\qquad
+    H_t =Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}.
     \eqlabel{eq:sampled-hermite-coefficients}
 \end{align}
-then from distributional integration by parts we get
-\begin{align}
-    \bar{g}_t & = \langle De, \gamma_{\mu_t,\Sigma_t}\rangle
-    = - \langle e, \nabla \gamma_{\mu_t,\Sigma_t}\rangle
-    = \E_t[g_t],
-    \quad\text{and}\quad\nonumber                              \\
-    \bar{H}_t & = \langle D^2e, \gamma_{\mu_t,\Sigma_t}\rangle
-    = \langle e, \nabla^2 \gamma_{\mu_t,\Sigma_t}\rangle
-    = \E_t[H_t]\,,
-    \eqlabel{eq:sampled-hermite-unbiasedness}
-\end{align}
-and more importantly, $\E_t[q_t]=\bar{q}_t$.
+The coefficients $g_t$ and $H_t$ define a stochastic quadratic approximation to a Gaussian smoothing of $e$, as explained in \cref{sec:quadratic-approximation}.
+With learning rate $\eta>0$ and curvature scaling $\lambda\in(0,1)$, we use these coefficients to update the Gaussian parameters by unprojected online Newton steps (ONS), as specified in \cref{alg:direct-hermite}.
+The optimization interpretation of these updates is developed in \cref{sec:population-ons}.
+The covariance update requires $\Sigma_t^{-1}+\lambda\eta H_t\succ0$; Appendix~\ref{sec:stability} controls this condition in the presence of estimation error.
 
-The algorithm is just unprojected online newton steps (ONS) applied to quadratic estimates $q_t$.
-If $\Sigma_t^{-1}+\lambda\eta H_t\succ0$,
-then completing the square gives the equivalent forms
-\begin{align}
-    \mu_{t+1}
-     & =\argmin_{\mu\in\R^d}
-    \left\{
-    \frac12\normm{\mu-\mu_t}{\Sigma_t^{-1}}^2
-    +\eta q_t(\mu)
-    \right\}
-    =\mu_t-\eta\Sigma_{t+1}g_t.
-    \eqlabel{eq:projected-ons-update}
-\end{align}
 \begingroup
 \RestyleAlgo{ruled}
 \DontPrintSemicolon
@@ -333,18 +286,15 @@ then completing the square gives the equivalent forms
     \caption{Direct Hermite--ONS algorithm}
     \label{alg:direct-hermite}
     \KwIn{$\eta,\lambda,\sigma^2,\eps$}
-    $\mu_1=0$, $\Sigma_1=\sigma^2I_d$ and $\mathsf{safe}=\mathsf{true}$\;
+    $\mu_1=0$ and $\Sigma_1=\sigma^2I_d$\;
     \BlankLine
     \For{$t=1,\ldots,n$}{
         Sample $X_t\sim\N(\mu_t,\Sigma_t)$\;
         Play $A_t=X_t/\pi_\eps(X_t)$ and observe $f(A_t)+\xi_t$\;
-        Form $Y_t=e(X_t) + \pi_\eps(X_t) \xi_t$\;
-        Form $g_t = Y_t\Sigma_t^{-1/2}Z_t$ and $H_t = Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}$\;
-        %  and set $V_{t+1}=\Sigma_t^{-1}+\lambda\eta H_t$\\
-        % \>\textbf{if} $\Sigma_t^{-1}+\lambda\eta H_t\succ0$:\\
-        Set $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\lambda\eta H_t$ and $\mu_{t+1} =\mu_t-\eta\Sigma_{t+1}g_t$\;
-        % \>\textbf{else}:\\
-        % \>\>Set $\Sigma_{t+1}=\Sigma_t$ and $\mu_{t+1}=\mu_{t}$ \qquad\textit{\(\triangleright\) The algorithm has failed.}\\
+        Compute $Y_t$ from the observed feedback using \cref{eq:Y}\;
+        Compute $Z_t$, $g_t$ and $H_t$ using \cref{eq:sampled-hermite-coefficients}\;
+        Set $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\lambda\eta H_t$\;
+        Set $\mu_{t+1}=\mu_t-\eta\Sigma_{t+1}g_t$\;
     }
 \end{algorithm2e}
 \endgroup
@@ -417,6 +367,7 @@ We therefore work directly with $e$ as the loss and $Y$ as its noisy
 observation, satisfying $\E[Y\mid X]=e(X)$.
 
 \subsection{Single Point Second Order Approximation}
+\label{sec:quadratic-approximation}
 Learning $e$ from noisy observations $(X_t,Y_t)$ is challenging, especially
 because the space of convex functions is infinite dimensional. This is
 quite different from linear bandits, where we only need to estimate a
@@ -458,14 +409,14 @@ Similarly, one can obtain an unbiased estimator of the Hessian $\nabla^2 F_{\Sig
 \begin{align}
     \nabla^2 F_{\Sigma_t}(\mu_t) = \E_t\!\left[\left(\Sigma_t^{-1}(X_t-\mu_t)(X_t-\mu_t)^\top \Sigma_t^{-1} - \Sigma_t^{-1}\right) Y_t\right]\,.
 \end{align}
-Let $g_t = Y_t\Sigma_t^{-1}(X_t-\mu_t)$ and $H_t = Y_t \Sigma_t^{-1}\left((X_t-\mu_t)(X_t-\mu_t)^\top- \Sigma_t\right) \Sigma_t^{-1}$.
+These are precisely the estimators $g_t$ and $H_t$ in \cref{eq:sampled-hermite-coefficients}.
 Let $\lambda>0$ be a scaling parameter for the quadratic term, whose purpose will be clarified later, and define
 \begin{align}
     q_t^\lambda(x) = Y_t + \ip{g_t}{x-\mu_t} + \frac\lambda2 (x-\mu_t)^\top H_t (x-\mu_t)\,,
 \end{align}
 which is an unbiased estimator of the second-order Taylor expansion of $F_{\Sigma_t}$ around $\mu_t$ as
 \begin{align}
-    \bar{q}_t^\lambda(x) : = F_{\Sigma_t}(\mu_t) + \ip{\nabla F_{\Sigma_t}(\mu_t)}{x-\mu_t} + \frac\lambda2 \|(x-\mu_t)\|_{\nabla^2 F_{\Sigma_t}(\mu_t)}^2 \, = \E_t[q_t(x)].
+    \bar{q}_t^\lambda(x) : = F_{\Sigma_t}(\mu_t) + \ip{\nabla F_{\Sigma_t}(\mu_t)}{x-\mu_t} + \frac\lambda2 \|(x-\mu_t)\|_{\nabla^2 F_{\Sigma_t}(\mu_t)}^2 \, = \E_t[q_t^\lambda(x)].
 \end{align}
 
 \begin{figure}[!t]
@@ -729,6 +680,19 @@ Note that the choice of $\lambda$ directly controls the shrinkage rate of the fo
 We will show later that the Online Newton Step update rule can maintain this invariant throughout the rounds, where this would be crucial to choose $\lambda < 1$ appropriately.
 
 \subsection{Online Newton Step}
+\label{sec:population-ons}
+The mean update in \cref{alg:direct-hermite} minimizes the quadratic approximation together with a penalty for moving away from the current mean.
+Whenever $\Sigma_t^{-1}+\lambda\eta H_t\succ0$, completing the square gives
+\begin{align}
+    \mu_{t+1}
+    =\argmin_{\mu\in\R^d}
+    \left\{
+    \frac12\normm{\mu-\mu_t}{\Sigma_t^{-1}}^2
+    +\eta q_t^\lambda(\mu)
+    \right\}.
+    \eqlabel{eq:projected-ons-update}
+\end{align}
+
 If we forget about the estimation error and suppose that $q_t$ perfectly matches $\bar{q}_t$ in an idealized setting,
 then the Online Newton Step (ONS) algorithm is corresponding to choosing a distribution $p_{t+1}$ in round $t+1$ which is
 the \textit{contineouous exponential weights} applied to the history of quadratic losses $(q_i)_{i\in[t]}$:
@@ -1110,18 +1074,24 @@ First, if $\eps_0>1/2$, then, since $f$ takes values in $[0,1]$,
 \begin{align}
     \operatorname{Reg}_n\leq n<2n\eps_0=200d^2M\ell^8\sqrt n,
 \end{align}
-so \cref{thm:main} holds deterministically when we play any fixed point in $\K$.
+so \cref{thm:main} holds deterministically.
 So in all that follows, we assume that $\eps=\eps_0\leq1/2$ and that the parameters $\sigma,\lambda,\eta$ are as in \cref{thm:main}.
 \proofpart{I}{Reduction to stopped regret}
 \proofstepinline{1}
-We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6]. The following lemma suggests that bounding the extension regret is sufficient to bound the realized regret.
+We first bound realized regret in terms of extension regret, as in \citet{lattimore2026bandit}[Section~10.6]. Define the extension regret by
+\begin{align}
+    \operatorname{eReg}_{s:u}(x)
+    \triangleq
+    \sum_{t=s}^{u}\bigl(\E_t[e(X_t)]-e(x)\bigr).
+\end{align}
+The following lemma shows that bounding the regret with respect to the extension is sufficient to bound the realized regret.
 \begin{lemma}[{Adapted from \citet[Section~10.6, Eq.~(10.14)]{lattimore2026bandit}}]
     \label{lem:actual-to-extension}
     Let $\mathcal E_{\mathrm{reg}}$ be the event that
     \begin{align}
         \operatorname{Reg}_n
         \leq
-        \operatorname{eReg}_n
+        \operatorname{eReg}_{1:n}(x_\star)
         +n\eps+\sqrt{2n\ell}.
         \ineqlabel{eq:actual-to-extension}
     \end{align}
@@ -1129,15 +1099,15 @@ We first bound realized regret in terms of extension regret, as in \citet{lattim
 \end{lemma}
 \proofstepinline{2}
 To apply \cref{cor:bracket-ell}, we need to ensure that $\Sigma_t$ remains positive definite and that $x_\star$ remains in the focus ellipsoid around $\mu_t$.
-To this end, define the predictable (expected) counterpart of $\Sigma_t^{-1}$ as
+To this end, recall that $\bar{H}_t = \E_t[H_t] = \nabla^2 F_{\Sigma_t}(\mu_t)\succeq 0$ and define the predictable counterpart of $\Sigma_t^{-1}$ as
 \begin{align}
-    \bar{\Sigma}_1^{-1}=\Sigma_1^{-1}=\sigma^{-2}I_d,
+    \bar{\Sigma}_1^{-1}=\sigma^{-2}I_d=\Sigma_1^{-1},
     \qquad
     \bar{\Sigma}_{t+1}^{-1}
     =\bar{\Sigma}_t^{-1}+\lambda\eta \bar{H}_t.
     \eqlabel{eq:predictable-covariance}
 \end{align}
-Then, define the stopping time $\tau_{\mathrm{cov}}$ when the empirical covariance $\Sigma_t$ deviates from its predictable counterpart $\bar{\Sigma}_t$ by more than a constant factor as
+Next, define $\tau_{\mathrm{cov}}$ as the first time at which the empirical covariance update $\Sigma_{t+1}$ deviates from its predictable counterpart $\bar{\Sigma}_{t+1}$ by more than a constant factor:
 \begin{align}
     \tau_{\mathrm{cov}}
     =
@@ -1152,8 +1122,8 @@ Then, define the stopping time $\tau_{\mathrm{cov}}$ when the empirical covarian
     \right\}\wedge (n + 1).
     \eqlabel{eq:covariance-stopping-time}
 \end{align}
-Both $\Sigma_{t+1}^{-1} = \Sigma_t^{-1} + \lambda\eta H_t$ and $\bar{\Sigma}_{t+1}^{-1}$ are $\F_t$-measurable, so $\tau_{\mathrm{cov}}$ is an $\F_t$-adapted stopping time.
-For $t \leq \tau_{\mathrm{cov}}$, the empirical covariance $\Sigma_t$ remains positive definite, which let us define the focus radius around $\mu_t$ as
+Both $\Sigma_{t+1}^{-1} = \Sigma_t^{-1} + \lambda\eta H_t$ and $\bar{\Sigma}_{t+1}^{-1}$ are $\F_t$-measurable, so $\tau_{\mathrm{cov}}$ is a stopping time with respect to $(\F_t)$.
+For $t \leq \tau_{\mathrm{cov}}$, the empirical covariance $\Sigma_t$ is positive definite, so we may define the focus radius around $\mu_t$ by
 \begin{align}
     R_t = \left\|\mu_t - x_\star\right\|_{\Sigma_t^{-1}}\,, \quad t \leq \tau_{\mathrm{cov}}.
 \end{align}
@@ -1165,69 +1135,55 @@ Given a parameter $0 < F \leq \frac{1}{128^2\lambda^2 \ell}$ to be fixed later, 
     t \in [n\wedge \tau_{\mathrm{cov}}]:
     R_t^2 > F
     \right\}
-    \wedge (n + 1).
+    \wedge (n + 1),
 \end{align}
+which, together with the covariance bound, allows us to apply \cref{cor:bracket-ell} with $x_0=x_\star$ for every $t<\tau_{\mathrm{cov}}\wedge\tau_{\mathrm{focus}}$.
 Also define the two additional stopping times
 \begin{align}
     \tau_{\mathrm{shell}}
-    =\min\{t\in[n]:v(\mu_{t})>\ell\}\wedge (n+1)\,,
+    =\min\{t\in[n \wedge \tau_{\mathrm{cov}}]:v(\mu_{t})>\ell\}\wedge (n+1)\,,
     \eqlabel{eq:energy-shell-stopping-time}
 \end{align}
 and
 \begin{align}
     \tau_{\mathrm{moment}}
     =\min\left\{
-    t \in [n]: \sum_{i=1}^{t} \E_i[Y_i^2] > S
+    t \in [n \wedge \tau_{\mathrm{cov}}]: \sum_{i=1}^{t} \E_i[Y_i^2] > S
     \right\}\wedge (n+1)\,,
 \end{align}
 for some parameter $S > 0$ to be fixed later.
-Finally, let $\tau = \tau_{\mathrm{cov}} \wedge \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{shell}} \wedge \tau_{\mathrm{moment}}.$
-
-Moreover, in various steps in the proof we use high-probability events to control the behavior of the random quantities.
-It is convenient to define these events upfront and refer to them throughout the proof.
-First, we define the high-probability event controlling the norm of the Gaussian samples
-\begin{align}
-    \mathcal E_Z
-    =\left\{\norm{Z_t}^2\leq4d\ell\,\,
-    \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
-    % \text{ for all }1\leq t\leq n\right\}.
-    \eqlabel{eq:gaussian-norm-event}
-\end{align}
-For the noise, the sub-Gaussian assumption in \cref{eq:noise} gives the high-probability event
-\begin{align}
-    \mathcal E_{\mathrm{noise}}
-    =\left\{|\xi_t|\leq\sqrt\ell\,\,
-    \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
-    % \text{ for all }1\leq t\leq n\right\}.
-    \eqlabel{eq:noise-cutoff-event}
-\end{align}
-The displacement $X_t - \mu_t$ is Gaussian with bounded covariance $\Sigma_t\preceq 2\bar{\Sigma}_t \preceq 2 \bar{\Sigma}_1 =2\sigma^2I_d$, and $\pi$ is 1-Lipschitz, so we can control $\pi(X_t - \mu_t)$ with high probability by defining the event
-\begin{align}
-    \mathcal E_{\mathrm{gauge}}
-    =\left\{\pi(X_t - \mu_t)\leq3+2\sqrt\ell\,\,
-    \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
-    \eqlabel{eq:gauge-cutoff-event}
-\end{align}
-Let $\mathcal E_{\mathrm{global}} = \mathcal E_Z \cap \mathcal E_{\mathrm{noise}} \cap \mathcal E_{\mathrm{gauge}}$.
-\begin{lemma}[Global sample event]
-    \label{lem:global-event}
-    It holds that
-    \begin{align}
-        \Pp(\mathcal E_{\mathrm{global}}^c)
-        \leq4ne^{-\ell}\leq\frac\delta4.
-        \ineqlabel{eq:global-event-probability}
-    \end{align}
-\end{lemma}
-The proof is in Appendix~\ref{app:concentration}.
+Later in the proof, we will use these two additional stopping times to keep the variability of the feedback $Y_t$ under control, allowing us to apply concentration inequalities.
+Finally, let $\tau = \tau_{\mathrm{cov}} \wedge \tau_{\mathrm{focus}} \wedge \tau_{\mathrm{shell}} \wedge \tau_{\mathrm{moment}}$,
+which represents the first time any of the individual stopping conditions is triggered.
 
 \proofstepinline{3}
-The comparison in
-\cref{eq:time-indexed-regret-switch} requires $x_\star$ to remain
-in an ellipsoid around $\mu_t$.
-For $t < \tau$ both requirements of \cref{cor:bracket-ell} are satisfied:
-we have $\frac12R_t^2 \leq \frac{1}{128^2\lambda^2\ell}$, and
-$0 \prec \Sigma_t \preceq 2\bar{\Sigma}_t \preceq 2\sigma^2 I_d$.
-Therefore, by \cref{eq:time-indexed-regret-switch} we obtain
+Define
+\begin{align}
+    q_t(x)
+     & \triangleq
+    \ip{g_t}{x-\mu_t}
+    +\frac{\lambda}{2}(x-\mu_t)^\top H_t(x-\mu_t),
+    \\
+    \bar q_t(x)
+     & \triangleq
+    \ip{\nabla F_{\Sigma_t}(\mu_t)}{x-\mu_t}
+    +\frac{\lambda}{2}(x-\mu_t)^\top
+    \nabla^2 F_{\Sigma_t}(\mu_t)(x-\mu_t).
+\end{align}
+Compared to $q_t^\lambda$ and $\bar q_t^\lambda$, these definitions
+drop the constant terms $Y_t$ and $F_{\Sigma_t}(\mu_t)$, respectively.
+This is due to the fact that these constants cancel when we take
+the difference between the values at $\mu_t$ and $x_\star$ to compute regret.
+
+For every $t<\tau$, the definitions of $\tau_{\mathrm{focus}}$ and
+$\tau_{\mathrm{cov}}$ give
+\begin{align}
+    \frac12 R_t^2 \leq \frac{1}{128^2\lambda^2\ell},
+    \qquad\text{and}\qquad
+    0 \prec \Sigma_t \preceq 2\bar{\Sigma}_t \preceq 2\sigma^2 I_d.
+\end{align}
+Thus both conditions of \cref{cor:bracket-ell} hold with $x_0=x_\star$.
+Therefore, by \cref{eq:q-regret-switch,cor:bracket-ell} we obtain
 \begin{align}
     \operatorname{eReg}_{1:\tau -1}(x_{\star})
     \leq
@@ -1237,9 +1193,13 @@ Therefore, by \cref{eq:time-indexed-regret-switch} we obtain
     +
     2\sum_{t=1}^{\tau -1}
     \tr(\bar{H}_t\Sigma_t)
-    +\frac{(\tau -1) n^{-7}}{\eps}\,.
+    +\frac{(\tau -1) n^{-8}}{\eps}\,.
     \ineqlabel{eq:regret-switch-focus}
 \end{align}
+The term $(\tau-1)n^{-8}/\eps$ is bounded by $1$, since
+$\tau-1\leq n$ and $\eps\geq n^{-1/2}$, and we control the trace sum
+using a standard log-determinant argument in Step~7.
+
 Bounding the quadratic regret $
     \overline{\operatorname{qReg}}_{1:\tau -1}(x_{\star})
     \triangleq
@@ -1248,7 +1208,7 @@ Bounding the quadratic regret $
 $ in \cref{eq:regret-switch-focus} is quite delicate.
 The main difficulty is that the quadratic $\bar{q}_t$ is not observed directly, but only through the sampled stochastic quadratic $q_t$.
 Writing $D_t=\bar{q}_t(x_{\star})-q_t(x_{\star})$, which satisfies $\E_t[D_t]=0$,
-the difference between the observed and expected quadratic regret is
+the absolute difference between the observed and expected quadratic regret is
 \begin{align}
     \left|
     \overline{\operatorname{qReg}}_{1:\tau-1}(x_{\star})-\operatorname{qReg}_{1:\tau-1}(x_{\star})
@@ -1257,8 +1217,8 @@ the difference between the observed and expected quadratic regret is
     \left|
     \sum_{t=1}^{\tau -1}
     \bar{q}_t(\mu_t) - \bar{q}_t(x_{\star})
-    +
-    q_t(\mu_t) - q_t(x_{\star})
+    -
+    q_t(\mu_t) + q_t(x_{\star})
     \right|
     =
     \left|
@@ -1279,7 +1239,7 @@ Next, the following lemma provides an identity for the ONS update that will be u
         \right)
          & =
         \eta\bigl(q_t(x_\star)-q_t(\mu_t)\bigr)
-        +\frac{\eta^2}{2}\normm{\bar{g}_t}{\Sigma_{t+1}}^2.
+        +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2.
     \end{align}
 \end{lemma}
 \begin{proof}
@@ -1322,7 +1282,7 @@ Now, starting from the definition of the extension regret and the stopping time 
     +
     2\sum_{t=1}^{\tau -1}
     \tr(\bar{H}_t\Sigma_t)
-    +\frac{(\tau -1) n^{-7}}{\eps}
+    +\frac{(\tau -1) n^{-8}}{\eps}
     \\
      &
     \explan{\leq}{b}
@@ -1354,17 +1314,54 @@ Now, starting from the definition of the extension regret and the stopping time 
 \end{align}
 where \reason{a} follows from \cref{eq:regret-switch-focus},
 \reason{b} follows from the definition of $D_t$ in Step~3 and
-$(\tau-1)n^{-7}/\eps\leq1$, and \reason{c} follows from
+$(\tau-1)n^{-8}/\eps\leq1$, and \reason{c} follows from
 \cref{eq:ons-telescope}.
 
-The derivation of \cref{eq:stopped-regret-after-trace} is the real skeleton of the regret analysis.
-The rest of the proof consists of two main parts: first controlling the terms on the right-hand side of \cref{eq:stopped-regret-after-trace} in a high probability event, and second showing that $\tau = n+1$ with high probability
-so the bound in \cref{eq:stopped-regret-after-trace} effectively gives a high probability control over the actual extension regret up to time $n$.
+The derivation of \cref{eq:stopped-regret-after-trace} is the basis of the regret analysis.
+The rest of the proof consists of two main parts: first controlling the terms on the right-hand side of \cref{eq:stopped-regret-after-trace} on a high-probability event, and second showing that $\tau = n+1$ with high probability
+so the bound in \cref{eq:stopped-regret-after-trace} gives a high-probability bound on the extension regret up to time $n$.
 
 
 \proofpart{II}{Bounding the stopped regret}
-In all the steps in this part of the proof, we will assume that the high probability event $\mathcal E_{\mathrm{global}}$ holds.
 \proofstepinline{4}
+Several later bounds require the fresh randomness of each round to be of typical size.
+We collect these requirements into a single event that covers every round up to $n\wedge\tau$.
+The first event controls the norm of the standardized Gaussian samples:
+\begin{align}
+    \mathcal E_Z
+    =\left\{\norm{Z_t}^2\leq4d\ell\,\,
+    \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
+    % \text{ for all }1\leq t\leq n\right\}.
+    \eqlabel{eq:gaussian-norm-event}
+\end{align}
+Next, the sub-Gaussian assumption in \cref{eq:noise} gives the high-probability event
+\begin{align}
+    \mathcal E_{\mathrm{noise}}
+    =\left\{|\xi_t|\leq\sqrt\ell\,\,
+    \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
+    % \text{ for all }1\leq t\leq n\right\}.
+    \eqlabel{eq:noise-cutoff-event}
+\end{align}
+The displacement $X_t - \mu_t$ is Gaussian with bounded covariance $\Sigma_t\preceq 2\bar{\Sigma}_t \preceq 2 \bar{\Sigma}_1 =2\sigma^2I_d$, and $\pi$ is 1-Lipschitz, so $\pi(X_t - \mu_t)$ can be controlled with high probability by defining the event
+\begin{align}
+    \mathcal E_{\mathrm{gauge}}
+    =\left\{\pi(X_t - \mu_t)\leq3+2\sqrt\ell\,\,
+    \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
+    \eqlabel{eq:gauge-cutoff-event}
+\end{align}
+Let $\mathcal E_{\mathrm{global}} = \mathcal E_Z \cap \mathcal E_{\mathrm{noise}} \cap \mathcal E_{\mathrm{gauge}}$.
+\begin{lemma}
+    \label{lem:global-event}
+    It holds that
+    \begin{align}
+        \Pp(\mathcal E_{\mathrm{global}}^c)
+        \leq4ne^{-\ell}\leq\frac\delta4.
+        \ineqlabel{eq:global-event-probability}
+    \end{align}
+\end{lemma}
+The proof is in Appendix~\ref{app:concentration}.
+In all the steps in this part of the proof, we will assume that the high probability event $\mathcal E_{\mathrm{global}}$ holds.
+\proofstepinline{5}
 First, we deal with the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$
 in \cref{eq:stopped-regret-after-trace}.
 We will work with the slightly time-perturbed quantity $\normm{g_t}{\Sigma_{t}}^2$ in place of $\normm{g_t}{\Sigma_{t+1}}^2$ for now.
@@ -1515,7 +1512,7 @@ Thus, \cref{eq:interval-energy-bound} gives
     \ineqlabel{eq:interval-energy-bound-final}
 \end{align}
 
-\proofstepinline{5}
+\proofstepinline{6}
 Next, going back to \cref{eq:stopped-regret-after-trace},
 we control the sum $\sum_{t=1}^{\tau}D_t$, which is a martingale difference sequence as $\E_t[D_t]=0$.
 We use the following self-normalized martingale inequality \citet[Theorem~3.26]{bercu2015concentration} to control this sum.
@@ -1670,7 +1667,7 @@ The following lemma controls its failure probability.
     \end{align}
 \end{lemma}
 The proof is an application of \cref{lem:self-normalised-martingale} and is in Appendix~\ref{app:concentration}.
-\proofstepinline{6}
+\proofstepinline{7}
 It remains to control the trace sum $\sum_{t=1}^{\tau-1}\tr(\bar H_t\Sigma_t)$ in \cref{eq:stopped-regret-after-trace}.
 \begin{lemma}
     \label{lem:stopped-trace}
@@ -1756,7 +1753,7 @@ We will show that under this assumption
 \end{align}
 which contradicts the definition of $\tau$ as the minimum of these stopping times.
 
-\proofstepinline{7}
+\proofstepinline{8}
 We first prove that $\tau_{\mathrm{focus}} > \tau$.
 On the event
 $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q$,
@@ -1781,7 +1778,7 @@ where we used $\eta=8dM/\sqrt n$ and \cref{eq:global-threshold-choices}.
 As $\tau\leq n\wedge\tau_{\mathrm{cov}}$ the focus condition is well-defined
 and holds at $\tau$, so $\tau_{\mathrm{focus}}>\tau$.
 
-\proofstepinline{8}
+\proofstepinline{9}
 Proving that $\tau_{\mathrm{shell}}>\tau$ is more involved.
 The proof relies on a local regret analysis over short intervals and turning these local bounds into a pointwise control of the extension value at the current iterate, proving that $v(\mu_\tau)<\ell$ in the end.
 
@@ -1804,7 +1801,7 @@ We consider an interval $[s,u]$ of length at most
 so that its length $L=u-s+1$ satisfies $L\leq k$.
 A crude bound on the number of such short intervals is $n^2$, which suffices for a union bound over all of them in our subsequent probabilistic analysis.
 
-\proofstepinline{8.1}
+\proofstepinline{9.1}
 In the rest of this step, consider a fixed short local interval
 \begin{align}
     [s,u]\quad\text{with }\quad u<\tau \quad\text{and}\quad L=u-s+1\leq k\,.
@@ -1838,7 +1835,7 @@ and write, for every $s\leq j<\tilde{\tau}$,
     +
     2\sum_{t=s}^{j}
     \tr(\bar{H}_t\Sigma_t)
-    +\frac{(j-s+1)n^{-7}}{\eps}
+    +\frac{(j-s+1)n^{-8}}{\eps}
     \\
      &
     \explan{\leq}{b}
@@ -1868,7 +1865,7 @@ and write, for every $s\leq j<\tilde{\tau}$,
     +1\,,
     \ineqlabel{eq:stopped-regret-after-trace-local}
 \end{align}
-where \reason{a} follows from \cref{eq:time-indexed-regret-switch}
+where \reason{a} follows from \cref{eq:q-regret-switch,cor:bracket-ell}
 since $\eta/\eps=2/(25d\ell^8)\leq F$, our choice of $k$ gives
 \begin{align}
     F_L\leq32F\ell
@@ -1876,7 +1873,7 @@ since $\eta/\eps=2/(25d\ell^8)\leq F$, our choice of $k$ gives
     \leq\frac{1}{128^2\lambda^2\ell}\,;
 \end{align}
 \reason{b} follows from the definition of $\tilde{D}_t$; and
-$(j-s+1)n^{-7}/\eps\leq1$; and \reason{c} follows from
+$(j-s+1)n^{-8}/\eps\leq1$; and \reason{c} follows from
 \cref{eq:ons-telescope} together with the fact that
 \begin{align}
     \tilde{R}_s^2 = \normm{\mu_s-\mu_s}{\Sigma_s^{-1}}^2 = 0.
@@ -1888,7 +1885,7 @@ For the trace term, we use the bound from \cref{lem:uniform-trace} for the local
     \sum_{t=s}^{u}\tr(\bar H_t\Sigma_t)\leq\frac{5L}{\eps},
 \end{align}
 On $\mathcal E_{\mathrm{global}}$,
-$\Sigma_{t+1}\preceq2\Sigma_t$ from Step~4 give
+$\Sigma_{t+1}\preceq2\Sigma_t$ from Step~5 give
 \begin{align}
     \frac{\eps\eta}{2}\sum_{t=s}^{u}\normm{g_t}{\Sigma_{t+1}}^2
     \leq
@@ -1902,7 +1899,7 @@ $\Sigma_{t+1}\preceq2\Sigma_t$ from Step~4 give
 where the second to last inequality uses \cref{eq:energy-sample-gauge-bound-2}
 and the last inequality uses $\ell\geq 640$.
 
-Moreover, we need the equivalent of the martingale bound from Step~5 for the local comparator.
+Moreover, we need the equivalent of the martingale bound from Step~6 for the local comparator.
 The second major difference in the local argument is using the deterministic bound
 from \cref{lem:single-round-feedback} which gives
 \begin{align}
@@ -1995,11 +1992,11 @@ Finally, Jensen's inequality gives $e(\mu_t)\leq\E_t[e(X_t)]$, so
     \ineqlabel{eq:shell-local-regret}
 \end{align}
 
-\proofstepinline{8.2}
+\proofstepinline{9.2}
 We next bound the average extension value over the most recent $k$
 rounds, or over all rounds so far if fewer than $k$ rounds have elapsed.
 Work on $\mathcal E_{\mathrm{global}}$ and the local events
-$\mathcal E_{q,\mathrm{loc}}$ from Step~8.1 for all short interval $[s,u]$ before $\tau$.
+$\mathcal E_{q,\mathrm{loc}}$ from Step~9.1 for all short interval $[s,u]$ before $\tau$.
 Fix $1\leq t<\tau$, and set
 \begin{align}
     m=\min\{k,t\},\qquad s=t-m+1.
@@ -2075,9 +2072,9 @@ Thus, on the intersection of the events above, both cases give
     \ineqlabel{eq:shell-window-average}
 \end{align}
 
-\proofstepinline{8.3}
-Step~8.2 bounds the average extension value on a recent window.
-To control its last mean, we use Step~8.1 to bound how much this average
+\proofstepinline{9.3}
+Step~9.2 bounds the average extension value on a recent window.
+To control its last mean, we use Step~9.1 to bound how much this average
 can increase as we remove the earliest terms of the window.
 The following deterministic lemma expresses this implication for an
 arbitrary real sequence.
@@ -2105,7 +2102,7 @@ arbitrary real sequence.
 \end{lemma}
 The proof is in \cref{app:averages-to-pointwise}.
 
-We apply the lemma on the same intersection of events as in Step~8.2.
+We apply the lemma on the same intersection of events as in Step~9.2.
 Fix $1\leq t<\tau$ and take $a_j=\eps e(\mu_j)$ for $1\leq j\leq t$.
 Dividing \cref{eq:shell-local-regret} by the interval length gives
 \cref{eq:sequence-local-average}, and \cref{eq:shell-window-average}
@@ -2127,16 +2124,16 @@ Finally, the extension bound $2v(\mu_t)\leq\eps e(\mu_t)$ gives
     \ineqlabel{eq:shell-pointwise-gauge}
 \end{align}
 
-\proofstepinline{8.4}
+\proofstepinline{9.4}
 It remains to control the final update from $\mu_{\tau-1}$ to $\mu_\tau$.
-We work on the same intersection of events as in Step~8.3.
+We work on the same intersection of events as in Step~9.3.
 If $\tau=1$, then $v(\mu_\tau)=v(0)=0<\ell$.
 Otherwise, \cref{eq:shell-pointwise-gauge} gives
 $v(\mu_{\tau-1})\leq\ell/4$, so it suffices to show that the final
 update cannot use up the remaining distance to the shell threshold.
 
 Since $\tau-1<\tau\leq\tau_{\mathrm{cov}}$, the covariance bounds and
-the comparison from Step~4 give
+the comparison from Step~5 give
 \begin{align}
     \Sigma_{\tau-1}\preceq2\sigma^2I_d\preceq I_d,
     \qquad
@@ -2175,10 +2172,10 @@ Thus the shell condition holds at $\tau$ in both cases.
 It also holds at every earlier round by the definition of $\tau$,
 so $\tau_{\mathrm{shell}}>\tau$.
 
-\proofstepinline{9}
+\proofstepinline{10}
 We next prove that $\tau_{\mathrm{moment}}>\tau$.
 Work on the intersection of the events used for
-\cref{eq:global-stopped-regret} and Step~8.
+\cref{eq:global-stopped-regret} and Step~9.
 We first use the extension-regret bound to control the conditional
 feedback moments through round $\tau-1$, and then add the final round.
 
@@ -2205,7 +2202,7 @@ The remaining tail term is at most $n$, since
 $\eps^{-2}=n/(10^4d^4M^2\ell^{16})\leq n$ and
 $32ne^{-\ell}\leq1$.
 
-To include round $\tau$, use the shell condition proved in Step~8.4:
+To include round $\tau$, use the shell condition proved in Step~9.4:
 $v(\mu_\tau)<\ell$.
 Also, $\tau\leq\tau_{\mathrm{cov}}$ ensures
 $0\prec\Sigma_\tau\preceq2\sigma^2I_d$.
@@ -2226,11 +2223,11 @@ The moment threshold is therefore not exceeded at $\tau$.
 Since $\tau\leq\tau_{\mathrm{moment}}$ by definition,
 this proves $\tau_{\mathrm{moment}}>\tau$.
 
-\proofstepinline{10}
+\proofstepinline{11}
 We finally prove that $\tau_{\mathrm{cov}}>\tau$.
 Intersect the events used in the preceding steps with
 $\mathcal E_H$ from \cref{lem:hessian-concentration}.
-Step~8 gives $v(\mu_t)\leq\ell$ for every $t\leq\tau$, and
+Step~9 gives $v(\mu_t)\leq\ell$ for every $t\leq\tau$, and
 \cref{eq:moment-no-exit} gives
 $\sum_{t=1}^{\tau}\E_t[Y_t^2]\leq7n<16n$.
 Thus, under our assumption $\tau\leq n$, all the hypotheses of
@@ -2263,7 +2260,7 @@ the covariance condition in \cref{eq:covariance-stopping-time} at
 round $\tau$. Since $\tau\leq\tau_{\mathrm{cov}}$, this proves
 $\tau_{\mathrm{cov}}>\tau$.
 
-Together with Steps~7--9, all four stopping times are strictly greater
+Together with Steps~8--10, all four stopping times are strictly greater
 than $\tau$, contradicting its definition as their minimum.
 Therefore $\tau=n+1$ on the intersection of the events used above.
 
