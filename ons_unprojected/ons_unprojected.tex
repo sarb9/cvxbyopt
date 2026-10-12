@@ -1325,24 +1325,25 @@ so the bound in \cref{eq:stopped-regret-after-trace} gives a high-probability bo
 \proofpart{II}{Bounding the stopped regret}
 \proofstepinline{4}
 Several later bounds require the fresh randomness of each round to be of typical size.
-We collect these requirements into a single event that covers every round up to $n\wedge\tau$.
-The first event controls the norm of the standardized Gaussian samples:
+We define three such events, each covering every round up to $n\wedge\tau$, and work on their intersection.
+The first controls the norm of the standardized Gaussian samples:
 \begin{align}
     \mathcal E_Z
     =\left\{\norm{Z_t}^2\leq4d\ell\,\,
     \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
-    % \text{ for all }1\leq t\leq n\right\}.
     \eqlabel{eq:gaussian-norm-event}
 \end{align}
-Next, the sub-Gaussian assumption in \cref{eq:noise} gives the high-probability event
+The second controls the noise, which is subgaussian by \cref{eq:noise}:
 \begin{align}
     \mathcal E_{\mathrm{noise}}
     =\left\{|\xi_t|\leq\sqrt\ell\,\,
     \text{ for all }t\in [1, n \wedge \tau]\right\}\,.
-    % \text{ for all }1\leq t\leq n\right\}.
     \eqlabel{eq:noise-cutoff-event}
 \end{align}
-The displacement $X_t - \mu_t$ is Gaussian with bounded covariance $\Sigma_t\preceq 2\bar{\Sigma}_t \preceq 2 \bar{\Sigma}_1 =2\sigma^2I_d$, and $\pi$ is 1-Lipschitz, so $\pi(X_t - \mu_t)$ can be controlled with high probability by defining the event
+The third controls the gauge of the displacement $X_t-\mu_t$.
+For $t\leq\tau$, this displacement is Gaussian with covariance
+$\Sigma_t\preceq2\bar{\Sigma}_t\preceq2\bar{\Sigma}_1=2\sigma^2I_d$,
+and $\pi$ is $1$-Lipschitz, so Gaussian concentration controls $\pi(X_t-\mu_t)$:
 \begin{align}
     \mathcal E_{\mathrm{gauge}}
     =\left\{\pi(X_t - \mu_t)\leq3+2\sqrt\ell\,\,
@@ -1360,7 +1361,7 @@ Let $\mathcal E_{\mathrm{global}} = \mathcal E_Z \cap \mathcal E_{\mathrm{noise}
     \end{align}
 \end{lemma}
 The proof is in Appendix~\ref{app:concentration}.
-In all the steps in this part of the proof, we will assume that the high probability event $\mathcal E_{\mathrm{global}}$ holds.
+For the rest of Part~II, we work on the high-probability event $\mathcal E_{\mathrm{global}}$.
 \proofstepinline{5}
 First, we deal with the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$
 in \cref{eq:stopped-regret-after-trace}.
