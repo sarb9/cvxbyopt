@@ -2291,6 +2291,54 @@ Together with Steps~8--10, all four stopping times are strictly greater
 than $\tau$, contradicting its definition as their minimum.
 Therefore $\tau=n+1$ on the intersection of the events used above.
 
+\proofstepinline{12}
+We now combine the failure probabilities and conclude the regret bound.
+Let
+\begin{align}
+    \mathcal E
+    =\mathcal E_{\mathrm{reg}}\cap\mathcal E_{\mathrm{global}}
+    \cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q
+    \cap\mathcal E_{q,\mathrm{loc}}\cap\mathcal E_H.
+\end{align}
+By \cref{lem:actual-to-extension,lem:global-event,lem:feedback-square-sum,lem:gaussian-score-event,lem:quadratic-concentration,lem:hessian-concentration}
+and the union bound over short intervals in Step~9.2,
+\begin{align}
+    \Pp(\mathcal E^c)
+     & \leq\Pp(\mathcal E_{\mathrm{reg}}^c)
+    +\Pp(\mathcal E_{\mathrm{global}}^c)
+    +\Pp(\mathcal E_G^c)+\Pp(\mathcal E_H^c)
+    \\
+     & \quad+\Pp(\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c)
+    +\Pp(\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_q^c)
+    \\
+     & \quad+\Pp(\mathcal E_{\mathrm{global}}\cap\mathcal E_{q,\mathrm{loc}}^c)
+    \\
+     & \leq\frac\delta4+5ne^{-\ell}+2ne^{-2\ell}
+    +(3+2n^2)e^{-\ell/64}+2e^{-5d\ell/128}.
+\end{align}
+Since $\ell=128\log(128nd/\delta)$ and $d\geq1$, each exponential
+in the last line is at most $(\delta/(128nd))^2$. Hence
+\begin{align}
+    \Pp(\mathcal E^c)
+     & \leq\frac\delta4
+    +(7n+5+2n^2)\left(\frac{\delta}{128nd}\right)^2
+    \leq\frac\delta4+\frac{14\delta^2}{128^2d^2}
+    <\delta,
+\end{align}
+where we used $n,d\geq1$ and $\delta<1/2$.
+On $\mathcal E$, the preceding steps give $\tau=n+1$, so
+\cref{eq:actual-to-extension,eq:global-stopped-regret} imply
+\begin{align}
+    \operatorname{Reg}_n
+     & \leq\operatorname{eReg}_{1:n}(x_\star)
+    +n\eps+\sqrt{2n\ell}
+    \leq\frac{125}{4}d^2M\ell^5\sqrt n
+    +100d^2M\ell^8\sqrt n+\sqrt{2n\ell}       \\
+     & \leq200d^2M\ell^8\sqrt n,
+\end{align}
+using $d^2M\geq1$ and $\ell\geq640$ in the last inequality.
+This proves \cref{thm:main}.
+
 \section{Properties of the convex extension}
 \label{app:extension}
 \begin{lemma}[{\citet[Proposition~3.23]{lattimore2026bandit}}]
@@ -2617,8 +2665,8 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
     \begin{align}
         \int_a^1\frac1s\int_{\R^d}
         p_s(z)(z-\bar{x})^\top D^2h(dz)(z-\bar{x})\,ds
-         & =\int_a^1s\Phi''(s)\,ds              \\
-         & =\Phi'(1)-a\Phi'(a)-\Phi(1)+\Phi(a).
+         & =\int_a^1s\Phi''(s)\,ds
+        =\Phi'(1)-a\Phi'(a)-\Phi(1)+\Phi(a).
     \end{align}
     As $a\downarrow0$, the derivative bound implies $a\Phi'(a)\to0$.
     By monotone convergence on the left and continuity of $\Phi$ at
