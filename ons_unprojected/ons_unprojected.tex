@@ -1021,6 +1021,13 @@ which proves the intended regret bound.
     \newblock \href{https://doi.org/10.1007/978-3-319-22099-4}
     {doi:10.1007/978-3-319-22099-4}.
 
+    \bibitem[Boucheron et al.(2013)Boucheron, Lugosi, and Massart]{boucheron2013concentration}
+    St\'ephane Boucheron, G\'abor Lugosi, and Pascal Massart.
+    \newblock \emph{Concentration Inequalities: A Nonasymptotic Theory of Independence}.
+    \newblock Oxford University Press, 2013.
+    \newblock \href{https://doi.org/10.1093/acprof:oso/9780199535255.001.0001}
+    {doi:10.1093/acprof:oso/9780199535255.001.0001}.
+
     \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
     Lawrence C. Evans and Ronald F. Gariepy.
     \newblock \emph{Measure Theory and Fine Properties of Functions}.
@@ -1324,8 +1331,8 @@ so the bound in \cref{eq:stopped-regret-after-trace} gives a high-probability bo
 
 \proofpart{II}{Bounding the stopped regret}
 \proofstepinline{4}
-Several later bounds require the fresh randomness of each round to be of typical size.
-We define three such events, each covering every round up to $n\wedge\tau$, and work on their intersection.
+Several later bounds depend on how large the Gaussian samples and the observation noise can be.
+We define three events, each covering every round up to $n\wedge\tau$, and work on their intersection.
 The first controls the norm of the standardized Gaussian samples:
 \begin{align}
     \mathcal E_Z
@@ -1341,7 +1348,7 @@ The second controls the noise, which is subgaussian by \cref{eq:noise}:
     \eqlabel{eq:noise-cutoff-event}
 \end{align}
 The third controls the gauge of the displacement $X_t-\mu_t$.
-For $t\leq\tau$, this displacement is Gaussian with covariance
+For $t\leq n\wedge\tau$, conditionally on $\F_{t-1}$, this displacement is Gaussian with covariance
 $\Sigma_t\preceq2\bar{\Sigma}_t\preceq2\bar{\Sigma}_1=2\sigma^2I_d$,
 and $\pi$ is $1$-Lipschitz, so Gaussian concentration controls $\pi(X_t-\mu_t)$:
 \begin{align}
@@ -1353,49 +1360,78 @@ and $\pi$ is $1$-Lipschitz, so Gaussian concentration controls $\pi(X_t-\mu_t)$:
 Let $\mathcal E_{\mathrm{global}} = \mathcal E_Z \cap \mathcal E_{\mathrm{noise}} \cap \mathcal E_{\mathrm{gauge}}$.
 \begin{lemma}
     \label{lem:global-event}
-    It holds that
+    It holds that \alireza{checked}
     \begin{align}
         \Pp(\mathcal E_{\mathrm{global}}^c)
         \leq4ne^{-\ell}\leq\frac\delta4.
         \ineqlabel{eq:global-event-probability}
     \end{align}
 \end{lemma}
-The proof is in Appendix~\ref{app:concentration}.
+The proof is in Appendix~\ref{app:global-event}.
 For the rest of Part~II, we work on the high-probability event $\mathcal E_{\mathrm{global}}$.
 \proofstepinline{5}
-First, we deal with the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$
+First, we bound the sum $\frac{\eta}{2}\sum_{t=1}^{\tau - 1}\normm{g_t}{\Sigma_{t+1}}^2$
 in \cref{eq:stopped-regret-after-trace}.
-We will work with the slightly time-perturbed quantity $\normm{g_t}{\Sigma_{t}}^2$ in place of $\normm{g_t}{\Sigma_{t+1}}^2$ for now.
-By the definition of $g_t$ in \cref{eq:sampled-hermite-coefficients}, we have
+It is easier to work with $\normm{g_t}{\Sigma_t}^2$, which uses the covariance at the start of round $t$;
+we compare these two norms at the end of this step.
+By the definition of $g_t$ in \cref{eq:sampled-hermite-coefficients} for $t<\tau$,
 \begin{align}
+    \sum_{t=1}^{\tau-1}
     \normm{g_t}{\Sigma_t}^2
-    =Y_t^2\norm{Z_t}^2
+    =
+    \sum_{t=1}^{\tau-1}
+    Y_t^2\norm{Z_t}^2
     \leq
-    4d\ell Y_t^2
-    ,
+    4d\ell
+    \sum_{t=1}^{\tau-1}
+    Y_t^2,
     \ineqlabel{eq:energy-feedback-identity}
 \end{align}
-where we used the bound $\norm{Z_t}^2\leq 4d\ell$ on the event $\mathcal E_{\mathrm{global}}$.
-Next, to control the sum $\sum_{t=1}^{\tau-1}Y_t^2$ we use the following version of Freedman's inequality.
-\begin{restatable}{lemma}{freedmannonnegative}
+where the inequality uses $\norm{Z_t}^2\leq 4d\ell$ on $\mathcal E_{\mathrm{global}}$.
+Next, to control the sum $\sum_{t=1}^{\tau-1}Y_t^2$, we use the following
+concentration bound for sums of nonnegative random variables.
+\begin{lemma}
     \label{lem:freedman-nonnegative}
     Let $(U_i)_{i=1}^T$ be an adapted sequence.
-    Then, for every $b,S,z>0$,
+    Then, for every $b,S,z>0$,\alireza{checked.}
     \begin{align}
         \Pp\left(
         \sum_{i=1}^T U_i^2
-        \geq 2S+4bz,
+        > 2S+bz,
         \quad
         \sum_{i=1}^T\E_i[U_i^2]\leq S,
         \quad
         \max_{1\leq i\leq T}U_i^2\leq b
         \right)
-        \leq2e^{-z}.
+        \leq e^{-z}.
         \ineqlabel{eq:freedman-nonnegative}
     \end{align}
-\end{restatable}
-To apply this lemma, with $U_t=Y_t$, we first bound the absolute size of the feedback $|Y_t|^2$.
-since $f(A_t)\in[0,1]$, we have
+\end{lemma}
+\begin{proof}
+    To apply \citet[Theorem~B.22]{lattimore2026bandit}, we need nonnegative
+    variables bounded by $b$ almost surely. We therefore set
+    $V_i=\min\{U_i^2,b\}$. These variables are adapted and satisfy
+    $0\leq V_i\leq b$, so the theorem, with $\alpha=1/b$ gives
+    \begin{align}
+        \sum_{i=1}^T V_i
+        \leq 2\sum_{i=1}^T\E_i[V_i]+bz
+    \end{align}
+    outside an event of probability at most $e^{-z}$.
+    On $\{\max_{1\leq i\leq T}U_i^2\leq b\}$, we have $V_i=U_i^2$ for
+    every $i$, while $\E_i[V_i]\leq\E_i[U_i^2]$ always holds.
+    Thus, if $\sum_{i=1}^T\E_i[U_i^2]\leq S$ also holds, the preceding
+    bound implies
+    \begin{align}
+        \sum_{i=1}^T U_i^2
+        =\sum_{i=1}^T V_i
+        \leq 2\sum_{i=1}^T\E_i[U_i^2]+bz
+        \leq 2S+bz.
+    \end{align}
+    Consequently, the event in \cref{eq:freedman-nonnegative} is contained
+    in the exceptional event above and has probability at most $e^{-z}$.
+\end{proof}
+To apply this lemma to the feedback sum before $\tau$, we first bound $|Y_t|$.
+Since $f(A_t)\in[0,1]$, we have
 \begin{align}
     |Y_t|=\left|\pi_\eps(X_t)(f(A_t)+\xi_t)+\frac{2v(X_t)}{\eps}\right|
     \leq
@@ -1404,7 +1440,8 @@ since $f(A_t)\in[0,1]$, we have
 \end{align}
 For the noise $|\xi_t|$, we have the bound $|\xi_t|\leq\sqrt\ell$ on the event $\mathcal E_{\mathrm{global}}$.
 % Thus we need to control both the observation noise $|\xi_t|$ and the capped Minkowski functional $v(X_t)$.
-To bound $v(X_t)$ for $t < \tau$, write $W_t=X_t-\mu_t$, then the subadditivity of $\pi(\cdot)$ gives
+To bound $v(X_t)$ for $t < \tau$, write $W_t=X_t-\mu_t$.
+Subadditivity of $\pi(\cdot)$ gives
 \begin{align}
     v(X_t)\leq v(\mu_t)+\frac{\pi(W_t)}{1-\eps}
     \leq v(\mu_t)+2\pi(W_t)
@@ -1431,15 +1468,7 @@ Then, for every $t < \tau$, by \cref{eq:energy-feedback-decomposition,eq:energy-
     \ineqlabel{eq:energy-sample-gauge-bound}
 \end{align}
 where we again used $\ell\geq640$.
-Now, by \cref{eq:energy-feedback-identity,eq:energy-sample-gauge-bound}
-for $t < \tau$, we have
-\begin{align}
-    \normm{g_t}{\Sigma_t}^2
-    =Y_t^2\norm{Z_t}^2
-    \leq\frac{64d\ell^4}{\eps^2}\,.
-    \ineqlabel{eq:energy-sample-gauge-bound-2}
-\end{align}
-To apply \cref{lem:freedman-nonnegative}, it remains to bound the conditional second moment $\sum_{t=1}^{\tau-1}\E_t[Y_t^2]$,
+To apply \cref{lem:freedman-nonnegative}, it remains to bound the sum of conditional second moment $\sum_{t=1}^{\tau-1}\E_t[Y_t^2]$,
 which is bounded by $S$ since $\tau \leq \tau_{\mathrm{moment}}$.
 Now, let
 \begin{align}
@@ -1448,7 +1477,7 @@ Now, let
     \left\{
     \sum_{t=1}^{\tau-1}Y_t^2
     \leq
-    2S + \frac{4d\ell^5}{\eps^2}
+    2S + \frac{\ell^4}{4\eps^2}
     \right\}\,.
     \eqlabel{eq:interval-feedback-bound}
 \end{align}
@@ -1457,7 +1486,7 @@ Now, let
     It holds that
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c\right)
-        \leq2e^{-\ell/64}\leq\frac\delta8.
+        \leq e^{-\ell/64}\leq\frac\delta8.
         \ineqlabel{eq:feedback-square-sum-probability}
     \end{align}
 \end{lemma}
@@ -1474,7 +1503,7 @@ Therefore, on the event $\mathcal E_\mathrm{global} \cap \mathcal E_Y$, we get
     \leq
     4\eta d\ell
     \left(
-    S + \frac{2d\ell^5}{\eps^2}
+    S + \frac{\ell^4}{8\eps^2}
     \right)\,.
     \ineqlabel{eq:interval-energy-bound}
 \end{align}
@@ -1508,7 +1537,7 @@ Thus, \cref{eq:interval-energy-bound} gives
     \leq
     8\eta d\ell
     \left(
-    S + \frac{2d\ell^5}{\eps^2}
+    S + \frac{\ell^4}{8\eps^2}
     \right)\,.
     \ineqlabel{eq:interval-energy-bound-final}
 \end{align}
@@ -1630,8 +1659,7 @@ For the conditional part of the RHS of \cref{eq:martingale-variance} using the e
     \,,
 \end{align}
 where the last inequality uses \cref{lem:weighted-gaussian-tail} to bound the summed weighted Gaussian tails.
-Thus, starting from \cref{eq:martingale-variance} and
-absorbing the tail term into the coefficient gives
+Thus, starting from \cref{eq:martingale-variance}, we get
 \begin{align}
     \sum_{t=1}^{\tau-1}\left(D_t^2+\E_t[D_t^2]\right)
      & \leq
@@ -1645,15 +1673,16 @@ absorbing the tail term into the coefficient gives
     + 8Fe^{-\ell/16}
     \\
      &
-    \leq300F\ell^2\left(3S+\frac{4d\ell^5}{\eps^2}\right)\,,
+    \leq200F\ell^2\left(3S+\frac{\ell^4}{4\eps^2}\right)
+    +8Fe^{-\ell/16}\,,
 \end{align}
-where we used the event $\mathcal{E}_Y$ in \cref{eq:interval-feedback-bound} which gives $\sum_{t=1}^{\tau-1}Y_t^2\leq2S+4d\ell^5/\eps^2$.
+where we used the event $\mathcal{E}_Y$ in \cref{eq:interval-feedback-bound}, which gives $\sum_{t=1}^{\tau-1}Y_t^2\leq2S+\ell^4/(4\eps^2)$, and $\sum_{t=1}^{\tau-1}\E_t[Y_t^2]\leq S$.
 Now, define the event
 \begin{align}
     \mathcal E_{q}
     =\left\{
     \left|\sum_{t=1}^{\tau-1}D_t\right|
-    \leq\sqrt{F\ell^3\left(S+\frac{d\ell^5}{\eps^2}\right)}
+    \leq\sqrt{F\ell^3\left(S+\frac{\ell^4}{12\eps^2}\right)}
     \right\},
     \eqlabel{eq:self-normalized-quadratic-event}
 \end{align}
@@ -1663,7 +1692,7 @@ The following lemma controls its failure probability.
     It holds that
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_q^c\right)
-        \leq4e^{-\ell/64}\leq\frac\delta8.
+        \leq2e^{-\ell/64}\leq\frac\delta8.
         \ineqlabel{eq:quadratic-concentration-probability}
     \end{align}
 \end{lemma}
@@ -1697,17 +1726,15 @@ from \cref{eq:interval-energy-bound-final} we have
 \begin{align}
     \sum_{t=1}^{\tau-1} \normm{g_t}{\Sigma_{t+1}}^2
     \leq
-    16d\ell\left(S+\frac{2d\ell^5}{\eps^2}\right)
-    \leq288dn\ell\,,
+    16d\ell\left(S+\frac{\ell^4}{8\eps^2}\right)
+    =256dn\ell+\frac{2d\ell^5}{\eps^2}\,;
 \end{align}
-where we used
-$d\ell^5/\eps^2=n/(10^4d^3M^2\ell^{11})\leq n$;
-from \cref{eq:self-normalized-quadratic-event} we have
+from \cref{eq:self-normalized-quadratic-event}, using
+$\eps^{-2}=n/(10^4d^4M^2\ell^{16})$, we have
 \begin{align}
     \left|\sum_{t=1}^{\tau-1}D_t\right|
-    \leq\sqrt{F\ell^3\left(S+\frac{d\ell^5}{\eps^2}\right)}
-    \leq\sqrt{17Fn\ell^3}
-    =\sqrt{17000}\,d^{3/2}M\ell^4\sqrt n\,;
+    \leq\sqrt{F\ell^3\left(S+\frac{\ell^4}{12\eps^2}\right)}
+    =\sqrt{16000+\frac{1}{120d^4M^2\ell^{12}}}\,d^{3/2}M\ell^4\sqrt n\,;
 \end{align}
 and from the initialization in \cref{alg:direct-hermite},
 $\norm{x_\star}\leq2d$, we have
@@ -1722,8 +1749,9 @@ Plugging these bounds into \cref{eq:stopped-regret-after-trace} gives a complete
 \begin{align}
     \operatorname{eReg}_{1:\tau-1}(x_\star)
      & \leq \frac{1}{2} d^2 M \sqrt n
-    + 144\eta d n \ell
-    + 131 d^{3/2} M \ell^4 \sqrt n
+    + 128\eta d n \ell
+    + \frac{\eta d\ell^5}{\eps^2}
+    + \sqrt{16000+\frac{1}{120d^4M^2\ell^{12}}}\,d^{3/2} M \ell^4 \sqrt n
     + \frac{16d\log(1+n)}{\lambda\eta}
     +1
     \\
@@ -1732,6 +1760,7 @@ Plugging these bounds into \cref{eq:stopped-regret-after-trace} gives a complete
     \ineqlabel{eq:global-stopped-regret}
 \end{align}
 The last inequality uses $\eta=8dM/\sqrt n$,
+$\eps^{-2}=n/(10^4d^4M^2\ell^{16})$,
 $\log(1+n)\leq\ell/128$, $\ell\geq640$, and $M\sqrt d\geq1$.
 
 The remaining steps of the proof are devoted to showing that $\tau=n+1$
@@ -1883,10 +1912,17 @@ $(j-s+1)n^{-8}/\eps\leq1$; and \reason{c} follows from
 So far this perfectly matches the counterpart analysis of the global regret in \cref{eq:stopped-regret-after-trace} with the exception of $R_s^2$ being zero for the local comparator.
 For the trace term, we use the bound from \cref{lem:uniform-trace} for the local interval, which ensures
 \begin{align}
-    \sum_{t=s}^{u}\tr(\bar H_t\Sigma_t)\leq\frac{5L}{\eps},
+    \sum_{t=s}^{u}\tr(\bar H_t\Sigma_t)\leq\frac{5L}{\eps}.
 \end{align}
-On $\mathcal E_{\mathrm{global}}$,
-$\Sigma_{t+1}\preceq2\Sigma_t$ from Step~5 give
+For the gradient term, on $\mathcal E_{\mathrm{global}}$,
+\cref{eq:energy-feedback-identity,eq:energy-sample-gauge-bound} give, for $t<\tau$,
+\begin{align}
+    \normm{g_t}{\Sigma_t}^2
+    =Y_t^2\norm{Z_t}^2
+    \leq\frac{64d\ell^4}{\eps^2}\,.
+    \ineqlabel{eq:energy-sample-gauge-bound-2}
+\end{align}
+Combining this with $\Sigma_{t+1}\preceq2\Sigma_t$ from Step~5 gives
 \begin{align}
     \frac{\eps\eta}{2}\sum_{t=s}^{u}\normm{g_t}{\Sigma_{t+1}}^2
     \leq
@@ -1911,7 +1947,7 @@ With this bound in hand, we define the counterpart of the event in \cref{eq:self
     \mathcal E_{q,\mathrm{loc}} = \left\{ \forall [s,j]\subseteq[s,\tilde{\tau}-1]:
     \left|\sum_{t=s}^{j}\tilde D_t\right|
     \leq\sqrt{F_L\ell^3\left(\frac{8L\ell^2}{\eps^2}
-        +\frac{d\ell^5}{\eps^2}\right)}
+        +\frac{\ell^4}{12\eps^2}\right)}
     \right\}\,.
     \eqlabel{eq:shell-local-martingale-event}
 \end{align}
@@ -1923,7 +1959,7 @@ With this bound in hand, we define the counterpart of the event in \cref{eq:self
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap
         \mathcal E_{q,\mathrm{loc}}^c\right)
-        \leq6e^{-\ell/64}\leq\frac{\delta}{8n^2}.
+        \leq2e^{-\ell/64}\leq\frac{\delta}{8n^2}.
         \ineqlabel{eq:local-quadratic-concentration-probability}
     \end{align}
     Consequently, the probability that $\mathcal E_{\mathrm{global}}$
@@ -1934,8 +1970,8 @@ The proof is in Appendix~\ref{app:concentration}.
 On $\mathcal E_{\mathrm{global}}\cap \mathcal E_{q,\mathrm{loc}}$, we have
 \begin{align}
     \eps\left|\sum_{t=s}^{j}\tilde D_t\right|
-    \leq\sqrt{\frac{256L^2}{25d\ell^2}+\frac{32L\ell}{25}}
-    \leq L+2\sqrt{L\ell}.
+    \leq\sqrt{\frac{256L^2}{25d\ell^2}+\frac{8L}{75d}}
+    \leq L+\sqrt{\frac{8L}{75d}}.
     \ineqlabel{eq:shell-local-martingale}
 \end{align}
 Then, on $\mathcal E_{\mathrm{global}}\cap\mathcal E_{q,\mathrm{loc}}$ and using the above bounds into
@@ -1947,8 +1983,8 @@ Then, on $\mathcal E_{\mathrm{global}}\cap\mathcal E_{q,\mathrm{loc}}$ and using
     \frac{\eps\eta}{2}\sum_{t=s}^{j}\normm{g_t}{\Sigma_{t+1}}^2
     +\eps\left|\sum_{t=s}^{j}\tilde D_t\right|
     +2\eps\sum_{t=s}^{j}\tr(\bar H_t\Sigma_t)
-    +1\nonumber                    \\
-     & \quad\leq13L+2\sqrt{L\ell}.
+    +1\nonumber                            \\
+     & \quad\leq13L+\sqrt{\frac{8L}{75d}}.
     \ineqlabel{eq:shell-local-potential}
 \end{align}
 
@@ -1969,7 +2005,7 @@ Substituting this lower bound into \cref{eq:shell-local-potential} gives
 \begin{align}
     \tilde R_{j+1}^2
     \leq\frac{2\eta}{\eps}
-    \left(3L\ell+13L+2\sqrt{L\ell}\right)
+    \left(3L\ell+13L+\sqrt{\frac{8L}{75d}}\right)
     <16\frac{\eta}{\eps}L\ell=F_L,
 \end{align}
 where the strict inequality uses $L\geq1$ and $\ell\geq640$.
@@ -1989,7 +2025,7 @@ Finally, Jensen's inequality gives $e(\mu_t)\leq\E_t[e(X_t)]$, so
 \begin{align}
     \eps\sum_{t=s}^{u}\bigl(e(\mu_t)-e(\mu_s)\bigr)
     \leq\eps\operatorname{eReg}_{s:u}(\mu_s)
-    \leq13L+2\sqrt{L\ell}.
+    \leq13L+\sqrt{\frac{8L}{75d}}.
     \ineqlabel{eq:shell-local-regret}
 \end{align}
 
@@ -2008,8 +2044,8 @@ Applying \cref{eq:shell-local-regret} on $[1,t]$ with comparator $\mu_1$
 gives
 \begin{align}
     \frac{\eps}{t}\sum_{j=1}^{t}e(\mu_j)
-    \leq\eps e(\mu_1)+13+2\sqrt{\frac{\ell}{t}}
-    \leq14+2\sqrt{\frac{\ell}{t}},
+    \leq\eps e(\mu_1)+13+\sqrt{\frac{8}{75dt}}
+    \leq14+\sqrt{\frac{8}{75dt}},
 \end{align}
 where we used $\mu_1=0$ and
 $\eps e(\mu_1)=\eps f(0)\leq\eps\leq1/2$.
@@ -2025,7 +2061,7 @@ Let $\mathcal E_{q,\mathrm{local}}$ denote the event
     \forall t\in [k, \tau-1]:
     \left|\sum_{j=t-k+1}^{t}D_j\right|
     \leq\sqrt{F\ell^3\left(\frac{8k\ell^2}{\eps^2}
-        +\frac{d\ell^5}{\eps^2}\right)}
+        +\frac{\ell^4}{12\eps^2}\right)}
     \right\}\,,
     \eqlabel{eq:shell-window-martingale-event}
 \end{align}
@@ -2038,8 +2074,8 @@ $\sum_{j=t-k+1}^{t}\E_j[Y_j^2]\leq \frac{8k\ell^2}{\eps^2}$.
 Now, on $\mathcal E_{q,\mathrm{local}}$, the choice $k=\lceil\eps F/\eta\rceil$ gives
 \begin{align}
     \frac{\eps}{k}\left|\sum_{j=s}^{t}D_j\right|
-    \leq\frac{\sqrt{F\ell^3(8k\ell^2+d\ell^5)}}{k}
-    \leq\sqrt{\frac{16}{25d\ell^3}+\frac{2}{25k}}
+    \leq\frac{\sqrt{F\ell^3(8k\ell^2+\ell^4/12)}}{k}
+    \leq\sqrt{\frac{16}{25d\ell^3}+\frac{1}{150d\ell k}}
     \leq1,
     \ineqlabel{eq:shell-window-martingale}
 \end{align}
@@ -2068,7 +2104,7 @@ The last inequality uses $\eps F/(\eta k)\leq1$ and $\eps/k\leq1/2$.
 Thus, on the intersection of the events above, both cases give
 \begin{align}
     \frac{\eps}{m}\sum_{j=t-m+1}^{t}e(\mu_j)
-    \leq14+2\sqrt{\frac{\ell}{m}},
+    \leq14+\sqrt{\frac{8}{75dm}},
     \qquad m=\min\{k,t\},\quad 1\leq t<\tau.
     \ineqlabel{eq:shell-window-average}
 \end{align}
@@ -2081,37 +2117,38 @@ The following deterministic lemma expresses this implication for an
 arbitrary real sequence.
 \begin{lemma}[From interval averages to pointwise bounds]
     \label{lem:averages-to-pointwise}
-    Let $a_1,\ldots,a_n\in\R$, let $k\geq1$ be an integer, and let $\ell>0$.
+    Let $a_1,\ldots,a_n\in\R$, let $k\geq1$ be an integer, and let $c\geq0$.
     Suppose that, for every $1\leq s\leq u\leq n$ with $u-s+1\leq k$,
     \begin{align}
         \frac{1}{u-s+1}\sum_{j=s}^{u}a_j
-        \leq a_s+13+2\sqrt{\frac{\ell}{u-s+1}}.
+        \leq a_s+13+\frac{c}{\sqrt{u-s+1}}.
         \ineqlabel{eq:sequence-local-average}
     \end{align}
     Suppose also that, for every $1\leq u\leq n$,
     \begin{align}
         \frac{1}{\min\{k,u\}}
         \sum_{j=\max\{1,u-k+1\}}^{u}a_j
-        \leq14+2\sqrt{\frac{\ell}{\min\{k,u\}}}.
+        \leq14+\frac{c}{\sqrt{\min\{k,u\}}}.
         \ineqlabel{eq:sequence-window-average}
     \end{align}
     Then, for every $1\leq u\leq n$,
     \begin{align}
-        a_u\leq27+13\log u+8\sqrt\ell.
+        a_u\leq27+13\log u+4c.
         \ineqlabel{eq:sequence-pointwise-bound}
     \end{align}
 \end{lemma}
 The proof is in \cref{app:averages-to-pointwise}.
 
 We apply the lemma on the same intersection of events as in Step~9.2.
-Fix $1\leq t<\tau$ and take $a_j=\eps e(\mu_j)$ for $1\leq j\leq t$.
+Fix $1\leq t<\tau$ and take $a_j=\eps e(\mu_j)$ for $1\leq j\leq t$,
+and $c=\sqrt{8/(75d)}$.
 Dividing \cref{eq:shell-local-regret} by the interval length gives
 \cref{eq:sequence-local-average}, and \cref{eq:shell-window-average}
 gives \cref{eq:sequence-window-average}.
 Thus \cref{lem:averages-to-pointwise} yields
 \begin{align}
     \eps e(\mu_t)
-    \leq27+13\log t+8\sqrt\ell
+    \leq27+13\log t+4\sqrt{\frac{8}{75d}}
     \leq\frac\ell2,
     \qquad 1\leq t<\tau.
     \ineqlabel{eq:shell-pointwise-extension}
@@ -3261,6 +3298,55 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
 
 \section{Feedback control}
 \label{app:feedback}
+
+\begin{lemma}[Gaussian gauge fourth moment]
+    \label{lem:gaussian-gauge-fourth-moment}
+    Let $\sigma=(M\sqrt{2d})^{-1}$ and $W\sim\N(0,\Sigma)$ with
+    $0\preceq\Sigma\preceq2\sigma^2I_d$. Then \alireza{checked.}
+    \begin{align}
+        \E[\pi(W)^4]^{1/4}\leq3.
+    \end{align}
+\end{lemma}
+\begin{proof}
+    Let $W'\sim\N(0,2\sigma^2I_d-\Sigma)$ be independent of $W$.
+    Since $\E[W'\mid W]=0$, Jensen gives
+    \begin{align}
+        \pi(W)
+        =\pi\bigl(\E[W+W'\mid W]\bigr)
+        \leq\E[\pi(W+W')\mid W],
+    \end{align}
+    and taking expectations yields $\E[\pi(W)]\leq\E[\pi(W+W')]$.
+    Now $W+W'\sim\N(0,2\sigma^2I_d)$, so its norm and direction
+    are independent, and its direction has the same distribution as $U$ (the uniform distribution on the unit sphere).
+    By positive homogeneity of $\pi$ and Cauchy--Schwarz,
+    \begin{align}
+        \E[\pi(W)] & \leq\E[\pi(W+W')]
+        =\E[\norm{W+W'}]\,\E[\pi(U)]                          \\
+                   & \leq\sqrt{\E[\norm{W+W'}^2]}\,\E[\pi(U)]
+        =\sqrt{2d}\,\sigma\E[\pi(U)]\leq1,
+    \end{align}
+    where the last inequality follows from $\E[\pi(U)]\leq M$
+    and $\sigma=(M\sqrt{2d})^{-1}$.
+    Since $\mathbb B_1\subseteq\K$, the gauge $\pi$ is $1$-Lipschitz.
+    Also $\Sigma\preceq2\sigma^2I_d\preceq I_d$, so
+    the map $z\mapsto\pi(\Sigma^{1/2}z)$ is $1$-Lipschitz.
+    By \citet[Theorem~5.6]{boucheron2013concentration},
+    $\pi(W)-\E[\pi(W)]$ is $1$-subgaussian.
+    The moment bound in \citet[Theorem~2.1]{boucheron2013concentration}
+    therefore gives
+    \begin{align}
+        \E\left[|\pi(W)-\E[\pi(W)]|^4\right]
+        \leq2\cdot2!\cdot2^2=16.
+    \end{align}
+    Writing $\pi(W)=\E[\pi(W)]+(\pi(W)-\E[\pi(W)])$
+    and applying the triangle inequality in $L^4$ gives
+    \begin{align}
+        \E[\pi(W)^4]^{1/4}
+        \leq\E[\pi(W)]
+        +\E\left[|\pi(W)-\E[\pi(W)]|^4\right]^{1/4}
+        \leq1+2=3.
+    \end{align}
+\end{proof}
 \begin{lemma}[Single-round feedback moment]
     \label{lem:single-round-feedback}
     For every $t\leq n\wedge\tau_{\mathrm{cov}}$ satisfying
@@ -3298,44 +3384,6 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
         \leq8\ell^2,
     \end{align}
     where the last inequality uses $\ell\geq640$.
-\end{proof}
-
-\begin{lemma}[Gaussian gauge fourth moment]
-    \label{lem:gaussian-gauge-fourth-moment}
-    Let $\sigma=(M\sqrt{2d})^{-1}$ and $W\sim\N(0,\Sigma)$ with
-    $0\preceq\Sigma\preceq2\sigma^2I_d$. Then
-    \begin{align}
-        \E[\pi(W)^4]^{1/4}\leq3.
-    \end{align}
-\end{lemma}
-\begin{proof}
-    Adding independent centered Gaussian noise to make the covariance
-    $2\sigma^2I_d$ and applying Jensen's inequality to the convex gauge
-    can only increase its expectation. Decomposing the resulting
-    isotropic Gaussian into its independent radius and direction gives
-    \begin{align}
-        \E[\pi(W)]
-        \leq\sqrt{2d}\,\sigma\E[\pi(U)]\leq1.
-    \end{align}
-    Since $\mathbb B_1\subseteq\K$, the gauge $\pi$ is $1$-Lipschitz.
-    Also $\Sigma\preceq2\sigma^2I_d\preceq I_d$, so Gaussian
-    concentration gives
-    \begin{align}
-        \Pp\left(|\pi(W)-\E[\pi(W)]|>r\right)
-        \leq2e^{-r^2/2}\qquad(r>0).
-    \end{align}
-    Integrating this tail bound yields
-    \begin{align}
-        \E\left[|\pi(W)-\E[\pi(W)]|^4\right]
-        \leq8\int_0^\infty r^3e^{-r^2/2}\,dr=16.
-    \end{align}
-    Minkowski's inequality therefore gives
-    \begin{align}
-        \E[\pi(W)^4]^{1/4}
-        \leq\E[\pi(W)]
-        +\E\left[|\pi(W)-\E[\pi(W)]|^4\right]^{1/4}
-        \leq1+2=3.
-    \end{align}
 \end{proof}
 
 \begin{lemma}[Conditional feedback cap]
@@ -3546,24 +3594,29 @@ In particular, this integral is nonnegative, possibly with value $+\infty$.
 
 \section{Concentration}
 \label{app:concentration}
-Throughout this section, $\tau$ denotes the common stopping time from
-\cref{sec:stochastic-control}. For the proofs, set
-\begin{align}
-    y_t=\eps Y_t,
-    \qquad N=n\eps^2=10^4d^4M^2\ell^{16}.
-    \eqlabel{eq:normalised-feedback}
-\end{align}
-Conditionally on $\F_{t-1}$, the standardized sample
-$Z_t=\Sigma_t^{-1/2}(X_t-\mu_t)$ has law $\N(0,I_d)$.
-Stopped increments are extended by zero after round $n\wedge\tau$.
-Since $\{t\leq\tau\}\in\F_{t-1}$, retaining round $\tau$ preserves
-predictability; any additional activity cutoffs used below are also checked
-before sampling the round.
 
-\begin{proof}[Proof of \cref{lem:global-event}]
+\subsection{Standard concentration results}
+The following chi-square upper-tail inequality follows from
+\citet[Lemma~1 and Eq.~(4.3)]{laurent2000adaptive}.\alireza{double check this}
+\begin{lemma}[Chi-square upper-tail bound]
+    \label{lem:chi-square-upper-tail}
+    Let $V\sim\chi_d^2$. Then, for every $x>0$,
+    \begin{align}
+        \Pp\left(
+        V\geq d+2\sqrt{dx}+2x
+        \right)
+        \leq
+        \exp(-x).
+        \ineqlabel{eq:chi-square-upper-tail}
+    \end{align}
+\end{lemma}
+
+\subsection{Proof of \cref{lem:global-event}}
+\label{app:global-event}
+\begin{proof}
     Fix $1\leq t\leq n$ and work conditionally on $\F_{t-1}$ on
     $\{t\leq\tau\}$. Since $\tau\leq\tau_{\mathrm{cov}}$ and
-    the covariance stopping rule tests the update at $t+1$, we have
+    the covariance stopping rule tests the update at $t+1$, we have\alireza{checked.}
     \begin{align}
         0\prec\Sigma_t\preceq2\bar\Sigma_t
         \preceq2\sigma^2I_d\preceq I_d.
@@ -3587,18 +3640,15 @@ before sampling the round.
     $\E_t[\pi(W_t)]\leq\E_t[\pi(W_t)^4]^{1/4}\leq3$.
     The map $z\mapsto\pi(\Sigma_t^{1/2}z)$ is $1$-Lipschitz,
     because $\pi$ is $1$-Lipschitz and $\Sigma_t\preceq I_d$.
-    Gaussian concentration therefore gives
+    Therefore, applying \citet[Theorem~5.6]{boucheron2013concentration} to this map
+    conditionally on $\F_{t-1}$ gives
     \begin{align}
         \Pp_t\left(\pi(W_t)>3+2\sqrt\ell\right)
         \leq
         \Pp_t\left(\pi(W_t)>\E_t[\pi(W_t)]+2\sqrt\ell\right)
         \leq e^{-2\ell}.
     \end{align}
-
-    Since $\{t\leq\tau\}\in\F_{t-1}$, multiplying each conditional
-    bound by $\1_{\{t\leq\tau\}}$ and taking expectations bounds
-    the probability that the corresponding cutoff fails at a retained
-    round. A union bound over the three cutoffs and $1\leq t\leq n$ yields
+    A union bound over the three cutoffs and $1\leq t\leq \tau \wedge n \leq n$ yields
     \begin{align}
         \Pp(\mathcal E_{\mathrm{global}}^c)
         \leq n\left(3e^{-\ell}+e^{-2\ell}\right)
@@ -3607,6 +3657,21 @@ before sampling the round.
         \leq\frac{\delta}{32d}\leq\frac\delta4.
     \end{align}
 \end{proof}
+
+\subsection{Remaining proofs}
+Throughout this section, $\tau$ denotes the common stopping time from
+\cref{sec:stochastic-control}. For the proofs, set
+\begin{align}
+    y_t=\eps Y_t,
+    \qquad N=n\eps^2=10^4d^4M^2\ell^{16}.
+    \eqlabel{eq:normalised-feedback}
+\end{align}
+Conditionally on $\F_{t-1}$, the standardized sample
+$Z_t=\Sigma_t^{-1/2}(X_t-\mu_t)$ has law $\N(0,I_d)$.
+Stopped increments are extended by zero after round $n\wedge\tau$.
+Since $\{t\leq\tau\}\in\F_{t-1}$, retaining round $\tau$ preserves
+predictability; any additional activity cutoffs used below are also checked
+before sampling the round.
 
 \begin{proof}[Proof of \cref{lem:feedback-square-sum}]
     For $1\leq t\leq n$, let
@@ -3635,16 +3700,13 @@ before sampling the round.
     On $\mathcal E_{\mathrm{global}}$,
     \cref{eq:energy-sample-gauge-bound} gives
     $\max_{1\leq t\leq n}U_t^2\leq b$ with
-    $b=16\ell^3/\eps^2$. Take $z=\ell/64$. Since
-    \begin{align}
-        4bz=\frac{\ell^4}{\eps^2}
-        \leq\frac{4d\ell^5}{\eps^2},
-    \end{align}
-    the event $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c$
-    is contained in
+    $b=16\ell^3/\eps^2$. Take $z=\ell/64$, so that
+    $bz=\ell^4/(4\eps^2)$ is exactly the additive term in the definition
+    of $\mathcal E_Y$. Thus the event
+    $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c$ is contained in
     \begin{align}
         \left\{
-        \sum_{t=1}^nU_t^2\geq2S+4bz,\quad
+        \sum_{t=1}^nU_t^2>2S+bz,\quad
         \sum_{t=1}^n\E_t[U_t^2]\leq S,\quad
         \max_{1\leq t\leq n}U_t^2\leq b
         \right\}.
@@ -3652,8 +3714,8 @@ before sampling the round.
     Applying \cref{lem:freedman-nonnegative} with $T=n$ therefore yields
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_Y^c\right)
-        \leq2e^{-\ell/64}
-        =2\left(\frac{\delta}{128nd}\right)^2
+        \leq e^{-\ell/64}
+        =\left(\frac{\delta}{128nd}\right)^2
         \leq\frac\delta8.
     \end{align}
 \end{proof}
@@ -3685,13 +3747,13 @@ before sampling the round.
     \begin{align}
         \sum_{t=1}^{\tau-1}\left(D_t^2+\E_t[D_t^2]\right)
          & \leq10F\ell\sum_{t=1}^{\tau-1}
-        \left(Y_t^2+\E_t[Y_t^2]\right)+8Fe^{-\ell/16}         \\
-         & \leq10F\ell\left(3S+\frac{4d\ell^5}{\eps^2}\right)
-        +8Fe^{-\ell/16}                                       \\
-         & \leq48F\ell\left(S+\frac{d\ell^5}{\eps^2}\right).
+        \left(Y_t^2+\E_t[Y_t^2]\right)+8Fe^{-\ell/16}        \\
+         & \leq10F\ell\left(3S+\frac{\ell^4}{4\eps^2}\right)
+        +8Fe^{-\ell/16}                                      \\
+         & =30F\ell\left(S+\frac{\ell^4}{12\eps^2}\right)
+        +8Fe^{-\ell/16}.
         \ineqlabel{eq:quadratic-sharp-variance}
     \end{align}
-    The last inequality uses $d\ell^5/\eps^2\geq1$ and $\ell\geq640$.
 
     To apply the martingale inequality at the random endpoint $\tau-1$,
     define, for $1\leq t\leq n$, the predictable indicators
@@ -3708,32 +3770,35 @@ before sampling the round.
     Apply \cref{lem:self-normalised-martingale} to $(U_t)_{t=1}^m$
     for each deterministic $1\leq m\leq n$, with
     \begin{align}
-        z=\sqrt{F\ell^3\left(S+\frac{d\ell^5}{\eps^2}\right)},
+        z=\sqrt{F\ell^3\left(S+\frac{\ell^4}{12\eps^2}\right)},
         \qquad
-        v=48F\ell\left(S+\frac{d\ell^5}{\eps^2}\right).
+        v=30F\ell\left(S+\frac{\ell^4}{12\eps^2}\right)
+        +8Fe^{-\ell/16}.
     \end{align}
+    Since $S+\ell^4/(12\eps^2)\geq\ell^4/3$ and
+    $16e^{-\ell/16}\leq\ell^5/3$, we have $z^2/(2v)\geq\ell^2/61$.
     A union bound shows that the probability of any prefix satisfying
     $|\sum_{t=1}^mU_t|>z$ and
     $\sum_{t=1}^m(U_t^2+\E_t[U_t^2])\leq v$ is at most
-    $2n\exp(-\ell^2/96)$.
+    $2n\exp(-\ell^2/61)$.
     If $\tau=1$, then $\mathcal E_q$ holds trivially. Otherwise,
     on $\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_Y
         \cap\mathcal E_q^c$, take $m=\tau-1$.
     The retained sums coincide with the original sums through $\tau-1$,
     and \cref{eq:quadratic-sharp-variance} bounds their combined
     second moments by $v$. Therefore this event has probability at most
-    $2n\exp(-\ell^2/96)$.
+    $2n\exp(-\ell^2/61)$.
 
     Finally, \cref{lem:feedback-square-sum} bounds the contribution
     from $\mathcal E_Y^c$, giving
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap\mathcal E_G\cap\mathcal E_q^c\right)
-         & \leq2e^{-\ell/64}+2ne^{-\ell^2/96} \\
-         & \leq4e^{-\ell/64}\leq\frac\delta8.
+         & \leq e^{-\ell/64}+2ne^{-\ell^2/61} \\
+         & \leq2e^{-\ell/64}\leq\frac\delta8.
     \end{align}
     Here $\log n\leq\ell/128$ and $\ell\geq640$ imply
-    $ne^{-\ell^2/96}\leq e^{-\ell/64}$, while
-    $4e^{-\ell/64}=4(\delta/(128nd))^2\leq\delta/8$.
+    $2ne^{-\ell^2/61}\leq e^{-\ell/64}$, while
+    $2e^{-\ell/64}=2(\delta/(128nd))^2\leq\delta/8$.
 \end{proof}
 
 \begin{proof}[Proof of \cref{lem:local-quadratic-concentration}]
@@ -3760,13 +3825,13 @@ before sampling the round.
     $|I_tY_t|\leq4\ell^{3/2}/\eps$.
     Apply \cref{lem:freedman-nonnegative} to $(I_tY_t)_{t=s}^u$
     with $b=16\ell^3/\eps^2$, moment budget $8L\ell^2/\eps^2$,
-    and $z=\ell/64$. Since $4bz=\ell^4/\eps^2\leq4d\ell^5/\eps^2$,
+    and $z=\ell/64$. Since $bz=\ell^4/(4\eps^2)$,
     outside an event whose intersection with $\mathcal E_{\mathrm{global}}$
-    has probability at most $2e^{-\ell/64}$, we have
+    has probability at most $e^{-\ell/64}$, we have
     \begin{align}
         \sum_{t=s}^u I_tY_t^2
         \leq\frac{16L\ell^2}{\eps^2}
-        +\frac{4d\ell^5}{\eps^2}.
+        +\frac{\ell^4}{4\eps^2}.
     \end{align}
 
     On a retained round with $\tilde R_t>0$, define
@@ -3793,8 +3858,11 @@ before sampling the round.
          & \leq10F_L\ell\sum_{t=s}^u
         I_t\left(Y_t^2+\E_t[Y_t^2]\right)+8F_Le^{-\ell/16}
         \\
-         & \leq48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
-        +\frac{d\ell^5}{\eps^2}\right).
+         & \leq10F_L\ell\left(\frac{24L\ell^2}{\eps^2}
+        +\frac{\ell^4}{4\eps^2}\right)+8F_Le^{-\ell/16}
+        \\
+         & =30F_L\ell\left(\frac{8L\ell^2}{\eps^2}
+        +\frac{\ell^4}{12\eps^2}\right)+8F_Le^{-\ell/16}.
     \end{align}
     This also bounds the combined second moments of every prefix.
 
@@ -3802,22 +3870,24 @@ before sampling the round.
     for each deterministic $s\leq j\leq u$, with
     \begin{align}
         z=\sqrt{F_L\ell^3\left(\frac{8L\ell^2}{\eps^2}
-            +\frac{d\ell^5}{\eps^2}\right)},
+            +\frac{\ell^4}{12\eps^2}\right)},
         \qquad
-        v=48F_L\ell\left(\frac{8L\ell^2}{\eps^2}
-        +\frac{d\ell^5}{\eps^2}\right).
+        v=30F_L\ell\left(\frac{8L\ell^2}{\eps^2}
+        +\frac{\ell^4}{12\eps^2}\right)+8F_Le^{-\ell/16}.
     \end{align}
+    As in the proof of \cref{lem:quadratic-concentration},
+    $z^2/(2v)\geq\ell^2/61$.
     A union bound over the $L$ prefixes gives probability at most
-    $2Le^{-\ell^2/96}$. For $j<\tilde\tau$, their sums coincide
+    $2Le^{-\ell^2/61}$. For $j<\tilde\tau$, their sums coincide
     with $\sum_{t=s}^j\tilde D_t$. Combining the three failure
     probabilities therefore yields
     \begin{align}
         \Pp\left(\mathcal E_{\mathrm{global}}\cap
         \mathcal E_{q,\mathrm{loc}}^c\right)
-         & \leq2e^{-\ell/64}+2Le^{-2\ell}+2Le^{-\ell^2/96}
+         & \leq e^{-\ell/64}+2Le^{-2\ell}+2Le^{-\ell^2/61}
         \\
-         & \leq6e^{-\ell/64}
-        =6\left(\frac{\delta}{128nd}\right)^2
+         & \leq2e^{-\ell/64}
+        =2\left(\frac{\delta}{128nd}\right)^2
         \leq\frac{\delta}{8n^2}.
     \end{align}
     Here we used $L\leq n$, $\log n\leq\ell/128$, and
@@ -3898,22 +3968,8 @@ We will truncate only in the proof, never in the algorithm. Define
     \eqlabel{eq:common-truncation}
 \end{align}
 On a round $t\leq n\wedge\tau$ satisfying $v(\mu_t)\leq\ell$,
-\cref{lem:conditional-feedback-cap} and the
-chi-square bound below give $\Pp_t(\overline{C_t})\leq4e^{-\ell}$.
-The following chi-square upper-tail inequality follows from
-\citet[Lemma~1 and Eq.~(4.3)]{laurent2000adaptive}.
-\begin{lemma}[Chi-square upper-tail bound]
-    \label{lem:chi-square-upper-tail}
-    Let $V\sim\chi_d^2$. Then, for every $x>0$,
-    \begin{align}
-        \Pp\left(
-        V\geq d+2\sqrt{dx}+2x
-        \right)
-        \leq
-        \exp(-x).
-        \ineqlabel{eq:chi-square-upper-tail}
-    \end{align}
-\end{lemma}
+\cref{lem:conditional-feedback-cap,lem:chi-square-upper-tail}
+give $\Pp_t(\overline{C_t})\leq4e^{-\ell}$.
 
 We use the following consequence of \cref{lem:freedman}: centered
 increments bounded by $b$ with total conditional variance at most $w$
@@ -4144,17 +4200,17 @@ dyadic levels.
     $[u-r,u]$, whose length is $r+1\leq k$, to obtain
     \begin{align}
         A_r-A_{r+1}
-        \leq\frac{13(r+1)+2\sqrt{(r+1)\ell}}{r(r+1)}
-        =\frac{13}{r}+\frac{2\sqrt\ell}{r\sqrt{r+1}}.
+        \leq\frac{13(r+1)+c\sqrt{r+1}}{r(r+1)}
+        =\frac{13}{r}+\frac{c}{r\sqrt{r+1}}.
     \end{align}
     Telescoping these increases from the full window to its last term gives
     \begin{align}
         a_u
          & =A_{\min\{k,u\}}
         +\sum_{r=1}^{\min\{k,u\}-1}(A_r-A_{r+1})\nonumber \\
-         & \leq14+2\sqrt{\frac{\ell}{\min\{k,u\}}}
+         & \leq14+\frac{c}{\sqrt{\min\{k,u\}}}
         +13\sum_{r=1}^{\min\{k,u\}-1}\frac1r
-        +2\sqrt\ell\sum_{r=1}^{\min\{k,u\}-1}\frac{1}{r\sqrt{r+1}}.
+        +c\sum_{r=1}^{\min\{k,u\}-1}\frac{1}{r\sqrt{r+1}}.
     \end{align}
     The two sums satisfy
     \begin{align}
@@ -4168,8 +4224,8 @@ dyadic levels.
     zero. Substituting them and using $\min\{k,u\}\geq1$ gives
     \begin{align}
         a_u
-        \leq14+2\sqrt\ell+13(1+\log u)+6\sqrt\ell
-        =27+13\log u+8\sqrt\ell.
+        \leq14+c+13(1+\log u)+3c
+        =27+13\log u+4c.
     \end{align}
 \end{proof}
 
