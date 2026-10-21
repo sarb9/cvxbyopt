@@ -95,7 +95,7 @@
 \begin{abstract}
     We consider stationary stochastic bandit convex optimization with a bounded
     convex loss and subgaussian observation noise.  Gaussian online Newton step
-    methods are usually analyzed through an optimistic Gaussian surrogate whose
+    methods are usually analyzed through an optimistic Gaussian-convolved surrogate function whose
     derivatives are estimated using a likelihood-ratio correction.  We show that
     neither device is needed in the stationary problem.  The algorithm estimates
     the first two Gaussian Hermite coefficients of a queryable convex extension
@@ -103,13 +103,11 @@
     (damped) quadratic estimates, without projecting the mean.
     For a rounded convex body $\K$, the regret is
     \begin{align}
-        O\!\left(d^2 M\sqrt n\,
+        O\!\left(d^{\frac{3}{2}} M\sqrt n\,
         \log^8\!\frac{nd}{\delta}\right)
     \end{align}
-    with probability at least $1-\delta$, where $M$ is $\tilde{O}(d^{-1/2})$
-    when $\frac1d \K$ is in L\"owner position,
-    which recovers the stationary rate of \citet{fokkema2024online}
-    of $\widetilde O(d^{3/2}\sqrt n)$.
+    with probability at least $1-\delta$,
+    which recovers the stationary rate of \citet{fokkema2024online}.
 \end{abstract}
 
 \section{Introduction}
@@ -117,12 +115,13 @@
 The learner in bandit convex optimization chooses a point in a convex body
 and observes only a noisy value of the loss at that point.  A useful way to
 extract second-order information is to sample from a Gaussian and estimate the
-first two coefficients in the corresponding Hermite expansion.  The first
-coefficient behaves like a gradient and the second like an average Hessian, so
+first two coefficients in the corresponding Hermite expansion.
+Such an estimation is equivalent to the best quadratic fit to the function, under a fixed Gaussian measure.
+Indeed, the first coefficient behaves like a gradient and the second like an average Hessian, so
 the natural update is online Newton step.
 
 There is one difficulty with this direct idea.  The online Newton step
-potential contains the curvature of the quadratic at the comparator, while
+reflects the curvature of the quadratic at the comparator, while
 convexity controls regret through a Bregman divergence of the original loss.
 These quantities need not be comparable globally.  The usual Gaussian ONS
 analysis resolves this by first replacing the loss with an optimistic
@@ -136,12 +135,9 @@ log-determinant trace budget.
 
 The resulting algorithm has one Gaussian sample and one function evaluation
 per round, with no projection of the mean.
-The proof still has to address two features of bandit feedback:
-the one-sample Hessian estimate is indefinite, and the queryable extension
-amplifies noise outside the constraint set.
-We handle the first by comparing the random covariance with its
-predictable counterpart, and the second by bounding the extension value at the means and closing
-a feedback-moment budget through extension regret.
+The proof still has to address the main feature of bandit feedback:
+the one-sample Hessian estimate is indefinite.
+We rely on a concentration argument to close this gap.
 
 The paper is organized as follows.  \Cref{sec:setting} introduces the problem,
 the extension and the algorithm.
@@ -186,7 +182,7 @@ The only geometric quantity in the result is
 The rounding  $\mathbb{B}_1\subseteq\K$ implies that $\pi$ is $1$-Lipschitz.
 Write $\gamma_{\mu,\Sigma}$ for the density of the multivariate normal distribution
 $\N(\mu,\Sigma)$, for $\mu\in\R^d$ and $\Sigma\in\R^{d\times d}$ symmetric positive semidefinite.
-We write $Dh$ and $D^2h$ for the first and second distributional derivatives of $h$;
+We write $Dh$ and $D^2h$\kevin{be explicit about the spaces these live in.} for the first and second distributional derivatives of $h$;
 see Appendix~\ref{app:distributional-derivatives} for their definitions.
 
 The loss function $f$ has the restriction of being only defined on the convex body $\K$.
@@ -203,7 +199,8 @@ For some $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
     \eqlabel{eq:extension-notation}
 \end{align}
 Then, we use the queryable extension from
-\citet[Eq.~(10.6)]{lattimore2026bandit} which is defined for all $x\in\R^d$ by
+\citet[Eq.~(10.6)]{lattimore2026bandit} which is defined for all $x\in\R^d$ by\kevin{As we've discussed these definitions require a lot of congnitive load to really undertand, when the resulting picture is actually dead simple. What do you think about a picture?
+}
 \begin{align}
     e(x)
     =\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
@@ -348,9 +345,9 @@ The covariance update requires $\Sigma_t^{-1}+\lambda\eta H_t\succ0$; Appendix~\
     \cref{eq:main-regret}.
 \end{proof}
 
-\section{Idealized Behavior}
-We will now describe the idealized behavior of the algorithm, assuming access to exact expectations rather than noisy observations as we discuss later.
-The purpose of this chapter is to provide intuition about both the behavior of the algorithm and the structure of the regret analysis.
+\section{Population Level Behavior}
+We will now describe the idealized behavior of the algorithm, assuming access to exact expectations rather than noisy observations which we turn to later.
+The purpose of this chapter is to provide intuition about both the behavior of the algorithm and the structure of the regret analysis without getting bogged down in concentration arguments.
 The formal proof is presented in Appendix~\ref{sec:stability}, where we rigorously handle the noisy observations and establish the regret bounds.
 
 First, we argue that we should think of $e$ as the primary loss function and control the regret with respect to $e$.
