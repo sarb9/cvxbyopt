@@ -111,6 +111,7 @@
 \newcommand{\expbyopt}{\textsf{ExpByOpt}\xspace}
 \newcommand{\expthree}{\textsf{Exp3}\xspace}
 \newcommand{\expthreeix}{\textsf{Exp3.IX}\xspace}
+\newcommand{\Hedge}{\textsf{Hedge}\xspace}
 \newcommand{\olo}{\texttt{OLO}\xspace}
 \newcommand{\blo}{\texttt{BLO}\xspace}
 \newcommand{\bco}{\texttt{BCO}\xspace}
@@ -139,7 +140,6 @@ Let $[n] = \{1,2, \cdots, n\}$.
 Let $D_F(a, b) = F(a) - F(b) - F'(b)^\top (a - b)$ be the Bregman divergence.
 Also let $\cP(A)$ be the set of all probability measures over the set $A$,
 equipped with appropriate $\sigma$-algebra.
-We use uppercase letters such as $A, B, X, Y$ to denote random variables or elements.
 
 Let $\interior(\cD)$ be the interior of the set $\cD$.
 For a convex function $F: \Rd \to \R \cup \{+\infty\}$
@@ -203,7 +203,7 @@ in \cref{alg:MD}, when the loss sequence $\ell_{1:t-1}$ is fed to the algorithm.
     \begin{minipage}{12cm}
         \begin{mdframed}
             \begin{lstlisting}
-args: $\eta > 0$, potential function $F$
+args: $\eta > 0$, Legendre function $F$
 $a_1 = \argmin_{a \in \cA} F(a)$
 for $t = 1$ to $n$:
     Play $a_t$ and observe $\ell_t$
@@ -216,6 +216,32 @@ for $t = 1$ to $n$:
         \end{mdframed}
     \end{minipage}
 \end{algorithm}
+
+\paragraph{The $\interior(\dom{F})$ and $\cA$}
+The Bregman divergence term $D_F(a, b)$ is $+\infty$ when $a \notin \dom{F}$.
+So effectively the first minimization in \cref{alg:MD} is constrained to $\interior(\dom{F})$.
+Similarly, the second minimization is also effectively constrained to $\interior(\dom{F}) \cap \cA$.
+Basically, the only part of the action set $\cA$ that matters is $\cA \cap \interior(\dom{F})$,
+so wlog, when running the algorithm but not in the analysis, we can assume that $\cA \subset \dom{F}$,
+because the part of the action set $\cA/\dom{F}$ is effectively invisible to the algorithm; i.e. it will never be chosen either for $\ta_{t+1}$ or $a_{t+1}$.
+The funny observation is that the part of the $\interior(\dom{F})$ that lies outside $\cA$
+is also almost irrelevant for the minimization, since the algorithm will never choose actions outside $\cA$.
+This strongly suggests that one should almost think of the situation as if $\interior(\dom{F}) \approx \cA$.
+The subtlety here is the Bregman distance $D_F(a_{t+1}, \ta_{t+1})\geq 0$ which is purely analytical but depends on the algorithm's choice of the $F$ function.
+Let's understand this all through an example: the negentropy potential.
+Suppose we are in $\R^d$, we really have two negentropy potentials, one is
+\begin{align}
+    H(x)        & = \sum_{i=1}^{d} x_i \log x_i\,,                            & \text{and }\quad \dom{H} = \R_+^d, \\
+    H_\Delta(x) & = \begin{cases}
+                        \sum_{i=1}^{d} x_i \log x_i & \text{if } x \in \Delta^d, \\
+                        +\infty                     & \text{otherwise}
+                    \end{cases}\,, & \text{and }\quad \dom{H_\Delta} = \Delta^d\,.
+\end{align}
+The point we're trying to make here is that the behavior of the \cref{alg:MD} is identical for both potentials when $\cA = \Delta^d$.
+The difference appears in their value of $\ta_{t+1}$, which is inside the simplex for $H_\Delta$ but can be outside the simplex for $H$.
+One technicality here really is that $H_\Delta$ is not really Legendre, since $\interior(\dom{H_\Delta}) = \emptyset$,
+but one can readily extend the definition of Legendre functions to relative interiors, making $H_\Delta$ a relative Legendre function with respect to the simplex $\Delta^d$.
+
 \begin{theorem}\label{thm:MD}
     Let $F$ be Legendre with domain $\cD$ such that $\cA \cap \interior(\cD)\neq \emptyset$.
     Then
@@ -242,8 +268,8 @@ for $t = 1$ to $n$:
     We have
     \begin{align*}
         \Reg_n(a_\star)
-         & = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle                                                                                                                                                                         \\
-         & = \sum_{t=1}^{n} \underbrace{\langle \ell_t, a_t - a_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stability}} + \underbrace{\langle \ell_t, a_{t+1} - a_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
+         & = \sum_{t=1}^{n} \langle \ell_t, a_t - a_\star \rangle
+        = \sum_{t=1}^{n} \underbrace{\langle \ell_t, a_t - a_{t+1} \rangle}_{\triangleq \texttt{st}_t \text{ or stability}} + \underbrace{\langle \ell_t, a_{t+1} - a_\star \rangle}_{\triangleq \texttt{tr}_t \text{ or tracking}}\,.
     \end{align*}
     What do we know about $a_{t+1}$?
     \begin{align*}
@@ -320,24 +346,29 @@ for $t = 1$ to $n$:
     Much of what comes after hinges on the generality of the proof of this theorem.
 \end{remark}
 
-\subsection*{When \texorpdfstring{$\cA=\Delta(d)$}{A=Delta(d)} and \texorpdfstring{$F$}{F} is the negentropy}\label{sec:md-negentropy}
-The case that $\cA = \Delta(d)$ is the simplex and the potential
-is negentropy,
-\begin{align*}
-    R(p) = \begin{cases}
-               \langle p, \ln(p) - 1 \rangle & p \in \Rd_+    \\
-               \infty                        & p \notin \Rd_+ \\
-           \end{cases}
-\end{align*}
-is of special interest as it results in a sort of universal algorithm for all
+\subsubsection{Example: Exponential Weights (\Hedge) Algorithm}
+\label{sec:hedge}
+The discrete case of \olo is when the action set $\cA$ is the simplex $\Delta(d)$.
+This special case is of
+special interest as it results in a sort of universal algorithm for all
 action sets as long as they have a covering---the learner
 can come up with the cover $\cA$ and randomize over that.
 That being said, while being theoretically interesting, such an algorithm
 would be computationally expensive as the size of the cover grows.
 
+The popular choice of potential function for the simplex action set
+is the negentropy potential $R: \Rd \to \R \cup \{+\infty\}$, defined as
+\begin{align*}
+    R(p) = \begin{cases}
+               \langle p, \ln(p) - 1 \rangle & p \in \Rd_+       \\
+               \infty                        & p \notin \Rd_+\,.
+           \end{cases}
+\end{align*}
 Note that $D_R = D_{KL}$, $R^\star(q) = \langle \exp(q), 1\rangle$,
 $R'(p) = \ln(p)$, and ${R^\star}'(q) = \exp(q)$.
-\begin{theorem}[\mdalg on simplex]\label{thm:md-simplex}
+This choice of potential results in the well-known exponential weights algorithm, also known as the \Hedge algorithm.
+
+\begin{theorem}[Regret bound for \Hedge]\label{thm:md-simplex}
     Suppose that $\ell_t \in [0,1]^d$ and $\cA = \Delta(d)$.
     Then the regret of \mdalg with $R$ as the potential
     with learning rate $\eta \in (0,1]$
@@ -490,17 +521,6 @@ $E_t: \cA \times \R \to \Rd$ in each round $t \in [n]$ such that $\hl_t = E_t(A_
     \begin{align*}
         \Reg_n(a_\star)
          & \leq
-        \frac{D_F(a_\star, a_1)}{\eta}
-        +
-        \E\left[
-            \sum_{t=1}^{n}
-            \left(
-            \langle \hl_t, \fmd(\hl_{1:t-1}) - \fmd(\hl_{1:t}) \rangle
-            - \frac{1}{\eta}
-            D_F(\fmd(\hl_{1:t-1}), \fmd(\hl_{1:t}))
-            \right)
-        \right] \\
-         & \leq
         \frac{1}{\eta}\left(
         D_F(a_\star, a_1)
         +
@@ -556,18 +576,212 @@ $P_t$ with invertible second moment matrix.
     \end{align*}
     This ensures that
     \begin{align*}
-        \E_{A \sim P}[E(A, \langle A, v \rangle)]
-         & = \E_{A \sim P}[\E_{A \sim P}[A A^\top]^{-1} A  \langle A, v \rangle] \\
-         & = \E_{A \sim P}[A A^\top]^{-1} \E_{A \sim P}[A  A^\top v]             \\
-         & = \E_{A \sim P}[A A^\top]^{-1} \E_{A \sim P}[A A^\top]  v             \\
-         & = v\,.
+        \E[E(A, \langle A, v \rangle)]
+        = \E[\E[A A^\top]^{-1} A  \langle A, v \rangle]
+        = \E[A A^\top]^{-1} \E[A  A^\top v]
+        %  & = \E_{A \sim P}[A A^\top]^{-1} \E_{A \sim P}[A A^\top]  v             \\
+        = v\,.
     \end{align*}
 \end{proof}
 This shows that as long as the second moment matrix of $P_t$ is invertible,
 it is possible to construct a sequence of unbiased estimators $\hl_t$,
 such that $\E_t[\hl_t] = \ell_t$.
 
-\subsubsection{Biased \smdalg}
+\subsubsection{Example: \expthree}
+Consider an adversarial bandit with $d$ arms, represented by
+$e_1, \cdots, e_d$.
+In round $t$, the adversary chooses $\ell_t \in [0,1]^d$ before the learner
+draws its arm; this choice may depend on the past.
+The learner plays $A_t=e_i$ and observes only $Y_t=\ell_{t,i}$.
+We use $\Delta(d)$ as the feasible set for mirror descent and sample its
+vertices, so $a_t \in \Delta(d)$ is the vector of arm probabilities:
+$P_t(A_t=e_i)=a_{t,i}$.
+In this example, $\E_t$ denotes expectation conditional on the past and
+the current loss vector $\ell_t$, before drawing $A_t$.
+
+Start with $a_{1,i}=1/d$ and use the negentropy potential $R$ from
+\cref{sec:hedge}.
+For positive arm probabilities, we have
+\begin{align*}
+    \E_t[A_t] = a_t,
+    \qquad
+    \E_t[A_t A_t^\top] = \operatorname{diag}(a_t).
+\end{align*}
+Thus, lemma~\ref{lem:1-sample-estimator} gives the importance-weighted estimator
+\begin{align*}
+    \hl_t = \operatorname{diag}(a_t)^{-1} A_t Y_t,
+\end{align*}
+or equivalently, $\hl_{t,i} = \frac{\ell_{t,i}}{a_{t,i}} \mathbf{1}\{A_t=e_i\}$.
+In particular, this is unbiased, since
+$\E_t[\hl_{t,i}]
+    = a_{t,i}\frac{\ell_{t,i}}{a_{t,i}}
+    = \ell_{t,i}$
+Recall that for $p,q \in \Rd$, the negentropy potential and its Bregman divergence are
+\begin{align}
+    R(p) = \sum_{i=1}^{d} p_i \ln(p_i) - p_i,
+    \qquad
+    D_R(p,q) = \sum_{i=1}^{d} p_i \ln(p_i/q_i) - p_i + q_i.
+\end{align}
+The mirror descent update with $R$ is
+\begin{align*}
+    a_{t+1}
+    = \argmin_{a \in \Delta(d)}
+    \left\{\eta\langle a,\hl_t\rangle+D_R(a,a_t)\right\}
+    \implies
+    a_{t+1,i}
+    = \frac{a_{t,i}\exp(-\eta\hl_{t,i})}
+    {\sum_{j=1}^d a_{t,j}\exp(-\eta\hl_{t,j})}\,, \\
+    \tilde{a}_{t+1}
+    = \argmin_{a \in \Rd}
+    \left\{\eta\langle a,\hl_t\rangle+D_R(a,a_t)\right\}
+    \implies
+    \tilde{a}_{t+1,i}
+    = a_{t,i}\exp(-\eta\hl_{t,i})\,.
+\end{align*}
+Together with the sampling rule and estimator above, this is \expthree.
+All coordinates remain positive, so the estimator is well-defined in every round.
+\begin{theorem}[Expected regret of \expthree]\label{thm:expthree}
+    For every $\eta>0$ and every fixed arm $i \in [d]$, \expthree satisfies
+    \begin{align*}
+        \E\left[\sum_{t=1}^n (Y_t-\ell_{t,i})\right]
+        \leq \frac{\ln(d)}{\eta}+\frac{\eta nd}{2}.
+    \end{align*}
+    Choosing $\eta=\sqrt{2\ln(d)/(nd)}$ gives the bound
+    $\sqrt{2nd\ln(d)}$.
+\end{theorem}
+\begin{proof}
+    We apply theorem~\ref{thm:SMD-unbiased} with $F=R$ and $\hl_t$ as above,
+    which gives
+    \begin{align*}
+        \E[\Reg_n(e_i)]
+         & \leq
+        \frac{1}{\eta}\left(
+        D_R(e_i, a_1)
+        +
+        \E\left[
+            \sum_{t=1}^{n} D_R(\fmd(\hl_{1:t-1}), \tfmd(\hl_{1:t}))
+            \right]
+        \right) \\
+         & =
+        \frac{1}{\eta}\left(
+        \ln(d)
+        +
+        \E\left[
+                \sum_{t=1}^{n} D_R(a_t, \tilde{a}_{t+1})
+                \right]
+        \right) \\
+         & =
+        \frac{1}{\eta}\left(
+        \ln(d)
+        +
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            \left(
+            a_{t,j} \ln\left(\frac{a_{t,j}}{\tilde{a}_{t+1,j}}\right)
+            - a_{t,j} + \tilde{a}_{t+1,j}
+            \right)
+            \right]
+        \right) \\
+         & =
+        \frac{1}{\eta}\left(
+        \ln(d)
+        +
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            a_{t,j} \ln\left(\frac{a_{t,j}}{a_{t,j} \exp(-\eta\hl_{t,j})}\right)
+            - a_{t,j}
+            + a_{t,j} \exp(-\eta\hl_{t,j})
+            \right]
+        \right) \\
+         & =
+        \frac{1}{\eta}\left(
+        \ln(d)
+        +
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            a_{t,j} \left(
+            \exp(-\eta\hl_{t,j})
+            + \eta\hl_{t,j}
+            - 1
+            \right)
+            \right]
+        \right)
+        \\
+         & \leq
+        \frac{1}{\eta}\left(
+        \ln(d)
+        +
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            a_{t,j}
+            \frac{
+            \eta^2
+            \hl_{t,j}^2
+            }{2}
+            \right]
+        \right)
+        \\
+         & =
+        \frac{1}{\eta}\left(
+        \ln(d)
+        +
+        \frac{
+            \eta^2
+        }{2}
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            a_{t,j}
+            \frac{
+            \ell_{t,j}^2 \mathbf{1}\{A_t=e_j\}
+            }{a_{t,j}^2}
+            \right]
+        \right)\,,
+    \end{align*}
+    where the last inequality uses $\exp(-x) + x -1 \leq x^2/2$ for $x\geq 0$,
+    and the last equality uses the definition of $\hl_t$.
+    Now observe that once we condition on $(a_1, \ell_1 \ldots, a_{t}, \ell_{t})$, the only random variable in the last term is $A_t$, and $\E_t[\mathbf{1}\{A_t=e_j\}] = a_{t,j}$,
+    which gives
+    \begin{align*}
+        \E\left[
+            \sum_{t=1}^{n}
+            \E_t\left[
+                \sum_{j=1}^{d}
+                a_{t,j}
+                \frac{
+                    \ell_{t,j}^2 \mathbf{1}\{A_t=e_j\}
+                }{a_{t,j}^2}
+                \right]
+            \right]
+        =
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            a_{t,j}
+            \frac{
+                \ell_{t,j}^2 a_{t,j}
+            }{a_{t,j}^2}
+            \right]
+        =
+        \E\left[
+            \sum_{t=1}^{n}
+            \sum_{j=1}^{d}
+            \ell_{t,j}^2
+            \right]
+        \leq nd\,,
+    \end{align*}
+    where the last inequality uses $\ell_{t,j} \in [0,1]$.
+\end{proof}
+For a loss sequence fixed in advance, we may choose $i$ to be the best arm
+in hindsight, giving the usual expected regret bound.
+For an adaptive adversary, the theorem compares with each fixed arm;
+it does not put the maximum over arms inside the expectation.
+
+\subsection{Biased \smdalg}
 \begin{algorithm}[h!]
     \begin{minipage}{13cm}
         \begin{mdframed}
@@ -606,45 +820,38 @@ We call this variant Biased-\smdalg and present it in \cref{alg:biased-SMD}.
     are only functions of $a_t$ in Biased-\smdalg.
 \end{remark}
 
+The following theorem is written for random regret, but it holds for expected regret as well.
 \begin{theorem}[Biased-\smdalg, (\cite{lattimore2024bandit}, Theorem 8.14)]\label{thm:SMD-biased}
-    The expected regret of Biased-\smdalg is bounded by
+    The (random) regret of Biased-\smdalg is bounded by
     \begin{align*}
         \frac{D_F(a_\star, a_1)}{\eta} +
         \sum_{t=1}^{n}
-        \E\left[
-            \langle A_t - a_\star, \ell_t\rangle
-            - \langle \hat{a}_t - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
-            \right]\,.
+        \langle A_t - a_\star, \ell_t\rangle
+        - \langle \hat{a}_t - a_\star, \hl_t\rangle
+        + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
+        \,.
     \end{align*}
     where $\hat{a}_t = \fmd(\hl_{1:t-1})$.
 \end{theorem}
 \begin{proof}
     We have
     \begin{align*}
-         & \Reg_n(a_\star)
-        =
-        \E\left[
-            \sum_{t=1}^{n}
-            \langle A_t - a_\star, \ell_t\rangle
-        \right]            \\
+        \sum_{t=1}^{n}
+        \langle A_t - a_\star, \ell_t\rangle
          & =
-        \E\left[
-            \sum_{t=1}^{n}
-            \langle A_t - a_\star, \ell_t\rangle
-            - \langle \hat{a}_t - a_\star, \hl_t\rangle
-            + \langle \hat{a}_t - a_\star, \hl_t\rangle
-            \right]
+        \sum_{t=1}^{n}
+        \langle A_t - a_\star, \ell_t\rangle
+        - \langle \hat{a}_t - a_\star, \hl_t\rangle
+        + \langle \hat{a}_t - a_\star, \hl_t\rangle
         \\
          & \leq
-        \E\left[
-            \frac{D_F(a_\star, \hat{a}_1)}{\eta}
-            +
-            \sum_{t=1}^{n}
-            \langle A_t - a_\star, \ell_t\rangle
-            - \langle \hat{a}_t - a_\star, \hl_t\rangle
-            + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
-            \right]\,,
+        \frac{D_F(a_\star, \hat{a}_1)}{\eta}
+        +
+        \sum_{t=1}^{n}
+        \langle A_t - a_\star, \ell_t\rangle
+        - \langle \hat{a}_t - a_\star, \hl_t\rangle
+        + \frac{1}{\eta} D_{F^\star}(F'(\hat{a}_t) - \eta \hl_t, F'(\hat{a}_t))
+        \,,
     \end{align*}
     where the inequality is by theorem~\ref{thm:MD}.
     Also note that $\hat{a}_1 = a_1$ since $\hl_{1:0}$ is an empty sequence.
@@ -684,6 +891,388 @@ We call this variant Biased-\smdalg and present it in \cref{alg:biased-SMD}.
     and the theorem useless.
     Needless to say, the theorem still holds if we exchange $a_\star$
     for $\hat{a}_\star$.
+\end{remark}
+
+
+\subsubsection{Example: \expthreeix}
+In the same multiarmed bandit setting, \expthreeix uses the sampling rule
+and negentropy update of \expthree, but changes the loss estimator.
+Start with $a_{1,i}=1/d$, sample $A_t=e_i$ with probability $a_{t,i}$,
+and, after observing $Y_t$, use
+\begin{align*}
+    \hl_{t,i}
+    = \frac{Y_t\mathbf{1}\{A_t=e_i\}}{a_{t,i}+\gamma},
+    \qquad \gamma>0.
+\end{align*}
+The update is still
+\begin{align*}
+    a_{t+1,i}
+    = \frac{a_{t,i}\exp(-\eta\hl_{t,i})}
+    {\sum_{j=1}^d a_{t,j}\exp(-\eta\hl_{t,j})}.
+\end{align*}
+The added $\gamma$ keeps the estimates bounded by $1/\gamma$,
+but makes them biased:
+\begin{align*}
+    \E_t[\hl_{t,i}]
+    = \frac{a_{t,i}}{a_{t,i}+\gamma}\ell_{t,i}
+    \leq \ell_{t,i}.
+\end{align*}
+This modification is called \emph{implicit exploration} (IX).
+
+We will bound the positive part of the realized regret
+\begin{align*}
+    \Reg_n = \sum_{t=1}^n Y_t-\min_{i\in[d]}\sum_{t=1}^n\ell_{t,i}.
+\end{align*}
+For a real random variable $X$, write $X_+=\max\{X,0\}$ and define
+its $\psi_1$ Orlicz norm by
+\begin{align*}
+    \|X\|_{\psi_1}
+    = \inf\left\{c>0:\E\left[\exp\left(\frac{|X|}{c}\right)\right]\leq 2\right\}.
+\end{align*}
+\begin{theorem}[Regret of \expthreeix]\label{thm:expthreeix}
+    Suppose $d\geq 2$ and $\ell_t\in[0,1]^d$ is chosen before $A_t$,
+    possibly depending on the past.
+    For every $\eta>0$ and $\gamma=\eta/2$, \expthreeix satisfies
+    \begin{align*}
+        \left\|
+        \left(\Reg_n-\frac{2\ln(d)}{\eta}-\eta nd\right)_+
+        \right\|_{\psi_1}
+        \leq 1+\frac{1}{\eta}.
+    \end{align*}
+\end{theorem}
+\begin{proof}[Proof]
+    We apply theorem~\ref{thm:SMD-biased} with $F=R$ and $a_\star=e_i$,
+    for a fixed arm $i\in[d]$.
+    Here $\hat a_t=a_t$ and $D_R(e_i,a_1)=\ln(d)$, so
+    \begin{align*}
+        \sum_{t=1}^n
+        \langle A_t-e_i,\ell_t\rangle
+         & \leq \frac{\ln(d)}{\eta}
+        +
+        \sum_{t=1}^n
+        \langle A_t-e_i,\ell_t\rangle
+        -\langle a_t-e_i,\hl_t\rangle
+        +\frac{1}{\eta}
+        D_{R^\star}\bigl(R'(a_t)-\eta\hl_t,R'(a_t)\bigr)
+    \end{align*}
+    First, for the Bregman divergence term, the same
+    bound as in the proof of theorem~\ref{thm:expthree} gives
+    \begin{align}
+        D_{R^\star}(R'(a_t)-\eta\hl_t,R'(a_t))
+        \leq \frac{\eta^2}{2} \sum_{i=1}^d a_{t,i} \hl_{t,i}^2\,.
+    \end{align}
+    Second, we can rewrite the first two terms as
+    \begin{align}
+        \langle A_t-e_i,\ell_t\rangle
+        -\langle a_t-e_i,\hl_t\rangle
+        =
+        Y_t-\ell_{t,i}-\langle a_t,\hl_t\rangle
+        +\hl_{t,i}\,.
+    \end{align}
+    There is this simple identity now
+    \begin{align}
+        \sum_{i=1}^d (a_{t,i} + \gamma) \hl_{t,i}
+        = \sum_{i=1}^d (a_{t,i} + \gamma) \frac{Y_t \mathbf{1}\{A_t = e_i\}}{a_{t,i} + \gamma}
+        = Y_t \sum_{i=1}^d \mathbf{1}\{A_t = e_i\}
+        = Y_t,
+    \end{align}
+    which gives
+    \begin{align}
+        Y_t - \langle a_t, \hl_t\rangle
+        = \gamma \sum_{i=1}^d \hl_{t,i}\,.
+    \end{align}
+    Putting everything together, we have
+    \begin{align*}
+        \sum_{t=1}^n
+        \langle A_t-e_i,\ell_t\rangle
+         & \leq
+        \frac{\ln(d)}{\eta}
+        +
+        \sum_{t=1}^n
+        \hl_{t,i}
+        -\ell_{t,i}
+        + \gamma \langle \mathbf{1},  \hl_{t}\rangle
+        +\frac{\eta}{2} \langle a_{t}, \hl_{t}^2\rangle
+        \,.
+    \end{align*}
+    Since $\ell_{t,j}\leq 1$, the quadratic term satisfies
+    \begin{align*}
+        \langle a_t,\hl_t^2\rangle
+         & = \sum_{j=1}^d
+        \frac{a_{t,j}\ell_{t,j}}{a_{t,j}+\gamma}\hl_{t,j}
+        \leq \sum_{j=1}^d \hl_{t,j}
+        = \langle \mathbf{1},\hl_t\rangle.
+    \end{align*}
+    Thus, choosing $\gamma=\eta/2$,
+    and maxing over $i \in [d]$,
+    we obtain
+    \begin{align*}
+        \Reg_n
+         &
+        \leq \frac{\ln(d)}{\eta}
+        +
+        \eta
+        \sum_{t=1}^n
+        \langle\mathbf{1},\hl_t\rangle
+        +
+        \max_{i \in [d]}
+        \sum_{t=1}^n
+        \hl_{t,i}-\ell_{t,i}
+        \\
+         &
+        = \frac{\ln(d)}{\eta}
+        +
+        \eta
+        \sum_{t=1}^n
+        \left(
+        \langle\mathbf{1},\hl_t - \ell_t\rangle
+        + \langle\mathbf{1},\ell_t\rangle
+        \right)
+        +
+        \max_{i \in [d]}
+        \sum_{t=1}^n
+        \langle e_i, \hl_{t}-\ell_{t}\rangle
+        \\
+         &
+        \leq \frac{\ln(d)}{\eta}
+        +\eta nd
+        +
+        \eta
+        \sum_{t=1}^n
+        \sum_{i=1}^d
+        \langle e_i,\hl_t - \ell_t\rangle
+        +
+        \max_{i \in [d]}
+        \sum_{t=1}^n
+        \langle e_i, \hl_{t}-\ell_{t}\rangle
+        \,.
+    \end{align*}
+    Next, we show that
+    \begin{align}
+        \E_t[\exp(\eta \langle e_i, \hl_t - \ell_t\rangle)]
+        \leq 1\,.
+        \label{eq:exp-three-ix-mgf}
+    \end{align}
+    Indeed, we have
+    \begin{align}
+        \E_t[\exp(\eta \langle e_i, \hl_t - \ell_t\rangle)]
+         & = \E_t[\exp(\eta (\hl_{t,i} - \ell_{t,i}))]
+        = \E_t[\exp(\eta (\hl_{t,i}))] \exp(-\eta \ell_{t,i})\,,
+        \label{eq:exp-three-ix-mgf-2}
+    \end{align}
+    and further,
+    \begin{align*}
+        \E_t[\exp(\eta (\hl_{t,i}))]
+         & = \E_t\left[\exp\left(\eta \left(\frac{Y_t \mathbf{1}\{A_t = e_i\}}{a_{t,i} + \gamma}\right)\right)\right]        \\
+         & = \E_t\left[\exp\left(\eta \left(\frac{\ell_{t,i} \mathbf{1}\{A_t = e_i\}}{a_{t,i} + \gamma}\right)\right)\right] \\
+         & =
+        1 - a_{t,i} + a_{t,i} \exp\left(\frac{\eta \ell_{t,i}}{a_{t,i} + \eta/2}\right)\,.
+    \end{align*}
+    Then, we use
+    \begin{align}
+        \exp\left(\frac{\eta \ell_{t,i}}{a_{t,i} + \eta/2}\right)
+        \leq
+        \exp\left(\frac{\eta \ell_{t,i}}{a_{t,i} + \eta\ell_{t,i}/2}\right)
+        \leq 1 + \frac{\eta \ell_{t,i}}{a_{t,i}}
+        \label{eq:exp-three-ix-mgf-scaler-ineq}
+    \end{align}
+    Putting the last two displays together, we have
+    \begin{align*}
+        \E_t[\exp(\eta \hl_{t,i})]
+         & \leq 1 - a_{t,i} + a_{t,i}\left(1 + \frac{\eta \ell_{t,i}}{a_{t,i}}\right)
+        = 1 + \eta \ell_{t,i}
+        \leq \exp(\eta \ell_{t,i})\,,
+    \end{align*}
+    which together with \cref{eq:exp-three-ix-mgf-2} gives \cref{eq:exp-three-ix-mgf}.
+    We can also prove a corresponding bound for the sum over arms:
+    \begin{align}
+        \E_t[\exp(\eta \langle \mathbf{1}, \hl_t - \ell_t\rangle)]
+         & =
+        \E_t[\exp(\eta \sum_{i=1}^d \langle e_i, \hl_t - \ell_t\rangle)]
+        \leq 1\,.
+        \label{eq:exp-three-ix-mgf-sum}
+    \end{align}
+    To see this, we have
+    \begin{align*}
+        \E_t\left[\exp(\eta \sum_{i=1}^d \langle e_i, \hl_t - \ell_t\rangle)\right]
+         & =
+        \exp\left(
+        - \eta \sum_{i=1}^d \ell_{t,i}
+        \right)
+        \E_t\left[\exp\left(\eta \sum_{i=1}^d \hl_{t,i}\right)\right]
+        \\
+         & =
+        \exp\left(
+        - \eta \sum_{i=1}^d \ell_{t,i}
+        \right)
+        \left(\sum_{j=1}^d a_{t,j} \exp\left(\eta \sum_{i=1}^d \frac{\ell_{t,j} \mathbf{1}\{j=i\}}{a_{t,j} + \gamma}\right)\right)
+        \\
+         & =
+        \exp\left(
+        - \eta \sum_{i=1}^d \ell_{t,i}
+        \right)
+        \left(\sum_{j=1}^d a_{t,j} \exp\left(\eta \frac{\ell_{t,j}}{a_{t,j} + \gamma}\right)\right)
+        \\
+         & \leq
+        \exp\left(
+        - \eta \sum_{i=1}^d \ell_{t,i}
+        \right)
+        \left(\sum_{j=1}^d a_{t,j} \left(1 + \frac{\eta \ell_{t,j}}{a_{t,j}}\right)\right)
+        \\
+         & =
+        \exp\left(
+        - \eta \sum_{i=1}^d \ell_{t,i}
+        \right)
+        \left(1 + \sum_{j=1}^d \eta \ell_{t,j}\right)
+        \leq 1\,,
+    \end{align*}
+    which proves \eqref{eq:exp-three-ix-mgf-sum}.
+    Next, repeated conditioning gives
+    \begin{align*}
+        \E\left[
+            \exp\left(
+            \eta \sum_{t=1}^{n}
+            \langle \mathbf{1}, \hl_t - \ell_t \rangle
+            \right)
+            \right]
+        =
+        \E\left[
+            \exp\left(
+            \eta \sum_{t=1}^{n-1}
+            \langle \mathbf{1}, \hl_t - \ell_t \rangle
+            \right)
+            \E_n\left[
+                \exp\left(
+                \eta
+                \langle \mathbf{1}, \hl_n - \ell_n \rangle
+                \right)
+                \right]
+            \right]
+        \leq 1\,.
+    \end{align*}
+    Now, using $e^{x_+} \leq 1 + e^x$ for any $x \in \R$, we have
+    \begin{align*}
+        \E\left[
+            \exp\left(
+            \eta
+            \left(
+            \sum_{t=1}^{n}
+            \langle \mathbf{1}, \hl_t - \ell_t \rangle
+            \right)_+
+            \right)
+            \right]
+        \leq
+        \E\left[
+            1 + \exp\left(
+            \eta \sum_{t=1}^{n}
+            \langle \mathbf{1}, \hl_t - \ell_t \rangle
+            \right)
+            \right]
+        \leq 2\,\,,
+    \end{align*}
+    therefore, we have
+    \begin{align}
+        \left\|
+        \left(
+        \sum_{t=1}^{n}
+        \langle \mathbf{1}, \hl_t - \ell_t \rangle
+        \right)_+
+        \right\|_{\psi_1}
+        \leq 1/\eta\,.
+        \label{eq:exp-three-ix-psi1}
+    \end{align}
+    Repeated conditioning using \eqref{eq:exp-three-ix-mgf} also gives,
+    for every arm $i\in[d]$,
+    \begin{align*}
+        \E\left[
+            \exp\left(
+            \eta \sum_{t=1}^{n}
+            \langle e_i, \hl_t - \ell_t \rangle
+            \right)
+            \right]
+        \leq 1\,.
+    \end{align*}
+    To bound the maximum over arms, we therefore have
+    \begin{align}
+        \E\left[
+            \exp\left(
+            \eta \left( \max_{i \in [d]} \sum_{t=1}^{n} \langle e_i, \hl_t - \ell_t \rangle \right)
+            \right)
+            \right]
+         & \leq
+        \sum_{i=1}^{d}
+        \E\left[
+            \exp\left(
+            \eta \left(\sum_{t=1}^{n} \langle e_i, \hl_t - \ell_t \rangle \right)
+            \right)
+            \right]
+        \leq d\,,
+    \end{align}
+    which gives
+    \begin{align*}
+        \E\left[
+            \exp\left(
+            \eta \left(
+            \max_{i \in [d]} \sum_{t=1}^{n} \langle e_i, \hl_t - \ell_t \rangle
+            - \frac{\ln(d)}{\eta}
+            \right)
+            \right)
+            \right]
+        \leq 1\,,
+    \end{align*}
+    and doing the same trick as before, we have
+    \begin{align*}
+        \left\|
+        \left(
+        \max_{i \in [d]}
+        \sum_{t=1}^{n}
+        \langle e_i, \hl_t - \ell_t \rangle
+        - \frac{\ln(d)}{\eta}
+        \right)_+
+        \right\|_{\psi_1}
+        \leq 1/\eta\,.
+    \end{align*}
+    Finally, subtracting $2\ln(d)/\eta+\eta nd$ from the regret bound
+    and using $(x+y)_+\leq x_++y_+$ gives
+    \begin{align*}
+        \left(\Reg_n-\frac{2\ln(d)}{\eta}-\eta nd\right)_+
+         & \leq \eta\left(
+        \sum_{t=1}^n\langle\mathbf{1},\hl_t-\ell_t\rangle
+        \right)_+
+        + \left(
+        \max_{i\in[d]}\sum_{t=1}^n\langle e_i,\hl_t-\ell_t\rangle
+        -\frac{\ln(d)}{\eta}
+        \right)_+ .
+    \end{align*}
+    By monotonicity, the triangle inequality, and homogeneity of the
+    Orlicz norm, the two bounds above imply
+    \begin{align*}
+        \left\|
+        \left(\Reg_n-\frac{2\ln(d)}{\eta}-\eta nd\right)_+
+        \right\|_{\psi_1}
+        \leq \eta\cdot\frac{1}{\eta}+\frac{1}{\eta}
+        =1+\frac{1}{\eta}.
+    \end{align*}
+\end{proof}
+
+\begin{remark}[High-probability regret]
+    By the definition of the Orlicz norm, theorem~\ref{thm:expthreeix} gives
+    \begin{align*}
+        \E\left[
+            \exp\left(
+            \frac{\left(\Reg_n-\frac{2\ln(d)}{\eta}-\eta nd\right)_+}
+            {1+1/\eta}
+            \right)
+            \right]
+        \leq 2.
+    \end{align*}
+    Applying Markov's inequality with threshold $2/\delta$ shows that,
+    for every $\delta\in(0,1)$, with probability at least $1-\delta$,
+    \begin{align*}
+        \Reg_n
+        \leq \frac{2\ln(d)}{\eta}+\eta nd
+        +\left(1+\frac{1}{\eta}\right)\ln\frac{2}{\delta}.
+    \end{align*}
 \end{remark}
 
 In the next section, we present a particular way of choosing $P_t$ and $E_t$
