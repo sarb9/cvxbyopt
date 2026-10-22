@@ -7,6 +7,8 @@
 \usepackage{mathtools}
 \usepackage{microtype}
 \usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage{wrapfig}
 \setlength{\marginparwidth}{1in}
 \setlength{\marginparsep}{0.15in}
@@ -182,12 +184,17 @@ The only geometric quantity in the result is
 The rounding  $\mathbb{B}_1\subseteq\K$ implies that $\pi$ is $1$-Lipschitz.
 Write $\gamma_{\mu,\Sigma}$ for the density of the multivariate normal distribution
 $\N(\mu,\Sigma)$, for $\mu\in\R^d$ and $\Sigma\in\R^{d\times d}$ symmetric positive semidefinite.
-We write $Dh$ and $D^2h$\kevin{be explicit about the spaces these live in.} for the first and second distributional derivatives of $h$;
-see Appendix~\ref{app:distributional-derivatives} for their definitions.
+For a convex function $h:\R^d\to\R$ and points $x,y\in\R^d$ such that $h$ is differentiable at $y$, the Bregman divergence of $h$ is
+\begin{align}
+    D_h(x\,\|\,y)=h(x)-h(y)-\ip{\nabla h(y)}{x-y}\,,
+    \eqlabel{eq:bregman}
+\end{align}
+which is nonnegative by convexity.
+A convex function is differentiable almost everywhere, so $D_h(x\,\|\,X)$ is defined almost surely when $X$ is Gaussian with a positive definite covariance.
 
-The loss function $f$ has the restriction of being only defined on the convex body $\K$.
-To overcome this limitation, we construct a queryable convex extension of $f$ to the entire space $\R^d$.
-For some $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
+The loss $f$ is defined only on $\K$, but the algorithm samples points from Gaussian distributions, and these can fall outside $\K$.
+We therefore work with a convex extension of $f$ to $\R^d$ whose value at any point can be computed from a single value of $f$.
+Fix $\eps\in(0,1/2]$, let $\K_\eps=(1-\eps)\K$, and define
 \begin{align}
     \pi_\eps(x)
      & =\max\left\{1,\frac{\pi(x)}{1-\eps}\right\}
@@ -198,19 +205,239 @@ For some $\eps\in(0,1/2]$ and write $\K_\eps=(1-\eps)\K$ and
     \quad\text{and}\quad v(x)=\pi_\eps(x)-1\,.
     \eqlabel{eq:extension-notation}
 \end{align}
-Then, we use the queryable extension from
-\citet[Eq.~(10.6)]{lattimore2026bandit} which is defined for all $x\in\R^d$ by\kevin{As we've discussed these definitions require a lot of congnitive load to really undertand, when the resulting picture is actually dead simple. What do you think about a picture?
-}
+Following \citet[Eq.~(10.6)]{lattimore2026bandit}, we define for all $x\in\R^d$
 \begin{align}
     e(x)
     =\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)
-    +\frac{2}{\eps}v(x)\,,
-    \quad\text{and satisfies }\,\,
-    \Lip(e)\leq\frac{8}{\eps}\,.
-    \label{eq:extension-lipschitz}
+    +\frac{2}{\eps}v(x)\,.
+    \label{eq:extension}
 \end{align}
-Moreover, the extension $e$ is convex and agrees with $f$ on $\K_\eps$.
-These properties are established in \cref{app:extension}.
+
+\begin{wrapfigure}{r}{0.46\textwidth}
+    \vspace{-6pt}
+    \centering
+    \begin{tikzpicture}[font=\small]
+        \definecolor{onsloss}{HTML}{46515B}
+        \definecolor{onssmooth}{HTML}{147D92}
+        \definecolor{onslight}{HTML}{F2C14E}
+        % K is the unit disc and eps=1/4, so K_eps is the disc of radius 3/4 and the
+        % light sits at height -2/eps=-8 above the origin.
+        % f = (g-m)/(1-m) with
+        %   g(x)=0.65 (sqrt(|x|^2+1/16)-1/4)/(sqrt(17)/4-1/4)
+        %        +0.2 (1-sqrt(1-|x|^2))+0.075 (1+<w,x>),
+        % where w is the unit vector at angle 145 degrees and m=0.074202 is the
+        % minimum of g (computed numerically). So f is convex, f(K)=[0,1], f=1 only
+        % at w, and f rises to about 0.56 on the boundary of K_eps.
+        % In polar coordinates with |x|=sin(p), fp(p,t) is f; fr(r,t) is f with |x|=r.
+        % fc(t) is f on the boundary of K_eps, and er(r,t)=(4r/3) fc(t)+8(4r/3-1) is e
+        % at distance r>=3/4 from the origin.
+        % The left panel draws K at height \zf, below the graph of f. The right panel
+        % uses a smaller vertical scale so that the light fits.
+        \pgfplotsset{
+            extview/.style={
+                    x={({\viewunit*cos(\az)},{-\viewunit*sin(\az)*sin(\el)})},
+                    y={({\viewunit*sin(\az)},{\viewunit*cos(\az)*sin(\el)})},
+                    z={(0,{#1*\viewunit*cos(\el)})},
+                    axis lines=none,
+                    clip=false,
+                    anchor=origin,
+                    declare function={
+                            fr(\r,\t)=(0.65*(sqrt(\r*\r+0.0625)-0.25)/0.780776+0.2*(1-sqrt(max(0,1-\r*\r)))+0.075*(1+\r*cos(\t-145))-0.074202)/0.925798;
+                            fp(\p,\t)=fr(sin(\p),\t);
+                            fc(\t)=fr(0.75,\t);
+                            er(\r,\t)=(\r/0.75)*fc(\t)+8*(\r/0.75-1);
+                        },
+                    colormap={bowl}{color(0)=(onssmooth!30!white) color(1)=(onssmooth!80!black)},
+                    colormap={cut}{color(0)=(onssmooth!8!white) color(1)=(onssmooth!25!white)},
+                    colormap={lit}{color(0)=(onslight!15!white) color(1)=(onslight!50!white)},
+                    colormap={litbowl}{color(0)=(onslight!20!white) color(1)=(onslight!85!black)},
+                    every axis plot/.append style={samples=8, samples y=48},
+                },
+        }
+        \pgfmathsetmacro{\az}{-35}
+        \pgfmathsetmacro{\el}{30}
+        \pgfmathsetmacro{\pc}{asin(0.75)}
+        \pgfmathsetmacro{\zf}{-0.4}
+        \def\viewunit{1.3cm}
+
+        %%%%%%%%%%%%%%%% left: f on K and the cut at K_eps %%%%%%%%%%%%%%%%
+        \begin{axis}[extview=0.8, at={(0,0)}]
+
+            % the domain K, drawn below the graph of f, with K_eps dashed
+            \addplot3[fill=onsloss!7, draw=onsloss!70, thin, domain=0:360, samples=73, samples y=1]
+            ({cos(x)}, {sin(x)}, \zf);
+            \addplot3[onsloss!70, thin, dashed, domain=0:360, samples=73, samples y=1]
+            ({0.75*cos(x)}, {0.75*sin(x)}, \zf);
+
+            % back half of the graph of f over K minus K_eps
+            \addplot3[
+                surf, shader=interp, colormap name=cut, opacity=0.75,
+                domain=\pc:90, y domain=\az:\az+180, samples=12,
+                point meta={cos(y-\az-60)},
+            ] ({sin(x)*cos(y)}, {sin(x)*sin(y)}, {fp(x,y)});
+            \pgfplotsinvokeforeach{0,30,...,330}{
+                \pgfmathsetmacro{\side}{sin(#1-\az)}
+                \ifdim\side pt>0pt
+                    \addplot3[onssmooth!45, very thin, domain=\pc:90, samples=12, samples y=1]
+                    ({sin(x)*cos(#1)}, {sin(x)*sin(#1)}, {fp(x,#1)});
+                \fi
+            }
+
+            % graph of f over K_eps
+            \addplot3[
+                surf, shader=interp, colormap name=bowl, z buffer=sort,
+                domain=0:0.75, y domain=0:360, samples=16,
+                point meta=z,
+            ] ({x*cos(y)}, {x*sin(y)}, {fr(x,y)});
+            \pgfplotsinvokeforeach{0,30,...,330}{
+                \addplot3[onssmooth!55!black, very thin, opacity=0.6, domain=0:0.75, samples=12, samples y=1]
+                ({x*cos(#1)}, {x*sin(#1)}, {fr(x,#1)});
+            }
+            \pgfplotsinvokeforeach{0.25,0.5}{
+                \addplot3[onssmooth!55!black, very thin, opacity=0.6, domain=0:360, samples=48, samples y=1]
+                ({#1*cos(x)}, {#1*sin(x)}, {fr(#1,x)});
+            }
+
+            % vertical lines from the cut down to the boundary of K_eps
+            \pgfplotsinvokeforeach{-35,145,190,235,280}{
+                \addplot3[onsloss!70, very thin, densely dotted, domain=0:1, samples=2, samples y=1]
+                ({0.75*cos(#1)}, {0.75*sin(#1)}, {\zf+x*(fc(#1)-\zf)});
+            }
+
+            % graph of f over the boundary of K_eps
+            \addplot3[onssmooth!70!black, thick, domain=0:360, samples=72, samples y=1]
+            ({0.75*cos(x)}, {0.75*sin(x)}, {fc(x)});
+
+            % front half of the graph of f over K minus K_eps
+            \addplot3[
+                surf, shader=interp, colormap name=cut, opacity=0.55,
+                domain=\pc:90, y domain=\az+180:\az+360, samples=12,
+                point meta={cos(y-\az-60)},
+            ] ({sin(x)*cos(y)}, {sin(x)*sin(y)}, {fp(x,y)});
+            \pgfplotsinvokeforeach{0,30,...,330}{
+                \pgfmathsetmacro{\side}{sin(#1-\az)}
+                \ifdim\side pt>0pt\else
+                    \addplot3[onssmooth!45, very thin, domain=\pc:90, samples=12, samples y=1]
+                    ({sin(x)*cos(#1)}, {sin(x)*sin(#1)}, {fp(x,#1)});
+                \fi
+            }
+
+            % graph of f over the boundary of K
+            \addplot3[onssmooth!60, thin, dashed, domain=0:360, samples=96, samples y=1]
+            ({cos(x)}, {sin(x)}, {fp(90,x)});
+
+            \coordinate (Af) at (axis cs:{cos(-35)},{sin(-35)},{fp(90,-35)});
+            \coordinate (AK) at (axis cs:{cos(315)},{sin(315)},\zf);
+            \coordinate (AKe) at (axis cs:{0.45*cos(270)},{0.45*sin(270)},\zf);
+        \end{axis}
+        \node[right=3pt, text=onssmooth!80!black] at (Af) {$f$};
+        \node[right=2pt, text=onsloss] at (AK) {$\K$};
+        \node[text=onsloss] at (AKe) {$\K_\eps$};
+
+        %%%%%%%%%%%%%%%% right: the light at (0_d,-2/eps) and e %%%%%%%%%%%%%%%%
+        \begin{axis}[extview=0.35, at={({2.75*\viewunit},0)}]
+
+            % back half of the graph of f over K minus K_eps, behind the graph of e
+            \addplot3[
+                surf, shader=interp, colormap name=cut, opacity=0.5,
+                domain=\pc:90, y domain=\az:\az+180, samples=12,
+                point meta={cos(y-\az-60)},
+            ] ({sin(x)*cos(y)}, {sin(x)*sin(y)}, {fp(x,y)});
+            \addplot3[onssmooth!60, thin, dashed, domain=\az:\az+180, samples=48, samples y=1]
+            ({cos(x)}, {sin(x)}, {fp(90,x)});
+
+            % back half of the graph of e outside K_eps
+            \addplot3[
+                surf, shader=interp, colormap name=lit, opacity=0.7,
+                domain=0.75:1, y domain=\az:\az+180,
+                point meta={cos(y-\az-60)},
+            ] ({x*cos(y)}, {x*sin(y)}, {er(x,y)});
+
+            % rays behind the graph of f
+            \pgfplotsinvokeforeach{0,30,...,330}{
+                \pgfmathsetmacro{\side}{sin(#1-\az)}
+                \ifdim\side pt>0pt
+                    \addplot3[onslight!75!black, very thin, domain=0:1, samples=2, samples y=1]
+                    ({0.75*x*cos(#1)}, {0.75*x*sin(#1)}, {-8+x*(fc(#1)+8)});
+                    \addplot3[onslight!65!black, very thin, domain=0.75:1, samples=2, samples y=1]
+                    ({x*cos(#1)}, {x*sin(#1)}, {er(x,#1)});
+                \fi
+            }
+
+            % graph of e over K_eps, which is the graph of f there
+            \addplot3[
+                surf, shader=interp, colormap name=litbowl, z buffer=sort,
+                domain=0:0.75, y domain=0:360, samples=16,
+                point meta=z,
+            ] ({x*cos(y)}, {x*sin(y)}, {fr(x,y)});
+            \pgfplotsinvokeforeach{0,30,...,330}{
+                \addplot3[onslight!55!black, very thin, opacity=0.5, domain=0:0.75, samples=12, samples y=1]
+                ({x*cos(#1)}, {x*sin(#1)}, {fr(x,#1)});
+            }
+            \pgfplotsinvokeforeach{0.25,0.5}{
+                \addplot3[onslight!55!black, very thin, opacity=0.5, domain=0:360, samples=48, samples y=1]
+                ({#1*cos(x)}, {#1*sin(x)}, {fr(#1,x)});
+            }
+            \addplot3[onslight!55!black, thick, domain=0:360, samples=72, samples y=1]
+            ({0.75*cos(x)}, {0.75*sin(x)}, {fc(x)});
+
+            % front half of the graph of e outside K_eps
+            \addplot3[
+                surf, shader=interp, colormap name=lit, opacity=0.3,
+                domain=0.75:1, y domain=\az+180:\az+360,
+                point meta={cos(y-\az-60)},
+            ] ({x*cos(y)}, {x*sin(y)}, {er(x,y)});
+
+            % rays in front of the graph of f
+            \pgfplotsinvokeforeach{0,30,...,330}{
+                \pgfmathsetmacro{\side}{sin(#1-\az)}
+                \ifdim\side pt>0pt\else
+                    \addplot3[onslight!75!black, very thin, domain=0:1, samples=2, samples y=1]
+                    ({0.75*x*cos(#1)}, {0.75*x*sin(#1)}, {-8+x*(fc(#1)+8)});
+                    \addplot3[onslight!65!black, very thin, domain=0.75:1, samples=2, samples y=1]
+                    ({x*cos(#1)}, {x*sin(#1)}, {er(x,#1)});
+                \fi
+            }
+
+            % front half of the graph of f over K minus K_eps, in front of the graph of e
+            \addplot3[
+                surf, shader=interp, colormap name=cut, opacity=0.4,
+                domain=\pc:90, y domain=\az+180:\az+360, samples=12,
+                point meta={cos(y-\az-60)},
+            ] ({sin(x)*cos(y)}, {sin(x)*sin(y)}, {fp(x,y)});
+            \addplot3[onssmooth!60, thin, dashed, domain=\az+180:\az+360, samples=48, samples y=1]
+            ({cos(x)}, {sin(x)}, {fp(90,x)});
+
+            % graph of e over the boundary of K
+            \addplot3[onslight!60!black, thin, domain=0:360, samples=72, samples y=1]
+            ({cos(x)}, {sin(x)}, {er(1,x)});
+
+            \coordinate (Blight) at (axis cs:0,0,-8);
+            \coordinate (Be) at (axis cs:{cos(-35)},{sin(-35)},{er(1,-35)});
+        \end{axis}
+        \fill[onslight!90!black] (Blight) circle[radius=2.4pt];
+        \foreach \a in {0,45,...,315}{
+                \draw[onslight!90!black, line width=0.6pt]
+                (Blight) ++(\a:3.6pt) -- ++(\a:3.6pt);
+            }
+        \node[left=9pt, text=onsloss] at (Blight) {$(0_d,-2/\eps)$};
+        \node[right=3pt, text=onslight!55!black] at (Be) {$e$};
+    \end{tikzpicture}
+    \caption{Left: a convex $f:\K\to[0,1]$, with $\K$ the unit disc and $\eps=1/4$.
+        The faded part of its graph, over $\K\setminus\K_\eps$, is discarded.
+        Right: the extension $e$, drawn with a smaller vertical scale.}
+    \label{fig:extension}
+    \vspace{-4pt}
+\end{wrapfigure}
+The point $x/\pi_\eps(x)$ lies in $\K_\eps$ for every $x\in\R^d$, and it equals $x$ when $x\in\K_\eps$.
+Hence $e$ agrees with $f$ on $\K_\eps$, and computing $e(x)$ requires only the value of $f$ at $x/\pi_\eps(x)$.
+\Cref{fig:extension} shows the shape of $e$.
+A point outside $\K_\eps$ can be written as $x=ry$ with $y$ on the boundary of $\K_\eps$ and $r=\pi_\eps(x)>1$, and then $e(ry)=rf(y)+2(r-1)/\eps$.
+This is linear in $r$ and equals $-2/\eps$ at $r=0$.
+So outside $\K_\eps$, the graph of $e$ consists of the rays that start at the point $(0_d,-2/\eps)$ of $\R^d\times\R$, where $0_d$ is the origin of $\R^d$, and pass through the graph of $f$ over the boundary of $\K_\eps$.
+In other words, the graph of $f$ over $\K\setminus\K_\eps$ is discarded and replaced by these rays, which continue beyond $\K$.
+The point $(0_d,-2/\eps)$ lies below every tangent plane to the graph of $f$ over $\K_\eps$, and this is what makes $e$ convex.
+Appendix~\ref{app:extension} proves that $e$ is convex and that $\Lip(e)\leq5/\eps$.
 
 % \subsection{Gaussian $L^2$ projection and Hermite basis}
 % \label{sec:hermite-projection}
@@ -261,7 +488,7 @@ The extension defined above lets us turn this observation into feedback for $e$:
     \eqlabel{eq:Y}
 \end{align}
 so $\E_t[Y_t\mid X_t]=e(X_t)$.
-From the pair $(X_t,Y_t)$, we compute $Z_t =\Sigma_t^{-1/2}(X_t-\mu_t)$,
+Let $Z_t =\Sigma_t^{-1/2}(X_t-\mu_t)$ and
 \begin{align}
     g_t =Y_t\Sigma_t^{-1/2}Z_t\qquad \text{and}\qquad
     H_t =Y_t\Sigma_t^{-1/2}(Z_tZ_t^\top-I_d)\Sigma_t^{-1/2}.
@@ -345,10 +572,18 @@ The covariance update requires $\Sigma_t^{-1}+\lambda\eta H_t\succ0$; Appendix~\
     \cref{eq:main-regret}.
 \end{proof}
 
-\section{Population Level Behavior}
-We will now describe the idealized behavior of the algorithm, assuming access to exact expectations rather than noisy observations which we turn to later.
-The purpose of this chapter is to provide intuition about both the behavior of the algorithm and the structure of the regret analysis without getting bogged down in concentration arguments.
-The formal proof is presented in Appendix~\ref{sec:stability}, where we rigorously handle the noisy observations and establish the regret bounds.
+\section{The population algorithm}
+In this section we analyze the population version of \cref{alg:direct-hermite}, which we call the population algorithm.
+It updates $\mu_t$ and $\Sigma_t$ with the exact gradient and Hessian of a Gaussian smoothing of $e$, in place of the one-sample estimates $g_t$ and $H_t$; we define it precisely at the end of \cref{sec:quadratic-approximation}.
+Assuming $\eps_0\leq1/2$,\footnote{
+    If $\eps_0>1/2$, then \cref{thm:main} plays a fixed point, and its bound holds trivially: since $f$ takes values in $[0,1]$, $\operatorname{Reg}_n\leq n<2n\eps_0=200d^2M\ell^8\sqrt n$.
+} we show that with the same parameters as in \cref{thm:main}, the population algorithm satisfies
+\begin{align}
+    \E[\operatorname{Reg}_n]\leq101d^2M\ell^8\sqrt n.
+    \ineqlabel{eq:population-expected-regret}
+\end{align}
+The rest of this section proves \cref{eq:population-expected-regret}, and this proof contains the main argument for \cref{thm:main}.
+Appendix~\ref{sec:stability} proves \cref{thm:main} for \cref{alg:direct-hermite} itself.
 
 First, we argue that we should think of $e$ as the primary loss function and control the regret with respect to $e$.
 The key observation is that, for every comparator $x\in\K$,
@@ -357,9 +592,7 @@ The key observation is that, for every comparator $x\in\K$,
     \leq e(X_t)-e((1-\eps)x)+\eps.
 \end{align}
 Thus controlling regret for $e$ against the contracted comparator controls
-the original regret, with an additional cost of at most $n\eps \leq 100 d^2 M \ell^8 \sqrt{n}$ when $\eps=\eps_0$.\footnote{
-    For $\eps_0>1/2$ the regret bound is immediate as explained in the main proof.
-}
+the original regret, with an additional cost of at most $n\eps \leq 100 d^2 M \ell^8 \sqrt{n}$.
 We therefore work directly with $e$ as the loss and $Y$ as its noisy
 observation, satisfying $\E[Y\mid X]=e(X)$.
 
@@ -415,6 +648,33 @@ which is an unbiased estimator of the second-order Taylor expansion of $F_{\Sigm
 \begin{align}
     \bar{q}_t^\lambda(x) : = F_{\Sigma_t}(\mu_t) + \ip{\nabla F_{\Sigma_t}(\mu_t)}{x-\mu_t} + \frac\lambda2 \|(x-\mu_t)\|_{\nabla^2 F_{\Sigma_t}(\mu_t)}^2 \, = \E_t[q_t^\lambda(x)].
 \end{align}
+
+Let
+\begin{align}
+    \bar g_t=\E_t[g_t]=\nabla F_{\Sigma_t}(\mu_t)
+    \qquad\text{and}\qquad
+    \bar H_t=\E_t[H_t]=\nabla^2F_{\Sigma_t}(\mu_t)
+\end{align}
+be the expected values of $g_t$ and $H_t$.
+The population algorithm starts from $\mu_1=0$ and $\Sigma_1=\sigma^2I_d$.
+In round $t$ it samples $X_t\sim\N(\mu_t,\Sigma_t)$, plays $A_t=X_t/\pi_\eps(X_t)$, and updates
+\begin{align}
+    \Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\lambda\eta\bar H_t,
+    \qquad
+    \mu_{t+1}=\mu_t-\eta\Sigma_{t+1}\bar g_t.
+\end{align}
+The only difference from \cref{alg:direct-hermite} is that it replaces $g_t$ and $H_t$ by their expected values, which are the quantities they estimate.
+In the rest of this section, $\mu_t$ and $\Sigma_t$ denote the iterates of the population algorithm.
+
+Two properties make the population algorithm easier to analyze than \cref{alg:direct-hermite}.
+First, $F_{\Sigma_t}$ is convex, so $\bar H_t\succeq0$.
+Hence the covariance update is always well defined, and in every round
+\begin{align}
+    0\prec\Sigma_{t+1}\preceq\Sigma_t\preceq\sigma^2I_d.
+    \ineqlabel{eq:population-covariance}
+\end{align}
+Second, its iterates are deterministic, so no concentration argument is needed.
+Neither property holds for \cref{alg:direct-hermite}: $H_t$ can be indefinite, so $\Sigma_t$ can grow or fail to be positive definite, and the errors in $g_t$ and $H_t$ accumulate over the rounds.
 
 \begin{figure}[!t]
     \centering
@@ -667,52 +927,109 @@ The implication here is that as long as the comparator point $x_\star$ lies with
     + 2 \sum_{t=1}^n \tr(\bar{H}_t\Sigma_t)
     +\frac{n^{-7}}{\eps}.
 \end{align}
-It is not trivial to ensure that the comparator point $x_\star$ always lies within the focus region.
-More precisely, if we again consider the idealized scenario where $q_t$ perfectly matches $\bar{q}_t$,
-and so $H_t = \bar{H}_t$,  the update to the covariance matrix $\Sigma_{t+1} = \Sigma_t + \lambda \eta \bar{H}_t$,
-would shrink the size of the focus region in each round as $\bar{H}_t = \nabla^2 F_{\Sigma_t}(\mu_t)$ is a psd matrix by the convexity
-of $F_{\Sigma_t}$.
-Therefore, the tracking of the comparator point $x_\star$ within the focus region becomes challenging as the focus region shrinks over time.
+It is not trivial to ensure that the comparator point $x_\star$ always lies within the focus region, because the focus region shrinks in every round: $\Sigma_{t+1}\preceq\Sigma_t$ by \cref{eq:population-covariance}.
 Note that the choice of $\lambda$ directly controls the shrinkage rate of the focus region.
 We will show later that the Online Newton Step update rule can maintain this invariant throughout the rounds, where this would be crucial to choose $\lambda < 1$ appropriately.
 
+\subsection{The Trace Term}
+We first control $\sum_{t=1}^n\tr(\bar H_t\Sigma_t)$, which appears in the regret-switching bound.
+For the quadratic surrogate, this trace measures the extra expected loss caused by sampling around the mean:
+\begin{align}
+    \E_t[\bar q_t^\lambda(X_t)]-\bar q_t^\lambda(\mu_t)
+    =\frac\lambda2\tr(\bar H_t\Sigma_t).
+\end{align}
+Large curvature in a direction with large sampling variance makes this term large.
+The covariance update responds by reducing the variance in that direction.
+We use this reduction to control the accumulated trace cost through the potential $\log\det(\Sigma_t^{-1})$.
+The covariance update gives
+\begin{align}
+    \log\frac{\det(\Sigma_{t+1}^{-1})}{\det(\Sigma_t^{-1})}
+    =\log\det\!\left(I_d+\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}\right).
+\end{align}
+Gaussian integration by parts and the Lipschitz property of $e$ give the uniform curvature bound
+\begin{align}
+    \nabla^2F_{\Sigma_t}(y)
+    \preceq\sigma\Lip(e)\,\Sigma_t^{-1}
+    \qquad\text{for every }y\in\R^d,
+    \label{eq:population-loss-curvature}
+\end{align}
+where we used $\Sigma_t\preceq\sigma^2I_d$ from \cref{eq:population-covariance}.
+For the parameter choices in \cref{thm:main}, the step size satisfies
+\begin{align}
+    \eta\sigma\Lip(e)
+    \leq\frac{5\eta\sigma}{\eps}
+    =\frac{2\sigma}{5d\ell^8}
+    \leq1.
+\end{align}
+These bounds and $\lambda\leq1$ ensure that
+\begin{align}
+    0\preceq\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}
+    \preceq\lambda\eta\sigma\Lip(e)I_d
+    \preceq I_d,
+\end{align}
+and thus the relative change is small in every direction, i.e.
+the eigenvalues of $\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}$ are all in $[0,1]$.
+Applying $s\leq2\log(1+s)$ to these eigenvalues, yields
+\begin{align}
+    \tr(\lambda\eta \bar H_t\Sigma_t)
+    \leq2
+    \log\det\!\left(I_d+\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}\right)
+    =2
+    \left(\log\det(\Sigma_{t+1}^{-1})-\log\det(\Sigma_t^{-1})\right).
+\end{align}
+Telescoping bounds the total trace cost by the logarithm of the total covariance shrinkage:
+\begin{align}
+    \sum_{t=1}^n\tr(\bar H_t\Sigma_t)
+     & \leq\frac{2}{\lambda\eta}
+    \log\frac{\det(\Sigma_1)}{\det(\Sigma_{n+1})}
+    \leq\frac{4d}{\lambda\eta}\log(1+n).
+    \ineqlabel{eq:population-trace-budget}
+\end{align}
+For the last inequality, \cref{eq:H-quadratic-bound} gives $\|\bar H_t\|_{\op}\leq\Lip(e)\|\Sigma_t^{-1}\|_{\op}^{1/2}$, so
+\begin{align}
+    \|\Sigma_{t+1}^{-1}\|_{\op}
+    \leq\|\Sigma_t^{-1}\|_{\op}+\lambda\eta\Lip(e)\|\Sigma_t^{-1}\|_{\op}^{1/2}
+    \leq\left(\|\Sigma_t^{-1}\|_{\op}^{1/2}+\lambda\eta\Lip(e)\right)^2.
+\end{align}
+Since $\lambda\eta\Lip(e)\leq5\eta/\eps\leq1$, iterating from $\Sigma_1=\sigma^2I_d$ gives $\|\Sigma_{n+1}^{-1}\|_{\op}^{1/2}\leq\sigma^{-1}+n$.
+Together with $\Sigma_1=\sigma^2I_d$ and $\sigma\leq1$, this bounds the determinant ratio by $(1+n)^{2d}$.
+% Appendix~\ref{app:trace} establishes the corresponding trace bound in the presence of estimation error.
+
 \subsection{Online Newton Step}
 \label{sec:population-ons}
-The mean update in \cref{alg:direct-hermite} minimizes the quadratic approximation together with a penalty for moving away from the current mean.
-Whenever $\Sigma_t^{-1}+\lambda\eta H_t\succ0$, completing the square gives
+The mean update of the population algorithm minimizes the quadratic approximation $\bar q_t^\lambda$ together with a penalty for moving away from the current mean.
+Since $\Sigma_t^{-1}+\lambda\eta\bar H_t\succ0$, completing the square gives
 \begin{align}
     \mu_{t+1}
     =\argmin_{\mu\in\R^d}
     \left\{
     \frac12\normm{\mu-\mu_t}{\Sigma_t^{-1}}^2
-    +\eta q_t^\lambda(\mu)
+    +\eta\bar q_t^\lambda(\mu)
     \right\}.
     \eqlabel{eq:projected-ons-update}
 \end{align}
 
-If we forget about the estimation error and suppose that $q_t$ perfectly matches $\bar{q}_t$ in an idealized setting,
-then the Online Newton Step (ONS) algorithm is corresponding to choosing a distribution $p_{t+1}$ in round $t+1$ which is
-the \textit{contineouous exponential weights} applied to the history of quadratic losses $(q_i)_{i\in[t]}$:
+Together with the covariance update, this means that the sampling distribution $\N(\mu_{t+1},\Sigma_{t+1})$ is given by continuous exponential weights applied to the quadratic losses $\bar q_1^\lambda,\ldots,\bar q_t^\lambda$, starting from $\N(0,\Sigma_1)$:
 \begin{align}
-    p_{t+1}(x) \propto \exp\Bigl(-\eta \sum_{i=1}^t q_i(x) - \|x\|^2_{\Sigma_1} \Bigr)\,.
+    \gamma_{\mu_{t+1},\Sigma_{t+1}}(x) \propto \exp\Bigl(-\frac12\normm{x}{\Sigma_1^{-1}}^2-\eta \sum_{i=1}^t \bar q_i^\lambda(x)\Bigr)\,.
 \end{align}
-This is a Gaussian distribution since the exponent is a quadratic function of $x$.
+This follows by induction on $t$.
 Next, we show that the Online Newton Step update rule controls both: the regret of the quadratic surrogate losses and the tracking of the comparator point within the shrinking focus region.
 Just from the definition of $\bar{q}_t^\lambda$ and the Online Newton Step update rule, we have
 \begin{align}
     \frac12\normm{\mu_{t+1}-x_\star}{\Sigma_{t+1}^{-1}}^2
-     & =\frac12\normm{\mu_t-x_\star-\eta\Sigma_{t+1}g_t}
+     & =\frac12\normm{\mu_t-x_\star-\eta\Sigma_{t+1}\bar g_t}
     {\Sigma_{t+1}^{-1}}^2                                                   \\
      & =\frac12\normm{\mu_t-x_\star}{\Sigma_{t+1}^{-1}}^2
-    +\eta\ip{g_t}{x_\star-\mu_t}
-    +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2                            \\
+    +\eta\ip{\bar g_t}{x_\star-\mu_t}
+    +\frac{\eta^2}{2}\normm{\bar g_t}{\Sigma_{t+1}}^2                            \\
      & =\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
-    +\frac{\lambda\eta}{2}(\mu_t-x_\star)^\top H_t (\mu_t-x_\star)\nonumber \\
-     & \quad +\eta\ip{g_t}{x_\star-\mu_t}
-    +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2                            \\
+    +\frac{\lambda\eta}{2}(\mu_t-x_\star)^\top \bar H_t (\mu_t-x_\star)\nonumber \\
+     & \quad +\eta\ip{\bar g_t}{x_\star-\mu_t}
+    +\frac{\eta^2}{2}\normm{\bar g_t}{\Sigma_{t+1}}^2                            \\
      & =\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
-    +\eta\bigl(q_t^\lambda(x_\star)-q_t^\lambda(\mu_t)\bigr)
-    +\frac{\eta^2}{2}\normm{g_t}{\Sigma_{t+1}}^2.
+    +\eta\bigl(\bar q_t^\lambda(x_\star)-\bar q_t^\lambda(\mu_t)\bigr)
+    +\frac{\eta^2}{2}\normm{\bar g_t}{\Sigma_{t+1}}^2.
 \end{align}
 By telescoping the above identity over $t$, we obtain
 \begin{align}
@@ -720,10 +1037,10 @@ By telescoping the above identity over $t$, we obtain
     \bigl(\bar{q}_t^\lambda(\mu_t) - \bar{q}_t^\lambda(x_\star)\bigr)
      & =
     \frac{\norm{x_\star - \mu_1}_{\Sigma_1^{-1}}^2 - \norm{x_\star - \mu_{n+1}}_{\Sigma_{n+1}^{-1}}^2}{2\eta}
-    +\frac\eta2\sum_{t=1}^n\normm{g_t}{\Sigma_{t+1}}^2.
+    +\frac\eta2\sum_{t=1}^n\normm{\bar g_t}{\Sigma_{t+1}}^2.
     \eqlabel{eq:population-ons-regret}
 \end{align}
-Next, we show why the sum including the gradient norms $\sum_{t=1}^n\normm{g_t}{\Sigma_{t+1}}^2$ is controlled, under this idealized setting.
+Next, we bound the sum $\sum_{t=1}^n\normm{\bar g_t}{\Sigma_{t+1}}^2$.
 \subsection{The Decrease in the expected loss}
 \begin{wrapfigure}{r}{0.40\textwidth}
     \vspace{-6pt}
@@ -866,112 +1183,51 @@ Next, we show why the sum including the gradient norms $\sum_{t=1}^n\normm{g_t}{
     \label{fig:covariance-smoothing-decrease}
     \vspace{-4pt}
 \end{wrapfigure}
-To control the sum of gradient norms, we use the expected loss $F_{\Sigma_t}(\mu_t)$ as a second potential.
-We continue in the idealized setting, where $g_t=\bar g_t=\nabla F_{\Sigma_t}(\mu_t)$ and $H_t=\bar H_t\succeq0$.
+To control the sum of gradient norms, we use the expected loss $F_{\Sigma_t}(\mu_t)$ as another potential.
 % We will show that each update decreases this potential by at least $\eta\normm{g_t}{\Sigma_{t+1}}^2/2$.
 First, shrinking the covariance can only decrease the expected loss at a fixed mean.
-Indeed, the update $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\lambda\eta\bar H_t$ gives
-$\Sigma_{t+1}\preceq\Sigma_t\preceq\sigma^2I_d$.
+Indeed, $\Sigma_{t+1}\preceq\Sigma_t$ by \cref{eq:population-covariance}.
 % A Gaussian with covariance $\Sigma_t$ can be obtained by adding independent, centered Gaussian noise to one with covariance $\Sigma_{t+1}$.
 Convexity of $e$ and Jensen's inequality therefore give
 $F_{\Sigma_{t+1}}(y)\leq F_{\Sigma_t}(y)$ for every $y\in\R^d$.
 
 It remains to check that moving the mean also decreases the potential.
 The mean moves in a descent direction, but the step must be small enough to avoid overshooting.
-Gaussian integration by parts and the Lipschitz property of $e$ give the uniform curvature bound
-\begin{align}
-    \nabla^2F_{\Sigma_t}(y)
-    \preceq\sigma\Lip(e)\,\Sigma_t^{-1}
-    \qquad\text{for every }y\in\R^d,
-    \label{eq:population-loss-curvature}
-\end{align}
-where we used $\Sigma_t\preceq\sigma^2I_d$.
-For the parameter choices in \cref{thm:main}, the step size satisfies
-\begin{align}
-    \eta\sigma\Lip(e)
-    \leq\frac{8\eta\sigma}{\eps}
-    =\frac{16\sigma}{25d\ell^8}
-    \leq1.
-\end{align}
-Applying the curvature bound to the mean update $\mu_{t+1}=\mu_t-\eta\Sigma_{t+1}g_t$, we obtain
+Applying the curvature bound in \cref{eq:population-loss-curvature} to the mean update $\mu_{t+1}=\mu_t-\eta\Sigma_{t+1}\bar g_t$, we obtain
 \begin{align}
     F_{\Sigma_{t+1}}(\mu_{t+1})
      & \leq F_{\Sigma_t}(\mu_{t+1})
     \leq F_{\Sigma_t}(\mu_t)
-    -\eta\normm{g_t}{\Sigma_{t+1}}^2
+    -\eta\normm{\bar g_t}{\Sigma_{t+1}}^2
     +\frac{\eta^2\sigma\Lip(e)}2
-    g_t^\top\Sigma_{t+1}\Sigma_t^{-1}\Sigma_{t+1}g_t\nonumber \\
+    \bar g_t^\top\Sigma_{t+1}\Sigma_t^{-1}\Sigma_{t+1}\bar g_t\nonumber \\
      & \leq F_{\Sigma_t}(\mu_t)
-    -\frac\eta2\normm{g_t}{\Sigma_{t+1}}^2,
+    -\frac\eta2\normm{\bar g_t}{\Sigma_{t+1}}^2,
     \ineqlabel{eq:population-loss-descent}
 \end{align}
 where the last inequality uses
-$\Sigma_{t+1}\Sigma_t^{-1}\Sigma_{t+1}\preceq\Sigma_{t+1}$ and the step-size bound above.
+$\Sigma_{t+1}\Sigma_t^{-1}\Sigma_{t+1}\preceq\Sigma_{t+1}$ and $\eta\sigma\Lip(e)\leq1$.
 Telescoping now bounds the gradient term in the ONS regret inequality by the total decrease in expected loss:
 \begin{align}
-    \frac\eta2\sum_{t=1}^n\normm{g_t}{\Sigma_{t+1}}^2
+    \frac\eta2\sum_{t=1}^n\normm{\bar g_t}{\Sigma_{t+1}}^2
      & \leq F_{\Sigma_1}(\mu_1)
     -F_{\Sigma_{n+1}}(\mu_{n+1}).
     \ineqlabel{eq:population-gradient-budget}
 \end{align}
-It's also worth mentioning that \cref{eq:population-loss-descent} also shows that the expected regret $\E_{t+1}[e(X_t)]=F_{\Sigma_{t+1}}(\mu_{t+1})$ in round $t+1$ is never greater than that in round $t$, i.e., $\E_{t+1}[e(X_{t+1})] \leq \E_{t}[e(X_{t})]$, which implies that the expected loss is non-increasing over time.
-
-\subsection{The Trace Term}
-It remains to control $\sum_{t=1}^n\tr(\bar H_t\Sigma_t)$, which appears in the regret-switching bound.
-For the quadratic surrogate, this trace measures the extra expected loss caused by sampling around the mean:
-\begin{align}
-    \E_t[\bar q_t^\lambda(X_t)]-\bar q_t^\lambda(\mu_t)
-    =\frac\lambda2\tr(\bar H_t\Sigma_t).
-\end{align}
-Large curvature in a direction with large sampling variance makes this term large.
-The covariance update responds by reducing the variance in that direction.
-We use this reduction to control the accumulated trace cost through the potential $\log\det(\Sigma_t^{-1})$.
-In the idealized setting, the covariance update gives
-\begin{align}
-    \log\frac{\det(\Sigma_{t+1}^{-1})}{\det(\Sigma_t^{-1})}
-    =\log\det\!\left(I_d+\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}\right).
-\end{align}
-The curvature bound from \cref{eq:population-loss-curvature} in the preceding subsection ensures that
-\begin{align}
-    0\preceq\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}
-    \preceq\lambda\eta\sigma\Lip(e)I_d
-    \preceq I_d,
-\end{align}
-and thus the relative change is small in every direction, i.e.
-the eigenvalues of $\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}$ are all in $[0,1]$.
-Applying $s\leq2\log(1+s)$ to these eigenvalues, yields
-\begin{align}
-    \tr(\lambda\eta \bar H_t\Sigma_t)
-    \leq2
-    \log\det\!\left(I_d+\lambda\eta\Sigma_t^{1/2}\bar H_t\Sigma_t^{1/2}\right)
-    =2
-    \left(\log\det(\Sigma_{t+1}^{-1})-\log\det(\Sigma_t^{-1})\right).
-\end{align}
-Telescoping bounds the total trace cost by the logarithm of the total covariance shrinkage:
-\begin{align}
-    \sum_{t=1}^n\tr(\bar H_t\Sigma_t)
-     & \leq\frac{2}{\lambda\eta}
-    \log\frac{\det(\Sigma_1)}{\det(\Sigma_{n+1})}
-    \leq\frac{4d}{\lambda\eta}\log(1+n).
-    \ineqlabel{eq:population-trace-budget}
-\end{align}
-For the last inequality, \cref{lem:predictable-spectrum} gives
-$\|\Sigma_{n+1}^{-1}\|_{\op}^{1/2}\leq\sigma^{-1}+n$, since the predictable covariance agrees with $\Sigma_t$ in the idealized setting.
-Together with $\Sigma_1=\sigma^2I_d$ and $\sigma\leq1$, this bounds the determinant ratio by $(1+n)^{2d}$.
-% Appendix~\ref{app:trace} establishes the corresponding trace bound in the presence of estimation error.
+By \cref{eq:population-loss-descent}, the expected loss is also non-increasing over time: $\E[e(X_{t+1})]=F_{\Sigma_{t+1}}(\mu_{t+1})\leq F_{\Sigma_t}(\mu_t)=\E[e(X_t)]$.
 
 \subsection{The Regret Bound}
-We can now combine the preceding bounds to control regret in the idealized setting.
-For now, suppose that $x_\star$ remains in the focus region in every round, so that the regret-switching bound applies throughout.
+We can now combine the preceding bounds to control the regret.
+For now, suppose that $x_\star$ remains in the focus region in every round, so that the regret-switching bound applies throughout; we verify this condition in \cref{sec:population-focus} below.
 The ONS identity controls the quadratic regret by the initial distance to $x_\star$ and the sum of gradient norms.
 The decrease in expected loss controls the gradient sum, while the log-determinant potential controls the trace sum.
-Combining \cref{eq:population-ons-regret,eq:population-gradient-budget,eq:population-trace-budget} and dropping the nonnegative terminal-distance term gives
+Combining \cref{eq:population-ons-regret,eq:population-gradient-budget,eq:population-trace-budget} with $\log(1+n)\leq\ell/128$, and dropping the nonnegative terminal-distance term, gives
 \begin{align}
     \sum_{t=1}^n\E_t[e(X_t)-e(x_\star)]
      & \leq\frac{\normm{x_\star-\mu_1}{\Sigma_1^{-1}}^2}{2\eta}
     +F_{\Sigma_1}(\mu_1)
     % -F_{\Sigma_{n+1}}(\mu_{n+1})
-    +\frac{8d\ell}{\lambda\eta}
+    +\frac{d\ell}{16\lambda\eta}
     +1.
     \ineqlabel{eq:population-regret-bound}
 \end{align}
@@ -981,13 +1237,13 @@ The initialization $\mu_1=0$, $\Sigma_1=\sigma^2I_d$ and the containment $x_\sta
     \leq\frac{2d^2}{\eta\sigma^2}.
 \end{align}
 For the expected-loss potential, the initial sample $X_1\sim\N(0,\sigma^2I_d)$ is spread around the origin, where $e(0)=f(0)\leq1$.
-Lipschitz property of $e$ bounds the extra loss from sampling away from the origin by $(8/\eps)\norm{X_1}$, so
+The Lipschitz property of $e$ bounds the extra loss from sampling away from the origin by $(5/\eps)\norm{X_1}$, so
 \begin{align}
     F_{\Sigma_1}(0)
      & =\E[e(X_1)]
-    \leq e(0)+\frac8\eps\E[\norm{X_1}]
-    \leq1+\frac8\eps\sqrt{\E[\norm{X_1}^2]}
-    =1+\frac{8\sigma\sqrt d}{\eps},
+    \leq e(0)+\frac5\eps\E[\norm{X_1}]
+    \leq1+\frac5\eps\sqrt{\E[\norm{X_1}^2]}
+    =1+\frac{5\sigma\sqrt d}{\eps},
 \end{align}
 where we used Cauchy--Schwarz and $\E[\norm{X_1}^2]=\tr(\Sigma_1)=d\sigma^2$.
 Returning to the original loss adds at most $n\eps$.
@@ -996,16 +1252,82 @@ Combining \cref{eq:population-regret-bound} with the two initialization bounds g
     \E[\operatorname{Reg}_n]
           & \leq n\eps+\sum_{t=1}^n\E[e(X_t)-e(x_\star)]
     \leq n\eps+\frac{2d^2}{\eta\sigma^2}
-    +\frac{8\sigma\sqrt d}{\eps}
-    +\frac{8d\ell}{\lambda\eta}+2                        \\
-    \quad & =O\!\left(d^2M\ell^8\sqrt n\right)
-    =\widetilde O\!\left(d^2M\sqrt n\right)\,,
+    +\frac{5\sigma\sqrt d}{\eps}
+    +\frac{d\ell}{16\lambda\eta}+2                        \\
+    \quad & \leq101d^2M\ell^8\sqrt n,
     \ineqlabel{eq:population-original-regret}
 \end{align}
-which proves the intended regret bound.
-% The only remaining task is to ensure that the focus region is maintained and that the estimation error from noisy observations is properly controlled, as discussed in Appendix~\ref{sec:stability}.
-% where the last line substitutes the parameters from \cref{thm:main}, with $\eps=\eps_0\leq1/2$.
-% This bound is conditional on maintaining the focus region; Appendix~\ref{sec:stability} handles this tracking requirement together with the estimation error from noisy observations.
+where the last inequality uses $n\eps=100d^2M\ell^8\sqrt n$, $2d^2/(\eta\sigma^2)=d^2M\sqrt n/2$, $5\sigma\sqrt d/\eps\leq\sqrt n$ and $d\ell/(16\lambda\eta)\leq8d^{3/2}\ell^5\sqrt n$, together with $M\sqrt d\geq1$ and $\ell\geq640$.
+This proves \cref{eq:population-expected-regret}, provided that $x_\star$ stays in the focus region.
+
+\subsection{Preservation of the focus region}
+\label{sec:population-focus}
+It remains to check that $x_\star$ stays in the focus region, that is,
+\begin{align}
+    \frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
+    \leq\frac{1}{128^2\lambda^2\ell}
+    \qquad\text{for every }1\leq t\leq n+1.
+\end{align}
+The ONS identity in \cref{eq:population-ons-regret} bounds the regret plus the distance to $x_\star$ at the end.
+In the preceding subsection we dropped the distance to bound the regret; since the regret is nonnegative, we can instead drop the regret to bound the distance.
+
+The regret is nonnegative because $x_\star$ minimizes $e$ over all of $\R^d$, not only over $\K_\eps$.
+Indeed, for every $x\in\R^d$ the point $x/\pi_\eps(x)$ lies in $\K_\eps$, and since $\pi_\eps\geq1$, $v\geq0$ and $f\geq0$, the definition of $e$ gives
+\begin{align}
+    e(x)
+    \geq f\!\left(\frac{x}{\pi_\eps(x)}\right)
+    \geq f(x_\star)
+    =e(x_\star).
+\end{align}
+Hence $F_{\Sigma_s}(\mu_s)=\E_s[e(X_s)]\geq e(x_\star)$ in every round.
+
+We argue by induction on $t$.
+Suppose that $x_\star$ lies in the focus region in rounds $1,\ldots,t-1$; for $t=1$ there is nothing to assume.
+Of the steps in the regret bound, only regret switching uses this assumption.
+The ONS identity is exact, and the gradient and trace bounds rely only on \cref{eq:population-covariance}, which holds in every round.
+This covariance bound also gives the hypothesis of \cref{cor:bracket-ell}, so \cref{lem:regret-switch-main,cor:bracket-ell} give, for every $s\leq t-1$,
+\begin{align}
+    F_{\Sigma_s}(\mu_s)-e(x_\star)
+    \leq\bar q_s^\lambda(\mu_s)-\bar q_s^\lambda(x_\star)
+    +2\tr(\bar H_s\Sigma_s)
+    +\frac{n^{-8}}{\eps}.
+\end{align}
+We multiply by $\eta$, sum over $s\leq t-1$, and apply \cref{eq:population-ons-regret,eq:population-gradient-budget,eq:population-trace-budget} with the sums taken through $t-1$.
+Using $F_{\Sigma_t}(\mu_t)\geq0$ in the gradient bound and $(t-1)n^{-8}/\eps\leq1$, we obtain
+\begin{align}
+     & \eta\sum_{s=1}^{t-1}\bigl(F_{\Sigma_s}(\mu_s)-e(x_\star)\bigr)
+    +\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2\nonumber           \\
+     & \qquad\leq
+    \frac12\normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2
+    +\eta F_{\Sigma_1}(\mu_1)
+    +\frac{8d}{\lambda}\log(1+n)+\eta.
+    \ineqlabel{eq:population-focus-distance}
+\end{align}
+
+The sum on the left is nonnegative, so the right-hand side bounds the distance alone.
+By the initialization bounds of the preceding subsection,
+$\frac12\normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2\leq2d^2/\sigma^2=4d^3M^2$ and
+\begin{align}
+    \eta F_{\Sigma_1}(\mu_1)+\eta
+    \leq2\eta+\frac{5\eta\sigma\sqrt d}{\eps}
+    \leq\frac{2+5\sqrt2}{25\ell^8}
+    \leq1,
+\end{align}
+where we used $\eta/\eps=2/(25d\ell^8)$, $\eps\leq1/2$ and $M\sqrt d\geq1$.
+Therefore
+\begin{align}
+    \frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2
+    \leq4d^3M^2+1+\frac{8d}{\lambda}\log(1+n)
+    \leq64d^3M^2\ell^5
+    <\frac{1}{128^2\lambda^2\ell},
+    \ineqlabel{eq:population-focus-preserved}
+\end{align}
+where the last two inequalities use $\log(1+n)\leq\ell/128$, the choice of $\lambda$, $M\sqrt d\geq1$ and $\ell\geq640$.
+So $x_\star$ lies in the focus region in round $t$, which completes the induction.
+
+Consequently, $x_\star$ stays in the focus region in every round $1\leq t\leq n+1$, as assumed in the preceding subsection.
+This completes the proof of \cref{eq:population-expected-regret}.
+Appendix~\ref{sec:stability} handles the additional errors that arise when the updates use the estimates $g_t$ and $H_t$ instead of their expected values.
 
 \newpage
 \begin{thebibliography}{9}
@@ -1802,7 +2124,7 @@ $\mathcal E_{\mathrm{global}}\cap\mathcal E_Y\cap\mathcal E_G\cap\mathcal E_q$,
     \leq\frac{125}{4}d^2M\ell^5\sqrt n.
 \end{align}
 Since $x_\star$ minimizes $f$ on $\K_\eps$, the extension formula
-\cref{eq:extension-lipschitz} gives
+\cref{eq:extension} gives
 $e(x)\geq f(x/\pi_\eps(x))\geq f(x_\star)=e(x_\star)$ for every $x\in\R^d$.
 Thus $\operatorname{eReg}_{1:\tau-1}(x_\star)\geq0$, and consequently
 \begin{align}
@@ -1819,7 +2141,7 @@ and holds at $\tau$, so $\tau_{\mathrm{focus}}>\tau$.
 Proving that $\tau_{\mathrm{shell}}>\tau$ is more involved.
 The proof relies on a local regret analysis over short intervals and turning these local bounds into a pointwise control of the extension value at the current iterate, proving that $v(\mu_\tau)<\ell$ in the end.
 
-Nonnegativity of $f$ and the extension formula \cref{eq:extension-lipschitz} give
+Nonnegativity of $f$ and the extension formula \cref{eq:extension} give
 \begin{align}
     2v(x)
     \leq \eps\pi_\eps(x)f\!\left(\frac{x}{\pi_\eps(x)}\right)+2v(x)
@@ -2350,18 +2672,32 @@ This proves \cref{thm:main}.
         +
         \frac{1-\eps}{\eps}v(x)
     \]
-    is convex, agrees with $f$ on $\K_\eps$, and
-    \begin{align}
-        \Lip(\bar e)\leq\frac{2}{\eps(1-\eps)}\,.
-    \end{align}
-    Moreover,
-    $e\!\left(\frac{x}{\pi_\eps(x)}\right)\leq e(x)$
-    for all $x\in\R^d$.
+    is convex and agrees with $f$ on $\K_\eps$.
 \end{lemma}
-Now, observe that $e(x)=\bar e(x)+\frac{1+\eps}{\eps}v(x)$, so $e$ is also convex, agrees with $f$ on $\K_\eps$ since $v(x)=0$ for $x\in\K_\eps$.
-Moreover, $v$ is $1/(1-\eps)$-Lipschitz, so $e$ is also Lipschitz with
+Since $\pi$ is convex, so is $v=\max\{0,\pi/(1-\eps)-1\}$.
+Hence $e=\bar e+\frac{1+\eps}{\eps}v$ is convex, and it agrees with $f$ on $\K_\eps$ because $v$ vanishes there.
+Moreover, for every $x\in\R^d$ the point $x/\pi_\eps(x)$ lies in $\K_\eps$, and since $f\geq0$, $\pi_\eps\geq1$ and $v\geq0$,
 \begin{align}
-    \Lip(e)\leq\frac{2}{\eps(1-\eps)}+\frac{1+\eps}{\eps}\cdot\frac{1}{1-\eps}\leq\frac{8}{\eps}\,,
+    e(x)
+    \geq f\!\left(\frac{x}{\pi_\eps(x)}\right)
+    =e\!\left(\frac{x}{\pi_\eps(x)}\right).
+\end{align}
+
+It remains to bound $\Lip(e)$.
+Since $f\leq1$ and $v\leq\pi_\eps$, every $z\in\R^d$ satisfies $e(z)\leq(1+2/\eps)\pi_\eps(z)$.
+Moreover, $\mathbb B_1\subseteq\K$ gives $\pi(z)\leq\norm z$, so $\pi_\eps(z)\leq\max\{1,\norm z/(1-\eps)\}$.
+Let $x\in\R^d$, let $g$ be a subgradient of $e$ at $x$, and let $u$ be a unit vector.
+By convexity, for every $t>0$,
+\begin{align}
+    t\ip gu
+    \leq e(x+tu)-e(x)
+    \leq\left(1+\frac2\eps\right)\max\left\{1,\frac{\norm x+t}{1-\eps}\right\}-e(x).
+\end{align}
+Dividing by $t$ and letting $t\to\infty$ gives $\ip gu\leq(2+\eps)/(\eps(1-\eps))$.
+Taking the supremum over unit vectors $u$ shows that every subgradient of $e$ has norm at most $(2+\eps)/(\eps(1-\eps))$.
+Since $e(y)-e(x)\leq\ip{g_y}{y-x}$ for every $y\in\R^d$ and every subgradient $g_y$ of $e$ at $y$, it follows that
+\begin{align}
+    \Lip(e)\leq\frac{2+\eps}{\eps(1-\eps)}\leq\frac5\eps
 \end{align}
 when $\eps\in(0,1/2]$.
 
@@ -2373,7 +2709,7 @@ Traditionally, this issue is handled through a mollification process: convolve $
 However, we will take a different approach that avoids mollification and works directly with the original function $h$.
 We employ the theory of distributions, which allows us to define derivatives in a weak sense.
 Practically, first we recall the definition of the Schwartz space $\mathcal S(\R^d)$, which consists of smooth functions that decay faster than any polynomial at infinity, along with all their derivatives.
-We write $Dh$ and $D^2h$ for the first and second distributional derivatives of $h$, which
+We write $Dh$ and $D^2h$\kevin{be explicit about the spaces these live in.} for the first and second distributional derivatives of $h$, which
 are defined as linear functionals on the Schwartz space $\mathcal S(\R^d)$ of smooth rapidly decaying functions.
 \begin{align}
     \langle Dh,\varphi\rangle
@@ -2574,7 +2910,7 @@ the focus region once the covariance is bounded by $2\sigma^2I_d$.
     $\norm{\mu-x}\leq\sqrt2\,\sigma\normm{\mu-x}{\Sigma^{-1}}$.
     Together with \cref{eq:bracket-ell-focus}, this bounds the remainder by
     \begin{align}
-        \frac{8\lambda e^{-\ell}}{\eps\sqrt\pi}
+        \frac{5\lambda e^{-\ell}}{\eps\sqrt\pi}
         \norm{\mu-x}\normm{\mu-x}{\Sigma^{-1}}
          & \leq\frac{\sigma e^{-\ell}}{512\sqrt{2\pi}\lambda\eps\ell}
         \leq\frac{d\ell^3e^{-\ell}}{\eps}
