@@ -435,7 +435,7 @@ Hence $e$ agrees with $f$ on $\K_\eps$, and computing $e(x)$ requires only the v
 A point outside $\K_\eps$ can be written as $x=ry$ with $y$ on the boundary of $\K_\eps$ and $r=\pi_\eps(x)>1$, and then $e(ry)=rf(y)+2(r-1)/\eps$.
 This is linear in $r$ and equals $-2/\eps$ at $r=0$.
 So outside $\K_\eps$, the graph of $e$ consists of the rays that start at the point $(0_d,-2/\eps)$ of $\R^d\times\R$, where $0_d$ is the origin of $\R^d$, and pass through the graph of $f$ over the boundary of $\K_\eps$.
-In other words, the graph of $f$ over $\K\setminus\K_\eps$ is discarded and replaced by these rays, which continue beyond $\K$.
+% In other words, the graph of $f$ over $\K\setminus\K_\eps$ is discarded and replaced by these rays, which continue beyond $\K$.
 The point $(0_d,-2/\eps)$ lies below every tangent plane to the graph of $f$ over $\K_\eps$, and this is what makes $e$ convex.
 Appendix~\ref{app:extension} proves that $e$ is convex and that $\Lip(e)\leq5/\eps$.
 
@@ -1019,7 +1019,7 @@ Just from the definition of $\bar{q}_t^\lambda$ and the Online Newton Step updat
 \begin{align}
     \frac12\normm{\mu_{t+1}-x_\star}{\Sigma_{t+1}^{-1}}^2
      & =\frac12\normm{\mu_t-x_\star-\eta\Sigma_{t+1}\bar g_t}
-    {\Sigma_{t+1}^{-1}}^2                                                   \\
+    {\Sigma_{t+1}^{-1}}^2                                                        \\
      & =\frac12\normm{\mu_t-x_\star}{\Sigma_{t+1}^{-1}}^2
     +\eta\ip{\bar g_t}{x_\star-\mu_t}
     +\frac{\eta^2}{2}\normm{\bar g_t}{\Sigma_{t+1}}^2                            \\
@@ -1250,11 +1250,11 @@ Returning to the original loss adds at most $n\eps$.
 Combining \cref{eq:population-regret-bound} with the two initialization bounds gives
 \begin{align}
     \E[\operatorname{Reg}_n]
-          & \leq n\eps+\sum_{t=1}^n\E[e(X_t)-e(x_\star)]
+     & \leq n\eps+\sum_{t=1}^n\E[e(X_t)-e(x_\star)]
     \leq n\eps+\frac{2d^2}{\eta\sigma^2}
     +\frac{5\sigma\sqrt d}{\eps}
-    +\frac{d\ell}{16\lambda\eta}+2                        \\
-    \quad & \leq101d^2M\ell^8\sqrt n,
+    +\frac{d\ell}{16\lambda\eta}+2
+    \leq101d^2M\ell^8\sqrt n,
     \ineqlabel{eq:population-original-regret}
 \end{align}
 where the last inequality uses $n\eps=100d^2M\ell^8\sqrt n$, $2d^2/(\eta\sigma^2)=d^2M\sqrt n/2$, $5\sigma\sqrt d/\eps\leq\sqrt n$ and $d\ell/(16\lambda\eta)\leq8d^{3/2}\ell^5\sqrt n$, together with $M\sqrt d\geq1$ and $\ell\geq640$.
@@ -1295,9 +1295,9 @@ This covariance bound also gives the hypothesis of \cref{cor:bracket-ell}, so \c
 We multiply by $\eta$, sum over $s\leq t-1$, and apply \cref{eq:population-ons-regret,eq:population-gradient-budget,eq:population-trace-budget} with the sums taken through $t-1$.
 Using $F_{\Sigma_t}(\mu_t)\geq0$ in the gradient bound and $(t-1)n^{-8}/\eps\leq1$, we obtain
 \begin{align}
-     & \eta\sum_{s=1}^{t-1}\bigl(F_{\Sigma_s}(\mu_s)-e(x_\star)\bigr)
-    +\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2\nonumber           \\
-     & \qquad\leq
+    \eta\sum_{s=1}^{t-1}\bigl(F_{\Sigma_s}(\mu_s)-e(x_\star)\bigr)
+    +\frac12\normm{\mu_t-x_\star}{\Sigma_t^{-1}}^2\nonumber
+    \leq
     \frac12\normm{\mu_1-x_\star}{\Sigma_1^{-1}}^2
     +\eta F_{\Sigma_1}(\mu_1)
     +\frac{8d}{\lambda}\log(1+n)+\eta.
@@ -1324,10 +1324,9 @@ Therefore
 \end{align}
 where the last two inequalities use $\log(1+n)\leq\ell/128$, the choice of $\lambda$, $M\sqrt d\geq1$ and $\ell\geq640$.
 So $x_\star$ lies in the focus region in round $t$, which completes the induction.
-
 Consequently, $x_\star$ stays in the focus region in every round $1\leq t\leq n+1$, as assumed in the preceding subsection.
-This completes the proof of \cref{eq:population-expected-regret}.
-Appendix~\ref{sec:stability} handles the additional errors that arise when the updates use the estimates $g_t$ and $H_t$ instead of their expected values.
+% This completes the proof of \cref{eq:population-expected-regret}.
+% Appendix~\ref{sec:stability} handles the additional errors that arise when the updates use the estimates $g_t$ and $H_t$ instead of their expected values.
 
 \newpage
 \begin{thebibliography}{9}
