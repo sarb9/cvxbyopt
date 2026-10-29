@@ -13,6 +13,7 @@
 \setlength{\marginparwidth}{1in}
 \setlength{\marginparsep}{0.15in}
 \usepackage{todonotes}
+\usepackage{xurl}
 \hypersetup{linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black}
 
 % Keep named proofs while using the class's proof typography and QED mark.
@@ -114,39 +115,135 @@
 \end{abstract}
 
 \section{Introduction}
+\label{sec:introduction}
+% The learner in bandit convex optimization chooses a point in a convex body
+% and observes only a noisy value of the loss at that point.  A useful way to
+% extract second-order information is to sample from a Gaussian and estimate the
+% first two coefficients in the corresponding Hermite expansion.
+% Such an estimation is equivalent to the best quadratic fit to the function, under a fixed Gaussian measure.
+% Indeed, the first coefficient behaves like a gradient and the second like an average Hessian, so
+% the natural update is online Newton step.
+We study stochastic bandit convex optimization with a fixed convex loss
+$f:\K\to[0,1]$ on a convex body $\K\subset\R^d$. In each round, the learner
+chooses an action $A_t\in\K$ and observes $f(A_t)$ corrupted by conditionally
+mean-zero subgaussian noise. The goal is to minimize cumulative regret
+relative to the best fixed action. We make no smoothness or strong-convexity
+assumption on $f$, and each round permits only one function evaluation.
 
-The learner in bandit convex optimization chooses a point in a convex body
-and observes only a noisy value of the loss at that point.  A useful way to
-extract second-order information is to sample from a Gaussian and estimate the
-first two coefficients in the corresponding Hermite expansion.
-Such an estimation is equivalent to the best quadratic fit to the function, under a fixed Gaussian measure.
-Indeed, the first coefficient behaves like a gradient and the second like an average Hessian, so
-the natural update is online Newton step.
+A central difficulty is to choose an exploration distribution that adapts
+to the curvature of the loss. Exploration in a direction of high curvature
+can be costly, but reducing exploration increases the variance of derivative
+estimates. Gaussian online Newton methods address this interaction by using
+estimated curvature both to update the mean and to shape the sampling
+covariance \citep{lattimore2023second,fokkema2024online}. Their analysis
+introduces an optimistic smoothed surrogate whose quadratic approximation
+controls regret on a suitable ellipsoidal region. Estimating the derivatives
+of this surrogate requires reweighting observations by a ratio of Gaussian
+densities. In the constrained setting, the method presented in
+\citet[Chapter~10]{lattimore2026bandit} also projects the Gaussian mean after
+each update.
 
-There is one difficulty with this direct idea.  The online Newton step
-reflects the curvature of the quadratic at the comparator, while
-convexity controls regret through a Bregman divergence of the original loss.
-These quantities need not be comparable globally.  The usual Gaussian ONS
-analysis resolves this by first replacing the loss with an optimistic
-Gaussian surrogate and then estimating its derivatives with a change of
-measure; see \citet{lattimore2023second} and Chapters~10--12 of
-\citet{lattimore2026bandit}.  Here we take a
-different route for the stationary stochastic problem.  We compare the direct
-Hermite curvature with the Bregman divergence on an ellipsoidal region around
-the Gaussian mean.  The comparison loses only a small part of the usual
-log-determinant trace budget.
+We show that the stationary problem admits a more direct approach. The
+algorithm estimates the linear and quadratic coefficients of the Gaussian
+Hermite expansion of a queryable convex extension of $f$. These coefficients
+are precisely the gradient and Hessian of the ordinary Gaussian smoothing
+of the extension at the current mean. Both can be estimated from the same
+noisy function evaluation, using the first two Gaussian score functions.
+The algorithm then applies an online Newton step to the resulting damped
+quadratic estimate, without projecting the mean. Feasible actions are
+obtained by mapping Gaussian samples into $\K$ through the Minkowski
+functional, as in the extension construction of
+\citet{fokkema2024online}.
 
-The resulting algorithm has one Gaussian sample and one function evaluation
-per round, with no projection of the mean.
-The proof still has to address the main feature of bandit feedback:
-the one-sample Hessian estimate is indefinite.
-We rely on a concentration argument to close this gap.
+\paragraph{Organization.}
+Our analysis has two main tasks: to show that the direct quadratic models
+control regret for the original loss, and to establish stability without
+projecting the mean. We first study an idealized population algorithm,
+which replaces the derivative estimates by their conditional expectations.
+Its analysis is of independent interest: it explains how the mean and
+covariance updates work together to decrease the smoothed loss and control
+regret. The population proof is significantly simpler than the proof for
+the sampled algorithm, making the behavior of the algorithm easier to
+understand.
 
-The paper is organized as follows.  \Cref{sec:setting} introduces the problem,
-the extension and the algorithm.
-The stability and regret analysis, including the trace, moment and
-concentration estimates, appears in Appendix~\ref{sec:stability}, with the
-supporting proofs in the remaining appendices.
+After the related work, \cref{sec:setting} introduces the problem setting
+and the convex extension. We then present the algorithm and state a
+high-probability regret guarantee matching the stochastic bound of
+\citet{fokkema2024online} up to logarithmic factors, while dispensing
+with optimistic smoothing, density-ratio reweighting and projection
+of the mean. \Cref{sec:population-algorithm} develops the population
+algorithm and its regret proof.
+Appendix~\ref{sec:stability} analyzes the sampled algorithm, controlling
+the estimation errors and establishing stability of the unprojected
+updates to prove \cref{thm:main}. The remaining appendices contain
+supporting results, and \cref{sec:conclusion} discusses directions for
+future work.
+
+\section{Related Work}
+\label{sec:related-work}
+
+\paragraph{Bandit convex optimization.}
+Early algorithms adapted gradient descent to bandit feedback by
+estimating gradients of smoothed losses
+\citep{kleinberg2004nearly,flaxman2005online}.
+In the stochastic setting, cutting-plane methods obtained
+$\widetilde O(\operatorname{poly}(d)\sqrt n)$ regret by progressively
+restricting the region containing a minimizer
+\citep{agarwal2013stochastic,lattimore2021improved}.
+We refer to \citet[Chapters~2,~5,~9 and~10]{lattimore2026bandit}
+for an overview.
+Our closest predecessors are \citet{lattimore2023second} and
+\citet{fokkema2024online}. The former developed a Gaussian second-order
+method for unconstrained stochastic optimization of Lipschitz convex
+functions. The latter extended this approach to bounded convex losses on
+general convex bodies and obtained a stochastic regret bound of
+$\widetilde O(d^2M\sqrt n)$, with $M$ determined by the geometry of the
+constraint set. Our result preserves this polynomial dependence while
+estimating the derivatives of the ordinary Gaussian smoothing directly
+and updating the Gaussian mean without projection.
+On the lower-bound side, \citet{rajaraman2026price} establish an
+$\Omega(d^{4/3}\sqrt n)$ lower bound on minimax expected regret for
+$n\gtrsim d^{10/3}$, even for Lipschitz convex losses on the Euclidean ball.
+This leaves a factor of $d^{1/6}$, up to logarithmic factors, between
+this lower bound and the $\widetilde O(d^{3/2}\sqrt n)$ stochastic
+upper bound presented here.
+
+\paragraph{Optimistic surrogates and quadratic approximation.}
+Optimistic smoothing appeared in the kernel-based exponential-weights
+method of \citet{bubeck2017kernel} and was developed further by
+\citet{lattimore2021improved}. It is also a central ingredient in the
+Gaussian online Newton methods of
+\citet{lattimore2023second} and \citet{fokkema2024online} which use quadratic
+approximations of the optimistic surrogate and estimate its derivatives
+through Gaussian density-ratio reweighting.
+\citet[Chapter~12]{lattimore2026bandit} presents this construction and
+its analysis systematically.
+A central contribution of our work is to show that this optimistic
+construction is unnecessary for Gaussian online Newton step in the
+stationary stochastic setting. Ordinary Gaussian smoothing, together
+with direct estimates of its gradient and Hessian, suffices to recover
+the same polynomial regret dependence. We therefore remove the
+optimistic surrogate from both the algorithm and the analysis, as well
+as the density-ratio correction used to estimate its derivatives which
+results in a more direct and simpler algorithm and analysis.
+We also remove the projection of the Gaussian mean, eliminating the
+constrained quadratic optimization problem required by the projected
+update.
+% For our modified ONS algorithm, this addresses the question posed
+% by \citet[Section~10.9, Exercise~10.21]{lattimore2026bandit} while retaining
+% the stochastic regret guarantee up to logarithmic factors.
+
+\paragraph{Adversarial losses.}
+Kernel-based exponential weights \citep{bubeck2017kernel} and the online Newton
+method of \citet{fokkema2024online} also give
+$\widetilde O(\operatorname{poly}(d)\sqrt n)$ regret for adversarial convex
+losses. In the latter approach, restarts address the possibility that the
+best comparator in hindsight leaves the region on which the quadratic
+approximation is controlled; see
+\citet[Chapter~11]{lattimore2026bandit}.
+Our guarantee concerns a fixed loss. Extending the direct curvature
+comparison and the stability analysis to changing losses is a separate
+problem.
 
 \section{Notation and Problem Formulation}
 \label{sec:setting}
@@ -1156,64 +1253,52 @@ The right-hand side is the same as in \cref{eq:population-regret-bound}, so the 
 where the last two inequalities follow from the choice of parameters.
 So $x_\star$ lies in the focus region in round $t$, which completes the induction.
 
+\section{Future Work}
+\label{sec:conclusion}
+
+% We have shown that direct Gaussian quadratic estimates suffice for
+% stochastic bandit convex optimization with
+% $\widetilde O(d^2M\sqrt n)$ regret, and hence
+% $\widetilde O(d^{3/2}\sqrt n)$ regret in L\"owner position.
+% The algorithm uses one noisy function evaluation per round and updates
+% the Gaussian mean without projection. The analysis rests on a local
+% comparison between averaged curvature and Bregman divergence, together
+% with stability bounds for the unprojected iterates and the indefinite
+% Hessian estimates. These results establish that optimistic smoothing is
+% unnecessary for this stationary guarantee.
+
+\paragraph{Adversarial losses.}
+A natural next step is to extend the method to time-varying convex losses.
+The present proof uses a common minimizer to preserve the focus region
+and a fixed objective to control the evolution of the iterates.
+An adversarial analysis must replace these arguments while retaining
+control of the direct quadratic approximation. Achieving this without
+restarts would remove another substantial complication of existing
+Gaussian ONS methods.
+
+\paragraph{Sharper bounds and tuning.}
+The logarithmic factor in our bound is $\log^8(nd/\delta)$.
+Reducing this dependence, and allowing larger learning rates and curvature
+parameters while preserving stability, are immediate questions.
+It would also be useful to obtain bounds that reduce the dependence on the geometric quantity $M$.
+
+\paragraph{Sampling within the constraint set.}
+The method still relies on a convex extension because Gaussian samples
+can leave $\K$. A further direction is to construct sampling distributions
+supported on $\K$ that admit useful first- and second-order estimation
+identities. To recover the present argument, these identities would need
+to support both adaptation of the sampling covariance to the loss and a
+comparison between estimated curvature and Bregman divergence.
+Developing such a construction could eliminate the extension while
+preserving a single function evaluation per round.
+
 \newpage
-\begin{thebibliography}{9}
-    \raggedright
-
-    \bibitem[Bercu et al.(2015)Bercu, Delyon, and Rio]{bercu2015concentration}
-    Bernard Bercu, Bernard Delyon, and Emmanuel Rio.
-    \newblock \emph{Concentration Inequalities for Sums and Martingales}.
-    \newblock SpringerBriefs in Mathematics. Springer, Cham, 2015.
-    \newblock \href{https://doi.org/10.1007/978-3-319-22099-4}
-    {doi:10.1007/978-3-319-22099-4}.
-
-    \bibitem[Boucheron et al.(2013)Boucheron, Lugosi, and Massart]{boucheron2013concentration}
-    St\'ephane Boucheron, G\'abor Lugosi, and Pascal Massart.
-    \newblock \emph{Concentration Inequalities: A Nonasymptotic Theory of Independence}.
-    \newblock Oxford University Press, 2013.
-    \newblock \href{https://doi.org/10.1093/acprof:oso/9780199535255.001.0001}
-    {doi:10.1093/acprof:oso/9780199535255.001.0001}.
-
-    \bibitem[Evans and Gariepy(2015)]{evansgariepy2015measure}
-    Lawrence C. Evans and Ronald F. Gariepy.
-    \newblock \emph{Measure Theory and Fine Properties of Functions}.
-    \newblock Revised edition, CRC Press, 2015.
-
-    \bibitem[Fokkema et al.(2024)Fokkema, van der Hoeven, Lattimore, and Mayo]{fokkema2024online}
-    Hidde Fokkema, Dirk van der Hoeven, Tor Lattimore, and Jack J. Mayo.
-    \newblock Online Newton method for bandit convex optimisation: Extended abstract.
-    \newblock In \emph{Proceedings of the 37th Conference on Learning Theory},
-    volume 247 of \emph{Proceedings of Machine Learning Research}, pages
-    1713--1714, 2024.
-    \newblock Full version: \href{https://arxiv.org/abs/2406.06506}{arXiv:2406.06506}.
-
-    \bibitem[Lattimore(2026)]{lattimore2026bandit}
-    Tor Lattimore.
-    \newblock \emph{Bandit Convex Optimisation}.
-    \newblock Cambridge University Press, 2026.
-    \newblock \href{https://doi.org/10.1017/9781009607551}{doi:10.1017/9781009607551}.
-
-    \bibitem[Lattimore and Gy\"orgy(2023)]{lattimore2023second}
-    Tor Lattimore and Andr\'as Gy\"orgy.
-    \newblock A second-order method for stochastic bandit convex optimisation.
-    \newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
-    volume 195 of \emph{Proceedings of Machine Learning Research}, pages
-    2067--2094, 2023.
-
-    \bibitem[Laurent and Massart(2000)]{laurent2000adaptive}
-    B\'eatrice Laurent and Pascal Massart.
-    \newblock Adaptive estimation of a quadratic functional by model selection.
-    \newblock \emph{The Annals of Statistics}, 28(5):1302--1338, 2000.
-    \newblock \href{https://doi.org/10.1214/aos/1015957395}
-    {doi:10.1214/aos/1015957395}.
-
-    \bibitem[Vershynin(2018)]{vershynin2018high}
-    Roman Vershynin.
-    \newblock \emph{High-Dimensional Probability: An Introduction with
-    Applications in Data Science}.
-    \newblock Cambridge University Press, 2018.
-
-\end{thebibliography}
+\begingroup
+\raggedright
+\providecommand{\doi}[1]{\href{https://doi.org/#1}{doi:\nolinkurl{#1}}}
+\nocite{vershynin2018high}
+\bibliography{references}
+\endgroup
 
 \newpage
 \appendix
