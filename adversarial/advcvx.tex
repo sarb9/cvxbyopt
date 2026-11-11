@@ -117,8 +117,8 @@
     Unlike earlier methods of this kind, it uses unbiased estimates of the
     gradient and Hessian of the Gaussian smoothing of the loss, rather than
     of an optimistic surrogate. Its restarting mechanism is also simpler
-    than those of \citet{bubeck2017kernel} and \citet{lattimore2026bandit}:
-    it needs neither an increasing learning rate nor a decaying covariance.
+    than those of \citet{bubeck2017kernel} and \citet{lattimore2026bandit}\todo{better cite the paper with Dirk et al. rather than the book here}:
+    it needs neither an increasing learning rate nor a decaying covariance.\todo{I think some of Hazan's papers for the quadratic or H-convex/concave case might have done this too? Generally I would put this discussion of methods in the main paper rather than the abstract, but it's a matter of taste.}
     % We study adversarial bandit convex optimization on a $d$-dimensional convex body.
     % In each of $n$ rounds the learner observes one noisy value of a bounded convex loss.
     % We give a Gaussian online Newton method with regret $\widetilde O(d^{3/2}\sqrt n)$
@@ -137,7 +137,7 @@
 \label{sec:introduction}
 
 In adversarial bandit convex optimization a learner chooses an action $A_t$ in a
-convex body $\K\subset\R^d$ and observes the value of a convex loss $f_t$ at $A_t$,
+convex body\todo{tell the reader what is a convex body} $\K\subset\R^d$ and observes the value of a convex loss $f_t$ at $A_t$,
 possibly corrupted by noise. The loss may depend on the preceding rounds.
 The goal is to keep the learner's cumulative loss close to that of the best
 single action for the realized sequence $f_1,\ldots,f_n$. We assume that the
@@ -219,7 +219,7 @@ algorithm with regret $\widetilde O(d^{3/2}\sqrt n)$ whose running time in
 each round is polynomial in $d$ and $\log n$, and that no algorithm can
 achieve a better bound when $d$ and $n$ are large.
 Our algorithm attains this regret. Each of its rounds solves two convex
-programs over the intersection of $\K_\eps$ with at most $n$ ellipsoids, so
+programs over the intersection of $\K_\eps$\todo{this is undefined here I think.} with at most $n$ ellipsoids, so
 its running time per round is polynomial in $d$ and $n$ rather than in $d$
 and $\log n$. We return to the second part of the conjecture at the end of
 this section.
@@ -309,7 +309,8 @@ this section.
 For $r>0$, let $\mathbb{B}_r=\{x\in\R^d:\norm{x}\leq r\}$ be the Euclidean ball
 of radius $r$. Let $\K\subset\R^d$ be a convex body that is known to the
 learner. An affine preprocessing step puts the body in the position
-$\mathbb{B}_1\subseteq\K\subseteq\mathbb{B}_{2d}$.
+$\mathbb{B}_1\subseteq\K\subseteq\mathbb{B}_{2d}$. \todo{reference needed and let's discuss this.}
+\todo{at some point will you talk about how $\K$ is represented and the computation implications?}
 
 In each round $t=1,\ldots,n$, an adversary chooses a convex loss
 $f_t:\K\to[0,1]$, the learner chooses an action $A_t\in\K$, and it observes
@@ -320,7 +321,7 @@ the randomness that the learner uses in round $t$.
 To make this precise, let $\zeta_t$ be the randomness of the algorithm in
 round $t$ which it uses to make decisions, let
 $\F_t=\sigma(f_1,\zeta_1,\xi_1,\ldots,f_t,\zeta_t,\xi_t,f_{t+1})$, and let
-$\E_t[\cdot]=\E[\cdot\mid\F_{t-1}]$ and $\Pp_t(\cdot)=\Pp(\cdot\mid\F_{t-1})$.
+$\E_t[\cdot]=\E[\cdot\mid\F_{t-1}]$ and $\Pp_t(\cdot)=\Pp(\cdot\mid\F_{t-1})$.\todo{At some point I decided that $\E_t = \E[\cdot | \F_t$, which I think usually less ambiguous but does make the notation a bit less concise. I leave it to you though. People are inconsistent.}
 Thus $\F_{t-1}$ contains the history up to the end of round $t-1$ together
 with the loss $f_t$, so that under $\E_t$ the loss of round $t$ is fixed and
 only the randomness of the learner and the noise in that round remain.
@@ -340,7 +341,7 @@ action in hindsight,
 \end{align}
 Since the losses may react to the actions of the learner, the best action in
 hindsight is itself random and depends on the whole game. Our bounds on
-$\Reg_n$ therefore hold simultaneously for all comparators in $\K$.
+$\Reg_n$ therefore hold simultaneously for all comparators in $\K$.\todo{formally this makes no sense because the regret sups over the comparator.}
 
 Let $\pi(x)=\inf\{r>0:x\in r\K\}$ be the Minkowski functional of $\K$ and let
 $U$ be uniform on the Euclidean unit sphere.
@@ -423,7 +424,7 @@ $\pi_\eps(x)=1$ and $v(x)=0$, so $e_t(x)=f_t(x)$. If $x\notin\K_\eps$, then
 $x/\pi_\eps(x)$ lies on the boundary of $\K_\eps$, and $e_t(x)$ is computed
 from the single value $f_t(x/\pi_\eps(x))$. In either case, the value of
 $e_t$ at any point of $\R^d$ costs one evaluation of $f_t$ at a point of
-$\K_\eps$, and this is what we mean by calling $e_t$ a \textit{queryable extension}.
+$\K_\eps$, and this is what we mean by calling $e_t$ a \textit{queryable extension}.\todo{will this nomenclature be used? I very very rarely try to introduce new terms like this without a good reason (this is again a matter of taste).}
 
 Besides being queryable, $e_t$ has three properties that the analysis needs.
 It is convex. It is an upper bound on the loss at the point that is played:
@@ -434,7 +435,7 @@ since $\pi_\eps\geq1$, $v\geq0$ and $f_t\geq0$,
 \end{align}
 And it is Lipschitz, with $\Lip(e_t)\leq5/\eps$. The upper bound is
 immediate from the definition, and Appendix~\ref{app:extension} proves the
-other two properties.
+other two properties.\todo{Consider putting this in a lemma. Do you actually give the proof? Is there some subtle difference or you can just reference the book?}
 
 For intuition, write a point outside $\K_\eps$ as $x=ry$ with $y$ on the
 boundary of $\K_\eps$ and $r=\pi_\eps(x)>1$. Then
@@ -444,12 +445,12 @@ start at the point $(0_d,-2/\eps)$ of $\R^d\times\R$, where $0_d$ is the
 origin of $\R^d$, and pass through the graph of $f_t$ over the boundary of
 $\K_\eps$, as shown in \cref{fig:extension}. The point $(0_d,-2/\eps)$ lies
 below every tangent plane to the graph of $f_t$ over $\K_\eps$, and this is
-what makes $e_t$ convex.
+what makes $e_t$ convex.\todo{is it obvious that this makes the function convex?}
 
 \section{The Algorithm}
 \label{sec:algorithm}
 
-There are three main ingredients in the \textit{Gaussian ONS} \cref{alg:main}.
+There are three main ingredients in the \textit{Gaussian ONS} \cref{alg:main}.\todo{some thought may be needed on the name. Gaussian ONS might already be the name of the full information algorithm.}
 The first is \textit{Gaussian smoothing}:
 the algorithm estimates the gradient and Hessian of a
 smoothed version of the loss $e_t$, and forms a
@@ -498,7 +499,7 @@ The first move is to forget the original loss $f_t$ and work with its convex ext
     F_{t,\Sigma}(y)=\E_{X\sim\N(y,\Sigma)}[e_t(X)]
     \qquad\text{for }y\in\R^d.
     \eqlabel{eq:gaussian-smoothing}
-\end{align}
+\end{align}\todo{is this really what is wanted? Dependence on $\mu_t$ is missing.}
 This is the \textit{Gaussian smoothing} of $e_t$ with covariance $\Sigma$.
 The main niceness of $F_{t,\Sigma}$ is that its gradient and Hessian can be expressed as
 \begin{align}
@@ -508,7 +509,7 @@ The main niceness of $F_{t,\Sigma}$ is that its gradient and Hessian can be expr
     &=\E_{X\sim\N(y,\Sigma)}\bigl[e_t(X)\Sigma^{-1}\bigl((X-y)(X-y)^\top-\Sigma\bigr)\Sigma^{-1}\bigr]
     \eqlabel{eq:gaussian-derivatives}
 \end{align}
-through Gaussian integration by parts as we will discuss later.
+through Gaussian integration by parts as we will discuss later.\todo{unless `later' means very very soon best to give a forward reference.}
 It is worth noting that $F_{t,\Sigma}$ is defined on all of $\R^d$,
 is infinitely differentiable, and is a convex function that upper bounds $e_t$ by Jensen's inequality.
 
@@ -525,7 +526,7 @@ point $A_t=X_t/\pi_\eps(X_t)\in\K$, observes $f_t(A_t)+\xi_t$ and computes
 where the second equality is the definition of $e_t$ in \cref{eq:extension}.
 The point $A_t$ is $X_t$ itself if $X_t\in\K_\eps$, and otherwise it is the
 point where the segment from the origin to $X_t$ crosses the boundary of
-$\K_\eps$ (left panel of \cref{fig:algorithm}).
+$\K_\eps$ (left panel of \cref{fig:algorithm}).\todo{consider defining the Minkowski projection}
 Since $\pi_\eps(X_t)\geq1$ and $f_t\geq0$, we have $f_t(A_t)\leq e_t(X_t)$,
 so $F_{t,\Sigma_t}(\mu_t)=\E_t[e_t(X_t)]$ is an upper bound on the expected
 loss of the learner in round $t$.
@@ -540,7 +541,7 @@ which by the tower property of conditional expectation and identities in \cref{e
     \nabla^2 F_{t,\Sigma_t}(\mu_t)
     &=\E_t\left[\underbrace{Y_t\Sigma_t^{-1}\bigl((X_t-\mu_t)(X_t-\mu_t)^\top-\Sigma_t\bigr)\Sigma_t^{-1}}_{\triangleq H_t}\right].
     \eqlabel{eq:gaussian-derivatives-estimates}
-\end{align}
+\end{align} \todo{nit: the bar over the $H$ looks too wide to me.}
 So the algorithm can use the single observation pair $(X_t,Y_t)$
 to form an \textit{unbiased quadratic approximation of the smoothed loss $F_{t,\Sigma_t}$ at the current mean $\mu_t$} defined as
 \begin{align}
@@ -564,7 +565,7 @@ than a second-order approximation, because it differs from the second-order
 Taylor polynomial of $F_{t,\Sigma_t}$ at $\mu_t$ in three ways: it is noisy,
 it is shifted by a constant so that it vanishes at $\mu_t$, and its curvature
 is damped by the factor $\lambda$. Its conditional mean $\overline{q}_t$ is
-free of noise, but it is shifted and damped in the same way.
+free of noise, but it is shifted and damped in the same way.\todo{it may be worth mentioning that $\bar q_t$ is convex while $q_t$ is not.}
 
 The upshot is that the algorithm turns the single observation pair $(X_t,Y_t)$
 into an entire quadratic function $q_t$. In summary, the algorithm
@@ -585,7 +586,7 @@ and are inherently chosen by the adversary's choice of $e_1, e_2, \ldots, e_t$.
 This resembles the setting of online learning with full information, and the standard algorithm there is exponential weights.
 Its continuous version with learning
 rate $\eta>0$ and initial distribution $\N(0,\sigma^2I_d)$ plays in round
-$t+1$ the distribution with density
+$t+1$ the distribution with density \todo{I \textit{think} I wouldn't introduce the exponential weights unless it's needed or you want to tell some interesting story with it. Consider moving this to a discussion comparing to Bubeck's algorithm and conjecture?}
 \begin{align}
     p_{t+1}(x)
     \propto\exp\Bigl(-\frac{\norm{x}^2}{2\sigma^2}-\eta\sum_{s=1}^tq_s(x)\Bigr)
@@ -596,7 +597,7 @@ Since the exponent is quadratic, this is again a Gaussian density.
 Completing the square
 shows that if $p_t$ is the density of
 $\N(\mu_t,\Sigma_t)$, then $p_{t+1}$ is the density of
-$\N(\mu_{t+1},\Sigma_{t+1})$ with\footnote{Recall that $P_t=\Sigma_t^{-1}$ is the precision matrix.}
+$\N(\mu_{t+1},\Sigma_{t+1})$\todo{In the interest of reducing notation I'd probably not introduce the precision matrix. But your call. Matter of taste again!} with\footnote{Recall that $P_t=\Sigma_t^{-1}$ is the precision matrix.}
 \begin{align}
     P_{t+1}=P_t+\eta\lambda H_t
     \qquad\text{and}\qquad
