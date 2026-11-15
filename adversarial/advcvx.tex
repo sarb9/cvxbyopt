@@ -79,6 +79,8 @@
 \newcommand{\Lip}{\operatorname{Lip}}
 \newcommand{\op}{\mathrm{op}}
 \newcommand{\Reg}{\operatorname{Reg}}
+\newcommand{\eReg}{\operatorname{eReg}}
+\newcommand{\qReg}{\operatorname{qReg}}
 \newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
 \newcommand{\1}{\mathbf 1}
 \newcommand{\eps}{\varepsilon}
@@ -525,7 +527,7 @@ point $A_t=X_t/\pi_\eps(X_t)\in\K$, observes $f_t(A_t)+\xi_t$ and computes
 where the second equality is the definition of $e_t$ in \cref{eq:extension}.
 The point $A_t$ is $X_t$ itself if $X_t\in\K_\eps$, and otherwise it is the
 point where the segment from the origin to $X_t$ crosses the boundary of
-$\K_\eps$ (left panel of \cref{fig:algorithm}).
+$\K_\eps$.
 Since $\pi_\eps(X_t)\geq1$ and $f_t\geq0$, we have $f_t(A_t)\leq e_t(X_t)$,
 so $F_{t,\Sigma_t}(\mu_t)=\E_t[e_t(X_t)]$ is an upper bound on the expected
 loss of the learner in round $t$.
@@ -751,26 +753,6 @@ computed exactly.
         \ineqlabel{eq:main-regret}
     \end{align}
 \end{theorem}
-Only $\sigma$ and $\eta$ in \cref{eq:parameters-free} are free, and the
-remaining parameters are determined by them.
-The initial standard deviation $\sigma$ is small enough that Gaussian
-samples rarely leave $\K$: with this choice, the expected value of the gauge
-of a centred sample is at most $2/L^2$ (\cref{fb:gauge}).
-The learning rate $\eta$ is as large as the estimation errors allow. On the
-focus region, the estimated cumulative quadratic differs from its
-conditional mean by at most $\Delta=CL^2\sqrt{dn}/\lambda$
-(\cref{conc:uniform}), and $\eta$ is chosen so that $\eta\Delta$ is a small
-fraction of $\rho$.
-The restart threshold $\rho$ has to exceed the initial distance
-$\frac12\normm{x}{P_1}^2\leq2d^2/\sigma^2$ of every $x\in\K$ from the initial
-mean, which is why it is proportional to $(d/\sigma)^2$.
-The damping factor $\lambda$ determines the radius $R$ of the focus region, and the
-choice of $\lambda$ makes $R^2=(AL/32)\rho$ a large multiple of $\rho$. This
-is what keeps the minimizer of the cumulative quadratic away from the
-boundary of the focus region (\cref{pop:focus}).
-Finally, $\eps$ is chosen so that the cost $n\eps$ of contracting $\K$
-equals the regret $\rho/\eta$ that the last epoch can accumulate, and the
-bound in \cref{eq:main-regret} is a small multiple of $\rho/\eta$.
 
 The bound in \cref{thm:main} depends on the position of $\K$ only through
 $M$. Since $\K$ is known, the learner can choose the affine preprocessing so
@@ -794,30 +776,60 @@ for every convex body $\K$.
 \section{The Population Algorithm}
 \label{pop:section}
 \suppressfloats[t]
-Consider an oracle which, after the learner plays in round $t$, returns the gradient $\bar g_t$ and Hessian $\bar H_t$ of the Gaussian-smoothed extension at $\mu_t$, with $\Sigma_t$ held fixed. The population algorithm uses these derivatives in \cref{eq:updates} and uses $Q_t=\sum_{s=1}^t q_s$ in place of $\widehat Q_t$ in the restart test \cref{eq:restart}. Thus it minimizes $\eta Q_t(x)+\normm{x}{P_1}^2$ on $K_t$ to accuracy $\rho/8$ and restarts if the returned point $y_t$ satisfies $\eta Q_t(y_t)\geq 2\rho$. Throughout this section the index $t$ starts at one in each epoch, except in statements explicitly summed over all $n$ rounds.
+In this section we analyze a hypothetical \textit{population algorithm} that has access to the population gradient $\bar g_t = \E_t[g_t]$ and Hessian $\bar H_t = \E_t[H_t]$ in each round $t$.
+Of course, such an algorithm is not implementable, but it serves as a useful theoretical tool for understanding the behavior of the actual sampled algorithm.
+Our goal is to show that the population algorithm satisfies the same regret bound as the sampled algorithm.
+Because the population algorithm uses the exact gradient and Hessian, there is no estimation error to control. This makes the analysis simpler, and it shows the main reason the sampled algorithm works without the extra work of concentration inequalities.
+
+Precisely, the population algorithm is \cref{alg:main} with $g_t$ and $H_t$ replaced by $\bar g_t$ and $\bar H_t$, and with this change carried through every quantity built from them.
+For instance, the restart test \cref{eq:restart} uses $Q_t=\sum_{s=1}^t q_s$ in place of $\widehat Q_t$.
+Throughout this section the index $t$ starts at one in each epoch, except in statements explicitly summed over all $n$ rounds.
 
 \begin{proposition}[Population regret]\label{pop:oracle}
-    Suppose the parameters are as in \cref{thm:main} and $\eps\leq 1/2$. For the population algorithm, on every realization of the losses,
+    Suppose the parameters are as in \cref{thm:main} and $\eps\leq 1/2$. Then, for the population algorithm and for any sequence of losses $(f_t)_{t=1}^n$, it holds that
     \begin{align}
-        \sup_{y\in\K_\eps}\sum_{t=1}^n\bigl(F_t-e_t(y)\bigr)\leq \frac{\rho}{\eta},
-        \qquad F_t=\E_t[e_t(X_t)].
+        \eReg_n \triangleq
+        \sup_{y\in\K_\eps}\sum_{t=1}^n\bigl(\E_t[e_t(X_t)]-e_t(y)\bigr)\leq \frac{\rho}{\eta}\,.
     \end{align}
-    In particular, its expected regret for the original losses is at most $n\eps+\rho/\eta$.
 \end{proposition}
-
-To see why the proposition gives a bound for the original losses, fix any $x\in\K$ and let $y=(1-\eps)x$. On $\K_\eps$ the extension agrees with $f_t$, so
+We call $\eReg_n$ the \textit{extension regret}. It differs from the regret $\Reg_n$ in two ways: it evaluates the extensions $e_t$ at $X_t$ instead of $f_t$ at $A_t$, and it compares against points of $\K_\eps$ instead of $\K$.
+Still, a bound on $\eReg_n$ gives a bound on $\E[\Reg_n]$. Indeed, $f_t(A_t)\leq e_t(X_t)$, and for every $x\in\K$ the point $(1-\eps)x$ lies in $\K_\eps$, where $e_t=f_t$ and convexity gives $f_t((1-\eps)x)\leq f_t(x)+\eps$.
+Hence, $\E[\Reg_n] \leq \E[\eReg_n]+n\eps$.
+Since each $e_t$ is Lipschitz and $\K_\eps$ is compact, the supremum in $\eReg_n$ is attained. We fix
 \begin{align}
-    e_t(y)=f_t((1-\eps)x)\leq(1-\eps)f_t(x)+\eps f_t(0)\leq f_t(x)+\eps.
+    x_\star\in\argmin_{u\in\K_\eps}\sum_{t=1}^n e_t(u),
 \end{align}
-Also $f_t(A_t)\leq e_t(X_t)$ pointwise. In calendar time, summing both inequalities and taking the supremum over $x$ gives
-\begin{align}
-    \Reg_n\leq\mathcal M_n+n\eps+\sup_{y\in\K_\eps}\sum_{t=1}^n\bigl(F_t-e_t(y)\bigr),\qquad
-    \mathcal M_n=\sum_{t=1}^n\bigl(f_t(A_t)-\E_t f_t(A_t)\bigr).
-    \ineqlabel{eq:reduction}
-\end{align}
-The martingale $\mathcal M_n$ has mean zero. The same reduction holds on every trajectory of the sampled algorithm on which the precision updates are positive definite.
+so that $\eReg_n=\sum_{t=1}^n\bigl(\E_t[e_t(X_t)]-e_t(x_\star)\bigr)$. This is a single comparator for all $n$ rounds, used across restarts.
 
-\subsection{Regret switching}
+\paragraph{Step 1: Quadratic regret.}
+Looking closely at the population algorithm, the only information about the losses that it keeps is $\bar g_t$ and $\bar H_t$, and together these define the quadratic $\overline q_t$. Its updates and its restart test depend on the losses only through $\overline q_1,\ldots,\overline q_t$.
+So the losses pass through three stages: the adversary chooses $f_t$, the algorithm extends it to $e_t$, and $e_t$ is then replaced by its quadratic approximation $\overline q_t$ at $\mu_t$.
+The algorithm knows $\overline q_t$ completely, and on these quadratics it runs a variant of continuous exponential weights, just as in online learning with full information.
+A natural first step is therefore to relate the extension regret $\eReg_n$, which we saw controls the actual regret, to the (full-information) regret on the quadratics.
+Within an epoch, the \textit{quadratic regret} of the means against a point
+$y\in\R^d$ is
+\begin{align}
+    \overline{\qReg}_t(y)
+    \triangleq\sum_{s=1}^t\bigl(\overline q_s(\mu_s)-\overline q_s(y)\bigr)
+    =-\overline Q_t(y),
+    \eqlabel{pop:qreg}
+\end{align}
+where the equality uses $\overline q_s(\mu_s)=0$.
+The link between the two regrets is the following lemma, proved in \cref{sw:section}.
+\begin{restatable}[Regret switching]{lemma}{regretswitching}
+    \label{sw:tangent}
+    Suppose that $\eps\leq1/2$, $0\prec\Sigma_t\preceq4\sigma^2 I_d$ and $\mu_t\in\K_\eps$. With the parameters in \cref{eq:parameters}, for every $x_0\in E_t$ and every $x_\star\in\K_\eps$,
+    \begin{align}
+        F_{t,\Sigma_t}(\mu_t)-e_t(x_\star)
+        \leq \overline q_t(\mu_t)-\overline q_t(x_\star)
+        +\frac{\lambda}{2}\normm{x_0-x_\star}{\bar H_t}^2
+        +2\tr(\bar H_t\Sigma_t)+n^{-3}.
+    \end{align}
+\end{restatable}
+The right side is the quadratic regret of round $t$ against $x_\star$, plus a quadratic term that vanishes when $x_0=x_\star$, plus a trace term and the small error $n^{-3}$.
+So the lemma bounds the extension regret in terms of the quadratic regret. The point $x_0$ has to lie in $E_t$, but $x_\star$ can be any point of $\K_\eps$.
+
+----
 The minimizer of the total loss can lie outside the focus region even if the learner has made good decisions on all preceding rounds. We will instead keep track of a minimizer of $Q_t$. To see why this suffices, first observe that each $\bar H_t\succeq0$, so the precision increases within the epoch and $\Sigma_t\preceq\sigma^2 I_d$. This verifies the covariance condition $\Sigma_t\preceq4\sigma^2 I_d$ in \cref{sw:tangent}. The lemma gives, for every $x\in K_t$ and every $y\in\K_\eps$,
 \begin{align}
     F_t-e_t(y)\leq -q_t(x)-\ip{\nabla q_t(x)}{y-x}+c_t,
@@ -838,48 +850,6 @@ Suppose that $z_t\in K_t$ minimizes $Q_t$ over all of $\K_\eps$. Since $K_t\subs
     \leq -Q_t(z_t)+\sum_{s=1}^t c_s,\ineqlabel{pop:switch}
 \end{align}
 where the last inequality is the first-order condition for $z_t$ over $\K_\eps$. It remains to show that a global minimizer stays in focus and to bound $-Q_t(z_t)$.
-
-\begin{figure}[t]
-    \centering
-    \begin{tikzpicture}[x=1.03cm,y=.9cm,font=\small,point/.style={circle,inner sep=1.5pt,fill=black},
-        old/.style={blue!60!black,line width=.65pt},new/.style={black!62,dashed,line width=.65pt}]
-        \foreach \shift in {0,6.65}{
-            \begin{scope}[xshift=\shift cm]
-                \draw[rounded corners=6pt,black!48] (-2.48,-1.15) rectangle (2.48,1.26);
-                \node[above right,inner sep=2pt,black!75] at (-2.40,-1.10) {$\K_\eps$};
-                \begin{scope}
-                    \clip (-.52,.05) ellipse (1.36 and .91);
-                    \fill[blue!10] (.52,-.03) ellipse (1.05 and .74);
-                \end{scope}
-                \draw[old] (-.52,.05) ellipse (1.36 and .91);
-                \draw[new] (.52,-.03) ellipse (1.05 and .74);
-                \node[blue!60!black,left,inner sep=1pt] at (-1.78,.53) {$E_s$};
-                \node[black!70,right,inner sep=1pt] at (1.47,-.53) {$E_t$};
-            \end{scope}
-        }
-        \node[point] (z) at (.13,.10) {};
-        \node[below,inner sep=3pt] at (z) {$z_t$};
-        \node[point] (y) at (2.05,.75) {};
-        \node[above,inner sep=2pt] at (y) {$y$};
-        \draw[densely dotted,black!65] (z)--(y);
-        \node at (0,-1.45) {\textit{(a) A global minimizer in focus}};
-        \begin{scope}[xshift=6.65cm]
-            \node[point] (m) at (-.52,.05) {};
-            \node[below left,inner sep=2pt] at (m) {$\mu_s$};
-            \node[point] (b) at (.84,.05) {};
-            \node[right,inner sep=2pt] at (b) {$z_t$};
-            \draw[old] (m)--(b);
-            \node[above,font=\small,inner sep=2pt,blue!60!black] at (.16,.05) {$R$};
-            \node at (0,-1.45) {\textit{(b) An active ellipsoid constraint}};
-        \end{scope}
-    \end{tikzpicture}
-    \caption{The shading shows $K_t$ for two focus ellipsoids.
-        In (a), summing the tangent comparisons at $z_t$ controls regret even for
-        the comparator $y$ outside the focus set. In (b), a constrained minimizer
-        at distance $R$ from $\mu_s$ in the $P_s$ norm has accumulated enough curvature
-    to force a restart.}
-    \label{fig:focus}
-\end{figure}
 
 \subsection{The online Newton step}
 The precision update uses half the Hessian of the quadratic model. For $x\in K_t$, expanding the projected mean update gives
@@ -1119,19 +1089,12 @@ The computations in the appendices use the parameters of \cref{thm:main} written
 \section{Regret switching}
 \label{sw:section}
 
-\begin{lemma}[A supporting plane for the direct quadratic]
-    \label{sw:tangent}
-    Suppose that $\eps\leq1/2$, $0\prec\Sigma_t\preceq4\sigma^2 I_d$ and $\mu_t\in\K_\eps$. With the parameters in \cref{eq:parameters}, for every $x\in E_t$ and $y\in\K_\eps$,
-    \begin{align}
-        F_t+q_t(x)+\ip{\nabla q_t(x)}{y-x}-e_t(y)
-        \leq 2\tr(\bar H_t\Sigma_t)+n^{-3}.
-    \end{align}
-\end{lemma}
+\begingroup\renewcommand{\label}[1]{}\regretswitching*\endgroup
 
 The restriction on $x$ controls how far the slope of the quadratic departs from $\bar g_t$. There is no corresponding restriction on $y$. This distinction lets us apply the lemma at the minimizer of the cumulative quadratic even when the loss comparator has left the focus region.
 
 \begin{proof}[Proof of \cref{sw:tangent}]
-    Fix the information available before the sample and omit the round index. It is convenient to work in coordinates in which the sample is standard Gaussian. Write
+    Fix the information available before the sample and omit the round index, writing $F=F_{t,\Sigma_t}(\mu_t)$ and $q=\overline q_t$. Since $q$ is quadratic with Hessian $\lambda\bar H$ and $q(\mu)=0$, we have $q(\mu)-q(y)+\frac\lambda2\normm{x-y}{\bar H}^2=-q(x)-\ip{\nabla q(x)}{y-x}$, so the claim is equivalent to $F+q(x)+\ip{\nabla q(x)}{y-x}-e(y)\leq 2\tr(\bar H\Sigma)+n^{-3}$. It is convenient to work in coordinates in which the sample is standard Gaussian. Write
     \begin{align}
         h(z)=e(\mu+\Sigma^{1/2}z),\qquad u=\Sigma^{-1/2}(x-\mu),\qquad b=\Sigma^{-1/2}(y-\mu),
     \end{align}
