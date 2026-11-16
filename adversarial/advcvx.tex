@@ -47,8 +47,20 @@
 \creflabelformat{inequality}{\textup{(#2#1#3)}}
 \crefrangelabelformat{equality}{\textup{(#3#1#4)--(#5#2#6)}}
 \crefrangelabelformat{inequality}{\textup{(#3#1#4)--(#5#2#6)}}
-\newcommand{\eqlabel}[1]{\label[equality]{#1}}
-\newcommand{\ineqlabel}[1]{\label[inequality]{#1}}
+% Equation labels record their cleveref type by name instead of through
+% \label[type]{...}, whose optional argument is lost inside amsmath displays
+% with TeX Live 2026.
+\makeatletter
+\newcommand{\eqlabel}[1]{\global\@namedef{advcvx@labeltype@#1}{equality}\label{#1}}
+\newcommand{\ineqlabel}[1]{\global\@namedef{advcvx@labeltype@#1}{inequality}\label{#1}}
+\AtBeginDocument{%
+    \let\advcvx@label@noarg\label@noarg
+    \def\label@noarg#1{%
+        \@ifundefined{advcvx@labeltype@#1}%
+        {\advcvx@label@noarg{#1}}%
+        {\label@optarg[\csname advcvx@labeltype@#1\endcsname]{#1}}}%
+}
+\makeatother
 \newcommand{\proofpart}[2]{%
     \par\addvspace{1.2\baselineskip}
     \noindent
