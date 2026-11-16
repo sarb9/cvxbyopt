@@ -7,7 +7,7 @@
 \usepackage{mathtools}
 \usepackage{microtype}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta}
+\usetikzlibrary{arrows.meta,calc,decorations.pathreplacing}
 \usepackage{wrapfig}
 \setlength{\marginparwidth}{1in}
 \setlength{\marginparsep}{0.15in}
@@ -161,8 +161,15 @@ action in hindsight,
 Since the losses may react to the actions of the learner, the best action in
 hindsight is itself random and depends on the whole game.
 
-Let $\pi(x)=\inf\{r>0:x\in r\K\}$ be the Minkowski functional of $\K$ and let
-$U$ be uniform on the Euclidean unit sphere.
+Let $\pi(x)=\inf\{r>0:x\in r\K\}$ be the Minkowski functional of $\K$.
+The Minkowski projection onto $\K$ is the map from $\R^d$ to $\K$ given by
+\begin{align}
+    x\longmapsto\frac{x}{\max\{1,\pi(x)\}}.
+\end{align}
+It leaves points in $\K$ unchanged and maps each $x\notin\K$ to the point
+where the segment from $0$ to $x$ meets the boundary of $\K$.
+
+Let $U$ be uniform on the Euclidean unit sphere.
 The only geometric quantity in the result is
 \begin{align}
     M=\max\left\{\frac1{\sqrt d},\E[\pi(U)]\right\}.
@@ -221,38 +228,31 @@ Define for all $x\in\R^d$
     \label{fig:extension}
     \vspace{-4pt}
 \end{wrapfigure}
-To understand $e_t$, consider two cases. If $x\in\K_\eps$, then
-$\pi_\eps(x)=1$ and $v(x)=0$, so $e_t(x)=f_t(x)$. If $x\notin\K_\eps$, then
-$x/\pi_\eps(x)$ lies on the boundary of $\K_\eps$, and $e_t(x)$ is computed
-from the single value $f_t(x/\pi_\eps(x))$. In either case, the value of
-$e_t$ at any point of $\R^d$ costs one evaluation of $f_t$ at a point of
-$\K_\eps$, and this is what we mean by calling $e_t$ a \textit{queryable extension}.\tor{will this nomenclature be used? I very very rarely try to introduce new terms like this without a good reason (this is again a matter of taste).}
+If $x\in\K_\eps$, then $\pi_\eps(x)=1$ and $v(x)=0$, so $e_t(x)=f_t(x)$.
+If $x\notin\K_\eps$, then $x/\pi_\eps(x)$ lies on the boundary of
+$\K_\eps$. Thus evaluating $e_t$ at any point of $\R^d$ requires only one
+evaluation of $f_t$, at the point $x/\pi_\eps(x)\in\K_\eps$.
+For $y\in\partial\K_\eps$ and $r\geq1$, the definition gives
+$e_t(ry)=rf_t(y)+2(r-1)/\eps$. Hence the extension is affine along each
+ray outside $\K_\eps$, as illustrated in \cref{fig:extension}.
 
-Besides being queryable, $e_t$ has three properties that the analysis needs.
-It is convex. It is an upper bound on the loss at the point that is played:
-since $\pi_\eps\geq1$, $v\geq0$ and $f_t\geq0$,
-\begin{align}
-    f_t\bigl(x/\pi_\eps(x)\bigr)\leq e_t(x)
-    \qquad\text{for every }x\in\R^d.
-\end{align}
-And it is Lipschitz, with $\Lip(e_t)\leq5/\eps$. The upper bound is
-immediate from the definition, and Appendix~\ref{app:extension} proves the
-other two properties.\tor{Consider putting this in a lemma. Do you actually give the proof? Is there some subtle difference or you can just reference the book?}
-
-For intuition, write a point outside $\K_\eps$ as $x=ry$ with $y$ on the
-boundary of $\K_\eps$ and $r=\pi_\eps(x)>1$. Then
-$e_t(ry)=rf_t(y)+2(r-1)/\eps$, which is linear in $r$ and equals $-2/\eps$ at
-$r=0$. So outside $\K_\eps$, the graph of $e_t$ consists of the rays that
-start at the point $(0_d,-2/\eps)$ of $\R^d\times\R$, where $0_d$ is the
-origin of $\R^d$, and pass through the graph of $f_t$ over the boundary of
-$\K_\eps$, as shown in \cref{fig:extension}. The point $(0_d,-2/\eps)$ lies
-below every tangent plane to the graph of $f_t$ over $\K_\eps$, and this is
-what makes $e_t$ convex.\tor{is it obvious that this makes the function convex?}
+The following lemma collects the properties used in the analysis.
+\begin{lemma}\label{lem:extension}
+    For $0<\eps\leq1/2$, the functions $e_t$ and $e_t-v/\eps$ are convex on
+    $\R^d$, and $\Lip(e_t)\leq5/\eps$. Moreover, $e_t=f_t$ on $\K_\eps$ and
+    \begin{align}
+        f_t\bigl(x/\pi_\eps(x)\bigr)\leq e_t(x)
+        \qquad\text{for every }x\in\R^d.
+    \end{align}
+\end{lemma}
+The convexity statements follow from
+\citet[Proposition~3.23]{lattimore2026bandit}. Appendix~\ref{app:extension}
+gives the short argument and verifies the constant in the Lipschitz bound.
 
 \section{The Algorithm}
 \label{sec:algorithm}
 
-There are three main ingredients in the \textit{Gaussian ONS} \cref{alg:main}.\tor{some thought may be needed on the name. Gaussian ONS might already be the name of the full information algorithm.}
+There are three main ingredients in \textit{Smooth ONS} (\cref{alg:main}).
 The first is \textit{Gaussian smoothing}:
 the algorithm estimates the gradient and Hessian of a
 smoothed version of the loss $e_t$, and forms a
@@ -271,24 +271,42 @@ the total regret is bounded by the regret accumulated after the last restart.
 \RestyleAlgo{ruled}
 \DontPrintSemicolon
 \SetAlgoNoLine
-\SetAlgoLongEnd
+\SetAlgoNoEnd
+\LinesNumbered
 \SetAlFnt{\small}
+\newcommand{\algmark}[1]{\tikz[remember picture,overlay]\coordinate (#1);}
+\newcommand{\algbrace}[3]{%
+    \begin{tikzpicture}[remember picture,overlay]
+        \draw[decorate,decoration={brace,amplitude=4pt},black!60]
+        ([xshift=-64pt,yshift=7pt]ons-right |- #1) --
+        ([xshift=-64pt,yshift=-5pt]ons-right |- #2)
+        node[midway,right=7pt,text width=55pt,align=left,
+        font=\scriptsize\itshape,text=black!65]{#3};
+    \end{tikzpicture}%
+}
 \SetKwInput{KwIn}{Input}
 \begin{algorithm2e}[!t]
-    \caption{Gaussian ONS}
+    \caption{Smooth ONS}
     \label{alg:main}
-    \KwIn{$\sigma$, $\eta$, $\lambda$, $R$, $\rho$ and $\eps$}
+    \KwIn{$\sigma$, $\eta$, $\lambda$, $R$, $\rho$ and $\eps$\hfill
+    \algmark{ons-right}}
+    \setlength{\rightskip}{70pt}
     \While{fewer than $n$ rounds have been played}{
-        Start an epoch: set $\mu_1=0$, $P_1=\sigma^{-2}I_d$, $K_0=\K_\eps$ and $Q_0=0$\;
+        Start an epoch: set $\mu_1=0$, $\Sigma_1=\sigma^2I_d$, $K_0=\K_\eps$ and $Q_0=0$\;
         \For{$t=1,2,\ldots$ as long as rounds remain}{
-            Set $K_t=K_{t-1}\cap E_t$ and sample $X_t\sim\N(\mu_t,P_t^{-1})$\;
-            Play $A_t=X_t/\pi_\eps(X_t)$, observe $f_t(A_t)+\xi_t$, and compute $Y_t$ by \cref{eq:Y}\;
-            Compute $g_t$ and $H_t$ by \cref{eq:gaussian-derivatives-estimates}, and set $Q_t=Q_{t-1}+q_t$\;
-            Set $P_{t+1}=P_t+\eta\lambda H_t/2$\;
-            \If{$P_{t+1}\not\succ0$}{play $0$ in all remaining rounds and stop\;}
-            Set $\mu_{t+1}$ by the projection in \cref{eq:updates}\;
-            Find $y_t$ satisfying \cref{eq:restart}\;
-            \If{$\eta Q_t(y_t)\geq2\rho$}{end the epoch\;}
+            \algmark{ons-sample-top}Sample $X_t\sim\N(\mu_t,\Sigma_t)$ and play $A_t=X_t/\pi_\eps(X_t)$ and observe $f_t(A_t)+\xi_t$ \;
+            \algmark{ons-sample-bottom}Compute $g_t$ and $H_t$ by \cref{eq:gaussian-derivatives-estimates}\;
+            \If{\algmark{ons-newton-top}$\Sigma_t^{-1}+\eta\lambda H_t/2\not\succ0$}{play $0$ in all remaining rounds and stop\;}
+            Set $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\eta\lambda H_t/2$\;
+            \algmark{ons-newton-bottom}Set $\mu_{t+1}=\argmin_{u\in K_t} \normm{u-\bigl(\mu_t-\eta \Sigma_{t+1}g_t\bigr)}{\Sigma_{t+1}^{-1}}^2$\;
+            \algmark{ons-restart-top}Set $Q_t=Q_{t-1}+q_t$ and $J_t(x)=\eta Q_t(x)+\normm{x}{\Sigma_1^{-1}}^2$\;
+            Find $y_t\in K_t$ such that $J_t(y_t)\leq\min_{x\in K_t}J_t(x)+\rho/8$\;
+            \If{$\eta Q_t(y_t)\geq2\rho$}{%
+            end the epoch\;}
+            \algmark{ons-restart-bottom}Set $K_t=K_{t-1} \cap E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{\Sigma_t^{-1}}^2\leq R^2\bigr\}$
+            \algbrace{ons-sample-top}{ons-sample-bottom}{Gaussian\\sampling and\\derivative\\estimates}%
+            \algbrace{ons-newton-top}{ons-newton-bottom}{Online\\Newton step}%
+            \algbrace{ons-restart-top}{ons-restart-bottom}{Restart\\mechanism}\;
         }
     }
 \end{algorithm2e}
@@ -296,147 +314,181 @@ the total regret is bounded by the regret accumulated after the last restart.
 
 \paragraph{The Gaussian Smoothing}
 The algorithm maintains a Gaussian distribution $\N(\mu_t,\Sigma_t)$ on $\R^d$.
-The first move is to forget the original loss $f_t$ and work with its convex extension $e_t$ to define
+The first move is to forget about the original loss $f_t$ and work with its convex extension $e_t$ to define
 \begin{align}
-    F_{t,\Sigma}(y)=\E_{X\sim\N(y,\Sigma)}[e_t(X)]
+    F_{t,\Sigma}(y)=\E_{X\sim\N(y,\Sigma)}[e_t(X)]=\int_{\R^d}e_t(x)\gamma_{y,\Sigma}(x)\,dx
     \qquad\text{for }y\in\R^d.
     \eqlabel{eq:gaussian-smoothing}
-\end{align}\tor{is this really what is wanted? Dependence on $\mu_t$ is missing.}
+\end{align}\tor{is this really what is wanted? Dependence on $\mu_t$ is missing.}\alireza{I think so since we need $y$ to remain a free variable so that we can take derivatives with respect to it. We then evaluate those derivatives at $y=\mu_t$.}
 This is the \textit{Gaussian smoothing} of $e_t$ with covariance $\Sigma$.
-The main niceness of $F_{t,\Sigma}$ is that its gradient and Hessian can be expressed as
+It is worth noting that $F_{t,\Sigma}$ is defined on all of $\R^d$,
+is infinitely differentiable, and is a convex function that upper bounds $e_t$ by Jensen's inequality.
+Our main interest in $F_{t,\Sigma}$ is that its gradient and Hessian can be expressed as
 \begin{align}
     \nabla F_{t,\Sigma}(y)
     &=\E_{X\sim\N(y,\Sigma)}\bigl[e_t(X)\Sigma^{-1}(X-y)\bigr],\\
     \nabla^2 F_{t,\Sigma}(y)
-    &=\E_{X\sim\N(y,\Sigma)}\bigl[e_t(X)\Sigma^{-1}\bigl((X-y)(X-y)^\top-\Sigma\bigr)\Sigma^{-1}\bigr]
+    &=\E_{X\sim\N(y,\Sigma)}\bigl[e_t(X)\Sigma^{-1}\bigl((X-y)(X-y)^\top-\Sigma\bigr)\Sigma^{-1}\bigr].
     \eqlabel{eq:gaussian-derivatives}
 \end{align}
-through Gaussian integration by parts as we will discuss later.\tor{unless `later' means very very soon best to give a forward reference.}
-It is worth noting that $F_{t,\Sigma}$ is defined on all of $\R^d$,
-is infinitely differentiable, and is a convex function that upper bounds $e_t$ by Jensen's inequality.
+These identities follow by differentiating the Gaussian density in \cref{eq:gaussian-smoothing}.
+Indeed,
+\begin{align}
+    \nabla_y\gamma_{y,\Sigma}(x)
+    &=\gamma_{y,\Sigma}(x)\Sigma^{-1}(x-y),\\
+    \nabla_y^2\gamma_{y,\Sigma}(x)
+    &=\gamma_{y,\Sigma}(x)\Sigma^{-1}\bigl((x-y)(x-y)^\top-\Sigma\bigr)\Sigma^{-1}.
+\end{align}
+Since $e_t$ is Lipschitz, it grows at most linearly, and the Gaussian decay
+justifies differentiating under the integral.
+% \tor{unless `later' means very very soon best to give a forward reference.}
 
-These properties suggest a natural way to estimate the gradient and Hessian of $F_{t,\Sigma_t}$ at the current mean $\mu_t$.
-More precisely, in each round the algorithm draws one sample $X_t\sim\N(\mu_t,\Sigma_t)$ from this distribution, plays a
+These identities in \cref{eq:gaussian-derivatives} suggest a natural way to estimate the gradient and Hessian of $F_{t,\Sigma_t}$ at $\mu_t$.
+Precisely, if the algorithm could build an unbiased estimate of $e_t(X_t)$ for a sample $X_t\sim\N(\mu_t,\Sigma_t)$, then it could use the same sample to form unbiased estimates of both the gradient and Hessian of $F_{t,\Sigma_t}$ at $\mu_t$.
+To this end, after drawing one sample $X_t\sim\N(\mu_t,\Sigma_t)$, the algorithm plays a
 point $A_t=X_t/\pi_\eps(X_t)\in\K$, observes $f_t(A_t)+\xi_t$ and computes
 \begin{align}
     Y_t
     =\pi_\eps(X_t)\bigl(f_t(A_t)+\xi_t\bigr)
     +\frac2\eps v(X_t)
-    =e_t(X_t)+\pi_\eps(X_t)\xi_t,
+    % =e_t(X_t)+\pi_\eps(X_t)\xi_t
+    \quad\text{so that}\quad
+    \E_t[Y_t\mid X_t]=e_t(X_t).
     \eqlabel{eq:Y}
 \end{align}
-where the second equality is the definition of $e_t$ in \cref{eq:extension}.
-The point $A_t$ is $X_t$ itself if $X_t\in\K_\eps$, and otherwise it is the
-point where the segment from the origin to $X_t$ crosses the boundary of
-$\K_\eps$.\tor{consider defining the Minkowski projection}
+The point $A_t$ is the Minkowski projection of $X_t$ onto
+$\K_\eps$.
 Since $\pi_\eps(X_t)\geq1$ and $f_t\geq0$, we have $f_t(A_t)\leq e_t(X_t)$,
-so $F_{t,\Sigma_t}(\mu_t)=\E_t[e_t(X_t)]$ is an upper bound on the expected
+so $F_{t,\Sigma_t}(\mu_t)=\E_t[e_t(X_t)]$ is an upper bound on the actual expected
 loss of the learner in round $t$.
-As a result the algorithm stores an observation pair $(X_t,Y_t)$.
-By the assumption that the noise is conditionally subgaussian, $\E_t[Y_t\mid X_t]=e_t(X_t)$,
+As a result the algorithm only stores the observation pair $(X_t,Y_t)$,
 which by the tower property of conditional expectation and identities in \cref{eq:gaussian-smoothing,eq:gaussian-derivatives} gives
 \begin{align}
-    \overline{g}_t \triangleq
+    \bar{g}_t \triangleq
     \nabla F_{t,\Sigma_t}(\mu_t)
     &=\E_t\left[\underbrace{Y_t\Sigma_t^{-1}(X_t-\mu_t)}_{\triangleq g_t}\right]\,,\\
-    \overline{H}_t \triangleq
+    \bar{H}_t \triangleq
     \nabla^2 F_{t,\Sigma_t}(\mu_t)
     &=\E_t\left[\underbrace{Y_t\Sigma_t^{-1}\bigl((X_t-\mu_t)(X_t-\mu_t)^\top-\Sigma_t\bigr)\Sigma_t^{-1}}_{\triangleq H_t}\right].
     \eqlabel{eq:gaussian-derivatives-estimates}
-\end{align}\tor{nit: the bar over the $H$ looks too wide to me.}
-So the algorithm can use the single observation pair $(X_t,Y_t)$
-to form an \textit{unbiased quadratic approximation of the smoothed loss $F_{t,\Sigma_t}$ at the current mean $\mu_t$} defined as
+\end{align}
+Together, the pair $(g_t,H_t)$ is an unbiased estimate of $(\bar{g}_t,\bar{H}_t)$, which are the gradient and Hessian of the smoothed loss $F_{t,\Sigma_t}(\mu_t)$.
+The algorithm uses these two estimates to form a \textit{shifted and damped second-order approximation} of $F_{t,\Sigma_t}$ at $\mu_t$.
+Precisely, define
 \begin{align}
     q_t(y)
     &\triangleq\ip{g_t}{y-\mu_t}
     +\frac\lambda2\normm{y-\mu_t}{H_t}^2\,,
     \quad
-    \text{and }\\
-    \overline{q}_t(y) &\triangleq
-    \ip{\overline{g}_t}{y-\mu_t} + \frac\lambda2\normm{y-\mu_t}{\overline{H}_t}^2
+    \text{and}\\
+    \bar{q}_t(y) &\triangleq
+    \ip{\bar{g}_t}{y-\mu_t} + \frac\lambda2\normm{y-\mu_t}{\bar{H}_t}^2
     =
     \E_t[q_t(y)]
     ,
     \eqlabel{eq:quadratic-model}
 \end{align}
 for a parameter $\lambda\in(0,1)$ that damps the curvature of the model.
-Note that we dropped the constant term $F_{t,\Sigma_t}(\mu_t)=\E_t[Y_t]$ from both $q_t$ and $\overline{q}_t$.
-The reason would be clear in the next section where we study the update of Online Newton step.
-We call $q_t$ the \textit{quadratic model} of the loss in round $t$, rather
-than a second-order approximation, because it differs from the second-order
-Taylor polynomial of $F_{t,\Sigma_t}$ at $\mu_t$ in three ways: it is noisy,
+Note that these quadratics are shifted in the sense that we dropped the constant term $F_{t,\Sigma_t}(\mu_t)=\E_t[Y_t]$ from both $q_t$ and $\bar{q}_t$.
+The result is that $q_t(\mu_t)=\bar{q}_t(\mu_t)=0$.
+Note that the algorithm has access to $q_t$ which we will refer to as the \textit{quadratic model}\alireza{Do not invent names?} of the loss in round $t$.
+Note that $q_t$ differs from the second-order
+Taylor polynomial of $F_{t,\Sigma_t}$ at $\mu_t$ in three ways: it is noisy through both observation noise $\xi_t$
+and sampling noise $X_t\sim\N(\mu_t,\Sigma_t)$,
 it is shifted by a constant so that it vanishes at $\mu_t$, and its curvature
-is damped by the factor $\lambda$. Its conditional mean $\overline{q}_t$ is
-free of noise, but it is shifted and damped in the same way.\tor{it may be worth mentioning that $\bar q_t$ is convex while $q_t$ is not.}
+is damped by the factor $\lambda$.
+Its conditional mean $\bar{q}_t$ is
+free of noise, but it is shifted and damped in the same way.
+It is also important to note that $\bar{q}_t$ is convex as $F_{t,\Sigma_t}$ is convex (so $\bar{H}_t\succeq0$) while $q_t$ is not necessarily convex.
 
-The upshot is that the algorithm turns the single observation pair $(X_t,Y_t)$
-into an entire quadratic function $q_t$. In summary, the algorithm
+The upshot of the whole process is that the algorithm turns the single observation pair $(X_t,Y_t)$
+into an entire quadratic function $q_t$ which preserves useful information about the loss $f_t$.\alireza{vague sentence?}
+In summary, the algorithm
 (i) extends the loss $f_t$ to $e_t$,
 (ii) smooths $e_t$ to obtain $F_{t,\Sigma_t}$,
-(iii) forms the shifted and damped second-order approximation $\overline{q}_t$ of $F_{t,\Sigma_t}$ at $\mu_t$, and
-(iv) uses the single pair $(X_t,Y_t)$ to form an unbiased estimate $q_t$ of $\overline{q}_t$.
-In contrast with the Gaussian online Newton methods of
-\citet{lattimore2023second} and \citet{fokkema2024online}, the algorithm
-does not estimate the derivatives of an optimistic surrogate of the loss, and
-it does not reweight its observations: both $g_t$ and $H_t$ refer to the
-ordinary Gaussian smoothing, and both come from the same observation.
-\paragraph{The Online Newton Step (ONS).}
-Each round now hands the algorithm a quadratic function $q_t$, and it is not
-immediately clear what to do with these functions. There is, however, a
-principled choice. The functions $q_1,q_2,\cdots, q_t$ are revealed one at a time
-and are inherently chosen by the adversary's choice of $e_1, e_2, \ldots, e_t$.
-This resembles the setting of online learning with full information, and the standard algorithm there is exponential weights.
-Its continuous version with learning
-rate $\eta>0$ and initial distribution $\N(0,\sigma^2I_d)$ plays in round
-$t+1$ the distribution with density\tor{I \textit{think} I wouldn't introduce the exponential weights unless it's needed or you want to tell some interesting story with it. Consider moving this to a discussion comparing to Bubeck's algorithm and conjecture?}
-\begin{align}
-    p_{t+1}(x)
-    \propto\exp\Bigl(-\frac{\norm{x}^2}{2\sigma^2}-\eta\sum_{s=1}^tq_s(x)\Bigr)
-    \propto p_t(x)\exp\bigl(-\eta q_t(x)\bigr).
-    \eqlabel{eq:exponential-weights}
-\end{align}
-Since the exponent is quadratic, this is again a Gaussian density.
-Completing the square
-shows that if $p_t$ is the density of
-$\N(\mu_t,\Sigma_t)$, then $p_{t+1}$ is the density of
-$\N(\mu_{t+1},\Sigma_{t+1})$\tor{In the interest of reducing notation I'd probably not introduce the precision matrix. But your call. Matter of taste again!} with\footnote{Recall that $P_t=\Sigma_t^{-1}$ is the precision matrix.}
-\begin{align}
-    P_{t+1}=P_t+\eta\lambda H_t
-    \qquad\text{and}\qquad
-    \mu_{t+1}=\mu_t-\eta P_{t+1}^{-1}g_t.
-    \eqlabel{eq:plain-ons}
-\end{align}
-These are the updates of the online Newton step with learning rate $\eta$ on
-the quadratics $q_1,q_2,\ldots$.
-This is explained in more depth by \citet{vanderhoeven2018many} and \citet[Section~10.2]{lattimore2026bandit}.
-It also explains why we dropped
-the constant term of $q_t$: it only changes the normalization in
-\cref{eq:exponential-weights}.
-The major issue with this formulation is that the hessian estimate $H_t$ need
-not be positive semidefinite, so
-\cref{eq:exponential-weights} defines a distribution only when it is.
-However, the \textit{expected} Hessian $\overline{H}_t$ is positive
-semidefinite because $F_{t,\Sigma_t}$ is convex, and the analysis shows that $H_t$ is positive semidefinite with high probability.
+(iii) forms the shifted and damped second-order approximation $\bar{q}_t$ of $F_{t,\Sigma_t}$ at $\mu_t$, and
+(iv) uses the single pair $(X_t,Y_t)$ to form an unbiased estimate $q_t$ of $\bar{q}_t$.
 
-The algorithm makes two changes to the standard ONS update.
-First, the precision receives only half of the curvature of the quadratics,
-that is, the algorithm runs exponential weights on the quadratic models with
-their curvature damped by $\lambda/2$ instead of $\lambda$.
-The reason will be clear later.\alireza{not ideal.}
-Second, the mean is kept in the focus region $K_t\subseteq\K_\eps$, a closed
-convex set that contains $\mu_t$ and is defined in the next paragraph.
-Following \citet[Section~10.2]{lattimore2026bandit}, after the exponential
-weights step from $p_t$, the algorithm moves to the closest Gaussian in
-relative entropy whose mean lies in $K_t$. This keeps the precision
-$P_{t+1}$ and projects the mean of the Newton step onto $K_t$ in the norm
-$\normm{\cdot}{P_{t+1}}$, so the updates are
+\paragraph{The Online Newton Step (ONS).}
+\tor{
+\textit{think} I wouldn't introduce the exponential weights unless it's needed or you want to tell some interesting story with it. Consider moving this to a discussion comparing to Bubeck's algorithm and conjecture?}
+\alireza{I agree that it was too long, is this now better?
+Btw, I'm not sure what you mean by moving this to a discussion comparing to Bubeck's algorithm and conjecture, in what way?}
+With $q_t$ in hand, we update the mean and covariance by a projected online
+Newton step \citep[Section~10.2]{lattimore2026bandit}:
 \begin{align}
-    P_{t+1}=P_t+\frac{\eta\lambda}{2}H_t
-    \qquad\text{and}\qquad
+    \Sigma_{t+1}^{-1}&=\Sigma_t^{-1}+\frac{\eta\lambda}{2}H_t,\quad\text{and}\quad
     \mu_{t+1}=\argmin_{u\in K_t}
-    \normm{u-\bigl(\mu_t-\eta P_{t+1}^{-1}g_t\bigr)}{P_{t+1}}^2.
+    \normm{u-\bigl(\mu_t-\eta\Sigma_{t+1}g_t\bigr)}{\Sigma_{t+1}^{-1}}^2.
     \eqlabel{eq:updates}
 \end{align}
+The projection keeps the next mean inside the focus region $K_t$.
+Note that the inverse covariance update uses only half of the quadratic
+model's curvature. The reason is rather technical as this leaves an extra negative
+term in the analysis, which the restart mechanism relies on.
+\alireza{I think it would be better to move this $1/2$ into the restart test directly, i.e., scale only $\lambda$ and handle the factor where it is actually needed.}
+Also, $H_t$ may be indefinite, so before applying these updates the
+algorithm checks that the proposed inverse covariance $\Sigma_{t+1}^{-1}$ is positive definite.
+If the check fails (line~7 of Algorithm~\ref{alg:main}),
+the algorithm plays $0$ for all remaining rounds. We show that this happens
+with very small probability, so it does not affect the regret bound.
+
+% \paragraph{The Online Newton Step (ONS).}
+% Each round now hands the algorithm a quadratic function $q_t$, and it is not
+% immediately clear what to do with these functions. There is, however, a
+% principled choice. The functions $q_1,q_2,\cdots, q_t$ are revealed one at a time
+% and are inherently chosen by the adversary's choice of $e_1, e_2, \ldots, e_t$.
+% This resembles the setting of online learning with full information, and the standard algorithm there is exponential weights.
+% Its continuous version with learning
+% rate $\eta>0$ and initial distribution $\N(0,\sigma^2I_d)$ plays in round
+% $t+1$ the distribution with density\tor{I \textit{think} I wouldn't introduce the exponential weights unless it's needed or you want to tell some interesting story with it. Consider moving this to a discussion comparing to Bubeck's algorithm and conjecture?}
+% \begin{align}
+%     p_{t+1}(x)
+%     \propto\exp\Bigl(-\frac{\norm{x}^2}{2\sigma^2}-\eta\sum_{s=1}^tq_s(x)\Bigr)
+%     \propto p_t(x)\exp\bigl(-\eta q_t(x)\bigr).
+%     \eqlabel{eq:exponential-weights}
+% \end{align}
+% Since the exponent is quadratic, this is again a Gaussian density.
+% Completing the square
+% shows that if $p_t$ is the density of
+% $\N(\mu_t,\Sigma_t)$, then $p_{t+1}$ is the density of
+% $\N(\mu_{t+1},\Sigma_{t+1})$ with
+% \begin{align}
+%     \Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\eta\lambda H_t
+%     \qquad\text{and}\qquad
+%     \mu_{t+1}=\mu_t-\eta \Sigma_{t+1}g_t.
+%     \eqlabel{eq:plain-ons}
+% \end{align}
+% These are the updates of the online Newton step with learning rate $\eta$ on
+% the quadratics $q_1,q_2,\ldots$.
+% This is explained in more depth by \citet{vanderhoeven2018many} and \citet[Section~10.2]{lattimore2026bandit}.
+% It also explains why we dropped
+% the constant term of $q_t$: it only changes the normalization in
+% \cref{eq:exponential-weights}.
+% The major issue with this formulation is that the hessian estimate $H_t$ need
+% not be positive semidefinite, so
+% \cref{eq:exponential-weights} defines a distribution only when it is.
+% However, the \textit{expected} Hessian $\bar{H}_t$ is positive
+% semidefinite because $F_{t,\Sigma_t}$ is convex, and the analysis shows that $H_t$ is positive semidefinite with high probability.
+
+% The algorithm makes two changes to the standard ONS update.
+% First, the inverse covariance receives only half of the curvature of the quadratics,
+% that is, the algorithm runs exponential weights on the quadratic models with
+% their curvature damped by $\lambda/2$ instead of $\lambda$.
+% The reason will be clear later.\alireza{not ideal.}
+% Second, the mean is kept in the focus region $K_t\subseteq\K_\eps$, a closed
+% convex set that contains $\mu_t$ and is defined in the next paragraph.
+% Following \citet[Section~10.2]{lattimore2026bandit}, after the exponential
+% weights step from $p_t$, the algorithm moves to the closest Gaussian in
+% relative entropy whose mean lies in $K_t$. This keeps the inverse covariance
+% $\Sigma_{t+1}^{-1}$ and projects the mean of the Newton step onto $K_t$ in the norm
+% $\normm{\cdot}{\Sigma_{t+1}^{-1}}$, so the updates are
+% \begin{align}
+%     \Sigma_{t+1}^{-1}&=\Sigma_t^{-1}+\frac{\eta\lambda}{2}H_t,\\
+%     \mu_{t+1}&=\argmin_{u\in K_t}
+%     \normm{u-\bigl(\mu_t-\eta \Sigma_{t+1}g_t\bigr)}{\Sigma_{t+1}^{-1}}^2.
+%     \eqlabel{eq:updates}
+% \end{align}
 
 % \begin{figure}[t]
 %     \centering
@@ -450,63 +502,25 @@ $\normm{\cdot}{P_{t+1}}$, so the updates are
 %         Right: the focus region $K_t$ (shaded) is the intersection of
 %         $\K_\eps$ with the ellipsoids of the epoch. When the Newton step
 %         leaves $K_t$, the mean is projected back in the norm
-%         $\normm{\cdot}{P_{t+1}}$; the dotted ellipse is the ball of this
+%         $\normm{\cdot}{\Sigma_{t+1}^{-1}}$; the dotted ellipse is the ball of this
 %         norm that touches $K_t$ at $\mu_{t+1}$. Here the active constraint
 %     comes from the earlier ellipsoid $E_{t-1}$.}
 %     \label{fig:algorithm}
 % \end{figure}
 
 \paragraph{The focus region and the restart test.}
-Even the expected quadratic model $\overline{q}_t$ is a faithful proxy for $e_t$ only in an ellipsoid
+The quadratic model is a faithful proxy for $e_t$ only near the current mean, so the algorithm keeps its mean in the \textit{focus region} $K_t=K_{t-1}\cap E_t$, where $K_0=\K_\eps$ and
 \begin{align}
-    E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{P_t}^2\leq R^2\bigr\}
+    E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{\Sigma_t^{-1}}^2\leq R^2\bigr\}.
 \end{align}
-around the current mean $\mu_t$, where $R>0$ is a parameter of the algorithm.
-We define the \textit{focus region} in round $t$ by $K_t=K_{t-1}\cap E_t$ with $K_0=\K_\eps$.
-At the start, and again after every restart, $\mu_1=0$ and
-$P_1=\sigma^{-2}I_d$, so $E_1$ is the ball of radius $R\sigma$ around the
-origin.
-As curvature accumulates in the
-precision, the ellipsoids narrow in the directions in which the losses are
-curved: $P_{t+1}=P_t+\frac{\eta\lambda}{2}H_t\succ P_t$.
-
-The algorithm runs in epochs. An epoch ends when the restart test described
-below fires, and the next round starts a new epoch from the initial state
-$\mu_1=0$, $P_1=\sigma^{-2}I_d$ and $K_0=\K_\eps$, with the round index $t$
-starting again from one and the losses relabelled in the same way.
-
-The test is about the regret of the means on the quadratic models. Within an
-epoch, let $Q_t=\sum_{s=1}^tq_s$ and $\overline{Q}_t=\sum_{s=1}^t\overline{q}_s$.
-Since we have $q_s(\mu_s)=0$, the regret of the means
-$\mu_1,\ldots,\mu_t$ against a competitor $x$ on the quadratic models is
+The algorithm runs in epochs. Each epoch starts from $\mu_1=0$, $\Sigma_1=\sigma^2I_d$ and $K_0=\K_\eps$, with the round index starting again from one, and ends when the following test fires.
+Let $Q_t=\sum_{s=1}^tq_s$. Since $q_s(\mu_s)=0$, the regret of the means $\mu_1,\ldots,\mu_t$ on $q_1,\ldots,q_t$ against a point $x$ is $-Q_t(x)$.
+The test checks whether this regret is very negative against every point of $K_t$, that is, whether $\min_{x\in K_t}Q_t(x)$ is large.
+Since $Q_t$ need not be convex, the algorithm works instead with
 \begin{align}
-    \sum_{s=1}^t\bigl(q_s(\mu_s)-q_s(x)\bigr)=-Q_t(x).
-    \eqlabel{eq:Q_t-really}
+    J_t(x)=\eta Q_t(x)+\normm{x}{\Sigma_1^{-1}}^2,
 \end{align}
-An online learner usually wants this regret to be small.
-The restart test looks for the extreme case: it fires when the regret is
-not only small, but
-\emph{very negative} against every competitor $x\in K_t$ in the focus region.
-In terms of the cumulative model, by \cref{eq:Q_t-really},
-this happens when $\min_{x\in K_t}Q_t(x)$ is large.
-The analysis shows that this makes the regret of the epoch with respect to the
-extensions nonpositive against every comparator in $\K_\eps$, inside the focus
-region or not.
-
-The algorithm does not need to compute the best quadratic competitor in the focus region
-exactly; it is enough to find a
-point $y_t \in K_t$ that approximately minimizes a regularized and strongly convex version of $Q_t$.
-Since $H_s$ can be indefinite, $Q_t$ need not be convex.
-The regularized version adds the strongly convex term $\normm{x}{P_1}^2$ to $\eta Q_t$ reaching
-\begin{align}
-    J_t(x)=\eta Q_t(x)+\normm{x}{P_1}^2.
-\end{align}
-By \cref{eq:updates}, $\eta\lambda\sum_{s=1}^tH_s=2(P_{t+1}-P_1)$, so the
-Hessian of $J_t$ is
-$\eta\lambda\sum_{s=1}^tH_s+2P_1=2P_{t+1}$, which is positive definite as long
-as the algorithm runs so $J_t$ is strongly convex.
-The algorithm approximately minimizes $J_t$ over the focus
-region up to an error of $\rho/8$, to achieve a point $y_t$ that satisfies
+whose Hessian is $2\Sigma_{t+1}^{-1}\succ0$ by \cref{eq:updates}. It finds a point $y_t$ with
 \begin{align}
     y_t\in K_t
     \qquad\text{and}\qquad
@@ -514,7 +528,68 @@ region up to an error of $\rho/8$, to achieve a point $y_t$ that satisfies
     \eqlabel{eq:restart}
 \end{align}
 and restarts if $\eta Q_t(y_t)\geq2\rho$.
-We will show that this negative quadratic regret implies negative extension regret against every point of $\K_\eps$ which makes the total regret of the epoch nonpositive.
+In \cref{pop:section} we show why an epoch that ends in a restart
+has nonpositive regret against every point of $\K_\eps$.
+
+% \paragraph{The focus region and the restart test.}
+% Even the expected quadratic model $\bar{q}_t$ is a faithful proxy for $e_t$ only in an ellipsoid
+% \begin{align}
+%     E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{\Sigma_t^{-1}}^2\leq R^2\bigr\}
+% \end{align}
+% around the current mean $\mu_t$, where $R>0$ is a parameter of the algorithm.
+% We define the \textit{focus region} in round $t$ by $K_t=K_{t-1}\cap E_t$ with $K_0=\K_\eps$.
+% At the start, and again after every restart, $\mu_1=0$ and
+% $\Sigma_1=\sigma^2I_d$, so $E_1$ is the ball of radius $R\sigma$ around the
+% origin.
+% As curvature accumulates in the
+% inverse covariance, the ellipsoids narrow in the directions in which the losses are
+% curved: $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\frac{\eta\lambda}{2}H_t\succ \Sigma_t^{-1}$.
+
+% The algorithm runs in epochs. An epoch ends when the restart test described
+% below fires, and the next round starts a new epoch from the initial state
+% $\mu_1=0$, $\Sigma_1=\sigma^2I_d$ and $K_0=\K_\eps$, with the round index $t$
+% starting again from one and the losses relabelled in the same way.
+
+% The test is about the regret of the means on the quadratic models. Within an
+% epoch, let $Q_t=\sum_{s=1}^tq_s$ and $\bar{Q}_t=\sum_{s=1}^t\bar{q}_s$.
+% Since we have $q_s(\mu_s)=0$, the regret of the means
+% $\mu_1,\ldots,\mu_t$ against a competitor $x$ on the quadratic models is
+% \begin{align}
+%     \sum_{s=1}^t\bigl(q_s(\mu_s)-q_s(x)\bigr)=-Q_t(x).
+%     \eqlabel{eq:Q_t-really}
+% \end{align}
+% An online learner usually wants this regret to be small.
+% The restart test looks for the extreme case: it fires when the regret is
+% not only small, but
+% \emph{very negative} against every competitor $x\in K_t$ in the focus region.
+% In terms of the cumulative model, by \cref{eq:Q_t-really},
+% this happens when $\min_{x\in K_t}Q_t(x)$ is large.
+% The analysis shows that this makes the regret of the epoch with respect to the
+% extensions nonpositive against every comparator in $\K_\eps$, inside the focus
+% region or not.
+
+% The algorithm does not need to compute the best quadratic competitor in the focus region
+% exactly; it is enough to find a
+% point $y_t \in K_t$ that approximately minimizes a regularized and strongly convex version of $Q_t$.
+% Since $H_s$ can be indefinite, $Q_t$ need not be convex.
+% The regularized version adds the strongly convex term $\normm{x}{\Sigma_1^{-1}}^2$ to $\eta Q_t$ reaching
+% \begin{align}
+%     J_t(x)=\eta Q_t(x)+\normm{x}{\Sigma_1^{-1}}^2.
+% \end{align}
+% By \cref{eq:updates}, $\eta\lambda\sum_{s=1}^tH_s=2(\Sigma_{t+1}^{-1}-\Sigma_1^{-1})$, so the
+% Hessian of $J_t$ is
+% $\eta\lambda\sum_{s=1}^tH_s+2\Sigma_1^{-1}=2\Sigma_{t+1}^{-1}$, which is positive definite as long
+% as the algorithm runs so $J_t$ is strongly convex.
+% The algorithm approximately minimizes $J_t$ over the focus
+% region up to an error of $\rho/8$, to achieve a point $y_t$ that satisfies
+% \begin{align}
+%     y_t\in K_t
+%     \qquad\text{and}\qquad
+%     J_t(y_t)\leq\min_{x\in K_t}J_t(x)+\frac\rho8,
+%     \eqlabel{eq:restart}
+% \end{align}
+% and restarts if $\eta Q_t(y_t)\geq2\rho$.
+% We will show that this negative quadratic regret implies negative extension regret against every point of $\K_\eps$ which makes the total regret of the epoch nonpositive.
 
 \paragraph{Computation.}
 We assume that the gauge $\pi$ of $\K$ can be evaluated, which is needed to
@@ -522,8 +597,7 @@ compute $A_t$ and $Y_t$. Besides this, each round solves two convex problems
 over $K_t$: the projection in \cref{eq:updates} and the minimization in
 \cref{eq:restart}. Both have strongly convex quadratic objectives, and $K_t$
 is the intersection of $\K_\eps$ with at most $t$ ellipsoids, so both can be
-solved in time polynomial in $d$ and $t$. We assume that the projection is
-computed exactly.
+solved in time polynomial in $d$ and $t$.\alireza{More computational notes?}
 
 \begin{theorem}
     \label{thm:main}
@@ -555,7 +629,7 @@ computed exactly.
     \end{align}
 \end{theorem}
 
-The bound in \cref{thm:main} depends on the position of $\K$ only through
+The bound in \cref{thm:main} depends on the position of $\K$ through
 $M$. Since $\K$ is known, the learner can choose the affine preprocessing so
 that $M$ is small, and this does not change the regret: the learner applies
 the change of coordinates to its actions, and the losses remain convex and
@@ -603,26 +677,26 @@ Since each $e_t$ is Lipschitz and $\K_\eps$ is compact, the supremum in $\eReg_n
 so that $\eReg_n=\sum_{t=1}^n\bigl(\E_t[e_t(X_t)]-e_t(x_\star)\bigr)$. This is a single comparator for all $n$ rounds, used across restarts.
 
 \paragraph{Step 1: Quadratic regret.}
-Looking closely at the population algorithm, the only information about the losses that it keeps is $\bar g_t$ and $\bar H_t$, and together these define the quadratic $\overline q_t$. Its updates and its restart test depend on the losses only through $\overline q_1,\ldots,\overline q_t$.
-So the losses pass through three stages: the adversary chooses $f_t$, the algorithm extends it to $e_t$, and $e_t$ is then replaced by its quadratic approximation $\overline q_t$ at $\mu_t$.
-The algorithm knows $\overline q_t$ completely, and on these quadratics it runs a variant of continuous exponential weights, just as in online learning with full information.
+Looking closely at the population algorithm, the only information about the losses that it keeps is $\bar g_t$ and $\bar H_t$, and together these define the quadratic $\bar q_t$. Its updates and its restart test depend on the losses only through $\bar q_1,\ldots,\bar q_t$.
+So the losses pass through three stages: the adversary chooses $f_t$, the algorithm extends it to $e_t$, and $e_t$ is then replaced by its quadratic approximation $\bar q_t$ at $\mu_t$.
+The algorithm knows $\bar q_t$ completely, and on these quadratics it runs a variant of continuous exponential weights, just as in online learning with full information.
 A natural first step is therefore to relate the extension regret $\eReg_n$, which we saw controls the actual regret, to the (full-information) regret on the quadratics.
 Within an epoch, the \textit{quadratic regret} of the means against a point
 $y\in\R^d$ is
 \begin{align}
-    \overline{\qReg}_t(y)
-    \triangleq\sum_{s=1}^t\bigl(\overline q_s(\mu_s)-\overline q_s(y)\bigr)
-    =-\overline Q_t(y),
+    \bar{\qReg}_t(y)
+    \triangleq\sum_{s=1}^t\bigl(\bar q_s(\mu_s)-\bar q_s(y)\bigr)
+    =-\bar Q_t(y),
     \eqlabel{pop:qreg}
 \end{align}
-where the equality uses $\overline q_s(\mu_s)=0$.
+where the equality uses $\bar q_s(\mu_s)=0$.
 The link between the two regrets is the following lemma, proved in \cref{sw:section}.
 \begin{restatable}[Regret switching]{lemma}{regretswitching}
     \label{sw:tangent}
     Suppose that $\eps\leq1/2$, $0\prec\Sigma_t\preceq4\sigma^2 I_d$ and $\mu_t\in\K_\eps$. With the parameters in \cref{eq:parameters}, for every $x_0\in E_t$ and every $x_\star\in\K_\eps$,
     \begin{align}
         F_{t,\Sigma_t}(\mu_t)-e_t(x_\star)
-        \leq \overline q_t(\mu_t)-\overline q_t(x_\star)
+        \leq \bar q_t(\mu_t)-\bar q_t(x_\star)
         +\frac{\lambda}{2}\normm{x_0-x_\star}{\bar H_t}^2
         +2\tr(\bar H_t\Sigma_t)+n^{-3}.
     \end{align}
@@ -640,40 +714,40 @@ for the trace term and the negligible term together. We show later the bound on 
 Summing \cref{sw:tangent} over $s=1,\ldots,t$ gives
 \begin{align}
     \sum_{s=1}^t\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
-    \leq \overline{\qReg}_t(x_\star)
+    \leq \bar{\qReg}_t(x_\star)
     +\frac{\lambda}{2}\sum_{s=1}^t\normm{x_0-x_\star}{\bar H_s}^2
     +\sum_{s=1}^t c_s.
 \end{align}
-Since $\overline Q_t$ is a quadratic with Hessian $\lambda\sum_{s=1}^t\bar H_s$, the middle term equals
+Since $\bar Q_t$ is a quadratic with Hessian $\lambda\sum_{s=1}^t\bar H_s$, the middle term equals
 \begin{align}
     \frac{\lambda}{2}\sum_{s=1}^t\normm{x_0-x_\star}{\bar H_s}^2
-    =\overline Q_t(x_\star)-\overline Q_t(x_0)-\ip{\nabla\overline Q_t(x_0)}{x_\star-x_0}.
+    =\bar Q_t(x_\star)-\bar Q_t(x_0)-\ip{\nabla\bar Q_t(x_0)}{x_\star-x_0}.
 \end{align}
-By \cref{pop:qreg}, $\overline{\qReg}_t(x_\star)=-\overline Q_t(x_\star)$, so the first two terms on the right combine to give
+By \cref{pop:qreg}, $\bar{\qReg}_t(x_\star)=-\bar Q_t(x_\star)$, so the first two terms on the right combine to give
 \begin{align}
     \sum_{s=1}^t\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
-    \leq \overline{\qReg}_t(x_0)
-    -\ip{\nabla\overline Q_t(x_0)}{x_\star-x_0}
+    \leq \bar{\qReg}_t(x_0)
+    -\ip{\nabla\bar Q_t(x_0)}{x_\star-x_0}
     +\sum_{s=1}^t c_s.
     \ineqlabel{pop:switch-sum}
 \end{align}
 The quadratic regret against $x_\star$ has become the quadratic regret against $x_0$, a point in the focus region.
-The algorithm controls this regret: it runs a variant of exponential weights on the quadratics $\overline q_s$, which it sees in full, and we bound this regret in the next subsection. That leaves the inner product. Because $\overline Q_t$ is convex, whenever $x_0$ minimizes $\overline Q_t$ over $\K_\eps$ the inner product is nonnegative, so the term $-\ip{\nabla\overline Q_t(x_0)}{x_\star-x_0}$ can be dropped.
+The algorithm controls this regret: it runs a variant of exponential weights on the quadratics $\bar q_s$, which it sees in full, and we bound this regret in the next subsection. That leaves the inner product. Because $\bar Q_t$ is convex, whenever $x_0$ minimizes $\bar Q_t$ over $\K_\eps$ the inner product is nonnegative, so the term $-\ip{\nabla\bar Q_t(x_0)}{x_\star-x_0}$ can be dropped.
 
 This suggests choosing $x_0$ as a minimizer of the cumulative quadratic. Since $x_0$ must lie in $K_t$, we take
 \begin{align}
-    x^q_t\in\argmin_{u\in K_t}\overline Q_t(u).
+    x^q_t\in\argmin_{u\in K_t}\bar Q_t(u).
 \end{align}
-To see why this is a good choice, suppose for the moment that $x^q_t$ also minimizes $\overline Q_t$ over all of $\K_\eps$, then the inner product term can be dropped, and the extension regret over rounds $1,\ldots,t$ is at most $\overline{\qReg}_t(x^q_t)+\sum_{s=1}^tc_s$, and both terms are under control.
-Later, we will show that it does minimize $\overline Q_t$ over $\K_\eps$ as long as the epoch continues.
+To see why this is a good choice, suppose for the moment that $x^q_t$ also minimizes $\bar Q_t$ over all of $\K_\eps$, then the inner product term can be dropped, and the extension regret over rounds $1,\ldots,t$ is at most $\bar{\qReg}_t(x^q_t)+\sum_{s=1}^tc_s$, and both terms are under control.
+Later, we will show that it does minimize $\bar Q_t$ over $\K_\eps$ as long as the epoch continues.
 
 \paragraph{Step 3: Online Newton step.}
-We now bound the quadratic regret $\overline{\qReg}_t(x_0)$ against points $x_0\in \K_t$.\alireza{say something about what ONS is.}
-The Hessian of $\overline q_t$ is $\lambda\bar H_t$, but the update of the inverse covariance adds only $\eta\lambda\bar H_t/2$. As a result, the usual bound for the online Newton step comes with an extra negative term which will be useful later.
+We now bound the quadratic regret $\bar{\qReg}_t(x_0)$ against points $x_0\in \K_t$.\alireza{say something about what ONS is.}
+The Hessian of $\bar q_t$ is $\lambda\bar H_t$, but the update of the inverse covariance adds only $\eta\lambda\bar H_t/2$. As a result, the usual bound for the online Newton step comes with an extra negative term which will be useful later.
 \begin{lemma}\label{pop:ons-lemma}
     For every $x_0\in K_t$, the population algorithm satisfies
     \begin{align}
-        \overline{\qReg}_t(x_0)
+        \bar{\qReg}_t(x_0)
         \leq \frac{\normm{\mu_1 - x_0}{\Sigma_1^{-1}}^2
         -\normm{\mu_{t+1}-x_0}{\Sigma_{t+1}^{-1}}^2}{2\eta}
         +\frac{\eta}{2}\sum_{s=1}^t\normm{\bar g_s}{\Sigma_{s+1}}^2
@@ -694,14 +768,14 @@ The Hessian of $\overline q_t$ is $\lambda\bar H_t$, but the update of the inver
         -\eta\ip{\bar g_s}{\mu_s-x_0}
         +\frac{\eta^2}{2}\normm{\bar g_s}{\Sigma_{s+1}}^2\nonumber\\
         &\explan{=}{c}\frac12\normm{\mu_s-x_0}{\Sigma_s^{-1}}^2
-        -\eta\bigl(\overline q_s(\mu_s)-\overline q_s(x_0)\bigr)
+        -\eta\bigl(\bar q_s(\mu_s)-\bar q_s(x_0)\bigr)
         -\frac{\eta\lambda}{4}\normm{x_0-\mu_s}{\bar H_s}^2
         +\frac{\eta^2}{2}\normm{\bar g_s}{\Sigma_{s+1}}^2.
     \end{align}
-    Here \reason{a} holds because projecting onto the convex set $K_s$ does not increase the distance to $x_0\in K_s$, \reason{b} uses $\Sigma_{s+1}^{-1}-\Sigma_s^{-1}=\eta\lambda\bar H_s/2$, and \reason{c} uses \cref{eq:quadratic-model} and $\overline q_s(\mu_s)=0$. Summing over $s=1,\ldots,t$ telescopes the distance terms, and rearranging with $\mu_1=0$ gives the claim.
+    Here \reason{a} holds because projecting onto the convex set $K_s$ does not increase the distance to $x_0\in K_s$, \reason{b} uses $\Sigma_{s+1}^{-1}-\Sigma_s^{-1}=\eta\lambda\bar H_s/2$, and \reason{c} uses \cref{eq:quadratic-model} and $\bar q_s(\mu_s)=0$. Summing over $s=1,\ldots,t$ telescopes the distance terms, and rearranging with $\mu_1=0$ gives the claim.
 \end{proof}
 
-We now combine the two lemmas. Taking $x_0=x^q_t\in K_t$ in \cref{pop:switch-sum} and bounding $\overline{\qReg}_t(x^q_t)$ by \cref{pop:ons-lemma} gives
+We now combine the two lemmas. Taking $x_0=x^q_t\in K_t$ in \cref{pop:switch-sum} and bounding $\bar{\qReg}_t(x^q_t)$ by \cref{pop:ons-lemma} gives
 \begin{align}
     \sum_{s=1}^t\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
     &\leq \frac{\normm{x^q_t}{\Sigma_1^{-1}}^2
@@ -709,14 +783,14 @@ We now combine the two lemmas. Taking $x_0=x^q_t\in K_t$ in \cref{pop:switch-sum
     +\frac{\eta}{2}\sum_{s=1}^t\normm{\bar g_s}{\Sigma_{s+1}}^2
     +\sum_{s=1}^tc_s\nonumber\\
     &\quad-\frac{\lambda}{4}\sum_{s=1}^t\normm{x^q_t-\mu_s}{\bar H_s}^2
-    -\ip{\nabla\overline Q_t(x^q_t)}{x_\star-x^q_t}.
+    -\ip{\nabla\bar Q_t(x^q_t)}{x_\star-x^q_t}.
     \ineqlabel{pop:combined}
 \end{align}
 The first line contains the terms of the usual bound for the online Newton step, together with $\sum_{s=1}^tc_s$. The two terms on the second line are new.
-The first is nonpositive term we got from \cref{pop:ons-lemma} and the second is nonpositive whenever $x^q_t$ minimizes $\overline Q_t$ over $\K_\eps$ as we discussed earlier\alireza{in step..}.
+The first is nonpositive term we got from \cref{pop:ons-lemma} and the second is nonpositive whenever $x^q_t$ minimizes $\bar Q_t$ over $\K_\eps$ as we discussed earlier\alireza{in step..}.
 
 \paragraph{Step 4: $x^q_t$ is a global minimizer.}
-Suppose first that $x^q_t$ minimizes $\overline Q_t$ over all of $\K_\eps$. Then the inner product in \cref{pop:combined} is nonnegative, so the last term there is nonpositive. We drop it, along with the other two nonpositive terms.
+Suppose first that $x^q_t$ minimizes $\bar Q_t$ over all of $\K_\eps$. Then the inner product in \cref{pop:combined} is nonnegative, so the last term there is nonpositive. We drop it, along with the other two nonpositive terms.
 By $c_s=2\tr(\bar H_s\Sigma_s)+n^{-3}$ we have
 \begin{align}
     \sum_{s=1}^t\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
@@ -736,7 +810,7 @@ The first term is at most $2d^2/(\eta\sigma^2)$, since $\Sigma_1=\sigma^2I_d$ an
     \end{align}
 \end{lemma}
 \alireza{double check the constants in the lemma.}
-Substituting these bounds into \cref{pop:easy} and using $t\leq n$, we get, whenever $x^q_t$ minimizes $\overline Q_t$ over $\K_\eps$,
+Substituting these bounds into \cref{pop:easy} and using $t\leq n$, we get, whenever $x^q_t$ minimizes $\bar Q_t$ over $\K_\eps$,
 \begin{align}
     \sum_{s=1}^t\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
     \leq \frac{2d^2}{\eta\sigma^2}+\frac{5\eta n}{2}+\frac{32dL}{\lambda\eta}+n^{-2}
@@ -744,8 +818,8 @@ Substituting these bounds into \cref{pop:easy} and using $t\leq n$, we get, when
 \end{align}
 where the last inequality uses \cref{eq:parameters}.
 
-This is the bound of \cref{pop:oracle}, but only under the assumption that $x^q_t$ minimizes $\overline Q_t$ over $\K_\eps$.
-Note that since $\overline{Q}_t$ is convex, any local minimum in the interior of $K_t$ is also a global minimum.
+This is the bound of \cref{pop:oracle}, but only under the assumption that $x^q_t$ minimizes $\bar Q_t$ over $\K_\eps$.
+Note that since $\bar{Q}_t$ is convex, any local minimum in the interior of $K_t$ is also a global minimum.
 Therefore, if $x^q_t$ is not a global minimizer, it should lie on the boundary of some earlier focus ellipsoid $E_r$ for some $r\leq t$.
 We turn to this case next.
 
@@ -757,10 +831,10 @@ It is worth mentioning that we do not need to show that every restart is trigger
 The algorithm may restart for other reasons, and the analysis still holds.
 
 Concretely, suppose that $x^q_t$ lies on the boundary of $E_r$ for some $r\leq t$, then
-we prove that $\overline{\qReg}_t(x^q_t) = -\overline Q_t(x^q_t)$ is too negative, so $\overline Q_t(y_t)\geq\overline Q_t(x^q_t)$ is too large, and the test fires.
+we prove that $\bar{\qReg}_t(x^q_t) = -\bar Q_t(x^q_t)$ is too negative, so $\bar Q_t(y_t)\geq\bar Q_t(x^q_t)$ is too large, and the test fires.
 First, the quadratic regret against $x^q_t \in \K_t$ is bounded by \cref{pop:ons-lemma} at $x_0=x^q_t$:
 \begin{align}
-    -\overline Q_t(x^q_t)=\overline{\qReg}_t(x^q_t)
+    -\bar Q_t(x^q_t)=\bar{\qReg}_t(x^q_t)
     \leq \frac{\normm{x^q_t-\mu_1}{\Sigma_1^{-1}}^2}{2\eta}
     +\frac{\eta}{2}\sum_{s=1}^t\normm{\bar g_s}{\Sigma_{s+1}}^2
     -\frac{\lambda}{4}\sum_{s<r}\normm{x^q_t-\mu_s}{\bar H_s}^2,
@@ -777,7 +851,7 @@ On the other hand, from $x^q_t \in \partial E_r$ we get
 \end{align}
 By adding and subtracting \cref{eq:pop-ellipsoid-boundary} divided by $2\eta$ to the RHS of \cref{eq:pop-quad-reg}, we get
 \begin{align}
-    \overline{\qReg}_t(x^q_t)
+    \bar{\qReg}_t(x^q_t)
     &\leq
     -\frac{R^2}{2\eta}
     + \frac{
@@ -812,61 +886,61 @@ The means cannot have moved far before round $r$, because the restart test did n
 \end{align}
 Substituting this into \cref{pop:boundary-movement} and multiplying by $\eta$,
 \begin{align}
-    \eta\,\overline{\qReg}_t(x^q_t)
+    \eta\,\bar{\qReg}_t(x^q_t)
     \leq-\frac{R^2}{4}+\frac{20d^2}{\sigma^2}+4\rho+\frac{15\eta^2n}{2}
     \leq-2\rho,
 \end{align}
-where the last inequality uses $d^2/\sigma^2=\rho/A^3$, $\eta^2n=\rho/(A^5dL^6)$ and $R^2\geq256\rho$. Finally, $y_t\in K_t$ and $x^q_t$ minimizes $\overline Q_t$ over $K_t$, so
+where the last inequality uses $d^2/\sigma^2=\rho/A^3$, $\eta^2n=\rho/(A^5dL^6)$ and $R^2\geq256\rho$. Finally, $y_t\in K_t$ and $x^q_t$ minimizes $\bar Q_t$ over $K_t$, so
 \begin{align}
-    \eta\overline Q_t(y_t)\geq\eta\overline Q_t(x^q_t)=-\eta\,\overline{\qReg}_t(x^q_t)\geq2\rho,
+    \eta\bar Q_t(y_t)\geq\eta\bar Q_t(x^q_t)=-\eta\,\bar{\qReg}_t(x^q_t)\geq2\rho,
 \end{align}
 and the restart test fires at round $t$.
-Consequently, if the restart test does not fire in rounds $1,\ldots,t$, then $x^q_t$ lies on none of the boundaries of $E_1,\ldots,E_t$, and so, by the end of Step 4, it minimizes $\overline Q_t$ over $\K_\eps$.
+Consequently, if the restart test does not fire in rounds $1,\ldots,t$, then $x^q_t$ lies on none of the boundaries of $E_1,\ldots,E_t$, and so, by the end of Step 4, it minimizes $\bar Q_t$ over $\K_\eps$.
 
 \paragraph{Step 6: $x^q_t$ stays in the focus region.}
 We now prove that if round $t$ does not restart, then $x^q_t\in K_{t+1}$. We use this fact in the next step.
-Since $x^q_t\in K_t$, it suffices to show $x^q_t\in E_{t+1}$. The test did not fire and $y_t\in K_t$, so $\eta\overline Q_t(x^q_t)\leq\eta\overline Q_t(y_t)<2\rho$. Applying \cref{pop:ons-lemma} with $x_0=x^q_t$, using $\overline{\qReg}_t(x^q_t)=-\overline Q_t(x^q_t)$, and dropping the curvature term gives
+Since $x^q_t\in K_t$, it suffices to show $x^q_t\in E_{t+1}$. The test did not fire and $y_t\in K_t$, so $\eta\bar Q_t(x^q_t)\leq\eta\bar Q_t(y_t)<2\rho$. Applying \cref{pop:ons-lemma} with $x_0=x^q_t$, using $\bar{\qReg}_t(x^q_t)=-\bar Q_t(x^q_t)$, and dropping the curvature term gives
 \begin{align}
     \frac12\normm{\mu_{t+1}-x^q_t}{\Sigma_{t+1}^{-1}}^2
     \leq\frac12\normm{x^q_t}{\Sigma_1^{-1}}^2
     +\frac{\eta^2}{2}\sum_{s=1}^t\normm{\bar g_s}{\Sigma_{s+1}}^2
-    +\eta\overline Q_t(x^q_t)
+    +\eta\bar Q_t(x^q_t)
     \leq\frac{2d^2}{\sigma^2}+\frac{5\eta^2n}{2}+2\rho
     \leq\frac{5\rho}{2},
 \end{align}
 where we used $\|x^q_t\|\leq2d$, \cref{pop:sums}, and $2d^2/\sigma^2+5\eta^2n/2\leq\rho/2$, which follows from \cref{eq:parameters}. Hence $\normm{\mu_{t+1}-x^q_t}{\Sigma_{t+1}^{-1}}^2\leq5\rho<R^2$, that is, $x^q_t\in E_{t+1}$.
 
 \paragraph{Step 7: An epoch that ends in a restart has nonpositive regret.}
-Suppose round $t$ ends the epoch in a restart, and let $z=x^q_{t-1}$, with $z=0$ if $t=1$. Rounds $1,\ldots,t-1$ did not restart, so by Step 5 the point $z$ minimizes $\overline Q_{t-1}$ over $\K_\eps$, and by Step 6 $z \in K_t$.
+Suppose round $t$ ends the epoch in a restart, and let $z=x^q_{t-1}$, with $z=0$ if $t=1$. Rounds $1,\ldots,t-1$ did not restart, so by Step 5 the point $z$ minimizes $\bar Q_{t-1}$ over $\K_\eps$, and by Step 6 $z \in K_t$.
 
 % We use $z$ as the comparator in place of $x_\star$.
-For the first $t-1$ rounds, apply \cref{pop:switch-sum} at round $t-1$ with $x_0=z$. The inner product there is nonnegative because $z$ minimizes $\overline Q_{t-1}$ over $\K_\eps$, so
+For the first $t-1$ rounds, apply \cref{pop:switch-sum} at round $t-1$ with $x_0=z$. The inner product there is nonnegative because $z$ minimizes $\bar Q_{t-1}$ over $\K_\eps$, so
 \begin{align}
     \sum_{s=1}^{t-1}\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
-    \leq \overline{\qReg}_{t-1}(z)+\sum_{s=1}^{t-1}c_s.
+    \leq \bar{\qReg}_{t-1}(z)+\sum_{s=1}^{t-1}c_s.
     \ineqlabel{pop:first-rounds}
 \end{align}
 For the last round, apply \cref{sw:tangent} with both points equal to $z$, which removes the quadratic term. Since $e_t$ takes values in $[0,1]$ on $\K_\eps$, we have
 \begin{align}
     F_{t,\Sigma_t}(\mu_t)-e_t(x_\star)
     =F_{t,\Sigma_t}(\mu_t)-e_t(z)+e_t(z)-e_t(x_\star)
-    \leq \overline q_t(\mu_t)-\overline q_t(z)+c_t+1.
+    \leq \bar q_t(\mu_t)-\bar q_t(z)+c_t+1.
     \ineqlabel{pop:last-round}
 \end{align}
-Adding the two bounds, and using $\overline{\qReg}_t(z)=-\overline Q_t(z)$, gives
+Adding the two bounds, and using $\bar{\qReg}_t(z)=-\bar Q_t(z)$, gives
 \begin{align}
     \sum_{s=1}^{t}\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
-    \leq -\overline Q_t(z)+\sum_{s=1}^{t}c_s+1.
+    \leq -\bar Q_t(z)+\sum_{s=1}^{t}c_s+1.
     \ineqlabel{pop:restart-sum}
 \end{align}
-It remains to show that $\overline Q_t(z)$ is large, and the restart test gives exactly this. Since $z\in K_t$, the definition of $y_t$ in \cref{eq:restart} gives $J_t(y_t)\leq J_t(z)+\rho/8$, that is,
+It remains to show that $\bar Q_t(z)$ is large, and the restart test gives exactly this. Since $z\in K_t$, the definition of $y_t$ in \cref{eq:restart} gives $J_t(y_t)\leq J_t(z)+\rho/8$, that is,
 \begin{align}
-    \eta\overline Q_t(z)
-    \geq\eta\overline Q_t(y_t)+\normm{y_t}{\Sigma_1^{-1}}^2-\normm{z}{\Sigma_1^{-1}}^2-\frac{\rho}{8}
+    \eta\bar Q_t(z)
+    \geq\eta\bar Q_t(y_t)+\normm{y_t}{\Sigma_1^{-1}}^2-\normm{z}{\Sigma_1^{-1}}^2-\frac{\rho}{8}
     \geq2\rho-\frac{4d^2}{\sigma^2}-\frac{\rho}{8}
     \geq\frac{7\rho}{4},
 \end{align}
-where the second inequality uses the restart condition $\eta\overline Q_t(y_t)\geq2\rho$ and $\|z\|\leq2d$, and the last uses $4d^2/\sigma^2\leq\rho/8$. By \cref{pop:sums} and \cref{eq:parameters}, $\eta\bigl(1+\sum_{s=1}^tc_s\bigr)\leq2\eta+32dL/\lambda\leq\rho/4$. Substituting both bounds into \cref{pop:restart-sum} gives
+where the second inequality uses the restart condition $\eta\bar Q_t(y_t)\geq2\rho$ and $\|z\|\leq2d$, and the last uses $4d^2/\sigma^2\leq\rho/8$. By \cref{pop:sums} and \cref{eq:parameters}, $\eta\bigl(1+\sum_{s=1}^tc_s\bigr)\leq2\eta+32dL/\lambda\leq\rho/4$. Substituting both bounds into \cref{pop:restart-sum} gives
 \begin{align}
     \eta\sum_{s=1}^{t}\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
     \leq-\frac{7\rho}{4}+\frac{\rho}{4}
@@ -875,7 +949,7 @@ where the second inequality uses the restart condition $\eta\overline Q_t(y_t)\g
 So every epoch that ends in a restart has negative extension regret against $x_\star$.
 
 \paragraph{Step 8: Summing over epochs.}
-We now return to calendar time and prove \cref{pop:oracle}. The $n$ rounds split into epochs. By Step 7, every epoch that ends in a restart has negative extension regret against $x_\star$. If the last epoch does not end in a restart, let $t$ be its number of rounds. The restart test did not fire in any of these rounds, so by Step 5 the point $x^q_t$ minimizes $\overline Q_t$ over $\K_\eps$, and Step 4 bounds the extension regret of this epoch by $\rho/\eta$. If the last round ends in a restart, there is no such epoch. The comparator $x_\star$ is the same in every epoch, and $\E_t[e_t(X_t)]=F_{t,\Sigma_t}(\mu_t)$, so adding these bounds gives
+We now return to calendar time and prove \cref{pop:oracle}. The $n$ rounds split into epochs. By Step 7, every epoch that ends in a restart has negative extension regret against $x_\star$. If the last epoch does not end in a restart, let $t$ be its number of rounds. The restart test did not fire in any of these rounds, so by Step 5 the point $x^q_t$ minimizes $\bar Q_t$ over $\K_\eps$, and Step 4 bounds the extension regret of this epoch by $\rho/\eta$. If the last round ends in a restart, there is no such epoch. The comparator $x_\star$ is the same in every epoch, and $\E_t[e_t(X_t)]=F_{t,\Sigma_t}(\mu_t)$, so adding these bounds gives
 \begin{align}
     \eReg_n=\sum_{t=1}^n\bigl(F_{t,\Sigma_t}(\mu_t)-e_t(x_\star)\bigr)\leq\frac{\rho}{\eta},
 \end{align}
@@ -883,32 +957,7 @@ which proves \cref{pop:oracle}.
 
 \section{Discussion}
 \label{sec:discussion}
-
-The factor of $d$ gained over the adversarial Newton bound can be seen in the
-scales of the parameters. At a point on the boundary of $E_s$ the squared
-distance to $\mu_s$ is $R^2$ in the $P_s$ norm. In the decaying update of
-\citet[Section~11.6]{lattimore2026bandit}, the boundary estimate has a factor
-$1-\gamma$, of order $1/(dL)$, in front of this distance. Here the Hessian
-of $\Gamma_{s-1}$ is $\bar P_s-P_1$. Up to the initial distance and the
-value of $\Gamma_{s-1}$ at the center, it therefore controls $R^2$ with a
-constant coefficient. This is why $R^2\geq256\rho$ suffices in
-\cref{pop:focus}. In L\"owner position, suppressing logarithms, the new scales are
-\begin{align}
-    \lambda^{-1}\asymp d,\qquad
-    \eta\asymp\sqrt{d/n},\qquad
-    \rho\asymp d^2,\qquad
-    \rho/\eta\asymp d^{3/2}\sqrt n .
-\end{align}
-The restart threshold in \citet[Table~11.1]{lattimore2026bandit} is of order
-$d^3$ at the same learning-rate scale.
-
-Two questions remain open. The algorithm projects its mean onto the intersection
-of the preceding focus ellipsoids. This keeps the extension penalty at the
-mean equal to zero, a property used to bound the second moment of the feedback.
-Can the mean be updated without projection for adversarial losses?
-It is also open whether the $d^{3/2}$ dependence is necessary. The lower
-bound of \citet{rajaraman2026price} already requires $d^{4/3}$ in the noisy
-stationary problem for large horizons.
+TODO
 
 \newpage
 \begingroup
@@ -948,13 +997,13 @@ stationary problem for large horizons.
         +\frac{\lambda}{2}\sum_{s<r}\normm{z-\mu_s}{\bar H_s}^2
         \leq\frac{\normm{z-\mu_1}{\Sigma_1^{-1}}^2}{\eta}
         +\eta\sum_{s<r}\normm{\bar g_s}{\Sigma_{s+1}}^2
-        +2\overline Q_{r-1}(z).
+        +2\bar Q_{r-1}(z).
     \end{align}
-    The restart test did not fire at round $r-1$, and $z$ minimizes $\overline Q_{r-1}$ over $K_{r-1}$, which contains $y_{r-1}$. So $\eta\overline Q_{r-1}(z)\leq\eta\overline Q_{r-1}(y_{r-1})<2\rho$. Since $\mu_1=0$, $\|z\|\leq2d$ and $\Sigma_1=\sigma^2I_d$, the first term on the right is at most $4d^2/(\eta\sigma^2)$, and by \cref{pop:sums} the second is at most $5\eta n$. This proves the claim.
+    The restart test did not fire at round $r-1$, and $z$ minimizes $\bar Q_{r-1}$ over $K_{r-1}$, which contains $y_{r-1}$. So $\eta\bar Q_{r-1}(z)\leq\eta\bar Q_{r-1}(y_{r-1})<2\rho$. Since $\mu_1=0$, $\|z\|\leq2d$ and $\Sigma_1=\sigma^2I_d$, the first term on the right is at most $4d^2/(\eta\sigma^2)$, and by \cref{pop:sums} the second is at most $5\eta n$. This proves the claim.
 \end{proof}
 
 \section{Regret of the sampled algorithm}\label{transfer:section}
-We now show that the population argument also applies when the mean, precision, and restart test use the estimated quadratics. As in \cref{pop:section}, indices start at one in each epoch.
+We now show that the population argument also applies when the mean, inverse covariance, and restart test use the estimated quadratics. As in \cref{pop:section}, indices start at one in each epoch.
 The computations in the appendices use the parameters of \cref{thm:main} written out in terms of $d$, $M$, $n$ and $L$:
 \begin{align}
     \sigma^2&=\frac{1}{dM^2L^4},&
@@ -969,19 +1018,19 @@ The computations in the appendices use the parameters of \cref{thm:main} written
     If $\eps>1/2$, boundedness of the losses gives
     $\Reg_n\leq n<2n\eps=2A^4d^2ML^5\sqrt n$. Suppose now that
     $\eps\leq1/2$. Work on the event of \cref{conc:uniform}, which has
-    probability at least $1-\delta/4$ and on which every precision update
+    probability at least $1-\delta/4$ and on which every inverse covariance update
     is positive definite.
 
     \proofstepinline{1} We first verify the online Newton step inequality in \cref{pop:inputs}. With the sampled updates, exactly the same expansion that gave \cref{pop:ons} gives, for all $x\in K_t$,
     \begin{align}
-        \frac12\normm{\mu_{t+1}-x}{P_{t+1}}^2+\widehat\Gamma_t(x)
-        &\leq\eta\widehat Q_t(x)+\frac12\normm{x}{P_1}^2+\frac{\eta^2}{2}\sum_{s=1}^t\normm{g_s}{\Sigma_{s+1}}^2,
+        \frac12\normm{\mu_{t+1}-x}{\Sigma_{t+1}^{-1}}^2+\widehat\Gamma_t(x)
+        &\leq\eta\widehat Q_t(x)+\frac12\normm{x}{\Sigma_1^{-1}}^2+\frac{\eta^2}{2}\sum_{s=1}^t\normm{g_s}{\Sigma_{s+1}}^2,
     \end{align}
-    where $\widehat\Gamma_t(x)=(\eta\lambda/4)\sum_{s\leq t}\normm{x-\mu_s}{H_s}^2$. The expansion uses positive definiteness of $P_{s+1}$ for the projection. Each $H_s$ may be indefinite, so the sign of $\widehat\Gamma_t(x)$ is unknown. Instead we replace it by $\Gamma_t(x)$ \emph{after} summing, at the same time as we replace $\widehat Q_t(x)$ by $Q_t(x)$.
+    where $\widehat\Gamma_t(x)=(\eta\lambda/4)\sum_{s\leq t}\normm{x-\mu_s}{H_s}^2$. The expansion uses positive definiteness of $\Sigma_{s+1}^{-1}$ for the projection. Each $H_s$ may be indefinite, so the sign of $\widehat\Gamma_t(x)$ is unknown. Instead we replace it by $\Gamma_t(x)$ \emph{after} summing, at the same time as we replace $\widehat Q_t(x)$ by $Q_t(x)$.
 
     Write $\Delta=CL^2\sqrt{dn}/\lambda$, where $C$ is taken large enough for the constants in \cref{conc:uniform}. By that lemma, simultaneously for every prefix $t$ and every $x\in K_t$,
     \begin{align}
-        \frac12\normm{\mu_{t+1}-x}{P_{t+1}}^2+\Gamma_t(x)
+        \frac12\normm{\mu_{t+1}-x}{\Sigma_{t+1}^{-1}}^2+\Gamma_t(x)
         &\leq\eta Q_t(x)+\frac{2d^2}{\sigma^2}+\frac{C\eta^2dnL}{2}+2\eta\Delta.
     \end{align}
     The last term accounts for the two uniform errors $\eta|\widehat Q_t-Q_t|$ and $|\widehat\Gamma_t-\Gamma_t|$. Substituting \cref{eq:parameters} gives
@@ -990,7 +1039,7 @@ The computations in the appendices use the parameters of \cref{thm:main} written
         \frac{\eta^2dnL}{\rho}=\frac{1}{A^5L^5},\qquad
         \frac{\eta\Delta}{\rho}=\frac{C}{A^2}.
     \end{align}
-    In particular, choosing $A$ sufficiently large gives the first inequality of \cref{pop:inputs}, as well as $2d^2/\sigma^2\leq\rho/16$ and $\eta\Delta\leq\rho/16$. The covariance comparison holds through the final update by \cref{conc:uniform}. It implies $\Sigma_s\preceq2\sigma^2 I$, since $\bar P_s\succeq P_1$. Thus \cref{sw:tangent} applies, and \cref{fb:trace} bounds the trace sum by $16dL/(\lambda\eta)$ on each prefix. The second inequality of \cref{pop:inputs} and the lower bound on $R^2$ follow exactly as in the proof of \cref{pop:oracle}.
+    In particular, choosing $A$ sufficiently large gives the first inequality of \cref{pop:inputs}, as well as $2d^2/\sigma^2\leq\rho/16$ and $\eta\Delta\leq\rho/16$. The covariance comparison holds through the final update by \cref{conc:uniform}. It implies $\Sigma_s\preceq2\sigma^2 I$, since $\bar\Sigma_s^{-1}\succeq \Sigma_1^{-1}$. Thus \cref{sw:tangent} applies, and \cref{fb:trace} bounds the trace sum by $16dL/(\lambda\eta)$ on each prefix. The second inequality of \cref{pop:inputs} and the lower bound on $R^2$ follow exactly as in the proof of \cref{pop:oracle}.
 
     \proofstepinline{2} It remains to compare the observed restart test to the minimum $m_t=\eta\min_{K_t}Q_t$. Apply \cref{pop:ridge} with $Q=\widehat Q_t$, using $4d^2/\sigma^2\leq\rho/8$ from Step~1. Since $\sup_{K_t}|\widehat Q_t-Q_t|\leq\Delta$, the two restart implications are
     \begin{align}
@@ -1021,29 +1070,18 @@ The computations in the appendices use the parameters of \cref{thm:main} written
 \section{Properties of the convex extension}
 \label{app:extension}
 
-\begin{lemma}\label{lem:extension}
-    For $0<\eps\leq1/2$, the functions $e_t$ and $e_t-v/\eps$ are convex on
-    $\R^d$, and $\Lip(e_t)\leq5/\eps$.
-\end{lemma}
-\begin{proof}
-    Fix a loss $f$ and omit the round index. For $z\in\K_\eps$ choose
-    $g\in\partial f(z)$ and write $b=f(z)-\ip{g}{z}$ for the intercept of
-    the supporting plane at $z$. Such a subgradient exists since
-    $\K_\eps\subset\operatorname{int}\K$. Applying its supporting-plane
-    inequality at $z/(1-\eps)\in\K$ gives
+\begin{proof}[Proof of \cref{lem:extension}]
+    Fix a loss $f$ and omit the round index. By
+    \citet[Proposition~3.23]{lattimore2026bandit}, the function
     \begin{align}
-        \ip{g}{z}\leq\frac{1-\eps}{\eps}\bigl(f(z/(1-\eps))-f(z)\bigr)
-        \leq\frac{1-\eps}{\eps}(1-f(z)).
+        x\longmapsto
+        \pi_\eps(x)f(x/\pi_\eps(x))+\frac{1-\eps}{\eps}v(x)
     \end{align}
-    Hence $b\geq-(1-\eps)/\eps$. For $c\geq(1-\eps)/\eps$, represent
-    $f(x/\pi_\eps(x))$ by its supporting planes on $\K_\eps$. This gives
-    \begin{align}
-        \pi_\eps(x)f(x/\pi_\eps(x))+c\,v(x)
-        =\sup_{z\in\K_\eps,\,g\in\partial f(z)}
-        \big\{\ip{g}{x}+(b+c)\pi_\eps(x)-c\big\}.
-    \end{align}
-    Each function in the supremum is convex since $b+c\geq0$. Taking
-    $c=2/\eps$ and $c=1/\eps$ proves the two convexity statements.
+    is convex. Since $v$ is convex, adding $v$ or $(1+\eps)v/\eps$ shows
+    that $e-v/\eps$ and $e$ are convex, respectively.
+    The equality on $\K_\eps$ and the inequality
+    $f(x/\pi_\eps(x))\leq e(x)$ follow from the definition, since
+    $\pi_\eps\geq1$, $v\geq0$ and $f\geq0$.
 
     To bound the Lipschitz constant, note that
     $0\leq e(x)\leq(1+2/\eps)\max\{1,\|x\|/(1-\eps)\}$ since $f\leq1$
@@ -1064,7 +1102,7 @@ The computations in the appendices use the parameters of \cref{thm:main} written
 The restriction on $x$ controls how far the slope of the quadratic departs from $\bar g_t$. There is no corresponding restriction on $y$. This distinction lets us apply the lemma at the minimizer of the cumulative quadratic even when the loss comparator has left the focus region.
 
 \begin{proof}[Proof of \cref{sw:tangent}]
-    Fix the information available before the sample and omit the round index, writing $F=F_{t,\Sigma_t}(\mu_t)$ and $q=\overline q_t$. Since $q$ is quadratic with Hessian $\lambda\bar H$ and $q(\mu)=0$, we have $q(\mu)-q(y)+\frac\lambda2\normm{x-y}{\bar H}^2=-q(x)-\ip{\nabla q(x)}{y-x}$, so the claim is equivalent to $F+q(x)+\ip{\nabla q(x)}{y-x}-e(y)\leq 2\tr(\bar H\Sigma)+n^{-3}$. It is convenient to work in coordinates in which the sample is standard Gaussian. Write
+    Fix the information available before the sample and omit the round index, writing $F=F_{t,\Sigma_t}(\mu_t)$ and $q=\bar q_t$. Since $q$ is quadratic with Hessian $\lambda\bar H$ and $q(\mu)=0$, we have $q(\mu)-q(y)+\frac\lambda2\normm{x-y}{\bar H}^2=-q(x)-\ip{\nabla q(x)}{y-x}$, so the claim is equivalent to $F+q(x)+\ip{\nabla q(x)}{y-x}-e(y)\leq 2\tr(\bar H\Sigma)+n^{-3}$. It is convenient to work in coordinates in which the sample is standard Gaussian. Write
     \begin{align}
         h(z)=e(\mu+\Sigma^{1/2}z),\qquad u=\Sigma^{-1/2}(x-\mu),\qquad b=\Sigma^{-1/2}(y-\mu),
     \end{align}
@@ -1119,54 +1157,55 @@ The restriction on $x$ controls how far the slope of the quadratic departs from 
 \section{Trace and feedback bounds}
 \label{fb:section}
 
-Within an epoch write $W_s=X_s-\mu_s$, $T_s=\tr(\bar H_s\Sigma_s)$ and $m_s=\E_sY_s^2$. We compare the sampled precision with the matrix obtained by accumulating the conditional mean of each precision increment along the same trajectory,
+Within an epoch write $W_s=X_s-\mu_s$, $T_s=\tr(\bar H_s\Sigma_s)$ and $m_s=\E_sY_s^2$. Define $\bar\Sigma_s$ by
 \begin{align}
-    \bar P_1=P_1=\sigma^{-2}I_d,\qquad \bar P_{s+1}=\bar P_s+\tfrac{\lambda\eta}{2}\bar H_s.
-    \eqlabel{fb:precision}
+    \bar\Sigma_1=\Sigma_1=\sigma^2I_d,\qquad \bar\Sigma_{s+1}^{-1}=\bar\Sigma_s^{-1}+\tfrac{\lambda\eta}{2}\bar H_s.
+    \eqlabel{fb:inverse-covariance}
 \end{align}
-In contrast with $P_s$, the matrix $\bar P_s$ is nondecreasing since $\bar H_s\succeq0$. Throughout this section $\eps\leq1/2$. We will obtain the trace and feedback bounds up to any epoch prefix on which
+Thus $\bar\Sigma_s^{-1}$ accumulates the conditional mean Hessians along the sampled trajectory; $\bar\Sigma_s$ does not denote the expectation of $\Sigma_s$. We compare $\bar\Sigma_s^{-1}$ with the sampled inverse covariance $\Sigma_s^{-1}$.
+In contrast with $\Sigma_s^{-1}$, the matrix $\bar\Sigma_s^{-1}$ is nondecreasing since $\bar H_s\succeq0$. Throughout this section $\eps\leq1/2$. We will obtain the trace and feedback bounds up to any epoch prefix on which
 \begin{align}
-    \tfrac12\bar P_s\preceq P_s\preceq2\bar P_s\qquad(1\leq s\leq t).
+    \tfrac12\bar\Sigma_s^{-1}\preceq \Sigma_s^{-1}\preceq2\bar\Sigma_s^{-1}\qquad(1\leq s\leq t).
     \ineqlabel{fb:comparison}
 \end{align}
-This is a condition on the precision \emph{before} the sample in each round. The resulting bounds include round $t$, even if its sampled update is the first to violate \cref{fb:comparison}.
+This is a condition on the inverse covariance \emph{before} the sample in each round. The resulting bounds include round $t$, even if its sampled update is the first to violate \cref{fb:comparison}.
 
 \begin{lemma}[Predictable spectrum and trace sum]
     \label{fb:trace}
-    Under \cref{fb:comparison}, $P_1\preceq\bar P_{t+1}\preceq n^2I_d$, $\Sigma_s\preceq 2\sigma^2 I_d$ for $s\leq t$, and
+    Under \cref{fb:comparison}, $\Sigma_1^{-1}\preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d$, $\Sigma_s\preceq 2\sigma^2 I_d$ for $s\leq t$, and
     \begin{align}
-        \sum_{s=1}^t T_s\leq\frac{8}{\lambda\eta}\log\frac{\det\bar P_{t+1}}{\det P_1}\leq\frac{16dL}{\lambda\eta}.
+        \sum_{s=1}^t T_s\leq\frac{8}{\lambda\eta}\log\frac{\det\Sigma_1}{\det\bar\Sigma_{t+1}}\leq\frac{16dL}{\lambda\eta}.
         \ineqlabel{fb:trace-sum}
     \end{align}
 \end{lemma}
 
 \begin{proof}
-    The covariance bound follows from $\Sigma_s\preceq2\bar P_s^{-1}\preceq2P_1^{-1}$. To control the growth of $\bar P_s$, fix $u\in\R^d$ and apply Gaussian integration by parts in direction $u$ to the weak derivative $\ip{u}{\nabla e_s}$,
+    The covariance bound follows from $\Sigma_s\preceq2\bar\Sigma_s\preceq2\Sigma_1$. To control the growth of $\bar\Sigma_s^{-1}$, fix $u\in\R^d$ and apply Gaussian integration by parts in direction $u$ to the weak derivative $\ip{u}{\nabla e_s}$,
     \begin{align}
-        u^\top\bar H_s u=\E_s\!\left[\ip{u}{\nabla e_s(X_s)}\ip{u}{P_s W_s}\right]
-        \leq\tfrac5\eps\|u\|\normm{u}{P_s}.
+        u^\top\bar H_s u=\E_s\!\left[\ip{u}{\nabla e_s(X_s)}\ip{u}{\Sigma_s^{-1} W_s}\right]
+        \leq\tfrac5\eps\|u\|\normm{u}{\Sigma_s^{-1}}.
         \ineqlabel{fb:direction}
     \end{align}
-    The inequality uses Cauchy--Schwarz, $\E_s\ip{u}{P_sW_s}^2=\|u\|_{P_s}^2$, and \cref{lem:extension}. Taking a supremum over unit vectors gives $\|\bar H_s\|_{\op}\leq(5/\eps)\|P_s\|_{\op}^{1/2}$. Hence for $b_s=\|\bar P_s\|_{\op}^{1/2}$ we have
+    The inequality uses Cauchy--Schwarz, $\E_s\ip{u}{\Sigma_s^{-1}W_s}^2=\|u\|_{\Sigma_s^{-1}}^2$, and \cref{lem:extension}. Taking a supremum over unit vectors gives $\|\bar H_s\|_{\op}\leq(5/\eps)\|\Sigma_s^{-1}\|_{\op}^{1/2}$. Hence for $b_s=\|\bar\Sigma_s^{-1}\|_{\op}^{1/2}$ we have
     \begin{align}
         b_{s+1}^2\leq b_s^2+\frac{5\sqrt2\lambda\eta}{2\eps}b_s
         \leq\left(b_s+\frac{2\lambda\eta}{\eps}\right)^2.
     \end{align}
     Since $n\geq4A^8d^4M^2L^{10}$ and $M\geq d^{-1/2}$, \cref{eq:parameters} gives $\sigma^{-1}\leq n/4$ and $2\lambda\eta/\eps=2/(A^7 d^{5/2}ML^9)\leq1/4$. Iterating the last display yields $b_{t+1}\leq\sigma^{-1}+2n\lambda\eta/\eps\leq n$.
 
-    To obtain the trace bound, let $B_s=(\lambda\eta/2)\bar P_s^{-1/2}\bar H_s\bar P_s^{-1/2}$. Applying \cref{fb:direction} with $u=\bar P_s^{-1/2}z$ and using $P_s\preceq 2\bar P_s$ yields
+    To obtain the trace bound, let $B_s=(\lambda\eta/2)\bar\Sigma_s^{1/2}\bar H_s\bar\Sigma_s^{1/2}$. Applying \cref{fb:direction} with $u=\bar\Sigma_s^{1/2}z$ and using $\Sigma_s^{-1}\preceq 2\bar\Sigma_s^{-1}$ yields
     \begin{align}
         0\preceq B_s\preceq\frac{5\sqrt2\lambda\eta\sigma}{2\eps}I_d\preceq I_d,
     \end{align}
     where the last inequality follows from \cref{eq:parameters}. Consequently,
     \begin{align}
         \sum_{s=1}^t T_s
-        &\explan{\leq}{a}2\sum_{s=1}^t\tr(\bar H_s\bar P_s^{-1})=
+        &\explan{\leq}{a}2\sum_{s=1}^t\tr(\bar H_s\bar\Sigma_s)=
         \frac4{\lambda\eta}\sum_{s=1}^t\tr(B_s)
         \explan{\leq}{b}\frac8{\lambda\eta}\sum_{s=1}^t\log\det(I_d+B_s)\\
-        &=\frac8{\lambda\eta}\log\frac{\det\bar P_{t+1}}{\det P_1}\leq\frac{16d\log n}{\lambda\eta}.
+        &=\frac8{\lambda\eta}\log\frac{\det\Sigma_1}{\det\bar\Sigma_{t+1}}\leq\frac{16d\log n}{\lambda\eta}.
     \end{align}
-    Here \reason{a} follows from \cref{fb:comparison} and \reason{b} applies $x\leq2\log(1+x)$ to each eigenvalue of $B_s$. The determinant ratio telescopes by \cref{fb:precision}, and $P_1\succeq I_d$.
+    Here \reason{a} follows from \cref{fb:comparison} and \reason{b} applies $x\leq2\log(1+x)$ to each eigenvalue of $B_s$. The determinant ratio telescopes by \cref{fb:inverse-covariance}, and $\Sigma_1^{-1}\succeq I_d$.
 \end{proof}
 
 \begin{lemma}[Gaussian gauge tail]
@@ -1222,9 +1261,12 @@ This is a condition on the precision \emph{before} the sample in each round. The
     \label{conc:uniform}
     Suppose the parameters are as in \cref{eq:parameters}, with $\eps\leq1/2$ and $A$ sufficiently large. With probability at least $1-\delta/4$, every epoch prefix $t$ satisfies
     \begin{align}
-        \tfrac34\bar P_{t+1}\preceq P_{t+1}\preceq\tfrac54\bar P_{t+1},\qquad
-        \sum_{s=1}^tY_s^2\leq Cn,\qquad
-        \sum_{s=1}^t\|g_s\|_{\Sigma_{s+1}}^2\leq CdnL. \ineqlabel{conc:energy}
+        \begin{gathered}
+            \tfrac34\bar\Sigma_{t+1}^{-1}\preceq \Sigma_{t+1}^{-1}\preceq\tfrac54\bar\Sigma_{t+1}^{-1},\\
+            \sum_{s=1}^tY_s^2\leq Cn,\qquad
+            \sum_{s=1}^t\|g_s\|_{\Sigma_{s+1}}^2\leq CdnL.
+        \end{gathered}
+        \ineqlabel{conc:energy}
     \end{align}
     Moreover, setting $\Delta=CL^2\sqrt{dn}/\lambda$, we have
     \begin{align}
@@ -1234,9 +1276,9 @@ This is a condition on the precision \emph{before} the sample in each round. The
     The covariance bound includes the last update of the epoch. All sums start at its first round, and $C$ is an absolute constant.
 \end{lemma}
 
-We prove the lemma on a stopped process. Fix a possible calendar start and number rounds locally from $1$. Retain round $s$ if the epoch started there, it is still running, and $\bar P_j/2\preceq P_j\preceq2\bar P_j$ for every $j\leq s$. Write $I_s$ for this indicator and set all inactive increments to zero. The decision to retain round $s$ is made before drawing $X_s$. In particular the sample producing the first failed update is retained. By \cref{fb:trace,fb:budget}, on every retained prefix,
+We prove the lemma on a stopped process. Fix a possible calendar start and number rounds locally from $1$. Retain round $s$ if the epoch started there, it is still running, and $\bar\Sigma_j^{-1}/2\preceq \Sigma_j^{-1}\preceq2\bar\Sigma_j^{-1}$ for every $j\leq s$. Write $I_s$ for this indicator and set all inactive increments to zero. The decision to retain round $s$ is made before drawing $X_s$. In particular the sample producing the first failed update is retained. By \cref{fb:trace,fb:budget}, on every retained prefix,
 \begin{align}
-    I_d\preceq P_1\preceq\bar P_{t+1}\preceq n^2I_d,\qquad
+    I_d\preceq \Sigma_1^{-1}\preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d,\qquad
     \sum_s I_sm_s\leq5n,\qquad m_s=\E_s Y_s^2. \ineqlabel{conc:stopped}
 \end{align}
 The first bound uses $\sigma\leq L^{-2}$. The second holds on every path since the retained rounds form a prefix.
@@ -1256,7 +1298,7 @@ For $x\in\mathbb B_{2d+1}$, put $B_s(x)=(\lambda/4)(x-\mu_s)^\top H_s(x-\mu_s)$.
 \begin{align}
     V_s\in\{u^\top H_su,\ \widehat q_s(x),\ B_s(x)\},\qquad \|u\|=1.
 \end{align}
-On retained rounds $\|P_s\|_{\op}\leq2n^2$, $\|x-\mu_s\|\leq4d+1$, and $\eps^{-2},d,L\leq n$. Thus the score formulas give $|V_s|\leq Cn^4 |Y_s|(1+\|Z_s\|^2)$. Also $v(X_s)\leq2\|W_s\|\leq4\|Z_s\|$ and the conditional fourth moment of $1+|\xi_s|$ is bounded. Consequently
+On retained rounds $\|\Sigma_s^{-1}\|_{\op}\leq2n^2$, $\|x-\mu_s\|\leq4d+1$, and $\eps^{-2},d,L\leq n$. Thus the score formulas give $|V_s|\leq Cn^4 |Y_s|(1+\|Z_s\|^2)$. Also $v(X_s)\leq2\|W_s\|\leq4\|Z_s\|$ and the conditional fourth moment of $1+|\xi_s|$ is bounded. Consequently
 \begin{align}
     \E_s|V_s|^4
     &\explan{\leq}{a} Cn^{16}\eps^{-4}\E(1+\|Z\|)^{12}
@@ -1287,7 +1329,7 @@ We use Freedman's inequality \citep{freedman1975tail} in the following form. If 
     The first bound uses $n\eps^2\geq L^3$ and the second uses $\|g_s\|_{\Sigma_s}^2=Y_s^2\|Z_s\|^2$. We pass to $\Sigma_{s+1}$ after establishing the covariance comparison.
 
     \proofstepinline{2}
-    Fix a unit vector $u$. Write $a_s=u^\top P_su$ and $G_s=u^\top P_s^{1/2}Z_s/\sqrt{a_s}$. Conditionally on the past, $G_s$ is standard normal and $V_s=u^\top H_su=a_sY_s(G_s^2-1)$. For $b=2^j$, $0\leq j\leq\lceil\log_2(4n^2)\rceil$, use the predictable selector $J_s=I_s\1_{\{a_s\leq b\}}$. On $|G_s|\leq\sqrt{8L}$, $|G_s^2-1|\leq9L$. By \cref{conc:bias,conc:stopped},
+    Fix a unit vector $u$. Write $a_s=u^\top \Sigma_s^{-1}u$ and $G_s=u^\top \Sigma_s^{-1/2}Z_s/\sqrt{a_s}$. Conditionally on the past, $G_s$ is standard normal and $V_s=u^\top H_su=a_sY_s(G_s^2-1)$. For $b=2^j$, $0\leq j\leq\lceil\log_2(4n^2)\rceil$, use the predictable selector $J_s=I_s\1_{\{a_s\leq b\}}$. On $|G_s|\leq\sqrt{8L}$, $|G_s^2-1|\leq9L$. By \cref{conc:bias,conc:stopped},
     \begin{align}
         \sum_s J_s\E_s[V_s^2\1_{\mathcal T_s}]
         &\leq\sum_s J_s(81b^2L^2m_s+b_n)\leq Cb^2L^2n.
@@ -1300,20 +1342,20 @@ We use Freedman's inequality \citep{freedman1975tail} in the following form. If 
     \end{align}
     The last inequality uses $\eps\geq d^{3/2}L/\sqrt n$. Take this event for every dyadic level and every point of a deterministic $n^{-40}$-net of the unit sphere. For a retained prefix choose the least level $b\geq\max_{s\leq t}a_s$. Then $J_s=1$ throughout the prefix and
     \begin{align}
-        b\leq2\max_{s\leq t}a_s\leq4u^\top\bar P_{t+1}u,
+        b\leq2\max_{s\leq t}a_s\leq4u^\top\bar\Sigma_{t+1}^{-1}u,
     \end{align}
-    since $a_s\geq\sigma^{-2}/2\geq1$, $P_s\preceq2\bar P_s$ and $\bar P_s$ is nondecreasing. In particular the random normalization is chosen after taking the events in \cref{conc:direction}.
+    since $a_s\geq\sigma^{-2}/2\geq1$, $\Sigma_s^{-1}\preceq2\bar\Sigma_s^{-1}$ and $\bar\Sigma_s^{-1}$ is nondecreasing. In particular the random normalization is chosen after taking the events in \cref{conc:direction}.
 
-    Set $N_t=\sum_{s=1}^t(H_s-\bar H_s)$ and $D=CL^2\sqrt{dn}$. We have $|u^\top N_tu|\leq D u^\top\bar P_{t+1}u$ at every net point. On $\mathcal G$ the score formulas and $\|P_s\|_{\op}\leq2n^2$ give $\|H_s\|_{\op}\leq Cn^5$ and $\|g_s\|\leq Cn^3$. The Lipschitz bound on $e_s$ gives $\|\bar g_s\|\leq5/\eps$ and, by Gaussian integration by parts, $\|\bar H_s\|_{\op}\leq(5/\eps)\|P_s\|_{\op}^{1/2}$. Thus $\|N_t\|_{\op}\leq Cn^6$. Approximating any unit $u$ by a net point and using $\|\bar P_{t+1}\|_{\op}\leq n^2$ yields
+    Set $N_t=\sum_{s=1}^t(H_s-\bar H_s)$ and $D=CL^2\sqrt{dn}$. We have $|u^\top N_tu|\leq D u^\top\bar\Sigma_{t+1}^{-1}u$ at every net point. On $\mathcal G$ the score formulas and $\|\Sigma_s^{-1}\|_{\op}\leq2n^2$ give $\|H_s\|_{\op}\leq Cn^5$ and $\|g_s\|\leq Cn^3$. The Lipschitz bound on $e_s$ gives $\|\bar g_s\|\leq5/\eps$ and, by Gaussian integration by parts, $\|\bar H_s\|_{\op}\leq(5/\eps)\|\Sigma_s^{-1}\|_{\op}^{1/2}$. Thus $\|N_t\|_{\op}\leq Cn^6$. Approximating any unit $u$ by a net point and using $\|\bar\Sigma_{t+1}^{-1}\|_{\op}\leq n^2$ yields
     \begin{align}
         |u^\top N_tu|
-        &\leq D u^\top\bar P_{t+1}u+2n^{-40}(\|N_t\|_{\op}+D\|\bar P_{t+1}\|_{\op})
-        \leq 2D u^\top\bar P_{t+1}u.
+        &\leq D u^\top\bar\Sigma_{t+1}^{-1}u+2n^{-40}(\|N_t\|_{\op}+D\|\bar\Sigma_{t+1}^{-1}\|_{\op})
+        \leq 2D u^\top\bar\Sigma_{t+1}^{-1}u.
     \end{align}
-    Since $P_{t+1}-\bar P_{t+1}=(\eta\lambda/2)N_t$ and $\eta\lambda D=C/(A^3L^2)\leq1/4$, this proves the covariance comparison in \cref{conc:energy}, including at a candidate failing update. A first covariance failure is therefore impossible. The adjacent updates satisfy $P_{s+1}\succeq(3/4)\bar P_{s+1}\succeq(3/4)\bar P_s\succeq(3/5)P_s$, so inversion and \cref{conc:current} give the gradient bound in \cref{conc:energy}.
+    Since $\Sigma_t^{-1}+\eta\lambda H_t/2-\bar\Sigma_{t+1}^{-1}=(\eta\lambda/2)N_t$ and $\eta\lambda D=C/(A^3L^2)\leq1/4$, the proposed inverse covariance update satisfies the comparison in \cref{conc:energy} and is positive definite. A first covariance failure is therefore impossible. The adjacent updates satisfy $\Sigma_{s+1}^{-1}\succeq(3/4)\bar\Sigma_{s+1}^{-1}\succeq(3/4)\bar\Sigma_s^{-1}\succeq(3/5)\Sigma_s^{-1}$, so inversion and \cref{conc:current} give the gradient bound in \cref{conc:energy}.
 
     \proofstepinline{3}
-    To prove \cref{conc:quadratics}, fix $x\in\mathbb B_{2d+1}$ and put $r_s=\|x-\mu_s\|_{P_s}$. Use $J_s=I_s\1_{\{r_s\leq2R\}}$, so the selector is again predictable. If $r_s>0$, write $G_s=(x-\mu_s)^\top P_s^{1/2}Z_s/r_s$. Then
+    To prove \cref{conc:quadratics}, fix $x\in\mathbb B_{2d+1}$ and put $r_s=\|x-\mu_s\|_{\Sigma_s^{-1}}$. Use $J_s=I_s\1_{\{r_s\leq2R\}}$, so the selector is again predictable. If $r_s>0$, write $G_s=(x-\mu_s)^\top \Sigma_s^{-1/2}Z_s/r_s$. Then
     \begin{align}
         \widehat q_s(x)=Y_s\left(r_s G_s+\tfrac\lambda2 r_s^2(G_s^2-1)\right),\qquad
         B_s(x)=\tfrac\lambda4 r_s^2Y_s(G_s^2-1).
@@ -1330,7 +1372,7 @@ We use Freedman's inequality \citep{freedman1975tail} in the following form. If 
     \end{align}
     Take these events over a deterministic $n^{-40}$-net of $\mathbb B_{2d+1}$. For $x\in K_t$, let $x_0$ be a closest net point. By nesting of the focus sets, every $s\leq t$ satisfies
     \begin{align}
-        \|x_0-\mu_s\|_{P_s}\leq\|x-\mu_s\|_{P_s}+\|P_s\|_{\op}^{1/2}n^{-40}\leq R+2n^{-39}\leq2R.
+        \|x_0-\mu_s\|_{\Sigma_s^{-1}}\leq\|x-\mu_s\|_{\Sigma_s^{-1}}+\|\Sigma_s^{-1}\|_{\op}^{1/2}n^{-40}\leq R+2n^{-39}\leq2R.
     \end{align}
     Thus every round was retained at $x_0$. Substituting the two scores in \cref{conc:point} bounds $|\widehat Q_t-Q_t|$ and $|\widehat\Gamma_t-\Gamma_t|/\eta$ there. Both error polynomials have gradient bounded by $Cn^7$ on $\mathbb B_{2d+1}$, by the operator bounds of Step~2 and $\|x-\mu_s\|\leq4d+1$. Their values at $x$ therefore differ from those at $x_0$ by at most $Cn^{-33}$, which is absorbed by increasing $C$ in $\Delta$.
 
