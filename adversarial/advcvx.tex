@@ -294,19 +294,20 @@ the total regret is bounded by the regret accumulated after the last restart.
     \While{fewer than $n$ rounds have been played}{
         Start an epoch: set $\mu_1=0$, $\Sigma_1=\sigma^2I_d$, $K_0=\K_\eps$ and $Q_0=0$\;
         \For{$t=1,2,\ldots$ as long as rounds remain}{
+            {\setlength{\rightskip}{0pt}%
+            Set $E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{\Sigma_t^{-1}}^2\leq R^2\bigr\}$ and $K_t=K_{t-1}\cap E_t$\;}
             \algmark{ons-sample-top}Sample $X_t\sim\N(\mu_t,\Sigma_t)$ and play $A_t=X_t/\pi_\eps(X_t)$ and observe $f_t(A_t)+\xi_t$ \;
             \algmark{ons-sample-bottom}Compute $g_t$ and $H_t$ by \cref{eq:gaussian-derivatives-estimates}\;
-            \If{\algmark{ons-newton-top}$\Sigma_t^{-1}+\eta\lambda H_t/2\not\succ0$}{play $0$ in all remaining rounds and stop\;}
-            Set $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\eta\lambda H_t/2$\;
+            \If{$\Sigma_t^{-1}+\eta\lambda H_t/2\not\succ0$}{play $0$ in all remaining rounds and stop\;}
+            \algmark{ons-newton-top}Set $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\eta\lambda H_t/2$\;
             \algmark{ons-newton-bottom}Set $\mu_{t+1}=\argmin_{u\in K_t} \normm{u-\bigl(\mu_t-\eta \Sigma_{t+1}g_t\bigr)}{\Sigma_{t+1}^{-1}}^2$\;
             \algmark{ons-restart-top}Set $Q_t=Q_{t-1}+q_t$ and $J_t(x)=\eta Q_t(x)+\normm{x}{\Sigma_1^{-1}}^2$\;
             Find $y_t\in K_t$ such that $J_t(y_t)\leq\min_{x\in K_t}J_t(x)+\rho/8$\;
             \If{$\eta Q_t(y_t)\geq2\rho$}{%
-            end the epoch\;}
-            \algmark{ons-restart-bottom}Set $K_t=K_{t-1} \cap E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{\Sigma_t^{-1}}^2\leq R^2\bigr\}$
-            \algbrace{ons-sample-top}{ons-sample-bottom}{Gaussian\\sampling and\\derivative\\estimates}%
-            \algbrace{ons-newton-top}{ons-newton-bottom}{Online\\Newton step}%
-            \algbrace{ons-restart-top}{ons-restart-bottom}{Restart\\mechanism}\;
+                \algmark{ons-restart-bottom}end the epoch%
+                \algbrace{ons-sample-top}{ons-sample-bottom}{Gaussian\\sampling and\\derivative\\estimates}%
+                \algbrace{ons-newton-top}{ons-newton-bottom}{Online\\Newton step}%
+            \algbrace{ons-restart-top}{ons-restart-bottom}{Restart\\mechanism}\;}
         }
     }
 \end{algorithm2e}
@@ -423,6 +424,7 @@ Newton step \citep[Section~10.2]{lattimore2026bandit}:
     \eqlabel{eq:updates}
 \end{align}
 The projection keeps the next mean inside the focus region $K_t$.
+Without the projection, these updates are continuous exponential weights with initial distribution $\N(0,\sigma^2I_d)$ and learning rate $\eta$, run on the quadratics $q_t$ with half their curvature \citep{vanderhoeven2018many}.
 Note that the inverse covariance update uses only half of the quadratic
 model's curvature. The reason is rather technical as this leaves an extra negative
 term in the analysis, which the restart mechanism relies on.
@@ -628,6 +630,7 @@ solved in time polynomial in $d$ and $t$.\alireza{More computational notes?}
         \ineqlabel{eq:main-regret}
     \end{align}
 \end{theorem}
+We prove \cref{thm:main} in \cref{transfer:section}, building on the analysis of a population version of the algorithm in \cref{pop:section}.
 
 The bound in \cref{thm:main} depends on the position of $\K$ through
 $M$. Since $\K$ is known, the learner can choose the affine preprocessing so
@@ -653,11 +656,11 @@ for every convex body $\K$.
 \suppressfloats[t]
 In this section we analyze a hypothetical \textit{population algorithm} that has access to the population gradient $\bar g_t = \E_t[g_t]$ and Hessian $\bar H_t = \E_t[H_t]$ in each round $t$.
 Of course, such an algorithm is not implementable, but it serves as a useful theoretical tool for understanding the behavior of the actual sampled algorithm.
-Our goal is to show that the population algorithm satisfies the same regret bound as the sampled algorithm.
+Our goal is to show that the population algorithm satisfies the regret bound of \cref{thm:main} in expectation, instead of with high probability.
 Because the population algorithm uses the exact gradient and Hessian, there is no estimation error to control. This makes the analysis simpler, and it shows the main reason the sampled algorithm works without the extra work of concentration inequalities.
 
 Precisely, the population algorithm is \cref{alg:main} with $g_t$ and $H_t$ replaced by $\bar g_t$ and $\bar H_t$, and with this change carried through every quantity built from them.
-For instance, the restart test \cref{eq:restart} uses $Q_t=\sum_{s=1}^t q_s$ in place of $\widehat Q_t$.
+For instance, the restart test \cref{eq:restart} uses $\bar Q_t=\sum_{s=1}^t\bar q_s$ in place of $Q_t$.
 Throughout this section the index $t$ starts at one in each epoch, except in statements explicitly summed over all $n$ rounds.
 
 \begin{proposition}[Population regret]\label{pop:oracle}
@@ -693,7 +696,7 @@ where the equality uses $\bar q_s(\mu_s)=0$.
 The link between the two regrets is the following lemma, proved in \cref{sw:section}.
 \begin{restatable}[Regret switching]{lemma}{regretswitching}
     \label{sw:tangent}
-    Suppose that $\eps\leq1/2$, $0\prec\Sigma_t\preceq4\sigma^2 I_d$ and $\mu_t\in\K_\eps$. With the parameters in \cref{eq:parameters}, for every $x_0\in E_t$ and every $x_\star\in\K_\eps$,
+    Suppose that $\eps\leq1/2$, $0\prec\Sigma_t\preceq4\sigma^2 I_d$ and $\mu_t\in\K_\eps$. With the parameters of \cref{thm:main}, for every $x_0\in E_t$ and every $x_\star\in\K_\eps$,
     \begin{align}
         F_{t,\Sigma_t}(\mu_t)-e_t(x_\star)
         \leq \bar q_t(\mu_t)-\bar q_t(x_\star)
@@ -732,7 +735,7 @@ By \cref{pop:qreg}, $\bar{\qReg}_t(x_\star)=-\bar Q_t(x_\star)$, so the first tw
     \ineqlabel{pop:switch-sum}
 \end{align}
 The quadratic regret against $x_\star$ has become the quadratic regret against $x_0$, a point in the focus region.
-The algorithm controls this regret: it runs a variant of exponential weights on the quadratics $\bar q_s$, which it sees in full, and we bound this regret in the next subsection. That leaves the inner product. Because $\bar Q_t$ is convex, whenever $x_0$ minimizes $\bar Q_t$ over $\K_\eps$ the inner product is nonnegative, so the term $-\ip{\nabla\bar Q_t(x_0)}{x_\star-x_0}$ can be dropped.
+The algorithm controls this regret: it runs a variant of exponential weights on the quadratics $\bar q_s$, which it sees in full, and we bound this regret in Step~3. That leaves the inner product. Because $\bar Q_t$ is convex, whenever $x_0$ minimizes $\bar Q_t$ over $\K_\eps$ the inner product is nonnegative, so the term $-\ip{\nabla\bar Q_t(x_0)}{x_\star-x_0}$ can be dropped.
 
 This suggests choosing $x_0$ as a minimizer of the cumulative quadratic. Since $x_0$ must lie in $K_t$, we take
 \begin{align}
@@ -742,7 +745,7 @@ To see why this is a good choice, suppose for the moment that $x^q_t$ also minim
 Later, we will show that it does minimize $\bar Q_t$ over $\K_\eps$ as long as the epoch continues.
 
 \paragraph{Step 3: Online Newton step.}
-We now bound the quadratic regret $\bar{\qReg}_t(x_0)$ against points $x_0\in \K_t$.\alireza{say something about what ONS is.}
+We now bound the quadratic regret $\bar{\qReg}_t(x_0)$ against points $x_0\in K_t$.\alireza{say something about what ONS is.}
 The Hessian of $\bar q_t$ is $\lambda\bar H_t$, but the update of the inverse covariance adds only $\eta\lambda\bar H_t/2$. As a result, the usual bound for the online Newton step comes with an extra negative term which will be useful later.
 \begin{lemma}\label{pop:ons-lemma}
     For every $x_0\in K_t$, the population algorithm satisfies
@@ -816,11 +819,11 @@ Substituting these bounds into \cref{pop:easy} and using $t\leq n$, we get, when
     \leq \frac{2d^2}{\eta\sigma^2}+\frac{5\eta n}{2}+\frac{32dL}{\lambda\eta}+n^{-2}
     \leq\frac{\rho}{\eta},
 \end{align}
-where the last inequality uses \cref{eq:parameters}.
+where the last inequality uses \cref{eq:parameters-free,eq:parameters-derived}.
 
 This is the bound of \cref{pop:oracle}, but only under the assumption that $x^q_t$ minimizes $\bar Q_t$ over $\K_\eps$.
-Note that since $\bar{Q}_t$ is convex, any local minimum in the interior of $K_t$ is also a global minimum.
-Therefore, if $x^q_t$ is not a global minimizer, it should lie on the boundary of some earlier focus ellipsoid $E_r$ for some $r\leq t$.
+If $x^q_t$ does not minimize $\bar Q_t$ over $\K_\eps$, then it lies on the boundary of some focus ellipsoid $E_r$ with $r\leq t$.
+Indeed, otherwise $x^q_t$ lies in the interior of each of $E_1,\ldots,E_t$, so $K_t$ and $\K_\eps$ coincide near $x^q_t$. Then $x^q_t$ is a local minimizer of $\bar Q_t$ over $\K_\eps$, and since $\bar Q_t$ is convex, it minimizes $\bar Q_t$ over $\K_\eps$.
 We turn to this case next.
 
 \paragraph{Step 5: Touching a focus ellipsoid forces a restart.}
@@ -908,7 +911,7 @@ Since $x^q_t\in K_t$, it suffices to show $x^q_t\in E_{t+1}$. The test did not f
     \leq\frac{2d^2}{\sigma^2}+\frac{5\eta^2n}{2}+2\rho
     \leq\frac{5\rho}{2},
 \end{align}
-where we used $\|x^q_t\|\leq2d$, \cref{pop:sums}, and $2d^2/\sigma^2+5\eta^2n/2\leq\rho/2$, which follows from \cref{eq:parameters}. Hence $\normm{\mu_{t+1}-x^q_t}{\Sigma_{t+1}^{-1}}^2\leq5\rho<R^2$, that is, $x^q_t\in E_{t+1}$.
+where we used $\|x^q_t\|\leq2d$, \cref{pop:sums}, and $2d^2/\sigma^2+5\eta^2n/2\leq\rho/2$, which follows from \cref{eq:parameters-free,eq:parameters-derived}. Hence $\normm{\mu_{t+1}-x^q_t}{\Sigma_{t+1}^{-1}}^2\leq5\rho<R^2$, that is, $x^q_t\in E_{t+1}$.
 
 \paragraph{Step 7: An epoch that ends in a restart has nonpositive regret.}
 Suppose round $t$ ends the epoch in a restart, and let $z=x^q_{t-1}$, with $z=0$ if $t=1$. Rounds $1,\ldots,t-1$ did not restart, so by Step 5 the point $z$ minimizes $\bar Q_{t-1}$ over $\K_\eps$, and by Step 6 $z \in K_t$.
@@ -940,7 +943,7 @@ It remains to show that $\bar Q_t(z)$ is large, and the restart test gives exact
     \geq2\rho-\frac{4d^2}{\sigma^2}-\frac{\rho}{8}
     \geq\frac{7\rho}{4},
 \end{align}
-where the second inequality uses the restart condition $\eta\bar Q_t(y_t)\geq2\rho$ and $\|z\|\leq2d$, and the last uses $4d^2/\sigma^2\leq\rho/8$. By \cref{pop:sums} and \cref{eq:parameters}, $\eta\bigl(1+\sum_{s=1}^tc_s\bigr)\leq2\eta+32dL/\lambda\leq\rho/4$. Substituting both bounds into \cref{pop:restart-sum} gives
+where the second inequality uses the restart condition $\eta\bar Q_t(y_t)\geq2\rho$ and $\|z\|\leq2d$, and the last uses $4d^2/\sigma^2\leq\rho/8$. By \cref{pop:sums} and \cref{eq:parameters-free,eq:parameters-derived}, $\eta\bigl(1+\sum_{s=1}^tc_s\bigr)\leq2\eta+32dL/\lambda\leq\rho/4$. Substituting both bounds into \cref{pop:restart-sum} gives
 \begin{align}
     \eta\sum_{s=1}^{t}\bigl(F_{s,\Sigma_s}(\mu_s)-e_s(x_\star)\bigr)
     \leq-\frac{7\rho}{4}+\frac{\rho}{4}
