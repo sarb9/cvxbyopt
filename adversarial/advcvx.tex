@@ -131,7 +131,6 @@ learner. An affine preprocessing step puts the body in the position
 $\mathbb{B}_1\subseteq\K\subseteq\mathbb{B}_{2d}$.
 \tor{reference needed and let's discuss this.}
 \tor{at some point will you talk about how $\K$ is represented and the computation implications?}
-
 In each round $t=1,\ldots,n$, an adversary chooses a convex loss
 $f_t:\K\to[0,1]$, the learner chooses an action $A_t\in\K$, and it observes
 $f_t(A_t)+\xi_t$, where $\xi_t$ is the noise in round $t$.
@@ -160,8 +159,7 @@ action in hindsight,
     \eqlabel{eq:regret}
 \end{align}
 Since the losses may react to the actions of the learner, the best action in
-hindsight is itself random and depends on the whole game. Our bounds on
-$\Reg_n$ therefore hold simultaneously for all comparators in $\K$.\tor{formally this makes no sense because the regret sups over the comparator.}
+hindsight is itself random and depends on the whole game.
 
 Let $\pi(x)=\inf\{r>0:x\in r\K\}$ be the Minkowski functional of $\K$ and let
 $U$ be uniform on the Euclidean unit sphere.
@@ -223,22 +221,6 @@ Define for all $x\in\R^d$
     \label{fig:extension}
     \vspace{-4pt}
 \end{wrapfigure}
-% The point $x/\pi_\eps(x)$ lies in $\K_\eps$ for every $x\in\R^d$, and it
-% equals $x$ when $x\in\K_\eps$.
-% Hence $e_t$ agrees with $f_t$ on $\K_\eps$, and computing $e_t(x)$ requires
-% only the value of $f_t$ at $x/\pi_\eps(x)$.
-% \Cref{fig:extension} shows the shape of $e_t$.
-% A point outside $\K_\eps$ can be written as $x=ry$ with $y$ on the boundary
-% of $\K_\eps$ and $r=\pi_\eps(x)>1$, and then $e_t(x)=e_t(ry)=rf_t(y)+2(r-1)/\eps$.
-% This is linear in $r$ and equals $-2/\eps$ at $r=0$.
-% So outside $\K_\eps$, the graph of $e_t$ consists of the rays that start at
-% the point $(0_d,-2/\eps)$ of $\R^d\times\R$, where $0_d$ is the origin of
-% $\R^d$, and pass through the graph of $f_t$ over the boundary of $\K_\eps$.
-% The point $(0_d,-2/\eps)$ lies below every tangent plane to the graph of
-% $f_t$ over $\K_\eps$, and this is what makes $e_t$ convex.
-% The functions $\pi_\eps$ and $v$ do not depend on $t$. When the adversary
-% changes the loss, only the heights of the rays change, through the values
-% of $f_t$ on the boundary of $\K_\eps$.
 To understand $e_t$, consider two cases. If $x\in\K_\eps$, then
 $\pi_\eps(x)=1$ and $v(x)=0$, so $e_t(x)=f_t(x)$. If $x\notin\K_\eps$, then
 $x/\pi_\eps(x)$ lies on the boundary of $\K_\eps$, and $e_t(x)$ is computed
