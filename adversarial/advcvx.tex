@@ -2033,28 +2033,73 @@ formulas and $R^2=1/(32\lambda^2L)$.
 
 \subsection{Stopping before a possible covariance failure}
 
-The results of \cref{app:trace} and the feedback bound in
-\cref{fb:budget} assume a covariance comparison. To use these results
-without assuming what we want to prove, we first stop the estimates
-before that comparison could fail.
+The preceding appendices bound conditional expectations along the
+sampled trajectory. We now compare these quantities with the estimates
+used by the algorithm. There are three tasks: control the observed
+feedback and gradient energy, show that the sampled covariance remains
+close to the covariance formed from conditional mean Hessians, and
+control the quadratic errors throughout the focus set. The last task
+needs uniformity because both the focus set and the points used by the
+restart rule depend on the observations.
 
-Fix a deterministic possible calendar start of an epoch, and number
-rounds locally from one. Retain round $s$ if an epoch started there, that
-epoch has not ended before round $s$, and
+The round at which an epoch begins is random. To apply concentration
+inequalities, we fix a round $\tau\in\{1,\dots,n\}$ in advance. Let
+$A_\tau$ be the event that an epoch begins at round $\tau$, that is,
+either $\tau=1$ or the restart test fired at round $\tau-1$. Whether
+$A_\tau$ occurs is determined by the end of round $\tau-1$.
+
+On $A_\tau$, we number the rounds of this epoch $s=1,2,\dots$, so that
+round $s$ of the epoch is round $\tau+s-1$ of the game, and $X_s$, $Y_s$,
+$\Sigma_s$ and $\bar\Sigma_s$ denote the quantities of the epoch at its
+round $s$.
+
+Let $n_\tau$ be the number of rounds in this epoch which is a random variable itself.
+Set $n_\tau=0$ if $A_\tau$ does not occur.
+For $s\geq1$, let
+\begin{align}
+    \iota_s=1\quad\text{if and only if}\quad
+    s\leq n_\tau\quad\text{and}\quad
+    \tfrac12\bar\Sigma_j^{-1}\preceq\Sigma_j^{-1}
+    \preceq2\bar\Sigma_j^{-1}\qquad\text{for every }j\leq s,
+\end{align}
+and let $\iota_s=0$ otherwise.
+Note that $\iota_s$ is determined by the end of round $s-1$ and before the sample in round $s$.
+Note that the algorithm cannot check the covariance comparison as it doesn't have access to $\bar{\Sigma}_s$, so a failure of
+the comparison does not end the epoch.
+
+The upshot is that the rounds with $\iota_s=1$ form a prefix. If
+$\iota_t=1$, then $\iota_s=1$ for every $s\leq t$, so \cref{fb:comparison}
+holds for $s\leq t$. Hence \cref{fb:spectrum,fb:budget} give
+\begin{align}
+    I_d&\preceq\Sigma_1^{-1}
+    \preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d,\notag\\
+    \Sigma_s&\preceq2\sigma^2I_d,\qquad
+    \|\Sigma_s^{-1}\|_{\op}\leq2n^2\quad(s\leq t),\notag\\
+    \sum_{s=1}^{n_\tau}\iota_sm_s&\leq5n,\qquad\text{where }\quad m_s=\E_s[Y_s^2].
+    \ineqlabel{conc:stopped}
+\end{align}
+The first inequality uses $\sigma\leq L^{-2}\leq1$.
+
+---------
+\newpage
+The round at which an epoch begins is random. To apply concentration
+inequalities, we fix a round $\tau\in\{1,\dots,n\}$ in advance and follow
+the process from round $\tau$ on, writing $s=1,2,\dots$ for rounds
+$\tau,\tau+1,\dots$.
+
+Let $I_s=1$ if the epoch is active at round $s$ and the covariance comparison holds:
 \begin{align}
     \tfrac12\bar\Sigma_j^{-1}\preceq\Sigma_j^{-1}
     \preceq2\bar\Sigma_j^{-1}\qquad\text{for every }j\leq s.
 \end{align}
-Write $I_s$ for this indicator. It is determined before the sample in
-round $s$, and all increments are set to zero when $I_s=0$.
+Otherwise let $I_s=0$. We say that round $s$ is retained if $I_s=1$.
+The value of $I_s$ is determined before the sample in round $s$,
+as $\Sigma_s$ is determined at the end of round $s-1$.
 In particular, the sample producing the first failed covariance update
-is retained: the decision uses $\Sigma_s$, not the proposed
-$\Sigma_{s+1}$. After a failure or the end of the epoch, no further round
-is retained. If no epoch starts at the specified calendar time, the
-entire sequence is zero.
+is retained.
 
-The retained rounds form a prefix. On every such prefix,
-\cref{fb:spectrum,fb:budget} give
+The retained rounds form a prefix in the sense that the requirements of
+\cref{fb:spectrum,fb:budget} are satisfied for every retained round and therefore we get
 \begin{align}
     I_d&\preceq\Sigma_1^{-1}
     \preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d,\notag\\
@@ -2465,7 +2510,7 @@ only passage from truncated to untruncated centered scores below.
 
     \proofstepinline{6}
     We obtain one event for every epoch and prefix.
-    There are at most $n$ deterministic possible calendar starts
+    There are at most $n$ choices of $\tau$
     and at most $n$ prefixes for each. Steps~2 and~4 use the sphere
     net, the dyadic levels, and the two scores on the spatial net.
     Their total number of applications is at most
