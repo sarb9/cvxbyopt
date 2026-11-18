@@ -102,6 +102,7 @@
 \newcommand{\normm}[2]{\left\lVert #1\right\rVert_{#2}}
 \newcommand{\alireza}[1]{\todo[color=blue!20,size=\tiny]{Alireza: #1}}
 \newcommand{\tor}[1]{\todo[color=red!20,size=\tiny]{Tor: #1}}
+\newcommand{\kevin}[1]{\todo[color=green!20,size=\tiny]{Kevin: #1}}
 
 % Provisional title.
 \title[Adversarial Bandit Convex Optimization]
@@ -127,11 +128,11 @@
 \label{sec:introduction}
 In adversarial bandit convex optimization, a learner plays against an adversary for $n$ rounds. In round $t$, the adversary chooses a convex loss $f_t:\K\to[0,1]$, which may depend on everything that happened in earlier rounds. The learner then chooses an action $A_t\in\K$ and observes $f_t(A_t)$ plus noise. The goal is small regret: the learner's cumulative loss should be close to that of the best fixed action in hindsight for the realized losses $f_1,\ldots,f_n$, as defined in \cref{eq:regret}. Apart from convexity and boundedness, we make no assumptions on the losses. In particular, they need not be smooth or strongly convex.
 
-We present an algorithm whose regret is $\widetilde O(d^{3/2}\sqrt n)$ with high probability. In each round, the algorithm estimates a quadratic approximation of a Gaussian smoothing of the loss and runs an online Newton step on these quadratics, while keeping its mean inside a focus region where the approximation can be trusted. A restart rule fires only when the regret of the current epoch is already negative, so restarts do not add to the regret.
+We present an algorithm whose regret is $\widetilde O(d^{3/2}\sqrt n)$ with high probability. In each round, the algorithm estimates a quadratic approximation of a Gaussian smoothing of the loss and runs an online Newton step on these quadratics, while keeping its mean inside a focus region where the approximation can be trusted. A restart rule fires only when the regret of the current epoch\tor{The meaning of `epoch' may be unclear here.} is already negative, so restarts do not add to the regret.
 
 \section{Related Work}
 \label{sec:related-work}
-Early algorithms estimate the gradient of a smoothed loss from a single function value \citep{kleinberg2004nearly,flaxman2005online}. They are simple, but their regret grows faster than $\sqrt n$. \citet{hazan2016optimal} obtained the first $\widetilde O(\sqrt n)$ bound, with exponential dependence on $d$, and \citet{bubeck2017kernel} gave the first polynomial-time algorithm with $\widetilde O(\operatorname{poly}(d)\sqrt n)$ regret. Since then the question has been the dependence on $d$. \citet{lattimore2020improved} showed that the minimax regret is $\widetilde O(d^{5/2}\sqrt n)$, without giving an algorithm. The online Newton method of \citet{fokkema2024online} has regret $\widetilde O(d^{7/2}\sqrt n)$, and \citet[Chapter~11]{lattimore2026bandit} reduces this to $\widetilde O(d^{5/2}\sqrt n)$. These methods build quadratic approximations of an optimistic surrogate of the loss, and between restarts they decay the inverse covariance. Our algorithm uses the ordinary Gaussian smoothing and needs no such modification. \Cref{thm:main} improves the best bound by a factor of $d$ and reaches the rate $d^{3/2}\sqrt n$ conjectured by \citet[Conjecture~1]{bubeck2017kernel}.
+Early algorithms estimate the gradient of a smoothed loss from a single function value \citep{kleinberg2004nearly,flaxman2005online}. They are simple, but their regret grows faster than $\sqrt n$. \citet{hazan2016optimal} obtained the first $\widetilde O(\sqrt n)$ bound,\tor{The Hazan paper gives an actual algorithm. Slightly earlier Bubeck and Eldan gave a non-constructive $\sqrt{n}$ bound. And there is even earlier the $d = 1$ case} with exponential dependence on $d$, and \citet{bubeck2017kernel} gave the first polynomial-time algorithm with $\widetilde O(\operatorname{poly}(d)\sqrt n)$ regret. Since then the question has been the dependence on $d$. \citet{lattimore2020improved} showed that the minimax regret is $\widetilde O(d^{5/2}\sqrt n)$, without giving an algorithm. The online Newton method of \citet{fokkema2024online} has regret $\widetilde O(d^{7/2}\sqrt n)$, and \citet[Chapter~11]{lattimore2026bandit} reduces this to $\widetilde O(d^{5/2}\sqrt n)$. These methods build quadratic approximations of an optimistic surrogate of the loss, and between restarts they decay the inverse covariance. Our algorithm uses the ordinary Gaussian smoothing and needs no such modification. \Cref{thm:main} improves the best bound by a factor of $d$ and reaches the rate $d^{3/2}\sqrt n$ conjectured by \citet[Conjecture~1]{bubeck2017kernel}.
 The same rate was known for stochastic losses \citep{fokkema2024online}. On the lower-bound side, \citet{rajaraman2026price} recently proved $\Omega(d^{4/3}\sqrt n)$, improving on the $\Omega(d\sqrt n)$ of \citet{dani2008stochastic}, which leaves a gap of $d^{1/6}$. We refer to \citet{lattimore2026bandit} for an overview of the literature on bandit convex optimization.
 
 \section{Notation and Problem Formulation}
@@ -306,7 +307,7 @@ the total regret is bounded by the regret accumulated after the last restart.
         \For{$t=1,2,\ldots$ as long as rounds remain}{
             {\setlength{\rightskip}{0pt}%
             Set $E_t=\bigl\{x\in\R^d:\normm{x-\mu_t}{\Sigma_t^{-1}}^2\leq R^2\bigr\}$ and $K_t=K_{t-1}\cap E_t$\;}
-            \algmark{ons-sample-top}Sample $X_t\sim\N(\mu_t,\Sigma_t)$ and play $A_t=X_t/\pi_\eps(X_t)$ and observe $f_t(A_t)+\xi_t$ \;
+            \algmark{ons-sample-top}Sample $X_t\sim\N(\mu_t,\Sigma_t)$ and play $A_t=X_t/\pi_\eps(X_t)$ and observe $f_t(A_t)+\xi_t$ %\kevin{We should call this $Y_t$ as equation (6) references it as $Y_t$} \;
             \algmark{ons-sample-bottom}Compute $g_t$ and $H_t$ by \cref{eq:gaussian-derivatives-estimates}\;
             \If{$\Sigma_t^{-1}+\eta\lambda H_t/2\not\succ0$}{play $0$ in all remaining rounds and stop\;}
             \algmark{ons-newton-top}Set $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\eta\lambda H_t/2$\;
@@ -325,7 +326,7 @@ the total regret is bounded by the regret accumulated after the last restart.
 
 \paragraph{The Gaussian Smoothing}
 The algorithm maintains a Gaussian distribution $\N(\mu_t,\Sigma_t)$ on $\R^d$.
-The first move is to forget about the original loss $f_t$ and work with its convex extension $e_t$ to define
+The first move is to forget \kevin{This forgetting is unjustified here and confusing. Its only exaplined much later when you define extension regret, we should move that discussion here} about the original loss $f_t$ and work with its convex extension $e_t$ to define
 \begin{align}
     F_{t,\Sigma}(y)=\E_{X\sim\N(y,\Sigma)}[e_t(X)]=\int_{\R^d}e_t(x)\gamma_{y,\Sigma}(x)\,dx
     \qquad\text{for }y\in\R^d.
@@ -667,7 +668,7 @@ for every convex body $\K$.
 In this section we analyze a hypothetical \textit{population algorithm} that has access to the population gradient $\bar g_t = \E_t[g_t]$ and Hessian $\bar H_t = \E_t[H_t]$ in each round $t$.
 Of course, such an algorithm is not implementable, but it serves as a useful theoretical tool for understanding the behavior of the actual sampled algorithm.
 Our goal is to show that the population algorithm satisfies the regret bound of \cref{thm:main} in expectation, instead of with high probability.
-Because the population algorithm uses the exact gradient and Hessian, there is no estimation error to control. This makes the analysis simpler, and it shows the main reason the sampled algorithm works without the extra work of concentration inequalities.
+Because the population algorithm uses the exact gradient and Hessian, there is no estimation error to control. This makes the analysis simpler, and it shows the main reason the sampled algorithm works without the extra work of concentration inequalities.\tor{But note that the magnitude of the estimators makes this a slightly unreliable way of estimating regret.}
 
 Precisely, the population algorithm is \cref{alg:main} with $g_t$ and $H_t$ replaced by $\bar g_t$ and $\bar H_t$, and with this change carried through every quantity built from them.
 For instance, the restart test \cref{eq:restart} uses $\bar Q_t=\sum_{s=1}^t\bar q_s$ in place of $Q_t$.
@@ -681,21 +682,22 @@ Throughout this section the index $t$ starts at one in each epoch, except in sta
     \end{align}
 \end{proposition}
 We call $\eReg_n$ the \textit{extension regret}. It differs from the regret $\Reg_n$ in two ways: it evaluates the extensions $e_t$ at $X_t$ instead of $f_t$ at $A_t$, and it compares against points of $\K_\eps$ instead of $\K$.
-Still, a bound on $\eReg_n$ gives a bound on $\E[\Reg_n]$. Indeed, $f_t(A_t)\leq e_t(X_t)$, and for every $x\in\K$ the point $(1-\eps)x$ lies in $\K_\eps$, where $e_t=f_t$ and convexity gives $f_t((1-\eps)x)\leq f_t(x)+\eps$.
+\kevin{This whole argument about how we can just focus on $e_t$ instead of $f_t$ should be all the way at the top where you say the first hing we do is ``forget'' $f_t$ I put a note}
+Still, a\tor{high probability?} bound on $\eReg_n$ gives a bound on $\E[\Reg_n]$. Indeed, $f_t(A_t)\leq e_t(X_t)$, and for every $x\in\K$ the point $(1-\eps)x$ lies in $\K_\eps$, where $e_t=f_t$ and convexity gives $f_t((1-\eps)x)\leq f_t(x)+\eps$.
 Hence, $\E[\Reg_n] \leq \E[\eReg_n]+n\eps$.
 Since each $e_t$ is Lipschitz and $\K_\eps$ is compact, the supremum in $\eReg_n$ is attained. We fix
 \begin{align}
     x_\star\in\argmin_{u\in\K_\eps}\sum_{t=1}^n e_t(u),
 \end{align}
-so that $\eReg_n=\sum_{t=1}^n\bigl(\E_t[e_t(X_t)]-e_t(x_\star)\bigr)$. This is a single comparator for all $n$ rounds, used across restarts.
+so that $\eReg_n=\sum_{t=1}^n\bigl(\E_t[e_t(X_t)]-e_t(x_\star)\bigr)$. This is a single comparator for all $n$ rounds, used across restarts.\kevin{This whole argument about how we can just focus on $e_t$ instead of $f_t$ should be all the way at the top where you say the first hing we do is ``forget'' $f_t$ I put a note}
 
 \paragraph{Step 1: We relate extension regret to quadratic regret.}
 Looking closely at the population algorithm, the only information about the losses that it keeps is $\bar g_t$ and $\bar H_t$, and together these define the quadratic $\bar q_t$. Its updates and its restart test depend on the losses only through $\bar q_1,\ldots,\bar q_t$.
 So the losses pass through three stages: the adversary chooses $f_t$, the algorithm extends it to $e_t$, and $e_t$ is then replaced by its quadratic approximation $\bar q_t$ at $\mu_t$.
-The algorithm knows $\bar q_t$ completely, and on these quadratics it runs a variant of continuous exponential weights, just as in online learning with full information.
+The algorithm knows $\bar q_t$ completely, and on these quadratics it runs a variant of continuous exponential weights, just as in online learning with full information. \tor{or Online Newton step}
 A natural first step is therefore to relate the extension regret $\eReg_n$, which we saw controls the actual regret, to the (full-information) regret on the quadratics.
 Within an epoch, the \textit{quadratic regret} of the means against a point
-$y\in\R^d$ is
+$y\in\R^d$ is \tor{$\bar{\qReg}$ doesn't look very nice.}
 \begin{align}
     \bar{\qReg}_t(y)
     \triangleq\sum_{s=1}^t\bigl(\bar q_s(\mu_s)-\bar q_s(y)\bigr)
@@ -970,9 +972,9 @@ which proves \cref{pop:oracle}.
 
 \section{Discussion}
 \label{sec:discussion}
-We gave an algorithm for adversarial bandit convex optimization with regret $\widetilde O(d^{3/2}\sqrt n)$ with high probability. It runs an online Newton step on quadratic models of the Gaussian smoothing of the loss, built from unbiased estimates of its gradient and Hessian. Its mean is kept inside a focus region, and it restarts when the restart test fires. The covariance update adds only half of the estimated curvature. The other half leaves a negative term, and the restart test uses this term to certify that an epoch has nonpositive regret.
+We gave an algorithm for adversarial bandit convex optimization with regret $\widetilde O(d^{3/2}\sqrt n)$ with high probability. It runs an online Newton step on quadratic models of the Gaussian smoothing of the loss, built from unbiased estimates of its gradient and Hessian. Its mean is kept inside a focus region, and it restarts when the restart test fires. The covariance update adds only half of the estimated curvature. The other half leaves a negative term, and the restart test uses this term to certify that an epoch has nonpositive regret.\tor{I never bother with these summaries. I don't believe anyone skips the introduction to read the discussion. Better just to focus on interesting things}
 
-Several questions remain open. The bound matches the rate conjectured by \citet{bubeck2017kernel}. However, the lower bound of \citet{rajaraman2026price} is $\Omega(d^{4/3}\sqrt n)$, so the minimax regret is known only up to a factor of $d^{1/6}$. Our bound also carries the factor $L^5$, and we do not know how far the logarithmic factors can be reduced. Finally, within an epoch the focus region is an intersection of up to $t$ ellipsoids, so the computation per round grows polynomially with $n$. \citet[Conjecture~1]{bubeck2017kernel} asks for regret $\widetilde O(d^{3/2}\sqrt n)$ with computation per round polynomial in $d$ and $\log n$. It would be interesting to know whether the algorithm can keep only a bounded number of ellipsoids without losing the rate.
+Several questions remain open. The bound matches the rate conjectured by \citet{bubeck2017kernel}. However, the lower bound of \citet{rajaraman2026price} is $\Omega(d^{4/3}\sqrt n)$, so the minimax regret is known only up to a factor of $d^{1/6}$. Our bound also carries the factor $L^5$, and we do not know how far the logarithmic factors can be reduced. Finally, within an epoch the focus region is an intersection of up to $t$ ellipsoids, so the computation per round grows polynomially with $n$. \citet[Conjecture~1]{bubeck2017kernel} asks for regret $\widetilde O(d^{3/2}\sqrt n)$ with computation per round polynomial in $d$ and $\log n$. It would be interesting to know whether the algorithm can keep only a bounded number of ellipsoids without losing the rate.\tor{bounded by what? It's hard to believe an absolute constant will be enough, but logarithmic is probably possible. Note, there is also the cost of the rounding. The L\"owner position is expensive. I believe that positioning $K$ so that it's polar is isotropic will also work and can be done in polynomial time.}
 
 \newpage
 \begingroup
