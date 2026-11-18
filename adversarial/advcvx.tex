@@ -107,7 +107,24 @@
 % Provisional title.
 \title[Adversarial Bandit Convex Optimization]
 {Adversarial Bandit Convex Optimization with \texorpdfstring{$d^{3/2}\sqrt{n}$}{d\^{}(3/2) sqrt(n)} Regret}
-\author{}
+\author{%
+    \Name{Alireza Bakhtiari}\thanks{Corresponding author.}\thanks{Authors
+    are listed in alphabetical order.}
+    \Email{alirezaa@cs.washington.edu}\\
+    \addr Paul G.\ Allen School of Computer Science \& Engineering,
+    University of Washington
+    \AND
+    \Name{Kevin Jamieson} \Email{jamieson@cs.washington.edu}\\
+    \addr Paul G.\ Allen School of Computer Science \& Engineering,
+    University of Washington
+    \AND
+    \Name{Tor Lattimore} \Email{lattimore@google.com}\\
+    \addr Google DeepMind
+    \AND
+    \Name{Lillian Ratliff} \Email{ratliffl@uw.edu}\\
+    \addr Department of Electrical \& Computer Engineering,
+    University of Washington
+}
 
 \begin{document}
 \maketitle
@@ -221,13 +238,6 @@ Fix $\eps\in(0,1/2]$, let $\K_\eps=(1-\eps)\K$, and define
     \eqlabel{eq:extension-notation}
 \end{align}
 % Following \citet{fokkema2024online} and \citet[Eq.~(10.6)]{lattimore2026bandit},
-Define for all $x\in\R^d$
-\begin{align}
-    e_t(x)
-    =\pi_\eps(x)f_t\!\left(\frac{x}{\pi_\eps(x)}\right)
-    +\frac{2}{\eps}v(x)\,.
-    \eqlabel{eq:extension}
-\end{align}
 
 \begin{wrapfigure}{r}{0.46\textwidth}
     \vspace{-6pt}
@@ -239,6 +249,14 @@ Define for all $x\in\R^d$
     \label{fig:extension}
     \vspace{-4pt}
 \end{wrapfigure}
+Define for all $x\in\R^d$
+\begin{align}
+    e_t(x)
+    =\pi_\eps(x)f_t\!\left(\frac{x}{\pi_\eps(x)}\right)
+    +\frac{2}{\eps}v(x)\,.
+    \eqlabel{eq:extension}
+\end{align}
+
 If $x\in\K_\eps$, then $\pi_\eps(x)=1$ and $v(x)=0$, so $e_t(x)=f_t(x)$.
 If $x\notin\K_\eps$, then $x/\pi_\eps(x)$ lies on the boundary of
 $\K_\eps$. Thus evaluating $e_t$ at any point of $\R^d$ requires only one
@@ -1475,8 +1493,7 @@ The covariance update responds to this curvature. We will show that the
 sum of the traces is controlled by a log-determinant ratio, and then
 bound this ratio by controlling the growth of the inverse covariance.
 
-Throughout this appendix, the parameters are those of \cref{thm:main},
-with $\eps\leq1/2$. We will use their expanded form:
+Throughout this and following appendices we will use the parameters of \cref{thm:main} in  expanded form:
 \begin{align}
     \sigma^2&=\frac{1}{dM^2L^4},&
     \eta&=\frac{dM}{AL\sqrt n},&
@@ -1486,45 +1503,33 @@ with $\eps\leq1/2$. We will use their expanded form:
     \eqlabel{eq:parameters}
 \end{align}
 
-Fix an epoch and number its rounds from one. Write
-$W_s=X_s-\mu_s$ and $T_s=\tr(\bar H_s\Sigma_s)$, and define
+The sampled
+Hessians $H_s$ can be indefinite, so we work instead with
 \begin{align}
     \bar\Sigma_1=\Sigma_1=\sigma^2I_d,\qquad
     \bar\Sigma_{s+1}^{-1}
-    =\bar\Sigma_s^{-1}+\frac{\lambda\eta}{2}\bar H_s.
+    =\bar\Sigma_s^{-1}+\frac{\lambda\eta}{2}\bar H_s,
     \eqlabel{fb:inverse-covariance}
 \end{align}
-Thus $\bar\Sigma_s^{-1}$ accumulates the conditional mean Hessians along
-the sampled trajectory; note that $\bar\Sigma_s$ is not the expectation of
-$\Sigma_s$.
-Since $\bar H_s\succeq0$, the matrices
-$\bar\Sigma_s^{-1}$ are nondecreasing and $\bar\Sigma_s\preceq\sigma^2I_d$.
-The sampled Hessians can be indefinite, so we apply the log-determinant
-argument to $\bar\Sigma_s$ and compare it with $\Sigma_s$.
-
-We prove the bounds for every epoch prefix $0\leq t\leq n$ on which
-\begin{align}
-    \tfrac12\bar\Sigma_s^{-1}\preceq\Sigma_s^{-1}
-    \preceq2\bar\Sigma_s^{-1}\qquad(1\leq s\leq t).
-    \ineqlabel{fb:comparison}
-\end{align}
-This comparison is assumed only before the sample in each round.
-In particular, the bounds include $\bar\Sigma_{t+1}$ even if the sampled
-update at round $t$ is the first to violate \cref{fb:comparison}.
-The concentration argument in \cref{conc:section} will establish that
-this comparison holds throughout the algorithm with high probability.
+and compare these matrices with $\Sigma_s$. Since $\bar H_s\succeq0$, the
+matrices $\bar\Sigma_s^{-1}$ are nondecreasing and $\bar\Sigma_s\preceq\sigma^2I_d$.
 
 \begin{lemma}[Growth of the inverse covariance]
     \label{fb:spectrum}
-    Under \cref{fb:comparison},
+    Let $0\leq t\leq n$, and suppose that
+    \begin{align}
+        \tfrac12\bar\Sigma_s^{-1}\preceq\Sigma_s^{-1}
+        \preceq2\bar\Sigma_s^{-1}\qquad(1\leq s\leq t).
+        \ineqlabel{fb:comparison}
+    \end{align}
+    Then
     \begin{align}
         \|\bar\Sigma_{t+1}^{-1}\|_{\op}^{1/2}
         \leq\sigma^{-1}+\frac{2t\lambda\eta}{\eps}\leq n.
         \ineqlabel{fb:spectrum-bound}
     \end{align}
     Consequently,
-    $\Sigma_1^{-1}\preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d$,
-    and $\Sigma_s\preceq2\sigma^2I_d$ for every $s\leq t$.
+    $\Sigma_1^{-1}\preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d$.
 \end{lemma}
 
 \begin{proof}[Proof of \cref{fb:spectrum}]
@@ -1541,8 +1546,8 @@ this comparison holds throughout the algorithm with high probability.
     \end{align}
     We therefore need an upper bound on $\|\bar H_s\|_{\op}$.
 
-    Fix $u\in\R^d$ and write $\partial_u$ for differentiation in
-    direction $u$. Gaussian integration by parts gives
+    Fix $u\in\R^d$, write $\partial_u$ for differentiation in
+    direction $u$, and let $W_s=X_s-\mu_s$. Gaussian integration by parts gives
     \begin{align}
         u^\top\bar H_su
         &\explan{=}{a}\int_{\R^d}e_s(x)\,
@@ -1614,9 +1619,9 @@ this comparison holds throughout the algorithm with high probability.
 
 \begin{lemma}[Trace sum]
     \label{fb:trace}
-    Under \cref{fb:comparison},
+    Let $0\leq t\leq n$, and suppose that \cref{fb:comparison} holds. Then
     \begin{align}
-        \sum_{s=1}^tT_s
+        \sum_{s=1}^t\tr(\bar H_s\Sigma_s)
         \leq\frac{8}{\lambda\eta}
         \log\frac{\det\Sigma_1}{\det\bar\Sigma_{t+1}}
         \leq\frac{16dL}{\lambda\eta}.
@@ -1629,7 +1634,7 @@ this comparison holds throughout the algorithm with high probability.
     $\Sigma_s\preceq2\bar\Sigma_s$ by \cref{fb:comparison}.
     Since $\bar H_s\succeq0$, this implies
     \begin{align}
-        T_s=\tr(\bar H_s\Sigma_s)
+        \tr(\bar H_s\Sigma_s)
         \leq2\tr(\bar H_s\bar\Sigma_s).
         \ineqlabel{fb:trace-comparison}
     \end{align}
@@ -1640,7 +1645,7 @@ this comparison holds throughout the algorithm with high probability.
     \end{align}
     By cyclicity of the trace,
     \begin{align}
-        \sum_{s=1}^tT_s
+        \sum_{s=1}^t\tr(\bar H_s\Sigma_s)
         \leq2\sum_{s=1}^t\tr(\bar H_s\bar\Sigma_s)
         =\frac4{\lambda\eta}\sum_{s=1}^t\tr(B_s).
         \ineqlabel{fb:normalized-trace}
@@ -1672,7 +1677,7 @@ this comparison holds throughout the algorithm with high probability.
     Apply $z\leq2\log(1+z)$ for $z\in[0,1]$ to each eigenvalue of
     $B_s$. Returning to \cref{fb:normalized-trace}, we get
     \begin{align}
-        \sum_{s=1}^tT_s
+        \sum_{s=1}^t\tr(\bar H_s\Sigma_s)
         &\leq\frac4{\lambda\eta}\sum_{s=1}^t\tr(B_s)\nonumber\\
         &\leq\frac8{\lambda\eta}\sum_{s=1}^t\log\det(I_d+B_s)\nonumber\\
         &\explan{=}{a}\frac8{\lambda\eta}
@@ -1705,7 +1710,7 @@ this comparison holds throughout the algorithm with high probability.
     \end{align}
     Substituting this into \cref{fb:trace-logdet} gives
     \begin{align}
-        \sum_{s=1}^tT_s
+        \sum_{s=1}^t\tr(\bar H_s\Sigma_s)
         \leq\frac{16d\log n}{\lambda\eta}
         \leq\frac{16dL}{\lambda\eta},
     \end{align}
@@ -1724,11 +1729,10 @@ covariance comparison from \cref{app:trace}.
 
 Throughout this appendix, the parameters are those of \cref{thm:main},
 with $\eps\leq1/2$. All indices belong to one epoch, and $n$ is the
-original horizon. Keep $W_s=X_s-\mu_s$ and
-$T_s=\tr(\bar H_s\Sigma_s)$, and write $m_s=\E_sY_s^2$.
+original horizon. Write $W_s=X_s-\mu_s$ and $m_s=\E_sY_s^2$.
 The key quantity is the extension penalty $v(X_s)$: it determines how
 large $Y_s$ can be outside $\K_\eps$. We first control the contribution
-of the event $v(X_s)>1$. We then relate the mean of $v(X_s)$ to $T_s$
+of the event $v(X_s)>1$. We then relate the mean of $v(X_s)$ to $\tr(\bar H_s\Sigma_s)$
 and apply the trace bound.
 
 \begin{lemma}[Gaussian gauge tail]
@@ -1828,8 +1832,7 @@ and apply the trace bound.
 
 \begin{lemma}[Conditional second moments]
     \label{fb:budget}
-    On every epoch prefix $0\leq t\leq n$ satisfying
-    \cref{fb:comparison},
+    Let $0\leq t\leq n$, and suppose that \cref{fb:comparison} holds. Then
     \begin{align}
         \sum_{s=1}^t\E_sY_s^2\leq5n.
         \ineqlabel{fb:second-moment-sum}
@@ -1907,8 +1910,7 @@ and apply the trace bound.
         \E_s v(X_s)
         \leq\E_s\ip{\nabla v(X_s)}{X_s-\mu_s}
         \explan{=}{a}\tr(V_s\Sigma_s)
-        \explan{\leq}{b}\eps\tr(\bar H_s\Sigma_s)
-        =\eps T_s.
+        \explan{\leq}{b}\eps\tr(\bar H_s\Sigma_s).
         \ineqlabel{fb:penalty-mean}
     \end{align}
     Here \reason{a} is Gaussian integration by parts, interpreted
@@ -1918,7 +1920,7 @@ and apply the trace bound.
     gives the roundwise bound
     \begin{align}
         m_s
-        \leq4+\frac{20}{\eps}T_s
+        \leq4+\frac{20}{\eps}\tr(\bar H_s\Sigma_s)
         +\frac{40}{\eps^2}e^{-L^4/128}.
         \ineqlabel{fb:response-second-moment}
     \end{align}
@@ -1940,7 +1942,7 @@ and apply the trace bound.
     applying \cref{fb:trace-sum}, we obtain
     \begin{align}
         \sum_{s=1}^t m_s
-        &\leq4n+\frac{20}{\eps}\sum_{s=1}^tT_s
+        &\leq4n+\frac{20}{\eps}\sum_{s=1}^t\tr(\bar H_s\Sigma_s)
         +\frac{40n}{\eps^2}e^{-L^4/128}\nonumber\\
         &\leq4n+\frac{320dL}{\eps\lambda\eta}
         +\frac{40n}{\eps^2}e^{-L^4/128}\nonumber\\
@@ -1989,29 +1991,59 @@ quantities use conditional means along the same trajectory as the
 algorithm. Since $H_s$ need not be positive semidefinite,
 $\|z\|_{H_s}^2$ denotes the quadratic form $z^\top H_sz$.
 
+% \begin{lemma}[Uniform estimation]
+%     \label{conc:uniform}
+%     Suppose the parameters are as in \cref{eq:parameters}, with
+%     $\eps\leq1/2$ and $A$ sufficiently large. With probability at least
+%     $1-\delta/4$, every epoch prefix $t$ satisfies
+%     \begin{align}
+%         \begin{gathered}
+%             \tfrac34\bar\Sigma_{t+1}^{-1}
+%             \preceq\Sigma_{t+1}^{-1}
+%             \preceq\tfrac54\bar\Sigma_{t+1}^{-1},\\
+%             \sum_{s=1}^tY_s^2\leq Cn,\qquad
+%             \sum_{s=1}^t\|g_s\|_{\Sigma_{s+1}}^2\leq CdnL.
+%         \end{gathered}
+%         \ineqlabel{conc:energy}
+%     \end{align}
+%     Moreover, with $\Delta=CL^2\sqrt{dn}/\lambda$,
+%     \begin{align}
+%         \sup_{x\in K_t}|Q_t(x)-\bar Q_t(x)|&\leq\Delta,\notag\\
+%         \sup_{x\in K_t}|\Gamma_t(x)-\bar\Gamma_t(x)|&\leq\eta\Delta.
+%         \ineqlabel{conc:quadratics}
+%     \end{align}
+%     The covariance comparison includes the last update of each epoch.
+%     All sums start at its first round, and $C$ is an absolute constant.
+% \end{lemma}
 \begin{lemma}[Uniform estimation]
     \label{conc:uniform}
     Suppose the parameters are as in \cref{eq:parameters}, with
-    $\eps\leq1/2$ and $A$ sufficiently large. With probability at least
-    $1-\delta/4$, every epoch prefix $t$ satisfies
-    \begin{align}
-        \begin{gathered}
-            \tfrac34\bar\Sigma_{t+1}^{-1}
-            \preceq\Sigma_{t+1}^{-1}
-            \preceq\tfrac54\bar\Sigma_{t+1}^{-1},\\
-            \sum_{s=1}^tY_s^2\leq Cn,\qquad
-            \sum_{s=1}^t\|g_s\|_{\Sigma_{s+1}}^2\leq CdnL.
-        \end{gathered}
-        \ineqlabel{conc:energy}
-    \end{align}
-    Moreover, with $\Delta=CL^2\sqrt{dn}/\lambda$,
-    \begin{align}
-        \sup_{x\in K_t}|Q_t(x)-\bar Q_t(x)|&\leq\Delta,\notag\\
-        \sup_{x\in K_t}|\Gamma_t(x)-\bar\Gamma_t(x)|&\leq\eta\Delta.
-        \ineqlabel{conc:quadratics}
-    \end{align}
-    The covariance comparison includes the last update of each epoch.
-    All sums start at its first round, and $C$ is an absolute constant.
+    $\eps\leq1/2$ and $A$ sufficiently large. There is an absolute
+    constant $C$ such that, with probability at least $1-\delta/4$, the
+    following hold at every round $t$.
+    \begin{enumerate}
+        \item The sampled inverse covariance is close to the one formed
+            from conditional mean Hessians:
+            \begin{align}
+                \tfrac34\bar\Sigma_{t+1}^{-1}
+                \preceq\Sigma_{t+1}^{-1}
+                \preceq\tfrac54\bar\Sigma_{t+1}^{-1}.
+                \ineqlabel{conc:covariance}
+            \end{align}
+        \item The observed responses and the gradient estimates satisfy
+            \begin{align}
+                \sum_{s=1}^tY_s^2\leq Cn,\qquad
+                \sum_{s=1}^t\|g_s\|_{\Sigma_{s+1}}^2\leq CdnL.
+                \ineqlabel{conc:energy}
+            \end{align}
+        \item The sampled quadratics are close to their conditional means
+            on the focus set: with $\Delta=CL^2\sqrt{dn}/\lambda$,
+            \begin{align}
+                \sup_{x\in K_t}|Q_t(x)-\bar Q_t(x)|\leq\Delta,\qquad
+                \sup_{x\in K_t}|\Gamma_t(x)-\bar\Gamma_t(x)|\leq\eta\Delta.
+                \ineqlabel{conc:quadratics}
+            \end{align}
+    \end{enumerate}
 \end{lemma}
 
 Throughout the proof, $C$ denotes an absolute constant that may increase
@@ -2026,512 +2058,689 @@ after these constants. We will use the following consequences of
     \eta\lambda=\frac{1}{A^3\sqrt{dn}L^4}.
     \ineqlabel{conc:parameters}
 \end{align}
-For example, $M\geq d^{-1/2}$ gives
-$\eps\geq A^4d^{3/2}L^5/\sqrt n$ and
-$\sigma\leq L^{-2}$. Also, $\eps\leq1/2$ implies
-$n\geq4A^8d^4M^2L^{10}$, which gives $d,L\leq n$.
-The remaining inequalities follow directly from the same parameter
-formulas and $R^2=1/(32\lambda^2L)$.
 
-\subsection{Stopping before a possible covariance failure}
-
-The preceding appendices bound conditional expectations along the
-sampled trajectory. We now compare these quantities with the estimates
-used by the algorithm. There are three tasks: control the observed
-feedback and gradient energy, show that the sampled covariance remains
-close to the covariance formed from conditional mean Hessians, and
-control the quadratic errors throughout the focus set. The last task
-needs uniformity because both the focus set and the points used by the
-restart rule depend on the observations.
-
-The round at which an epoch begins is random. To apply concentration
-inequalities, we fix a round $\tau\in\{1,\dots,n\}$ in advance. Let
-$A_\tau$ be the event that an epoch begins at round $\tau$, that is,
-either $\tau=1$ or the restart test fired at round $\tau-1$. Whether
-$A_\tau$ occurs is determined by the end of round $\tau-1$.
-
-On $A_\tau$, we number the rounds of this epoch $s=1,2,\dots$, so that
-round $s$ of the epoch is round $\tau+s-1$ of the game, and $X_s$, $Y_s$,
-$\Sigma_s$ and $\bar\Sigma_s$ denote the quantities of the epoch at its
-round $s$.
-
-Let $n_\tau$ be the number of rounds in this epoch which is a random variable itself.
-Set $n_\tau=0$ if $A_\tau$ does not occur.
-For $s\geq1$, let
-\begin{align}
-    \iota_s=1\quad\text{if and only if}\quad
-    s\leq n_\tau\quad\text{and}\quad
-    \tfrac12\bar\Sigma_j^{-1}\preceq\Sigma_j^{-1}
-    \preceq2\bar\Sigma_j^{-1}\qquad\text{for every }j\leq s,
-\end{align}
-and let $\iota_s=0$ otherwise.
-Note that $\iota_s$ is determined by the end of round $s-1$ and before the sample in round $s$.
-Note that the algorithm cannot check the covariance comparison as it doesn't have access to $\bar{\Sigma}_s$, so a failure of
-the comparison does not end the epoch.
-
-The upshot is that the rounds with $\iota_s=1$ form a prefix. If
-$\iota_t=1$, then $\iota_s=1$ for every $s\leq t$, so \cref{fb:comparison}
-holds for $s\leq t$. Hence \cref{fb:spectrum,fb:budget} give
-\begin{align}
-    I_d&\preceq\Sigma_1^{-1}
-    \preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d,\notag\\
-    \Sigma_s&\preceq2\sigma^2I_d,\qquad
-    \|\Sigma_s^{-1}\|_{\op}\leq2n^2\quad(s\leq t),\notag\\
-    \sum_{s=1}^{n_\tau}\iota_sm_s&\leq5n,\qquad\text{where }\quad m_s=\E_s[Y_s^2].
-    \ineqlabel{conc:stopped}
-\end{align}
-The first inequality uses $\sigma\leq L^{-2}\leq1$.
-
----------
-\newpage
-The round at which an epoch begins is random. To apply concentration
-inequalities, we fix a round $\tau\in\{1,\dots,n\}$ in advance and follow
-the process from round $\tau$ on, writing $s=1,2,\dots$ for rounds
-$\tau,\tau+1,\dots$.
-
-Let $I_s=1$ if the epoch is active at round $s$ and the covariance comparison holds:
-\begin{align}
-    \tfrac12\bar\Sigma_j^{-1}\preceq\Sigma_j^{-1}
-    \preceq2\bar\Sigma_j^{-1}\qquad\text{for every }j\leq s.
-\end{align}
-Otherwise let $I_s=0$. We say that round $s$ is retained if $I_s=1$.
-The value of $I_s$ is determined before the sample in round $s$,
-as $\Sigma_s$ is determined at the end of round $s-1$.
-In particular, the sample producing the first failed covariance update
-is retained.
-
-The retained rounds form a prefix in the sense that the requirements of
-\cref{fb:spectrum,fb:budget} are satisfied for every retained round and therefore we get
-\begin{align}
-    I_d&\preceq\Sigma_1^{-1}
-    \preceq\bar\Sigma_{t+1}^{-1}\preceq n^2I_d,\notag\\
-    \Sigma_s&\preceq2\sigma^2I_d,\qquad
-    \|\Sigma_s^{-1}\|_{\op}\leq2n^2\quad(s\leq t),\notag\\
-    \sum_s I_sm_s&\leq5n,\qquad m_s=\E_s[Y_s^2].
-    \ineqlabel{conc:stopped}
-\end{align}
-The first lower bound uses $\sigma\leq L^{-2}\leq1$.
-These bounds hold on every path of the stopped process, including the
-conditional mean update at its final retained round. In particular,
-the last bound is a bound on the sum of conditional second moments;
-we do not need a separate stopping rule for the observed feedback.
-
-We use Freedman's inequality \citep{freedman1975tail} in the following
-form. For martingale differences $D_s$ satisfying $|D_s|\leq b$ and
-$\sum_s\E_s[D_s^2]\leq v$ almost surely, at any fixed prefix,
-\begin{align}
-    \Pp\left(\left|\sum_sD_s\right|
-    >2\sqrt{vz}+2bz\right)\leq2e^{-z}.
-    \ineqlabel{conc:freedman}
-\end{align}
-We apply this to bounded, centered truncations of the stopped scores.
-All applications are made under the original probability law. We
-intersect their events with the event that truncation changes no sample
-only after applying the inequality.
-
-\subsection{Truncation and its bias}
-
-For a retained round, define
-\begin{align}
-    W_s=X_s-\mu_s,\qquad Z_s=\Sigma_s^{-1/2}W_s.
-\end{align}
-Conditionally on the past, $Z_s\sim\N(0,I_d)$, and the estimators are
-\begin{align}
-    g_s&=Y_s\Sigma_s^{-1/2}Z_s,\notag\\
-    H_s&=Y_s\Sigma_s^{-1/2}(Z_sZ_s^\top-I_d)\Sigma_s^{-1/2}.
-    \eqlabel{conc:scores}
-\end{align}
-Let
-\begin{align}
-    \mathcal T_s=\bigl\{\|Z_s\|^2\leq8(d+L),\
-    |\xi_s|\leq\sqrt{8L},\ \pi(W_s)\leq1/2\bigr\}.
-\end{align}
-The chi-square inequality of \citet[Lemma~1]{laurent2000adaptive}, the
-noise assumption \cref{eq:noise}, and the gauge tail bound
-\cref{fb:gauge} imply, respectively,
-\begin{align}
-    \Pp_s(\mathcal T_s^c)
-    &\leq e^{-2L}+2e^{-8L}+e^{-L^4/128}
-    \leq4e^{-2L}.
-    \ineqlabel{conc:truncation-tail}
-\end{align}
-For the last tail, use $1/2-2/L^2\geq1/4$ and
-$\sigma\leq L^{-2}$. Let $\mathcal G$ be the event that
-$\mathcal T_s$ holds on every retained sample of every actual epoch.
-There are at most $n$ actual samples, so conditional tail bounds and a
-union bound give
-\begin{align}
-    \Pp(\mathcal G^c)\leq4ne^{-2L}.
-    \ineqlabel{conc:truncation-event}
-\end{align}
-Since $\mu_s\in\K_\eps$, the response formula and
-$v(X_s)\leq2\pi(W_s)$ show that, on $\mathcal T_s$,
-\begin{align}
-    0\leq v(X_s)\leq1,\qquad
-    |Y_s|\leq2(1+\sqrt{8L})+\frac2\eps\leq\frac{CL}{\eps}.
-    \ineqlabel{conc:response-range}
-\end{align}
-
-Truncation changes the conditional means. We next bound this change,
-including for scores involving the same Gaussian variable as $Y_s$.
-For fixed $x\in\mathbb B_{2d+1}$, write
-\begin{align}
-    B_s(x)=\frac\lambda4(x-\mu_s)^\top H_s(x-\mu_s).
-\end{align}
-Thus $\sum_{s\leq t}B_s(x)=\Gamma_t(x)/\eta$.
-We need a common tail estimate for the three types of score
-\begin{align}
-    V_s\in\{u^\top H_su,\ q_s(x),\ B_s(x)\},\qquad \|u\|=1.
-\end{align}
-On a retained round, \cref{conc:stopped,conc:parameters} and
-$\|x-\mu_s\|\leq4d+1$ imply the pointwise bound
-\begin{align}
-    |V_s|\leq Cn^4|Y_s|(1+\|Z_s\|^2).
-\end{align}
-Also $v(X_s)\leq2\|W_s\|\leq4\|Z_s\|$. Conditional on
-$X_s$ and the past, \cref{eq:noise} bounds every fixed moment of
-$\xi_s$, and in particular the fourth moment of $1+|\xi_s|$.
-The response formula therefore gives
-\begin{align}
-    \E_s[|Y_s|^4\mid X_s]
-    &\leq C\eps^{-4}(1+\|Z_s\|)^4,\notag\\
-    \E_s|V_s|^4
-    &\explan{\leq}{a}Cn^{16}\eps^{-4}
-    \E(1+\|Z\|)^{12}
-    \explan{\leq}{b}Cn^{24},\qquad Z\sim\N(0,I_d).
-    \ineqlabel{conc:fourth-moment}
-\end{align}
-Here \reason{a} first conditions on $X_s$, and \reason{b} uses
-$\eps^{-4}\leq n^2$ and
-$\E\|Z\|^{12}=\prod_{j=0}^5{(d+2j)}\leq C d^6\leq Cn^6$.
-
-Let $D_s$ be either $\mathcal T_s^c$ or
-$\{|G_s|>\sqrt{8L}\}$, where $G_s$ is any conditionally standard
-normal scalar formed from $Z_s$. The latter event has conditional
-probability at most $2e^{-4L}$. H\"older's inequality and
-\cref{conc:truncation-tail,conc:fourth-moment} give, for $j=1,2$,
-\begin{align}
-    \E_s[|V_s|^j\1_{D_s}]
-    &\leq (\E_s|V_s|^4)^{j/4}
-    \Pp_s(D_s)^{1-j/4}\notag\\
-    &\leq Cn^{12}e^{-L}=:b_n.
-    \ineqlabel{conc:bias}
-\end{align}
-The exponent $1-j/4$ is at least $1/2$. This is why the same bound
-works for both the first and second moments without assuming that
-$Y_s$ is independent of $G_s$. Since
-$e^{-L}=(\delta/(100nd))^{100}$, we have $nb_n\leq1$ for
-sufficiently large $A$ in the branch $\eps\leq1/2$.
-
-More explicitly, let $J_s\leq I_s$ be any predictable selector and
-put
-\begin{align}
-    D_s^{V}=J_s\bigl(V_s\1_{\mathcal T_s}
-    -\E_s[V_s\1_{\mathcal T_s}]\bigr).
-\end{align}
-On $\mathcal G$, every fixed prefix satisfies
-\begin{align}
-    \sum_{s=1}^tJ_s(V_s-\E_sV_s)
-    =\sum_{s=1}^tD_s^{V}
-    -\sum_{s=1}^tJ_s\E_s[V_s\1_{\mathcal T_s^c}].
-    \eqlabel{conc:centering}
-\end{align}
-The last sum has absolute value at most $nb_n$. This identity is the
-only passage from truncated to untruncated centered scores below.
-
-\subsection{Proof of the uniform estimation bound}
+The following two-sided form of Freedman's inequality follows from
+\citet[Theorem~3.10]{bercu2015concentration} applied to a martingale and its
+negative.
+\begin{lemma}[Freedman's inequality]
+    \label{lem:freedman}
+    Let $(D_s)_{s=1}^t$ be a square-integrable martingale-difference
+    sequence such that, for some $b>0$, $|D_s|\leq b$ almost surely for
+    every $s$. Then, for every $r,z>0$,
+    \begin{align}
+        \Pp\left(
+            \left|\sum_{s=1}^tD_s\right|\geq rz+\frac{bz^2}{3},
+            \quad
+            \sum_{s=1}^t\E_s[D_s^2]\leq r^2
+        \right)
+        \leq2\exp\left(-\frac{z^2}{2}\right).
+    \end{align}
+\end{lemma}
 
 \begin{proof}[Proof of \cref{conc:uniform}]
-    We establish the estimates for the stopped processes first. Every
-    probability estimate below is taken for all deterministic starts
-    and prefixes; their total failure probability is counted in the
-    final step.
+    \proofstepinline{1} First, we fix an epoch.
+    The epochs are random: the round at which an epoch begins and the
+    number of rounds it lasts both depend on the restart test.
+    Concentration inequalities, however, apply to sums with a fixed
+    starting round and a fixed number of terms.
+    We therefore fix a round $s_{\mathrm{epoch}}\in\{1,\dots,n\}$ and a number of rounds $n_{\mathrm{epoch}}\in\{1,\dots,n\}$,
+    and bound the probability of failure of any of the three \cref{conc:covariance,conc:energy,conc:quadratics}
+    in any of those $n_{\mathrm{epoch}}$ rounds, of course if such an epoch exists.
+    At the very end, we will take a union bound over the at most $n^2$ pairs
+    $(s_{\mathrm{epoch}},n_{\mathrm{epoch}})$ to get a global bound.
 
-    \proofstepinline{1}
-    We bound the observed feedback and gradient energy in the current metric.
-    Set $U_s=I_sY_s^2\1_{\mathcal T_s}$ and
-    $B=CL^2/\eps^2$, with $C$ large enough that
-    $0\leq U_s\leq B$ by \cref{conc:response-range}.
-    The conditional mean and variance sums satisfy
+    \proofstepinline{2} We keep only the rounds at which the covariance
+    comparison has held so far.
+    \Cref{fb:spectrum,fb:budget} assume the comparison \cref{fb:comparison},
+    which is part of what we are proving. Number the rounds of the epoch
+    $s=1,\dots,n_{\mathrm{epoch}}$, and let $\chi_s=1$ if
     \begin{align}
-        \sum_s\E_sU_s&\leq\sum_sI_sm_s\leq5n,\notag\\
-        \sum_s\E_s[(U_s-\E_sU_s)^2]
-        &\leq\sum_s\E_sU_s^2
-        \leq B\sum_s\E_sU_s\leq5Bn.
+        \tfrac12\bar\Sigma_j^{-1}\preceq\Sigma_j^{-1}
+        \preceq2\bar\Sigma_j^{-1}\qquad\text{for every }j\leq s,
     \end{align}
-    Apply \cref{conc:freedman} with $z=4L$. On $\mathcal G$ and
-    the resulting event, a retained prefix satisfies
+    and $\chi_s=0$ otherwise. Since $\Sigma_s$ is computed at the end of round
+    $s-1$, $\chi_s$ is determined before the sample in round $s$. Also,
+    $\chi_1=1$ because $\Sigma_1=\bar\Sigma_1$. If $\chi_s=1$, then
+    $\bar\Sigma_s\preceq\sigma^2I_d$ and \cref{fb:spectrum} give
     \begin{align}
-        \sum_{s=1}^tY_s^2
-        &\leq5n+C\sqrt{BnL}+CBL\leq Cn,\notag\\
-        \sum_{s=1}^t\|g_s\|_{\Sigma_s}^2
-        &=\sum_{s=1}^tY_s^2\|Z_s\|^2
-        \leq8(d+L)\sum_{s=1}^tY_s^2\leq CdnL.
-        \ineqlabel{conc:current}
+        \Sigma_s\preceq2\sigma^2I_d,\qquad
+        \|\Sigma_s^{-1}\|_{\op}\leq2n^2,\qquad
+        I_d\preceq\bar\Sigma_{s+1}^{-1}\preceq n^2I_d.
+        \ineqlabel{conc:stopped}
     \end{align}
-    The first line uses $BL\leq C L^3/\eps^2\leq Cn$ from
-    \cref{conc:parameters}. The second uses the Gaussian bound in
-    $\mathcal T_s$ and $d+L\leq2dL$. The required energy uses
-    $\Sigma_{s+1}$; we will compare these adjacent metrics after
-    establishing the covariance estimate.
-
-    \proofstepinline{2}
-    We bound the Hessian error in a fixed direction.
-    Fix a deterministic unit vector $u$, and put
+    The rounds with $\chi_s=1$ are the first few rounds of the epoch, so
+    \cref{fb:budget} gives
     \begin{align}
-        a_s=u^\top\Sigma_s^{-1}u,\qquad
-        G_s=\frac{u^\top\Sigma_s^{-1/2}Z_s}{\sqrt{a_s}}.
+        \sum_{s=1}^{n_{\mathrm{epoch}}}\chi_s\E_s[Y_s^2]\leq5n.
+        \ineqlabel{conc:budget}
     \end{align}
-    Then $G_s$ is conditionally standard normal, and
-    \begin{align}
-        V_s=u^\top H_su=a_sY_s(G_s^2-1).
-    \end{align}
-    The scale $a_s$ is random. To handle it, first fix a deterministic
-    dyadic level $b=2^j$, where
-    $0\leq j\leq\lceil\log_2(4n^2)\rceil$, and use the
-    predictable selector $J_s=I_s\1_{\{a_s\leq b\}}$.
-
-    On $|G_s|\leq\sqrt{8L}$ we have
-    $|G_s^2-1|\leq9L$. On its complement we use
-    \cref{conc:bias}. Consequently,
-    \begin{align}
-        \sum_sJ_s\E_s[V_s^2\1_{\mathcal T_s}]
-        &\leq81b^2L^2\sum_sI_sm_s+nb_n\notag\\
-        &\leq Cb^2L^2n.
-    \end{align}
-    This also bounds the conditional variance sum of the centered
-    truncated scores. For their range, $G_s^2\leq\|Z_s\|^2$ and
-    \cref{conc:response-range} give
-    \begin{align}
-        |J_sV_s\1_{\mathcal T_s}|
-        \leq\frac{Cb(d+L)L}{\eps}
-        \leq\frac{CbdL^2}{\eps}.
-    \end{align}
-    Centering increases this bound by at most a factor of two.
-    Freedman's inequality with $z=4dL$, followed by
-    \cref{conc:centering}, therefore gives on $\mathcal G$
-    \begin{align}
-        \left|\sum_{s=1}^tJ_su^\top(H_s-\bar H_s)u\right|
-        &\leq Cb\left(L^{3/2}\sqrt{dn}
-        +\frac{d^2L^3}{\eps}\right)+nb_n\notag\\
-        &\leq CbL^2\sqrt{dn}.
-        \ineqlabel{conc:direction}
-    \end{align}
-    The second line uses
-    $\eps\geq d^{3/2}L/\sqrt n$ and $nb_n\leq1$.
 
     \proofstepinline{3}
-    We extend the bound to all directions and compare the covariances.
-    Set $h=n^{-40}$ and fix a deterministic $h$-net of the unit
-    sphere with at most $(3/h)^d$ points. Take the events from Step~2
-    for every net point and every dyadic level. Now, for a retained
-    prefix and a net point $u$, choose the least level satisfying
-    $b\geq\max_{s\leq t}a_s$. All rounds of this prefix then have
-    $J_s=1$. Such a level exists because $a_s\leq2n^2$, and
+    We now introduce a \textbf{global} (across all epochs) high probability event $\mathcal G$ that captures
+    the typical size of the Gaussian samples and the noise.
+    Define
     \begin{align}
-        b
-        &\explan{\leq}{a}2\max_{s\leq t}a_s
-        \explan{\leq}{b}4u^\top\bar\Sigma_{t+1}^{-1}u.
+        W_s=X_s-\mu_s,\qquad Z_s=\Sigma_s^{-1/2}W_s.
     \end{align}
-    For \reason{a}, note that
-    $a_s\geq\sigma^{-2}/2\geq1$. For \reason{b}, use
-    $\Sigma_s^{-1}\preceq2\bar\Sigma_s^{-1}$ and the monotonicity
-    of $\bar\Sigma_s^{-1}$. Thus the random choice of scale is made
-    only after the estimates hold for every deterministic level.
+    Conditionally on the past, $Z_s\sim\N(0,I_d)$, and the estimators are
+    \begin{align}
+        g_s&=Y_s\Sigma_s^{-1/2}Z_s,\notag\\
+        H_s&=Y_s\Sigma_s^{-1/2}(Z_sZ_s^\top-I_d)\Sigma_s^{-1/2}.
+        \eqlabel{conc:scores}
+    \end{align}
+    Let
+    \begin{align}
+        \mathcal T_s=\bigl\{\|Z_s\|^2\leq8(d+L),\
+        |\xi_s|\leq\sqrt{8L},\ \pi(W_s)\leq1/2\bigr\}.
+    \end{align}
+    The chi-square inequality of \citet[Lemma~1]{laurent2000adaptive}, the
+    noise assumption \cref{eq:noise}, and the gauge tail bound
+    \cref{fb:gauge} imply, respectively,
+    \begin{align}
+        \Pp_s(\mathcal T_s^c)
+        &\leq e^{-2L}+2e^{-8L}+e^{-L^4/128}
+        \leq4e^{-2L}.
+        \ineqlabel{conc:truncation-tail}
+    \end{align}
+    For the last tail, use $1/2-2/L^2\geq1/4$ and
+    $\sigma\leq L^{-2}$. The gauge tail bound \cref{fb:gauge} needs
+    $\Sigma_s\preceq2\sigma^2I_d$, which \cref{conc:stopped} gives when
+    $\chi_s=1$, so \cref{conc:truncation-tail} holds at every round with
+    $\chi_s=1$. Let $\mathcal G$ be the event that, in every epoch of the
+    algorithm, $\mathcal T_s$ holds at every round $s$ with $\chi_s=1$. The
+    algorithm runs for $n$ rounds in total, so the conditional tail bounds
+    and a union bound give
+    \begin{align}
+        \Pp(\mathcal G^c)\leq4ne^{-2L}.
+        \ineqlabel{conc:truncation-event}
+    \end{align}
+    Since $\mu_s\in\K_\eps$, the response formula and
+    $v(X_s)\leq2\pi(W_s)$ show that, on $\mathcal T_s$,
+    \begin{align}
+        0\leq v(X_s)\leq1,\qquad
+        |Y_s|\leq2(1+\sqrt{8L})+\frac2\eps\leq\frac{CL}{\eps}.
+        \ineqlabel{conc:response-range}
+    \end{align}
 
-    Put $N_t=\sum_{s=1}^t(H_s-\bar H_s)$ and
-    $D=CL^2\sqrt{dn}$. After increasing $C$, \cref{conc:direction}
-    gives
+    \proofstepinline{4}
+    We state one concentration bound that we will apply
+    to several sums. In each application, $V_s$ is one of the following,
+    for $s=1,\dots,n_{\mathrm{epoch}}$:
+    \begin{itemize}
+        \item $V_s=Y_s^2$;
+        \item $V_s=u^\top H_su$ for a fixed unit vector $u$, whose sum
+            controls the sampled inverse covariance;
+        \item $V_s=q_s(x)$ for a fixed $x\in\mathbb B_{2d+1}$, whose sum
+            is $Q_t(x)$;
+        \item $V_s=\frac\lambda4\|x-\mu_s\|_{H_s}^2$ for a fixed
+            $x\in\mathbb B_{2d+1}$, whose sum is $\Gamma_t(x)/\eta$.
+    \end{itemize}
+    In each case $V_s$ is determined by the history up to the end of
+    round $s$.
+    For the last three choices, the bound $\|\Sigma_s^{-1}\|_{\op}\leq2n^2$
+    from \cref{conc:stopped}, together with $\|x-\mu_s\|\leq4d+1$ (since
+    $\mu_s\in\K_\eps\subseteq\mathbb B_{2d}$) and $\lambda\leq1$, gives
     \begin{align}
-        |u^\top N_tu|\leq D u^\top\bar\Sigma_{t+1}^{-1}u
-        \qquad\text{at every net point }u.
+        \chi_s|V_s|\leq Cn^4|Y_s|(1+\|Z_s\|^2).
+        \ineqlabel{conc:crude}
     \end{align}
-    To extend this inequality to every direction, we use crude
-    operator bounds only for the interpolation error. On
-    $\mathcal G$, \cref{conc:scores,conc:stopped,conc:parameters}
-    give
-    \begin{align}
-        \|g_s\|&\leq Cn^3,& \|H_s\|_{\op}&\leq Cn^5.
-    \end{align}
-    Also, \cref{lem:extension,fb:hessian-norm} give
-    \begin{align}
-        \|\bar g_s\|&\leq5/\eps,&
-        \|\bar H_s\|_{\op}
-        &\leq(5/\eps)\|\Sigma_s^{-1}\|_{\op}^{1/2}
-        \leq Cn^2.
-        \ineqlabel{conc:operator-bounds}
-    \end{align}
-    Hence $\|N_t\|_{\op}\leq Cn^6$. For any unit $u$, choose a
-    net point $u_0$ with $\|u-u_0\|\leq h$. The identity
-    $u^\top Nu-u_0^\top Nu_0
-    =(u-u_0)^\top Nu+u_0^\top N(u-u_0)$ gives
-    \begin{align}
-        |u^\top N_tu|
-        &\leq D u^\top\bar\Sigma_{t+1}^{-1}u\notag\\
-        &\quad+2h\bigl(\|N_t\|_{\op}
-        +D\|\bar\Sigma_{t+1}^{-1}\|_{\op}\bigr)\notag\\
-        &\leq2D u^\top\bar\Sigma_{t+1}^{-1}u.
-        \ineqlabel{conc:matrix-error}
-    \end{align}
-    Indeed, $D\leq Cn^3$, the error on the second line is at most
-    $Cn^{-34}$, and
-    $u^\top\bar\Sigma_{t+1}^{-1}u\geq1$. This proves the
-    matrix bound using a net chosen independently of the random
-    covariance.
+    For example, $|u^\top H_su|=|Y_s|\,|(u^\top\Sigma_s^{-1/2}Z_s)^2
+    -u^\top\Sigma_s^{-1}u|\leq2n^2|Y_s|(1+\|Z_s\|^2)$, and the other two
+    cases are similar, with the extra factor coming from $\|x-\mu_s\|^2$.
 
-    At the last retained round, let
-    $P_{t+1}=\Sigma_t^{-1}+(\eta\lambda/2)H_t$ be the proposed
-    inverse covariance, whether or not the algorithm has accepted it.
-    The previous updates telescope, so
+    \proofstepinline{4.1} We bound the fourth moment of $V_s$.
+    Since $v(X_s)\leq2\|W_s\|\leq4\|Z_s\|$ and
+    $Y_s=e_s(X_s)+(1+v(X_s))\xi_s$ with $0\leq f_s\leq1$, we have
     \begin{align}
-        P_{t+1}-\bar\Sigma_{t+1}^{-1}
-        =\frac{\eta\lambda}{2}N_t.
+        |Y_s|\leq\frac C\eps(1+|\xi_s|)(1+\|Z_s\|).
     \end{align}
-    By \cref{conc:matrix-error} its relative quadratic-form error
-    is at most
+    Conditionally on $X_s$ and the past, \cref{eq:noise} bounds every
+    fixed moment of $\xi_s$, so
+    $\E_s[|Y_s|^4\mid X_s]\leq C\eps^{-4}(1+\|Z_s\|)^4$. Combining this
+    with \cref{conc:crude} gives
     \begin{align}
-        \eta\lambda D=\frac{C}{A^3L^2}\leq\frac14.
+        \chi_s\E_s|V_s|^4
+        \leq Cn^{16}\eps^{-4}\,\E(1+\|Z\|)^{12}
+        \leq Cn^{24},\qquad Z\sim\N(0,I_d),
+        \ineqlabel{conc:fourth-moment}
     \end{align}
-    Thus $P_{t+1}$ is positive definite and lies between
-    $\tfrac34\bar\Sigma_{t+1}^{-1}$ and
-    $\tfrac54\bar\Sigma_{t+1}^{-1}$. A first failure of positive
-    definiteness or of the weaker comparison used to define $I_s$
-    is impossible: its sample would be retained and would satisfy
-    this stronger conclusion. Every round of every actual epoch is
-    therefore retained, and the covariance assertion in
-    \cref{conc:energy} holds, including the final update.
+    where the last inequality uses $\eps^{-4}\leq n^2$ and
+    $\E\|Z\|^{12}=\prod_{j=0}^5(d+2j)\leq Cd^6\leq Cn^6$.
 
-    We can now compare the adjacent metrics. For $s\geq1$,
-    including the common initialization at $s=1$,
+    \proofstepinline{4.2} We bound the effect of truncation on the
+    conditional means. Let $O_s$ be either $\mathcal T_s^c$ or
+    $\{|w_s^\top Z_s|>\sqrt{8L}\}$, where $w_s$ is a unit vector determined
+    before the sample in round $s$.
+    By \cref{conc:truncation-tail} and the Gaussian
+    tail bound, $\chi_s\Pp_s(O_s)\leq4e^{-2L}$.
+    H\"older's inequality and
+    \cref{conc:fourth-moment} then give, for $j=1,2$,
     \begin{align}
-        \Sigma_{s+1}^{-1}
-        &\succeq\tfrac34\bar\Sigma_{s+1}^{-1}
+        \chi_s\E_s[|V_s|^j\1_{O_s}]
+        \leq\bigl(\chi_s\E_s|V_s|^4\bigr)^{j/4}
+        \bigl(\chi_s\Pp_s(O_s)\bigr)^{1-j/4}
+        \leq Cn^{12}e^{-L}.
+        \ineqlabel{conc:bias}
+    \end{align}
+
+    \proofstepinline{4.3} We reduce to a martingale with bounded
+    increments. Put
+    \begin{align}
+        D_s=\chi_s\bigl(V_s\1_{\mathcal T_s}-\E_s[V_s\1_{\mathcal T_s}]\bigr).
+    \end{align}
+    Since $\chi_s$ is determined before the sample in round $s$, we have
+    $\E_sD_s=0$. On $\mathcal G$ we have $\chi_s\1_{\mathcal T_s}=\chi_s$, so for
+    every $t\leq n_{\mathrm{epoch}}$,
+    \begin{align}
+        \sum_{s=1}^t\chi_s(V_s-\E_sV_s)
+        =\sum_{s=1}^tD_s
+        -\sum_{s=1}^t\chi_s\E_s[V_s\1_{\mathcal T_s^c}].
+        \eqlabel{conc:centering}
+    \end{align}
+    By \cref{conc:bias} with $j=1$ and $O_s=\mathcal T_s^c$, the last sum is
+    at most $Cn^{13}e^{-L}\leq1$ in absolute value, since
+    $L=100\log(100nd/\delta)$.
+
+    For the first sum, let $b>0$ be a number
+    such that $\chi_s|V_s|\1_{\mathcal T_s}\leq b$ for every $s$. Then
+    $|D_s|\leq2b$ and $\E_s[D_s^2]\leq \chi_s\E_s[V_s^2\1_{\mathcal T_s}]$.
+    Applying \cref{lem:freedman} for each $t\leq n_{\mathrm{epoch}}$ shows
+    that, for every $r,z>0$, with probability at least
+    $1-2ne^{-z^2/2}$,
+    \begin{align}
+        \left|\sum_{s=1}^tD_s\right|<rz+\frac{2bz^2}{3}
+        \qquad\text{for every }t\leq n_{\mathrm{epoch}}\text{ with }
+        \sum_{s=1}^t\chi_s\E_s[V_s^2\1_{\mathcal T_s}]\leq r^2.
+        \ineqlabel{conc:freedman}
+    \end{align}
+    Each of the following steps chooses $V_s$, finds $b$ and $r$, and
+    applies \cref{conc:freedman}.
+
+    \proofstepinline{5} We bound $\sum_{s=1}^tY_s^2$ and
+    $\sum_{s=1}^t\|g_s\|_{\Sigma_s}^2$ first.
+    To bound $\sum_{s=1}^tY_s^2$, take $V_s=Y_s^2$.
+    By \cref{conc:response-range},
+    $\chi_sY_s^2\1_{\mathcal T_s}\leq b$ with $b=CL^2/\eps^2$, and
+    \cref{conc:budget} gives
+    \begin{align}
+        \sum_{s=1}^{n_{\mathrm{epoch}}}\chi_s\E_s[Y_s^4\1_{\mathcal T_s}]
+        \leq b\sum_{s=1}^{n_{\mathrm{epoch}}}\chi_s\E_s[Y_s^2]\leq5bn.
+    \end{align}
+    Since $Y_s^2\geq0$, the last sum in \cref{conc:centering} is
+    nonnegative, so we may drop it and do not need \cref{conc:bias}.
+    Applying \cref{conc:freedman} with $r=\sqrt{5bn}$ and $z=2\sqrt L$
+    shows that, with probability at least $1-2ne^{-2L}$, on $\mathcal G$,
+    \begin{align}
+        \sum_{s=1}^t\chi_sY_s^2
+        \leq5n+2\sqrt{5bnL}+\frac{8bL}{3}
+        \leq Cn
+        \qquad\text{for every }t\leq n_{\mathrm{epoch}}.
+        \ineqlabel{conc:feedback-energy}
+    \end{align}
+    The last inequality uses $bL\leq CL^3/\eps^2\leq Cn$, which follows from
+    \cref{conc:parameters}.
+
+    \proofstepinline{5.1} We bound $\sum_{s=1}^t\|g_s\|_{\Sigma_s}^2$.
+    By \cref{conc:scores}, $\|g_s\|_{\Sigma_s}^2=Y_s^2\|Z_s\|^2$. On
+    $\mathcal G$ we have $\chi_s\|Z_s\|^2\leq8(d+L)\chi_s$, so
+    \cref{conc:feedback-energy} and $d+L\leq2dL$ give
+    \begin{align}
+        \sum_{s=1}^t\chi_s\|g_s\|_{\Sigma_s}^2
+        \leq8(d+L)\sum_{s=1}^t\chi_sY_s^2
+        \leq CdnL
+        \qquad\text{for every }t\leq n_{\mathrm{epoch}}.
+        \ineqlabel{conc:current}
+    \end{align}
+    The second bound in \cref{conc:energy} uses $\Sigma_{s+1}$ in place
+    of $\Sigma_s$. We pass between the two after proving the covariance
+    comparison.
+
+    \proofstepinline{6} We prove the covariance comparison
+    \cref{conc:covariance}.
+    Both $\Sigma_s^{-1}$ and $\bar\Sigma_s^{-1}$ start at $\sigma^{-2}I_d$.
+    At each round the first adds $\frac{\eta\lambda}2H_s$ and the second
+    adds $\frac{\eta\lambda}2\bar H_s$. Hence
+    \begin{align}
+        \Sigma_{t+1}^{-1}-\bar\Sigma_{t+1}^{-1}
+        =\frac{\eta\lambda}{2}\sum_{s=1}^t(H_s-\bar H_s).
+        \eqlabel{conc:telescoping}
+    \end{align}
+    The comparison \cref{conc:covariance} therefore follows once we show
+    that, for every unit vector $u$,
+    \begin{align}
+        \left|u^\top\sum_{s=1}^t(H_s-\bar H_s)u\right|
+        \leq\frac{1}{2\eta\lambda}\,u^\top\bar\Sigma_{t+1}^{-1}u.
+        \ineqlabel{conc:goal}
+    \end{align}
+
+    \proofstepinline{6.1} First we truncate the sum to the event $\mathcal T_s$.
+    Fix a unit vector $u$, take $V_s=u^\top H_su$ in Step~4, and let
+    \begin{align}
+        D_s=\chi_s\bigl(u^\top H_su\,\1_{\mathcal T_s}
+        -\E_s[u^\top H_su\,\1_{\mathcal T_s}]\bigr).
+    \end{align}
+    Let $t\leq n_{\mathrm{epoch}}$ with $\chi_t=1$, so that $\chi_s=1$ for every
+    $s\leq t$. Since $\E_s[u^\top H_su]=u^\top\bar H_su$,
+    \cref{conc:centering} and the bound on its last sum show that, on
+    $\mathcal G$,
+    \begin{align}
+        \left|u^\top\sum_{s=1}^t(H_s-\bar H_s)u-\sum_{s=1}^tD_s\right|\leq1.
+    \end{align}
+    Since $\eta\lambda\leq1/4$ and
+    $u^\top\bar\Sigma_{t+1}^{-1}u\geq\sigma^{-2}\geq1$, this error is at most
+    $\frac1{4\eta\lambda}u^\top\bar\Sigma_{t+1}^{-1}u$. Hence
+    \cref{conc:goal} follows once we show that
+    \begin{align}
+        \left|\sum_{s=1}^tD_s\right|
+        \leq\frac{1}{4\eta\lambda}\,u^\top\bar\Sigma_{t+1}^{-1}u.
+        \ineqlabel{conc:truncated-goal}
+    \end{align}
+
+    \proofstepinline{6.2}
+    Note that the right side of \cref{conc:truncated-goal} is random, so no single choice of $r$ and $b$ in
+    Freedman's inequality will give the bound we need.
+    However, we do have a range for the right side:
+    since $\chi_t=1$ by the choice of $t$, from \cref{fb:spectrum} we have
+    \begin{align}
+        \sigma^{-2}\leq u^\top\bar\Sigma_{t+1}^{-1} u \leq n^2\,.
+    \end{align}
+    We therefore cover this range by the levels
+    \begin{align}
+        a_k \triangleq 2^k\sigma^{-2},\qquad k=0,1,\dots,\lceil\log_2(n^2\sigma^2)\rceil,
+    \end{align}
+    of which there are at most $2\log_2n+2$. If $k$ is the smallest index
+    with $a_k \geq u^\top\bar\Sigma_{t+1}^{-1}u$, then
+    \begin{align}
+        u^\top\bar\Sigma_{t+1}^{-1}u\leq
+        a_k
+        \leq2\,u^\top\bar\Sigma_{t+1}^{-1}u.
+    \end{align}
+    We apply Freedman's inequality once for each level, with $r$ and $b$
+    chosen for that level, and then use the level that matches the right
+    side of \cref{conc:truncated-goal}.
+
+    \proofstepinline{6.3}
+    Applying \cref{conc:freedman} also needs a bound on the absolute value of the increments $D_s$.
+    To this end, observe that
+    \begin{align}
+        u^\top H_su
+        =Y_s\bigl((u^\top\Sigma_s^{-1/2}Z_s)^2-u^\top\Sigma_s^{-1}u\bigr)
+        =(u^\top\Sigma_s^{-1}u)\,Y_s\,(G_s^2-1),
+        \eqlabel{conc:direction-form}
+    \end{align}
+    where $G_s=\frac{u^\top\Sigma_s^{-1/2}Z_s}{\sqrt{u^\top\Sigma_s^{-1}u}}$.
+    Note that $\frac{u^\top\Sigma_s^{-1/2}}{\sqrt{u^\top\Sigma_s^{-1}u}}$
+    has unit length and is determined before the sample in round $s$, and $Z_s$ is
+    standard normal given the past, so $G_s\sim\mathcal N(0,1)$ is standard normal given the
+    past.
+    Now, on $\mathcal T_s$, \cref{conc:direction-form,conc:response-range} and
+    $G_s^2\leq\|Z_s\|^2\leq8(d+L)$ give
+    \begin{align}
+        1_{\mathcal{T}_s}|u^\top H_su|\leq\bigl(u^\top\Sigma_s^{-1}u\bigr)\frac{CdL^2}{\eps}\,.
+        \label{conc:direction-range}
+    \end{align}
+    Now, since $\chi_s=1$, we have that
+    \begin{align}
+        u^\top\Sigma_s^{-1}u\leq2\,u^\top\bar\Sigma_s^{-1}u
+        \leq2\,u^\top\bar\Sigma_{t+1}^{-1}u,
+    \end{align}
+    where the last inequality uses that $\bar\Sigma_s^{-1}$ is increasing in $s$.
+    Let
+    \begin{align}
+        \iota_{k,s}\triangleq 1\{u^\top \bar\Sigma_s^{-1} u \leq a_k\},
+    \end{align}
+    and note that $\iota_{k,s}$ is known before the sample in round $s$ so
+    \begin{align}
+        D_{k,s} \triangleq \iota_{k,s}D_s
+    \end{align}
+    is a martingale difference sequence.
+    To apply Freedman's inequality to $D_{k,s}$, we need to bound the increments and their conditional second moments.
+
+    \proofstepinline{6.3.1}
+    First we bound the increments size $|D_{k,s}|$.
+    From the definition of $D_{k,s}$, we have
+    \begin{align}
+        |D_{k,s}| = |\iota_{k,s}D_s|
+        &= \iota_{k,s}\chi_s\left|
+        u^\top H_su\,\1_{\mathcal T_s}
+        -\E_s[u^\top H_su\,\1_{\mathcal T_s}]\right|\\
+        &\leq\iota_{k,s}\chi_s\Bigl(|u^\top H_su|\,\1_{\mathcal T_s}
+        +\E_s\bigl[|u^\top H_su|\,\1_{\mathcal T_s}\bigr]\Bigr).
+    \end{align}
+    When $\iota_{k,s}\chi_s=1$, we have
+    $u^\top\Sigma_s^{-1}u\leq2\,u^\top\bar\Sigma_s^{-1}u\leq2a_k$, so \cref{conc:direction-range} gives
+    $\iota_{k,s}\chi_s|u^\top H_su|\,\1_{\mathcal T_s}\leq2a_kCdL^2/\eps$.
+    The conditional mean satisfies the same bound, and hence
+    \begin{align}
+        |D_{k,s}|\leq\frac{Ca_kdL^2}{\eps}.
+        \ineqlabel{conc:level-range}
+    \end{align}
+
+    \proofstepinline{6.3.2}
+    Next we bound the conditional second moments of $D_{k,s}$.
+    Since $D_{k,s}=X-\E_s[X]$ with
+    $X=\iota_{k,s}\chi_s\,u^\top H_su\,\1_{\mathcal T_s}$, we have
+    $\E_s[D_{k,s}^2]=\E_s[X^2]-(\E_s[X])^2\leq\E_s[X^2]$, that is,
+    \begin{align}
+        \E_s[D_{k,s}^2]
+        \leq\iota_{k,s}\chi_s\E_s\bigl[(u^\top H_su)^2\1_{\mathcal T_s}\bigr].
+    \end{align}
+    We split according to whether $|G_s|\leq\sqrt{8L}$. On this event
+    $(G_s^2-1)^2\leq64L^2$, so when $\iota_{k,s}\chi_s=1$,
+    \cref{conc:direction-form} and $u^\top\Sigma_s^{-1}u\leq2a_k$ give
+    $(u^\top H_su)^2\leq256a_k^2L^2Y_s^2$. On its complement we use
+    \cref{conc:bias} with $j=2$ and $O_s=\{|G_s|>\sqrt{8L}\}$. Summing over
+    $s$ and using \cref{conc:budget}, we get
+    \begin{align}
+        \sum_{s=1}^{n_{\mathrm{epoch}}}\E_s[D_{k,s}^2]
+        \leq256a_k^2L^2\sum_{s=1}^{n_{\mathrm{epoch}}}\chi_s\E_s[Y_s^2]
+        +Cn^{13}e^{-L}
+        \leq Ca_k^2L^2n.
+        \ineqlabel{conc:level-variance}
+    \end{align}
+    The last inequality uses $Cn^{13}e^{-L}\leq1\leq a_k^2$.
+
+    \proofstepinline{6.4}
+    We apply Freedman's inequality at a fixed level. Fix $u$ and $k$, and
+    put
+    \begin{align}
+        b=\frac{Ca_kdL^2}{\eps},\qquad r=Ca_kL\sqrt n,\qquad z=\sqrt{8dL},
+    \end{align}
+    so that $|D_{k,s}|\leq b$ by \cref{conc:level-range} and
+    $\sum_{s=1}^t\E_s[D_{k,s}^2]\leq r^2$ for every $t$ by
+    \cref{conc:level-variance}. Applying \cref{lem:freedman} for each
+    $t\leq n_{\mathrm{epoch}}$ shows that, with probability at least
+    $1-2ne^{-4dL}$,
+    \begin{align}
+        \left|\sum_{s=1}^tD_{k,s}\right|
+        \leq rz+\frac{bz^2}{3}
+        \leq Ca_k\left(L^{3/2}\sqrt{dn}+\frac{d^2L^3}{\eps}\right)
+        \leq Ca_kL^2\sqrt{dn}
+        \qquad\text{for every }t\leq n_{\mathrm{epoch}}.
+        \ineqlabel{conc:level-freedman}
+    \end{align}
+    The last inequality uses $\eps\geq d^{3/2}L/\sqrt n$.
+
+    \proofstepinline{6.5}
+    We choose the level that matches the right side of
+    \cref{conc:truncated-goal}. By a union bound over the at most
+    $2\log_2n+2$ levels, with probability at least
+    $1-2n(2\log_2n+2)e^{-4dL}$, \cref{conc:level-freedman} holds for every
+    $k$ at once. Let $t\leq n_{\mathrm{epoch}}$ with $\chi_t=1$, and let $k$ be
+    the smallest index with $a_k\geq u^\top\bar\Sigma_{t+1}^{-1}u$, so that
+    $a_k\leq2\,u^\top\bar\Sigma_{t+1}^{-1}u$. Since $\bar\Sigma_s^{-1}$ is
+    nondecreasing in $s$, we have
+    $u^\top\bar\Sigma_s^{-1}u\leq u^\top\bar\Sigma_{t+1}^{-1}u\leq a_k$ for
+    every $s\leq t$. Hence $\iota_{k,s}=1$ and $D_{k,s}=D_s$ for every
+    $s\leq t$, and
+    \begin{align}
+        \left|\sum_{s=1}^tD_s\right|
+        =\left|\sum_{s=1}^tD_{k,s}\right|
+        \leq Ca_kL^2\sqrt{dn}
+        \leq2CL^2\sqrt{dn}\,u^\top\bar\Sigma_{t+1}^{-1}u
+        \leq\frac{1}{4\eta\lambda}\,u^\top\bar\Sigma_{t+1}^{-1}u.
+    \end{align}
+    The last inequality uses $\eta\lambda=1/(A^3\sqrt{dn}L^4)$ and that $A$
+    is large. This proves \cref{conc:truncated-goal}, and hence, on
+    $\mathcal G$, \cref{conc:goal}, for the fixed unit vector $u$.
+
+    \proofstepinline{6.6}
+    We extend \cref{conc:goal} from a fixed unit vector to all unit vectors.
+    Let $h=n^{-40}$, and fix a set $\mathcal N$ of at most $(3/h)^d$ unit
+    vectors such that every unit vector is within distance $h$ of some
+    element of $\mathcal N$. A union bound over $\mathcal N$ shows that,
+    with probability at least $1-(3/h)^d\,2n(2\log_2n+2)e^{-4dL}$, the
+    conclusion of Step~6.5 holds at every $u_0\in\mathcal N$. Together with
+    Step~6.1 this gives, on $\mathcal G$, for every $u_0\in\mathcal N$ and
+    every $t\leq n_{\mathrm{epoch}}$ with $\chi_t=1$,
+    \begin{align}
+        \left|u_0^\top\sum_{s=1}^t(H_s-\bar H_s)u_0\right|
+        \leq\frac{1}{4\eta\lambda}\,u_0^\top\bar\Sigma_{t+1}^{-1}u_0+1.
+    \end{align}
+    To pass to an arbitrary unit vector we use crude bounds on the
+    matrices. On $\mathcal G$, for $s\leq t$,
+    \cref{conc:scores,conc:stopped,conc:response-range} give
+    $\|H_s\|_{\op}\leq|Y_s|\,\|\Sigma_s^{-1}\|_{\op}(\|Z_s\|^2+1)\leq Cn^5$,
+    and \cref{fb:hessian-norm} gives
+    $\|\bar H_s\|_{\op}\leq(5/\eps)\|\Sigma_s^{-1}\|_{\op}^{1/2}\leq Cn^2$.
+    Hence
+    \begin{align}
+        \left\|\sum_{s=1}^t(H_s-\bar H_s)\right\|_{\op}\leq Cn^6.
+    \end{align}
+    Now let $u$ be a unit vector and choose $u_0\in\mathcal N$ with
+    $\|u-u_0\|\leq h$. For any matrix $M$, the identity
+    $u^\top Mu-u_0^\top Mu_0=(u-u_0)^\top Mu+u_0^\top M(u-u_0)$ gives
+    $|u^\top Mu-u_0^\top Mu_0|\leq2h\|M\|_{\op}$. Applying this to the sum
+    above and to $\bar\Sigma_{t+1}^{-1}$, whose operator norm is at most
+    $n^2$, and using $u^\top\bar\Sigma_{t+1}^{-1}u\geq1$, we get
+    \begin{align}
+        \left|u^\top\sum_{s=1}^t(H_s-\bar H_s)u\right|
+        \leq\frac{1+2hn^2}{4\eta\lambda}\,u^\top\bar\Sigma_{t+1}^{-1}u
+        +1+Cn^6h
+        \leq\frac{1}{2\eta\lambda}\,u^\top\bar\Sigma_{t+1}^{-1}u.
+    \end{align}
+    The last inequality uses $h=n^{-40}$, $\eta\lambda\leq1/16$ and
+    $u^\top\bar\Sigma_{t+1}^{-1}u\geq1$. This proves \cref{conc:goal} for
+    every unit vector $u$.
+
+    \proofstepinline{6.7}
+    We conclude the covariance comparison. Let $t\leq n_{\mathrm{epoch}}$
+    with $\chi_t=1$. By \cref{conc:telescoping} and \cref{conc:goal} for every
+    unit vector $u$,
+    \begin{align}
+        \left|u^\top\bigl(\Sigma_{t+1}^{-1}-\bar\Sigma_{t+1}^{-1}\bigr)u\right|
+        \leq\tfrac14\,u^\top\bar\Sigma_{t+1}^{-1}u
+        \qquad\text{for every }u,
+    \end{align}
+    that is,
+    \begin{align}
+        \tfrac34\bar\Sigma_{t+1}^{-1}\preceq\Sigma_{t+1}^{-1}
+        \preceq\tfrac54\bar\Sigma_{t+1}^{-1}.
+        \ineqlabel{conc:comparison-proved}
+    \end{align}
+    Here $\Sigma_{t+1}^{-1}=\Sigma_t^{-1}+\frac{\eta\lambda}2H_t$ is the
+    matrix the algorithm forms in round $t$. By
+    \cref{conc:comparison-proved} it is positive definite, so the algorithm
+    does not stop in round $t$. Since $\frac12\leq\frac34$ and
+    $\frac54\leq2$, the comparison in the definition of $\chi_s$ also holds at
+    round $t+1$, so $\chi_{t+1}=1$ whenever $t+1\leq n_{\mathrm{epoch}}$.
+    Because $\chi_1=1$, induction gives $\chi_s=1$ for every
+    $s\leq n_{\mathrm{epoch}}$, and \cref{conc:comparison-proved} holds at
+    every round of the epoch. This proves \cref{conc:covariance}.
+
+    \proofstepinline{6.8}
+    We prove \cref{conc:energy}. Since $\chi_s=1$ for every
+    $s\leq n_{\mathrm{epoch}}$, the first bound in \cref{conc:energy} is
+    \cref{conc:feedback-energy}. For the second, let
+    $s\leq n_{\mathrm{epoch}}$. By \cref{conc:comparison-proved} at rounds
+    $s$ and $s+1$ (for $s=1$ use $\Sigma_1=\bar\Sigma_1$), and since
+    $\bar\Sigma_s^{-1}$ is nondecreasing in $s$,
+    \begin{align}
+        \Sigma_{s+1}^{-1}\succeq\tfrac34\bar\Sigma_{s+1}^{-1}
         \succeq\tfrac34\bar\Sigma_s^{-1}
         \succeq\tfrac35\Sigma_s^{-1}.
     \end{align}
-    Inversion gives $\Sigma_{s+1}\preceq(5/3)\Sigma_s$.
-    Combining this with \cref{conc:current} proves the gradient
-    energy assertion in \cref{conc:energy}.
+    Inverting gives $\Sigma_{s+1}\preceq\frac53\Sigma_s$, so
+    $\|g_s\|_{\Sigma_{s+1}}^2\leq\frac53\|g_s\|_{\Sigma_s}^2$. Together with
+    \cref{conc:current}, this gives
+    \begin{align}
+        \sum_{s=1}^t\|g_s\|_{\Sigma_{s+1}}^2\leq CdnL
+        \qquad\text{for every }t\leq n_{\mathrm{epoch}},
+    \end{align}
+    which is the second bound in \cref{conc:energy}.
 
-    \proofstepinline{4}
-    We bound the two quadratic errors at a fixed point.
-    Fix a deterministic $x\in\mathbb B_{2d+1}$, and put
-    $r_s=\|x-\mu_s\|_{\Sigma_s^{-1}}$. We again use a
-    predictable selector, now
-    $J_s=I_s\1_{\{r_s\leq2R\}}$.
-    If $r_s>0$, define
+    \proofstepinline{7} We prove the bounds on the quadratic errors
+    \cref{conc:quadratics}. By the definitions
+    \cref{conc:quadratic-definitions},
     \begin{align}
-        G_s=\frac{(x-\mu_s)^\top\Sigma_s^{-1/2}Z_s}{r_s}.
+        Q_t(x)-\bar Q_t(x)=\sum_{s=1}^t\bigl(q_s(x)-\bar q_s(x)\bigr),
+        \qquad
+        \frac{\Gamma_t(x)-\bar\Gamma_t(x)}{\eta}
+        =\frac\lambda4\sum_{s=1}^t\|x-\mu_s\|_{H_s-\bar H_s}^2,
     \end{align}
-    This scalar is conditionally standard normal, and
-    \begin{align}
-        q_s(x)&=Y_s\left(r_sG_s
-        +\frac\lambda2r_s^2(G_s^2-1)\right),\notag\\
-        B_s(x)&=\frac\lambda4r_s^2Y_s(G_s^2-1).
-        \eqlabel{conc:scalar-quadratics}
-    \end{align}
-    Both scores vanish if $r_s=0$; in that case choose, for example,
-    $G_s$ to be the first coordinate of $Z_s$.
+    and since $\bar q_s(x)=\E_s[q_s(x)]$ and $\bar H_s=\E_s[H_s]$, both are
+    martingales for each fixed $x$. As in Step~6, we first treat a fixed
+    point and then pass to all points of the focus set with a net.
 
-    On $r_s\leq2R$ and $|G_s|\leq\sqrt{8L}$, the absolute
-    coefficient of $Y_s$ in either score is at most
+    \proofstepinline{7.1}
+    We write the terms at a fixed point in closed form. Fix
+    $x\in\mathbb B_{2d+1}$ and let
+    $\theta_s=\|x-\mu_s\|_{\Sigma_s^{-1}}$. If $\theta_s>0$, let
     \begin{align}
-        2R\sqrt{8L}+2\lambda R^2(8L+1)\leq\frac2\lambda.
+        G_s=\frac{(x-\mu_s)^\top\Sigma_s^{-1/2}Z_s}{\theta_s}.
     \end{align}
-    This follows by substituting $R^2=1/(32\lambda^2L)$.
-    Split the conditional second moment at
-    $|G_s|=\sqrt{8L}$, and use \cref{conc:bias} for the tail.
-    For either $V_s=q_s(x)$ or $V_s=B_s(x)$, we obtain
+    The vector $\Sigma_s^{-1/2}(x-\mu_s)/\theta_s$ has unit length and is
+    determined before the sample in round $s$, so $G_s$ is standard normal
+    given the past. By \cref{conc:scores},
     \begin{align}
-        \sum_sJ_s\E_s[V_s^2\1_{\mathcal T_s}]
-        &\leq\frac4{\lambda^2}\sum_sI_sm_s+nb_n
+        q_s(x)=Y_s\Bigl(\theta_sG_s+\frac\lambda2\theta_s^2(G_s^2-1)\Bigr),
+        \qquad
+        \frac\lambda4\|x-\mu_s\|_{H_s}^2
+        =\frac\lambda4\theta_s^2\,Y_s(G_s^2-1).
+        \eqlabel{conc:point-form}
+    \end{align}
+    Both terms vanish if $\theta_s=0$. For a point of the focus set we
+    will have $\theta_s\leq R$, and the net in Step~7.5 needs a little
+    room, so we keep only the rounds with $\theta_s\leq2R$. Let
+    \begin{align}
+        \iota_s=\1\{\theta_s\leq2R\},
+    \end{align}
+    which is determined before the sample in round $s$. Let $V_s$ be either
+    of the two terms in \cref{conc:point-form}, and let $D_s$ be as in
+    Step~4.3 for this $V_s$. Then $\iota_sD_s$ is a martingale difference
+    sequence, and by \cref{conc:centering} and the bound on its last sum,
+    on $\mathcal G$,
+    \begin{align}
+        \left|\sum_{s=1}^t\chi_s\iota_s(V_s-\E_sV_s)
+        -\sum_{s=1}^t\iota_sD_s\right|\leq1
+        \qquad\text{for every }t\leq n_{\mathrm{epoch}}.
+        \ineqlabel{conc:point-centering}
+    \end{align}
+
+    \proofstepinline{7.2}
+    We bound the increments $\iota_sD_s$. Since $R^2=1/(32\lambda^2L)$,
+    when $\iota_s=1$ and $|G_s|\leq c$ the coefficient of $Y_s$ in either
+    term of \cref{conc:point-form} is at most
+    \begin{align}
+        2Rc+2\lambda R^2c^2
+        =\frac{1}{\lambda}\left(\frac{c}{\sqrt{8L}}+\frac{c^2}{16L}\right).
+        \ineqlabel{conc:point-coefficient}
+    \end{align}
+    On $\mathcal T_s$ we have $|G_s|\leq\|Z_s\|\leq\sqrt{8(d+L)}$, so with
+    $c=\sqrt{8(d+L)}$ and $d+L\leq2dL$ this coefficient is at most
+    $Cd/\lambda$. Together with \cref{conc:response-range}, this gives
+    $\chi_s\iota_s|V_s|\1_{\mathcal T_s}\leq CdL/(\lambda\eps)$, and the
+    conditional mean satisfies the same bound. Hence
+    \begin{align}
+        |\iota_sD_s|\leq\frac{CdL}{\lambda\eps}.
+        \ineqlabel{conc:point-range}
+    \end{align}
+
+    \proofstepinline{7.3}
+    We bound the conditional second moments. As in Step~6.3.2,
+    $\E_s[(\iota_sD_s)^2]\leq \chi_s\iota_s\E_s[V_s^2\1_{\mathcal T_s}]$. We
+    split according to whether $|G_s|\leq\sqrt{8L}$. On this event,
+    \cref{conc:point-coefficient} with $c=\sqrt{8L}$ shows that the
+    coefficient of $Y_s$ is at most $2/\lambda$, so
+    $V_s^2\leq4Y_s^2/\lambda^2$. On its complement we use \cref{conc:bias}
+    with $j=2$ and $O_s=\{|G_s|>\sqrt{8L}\}$. Summing over $s$ and using
+    \cref{conc:budget}, we get
+    \begin{align}
+        \sum_{s=1}^{n_{\mathrm{epoch}}}\E_s[(\iota_sD_s)^2]
+        \leq\frac4{\lambda^2}\sum_{s=1}^{n_{\mathrm{epoch}}}\chi_s\E_s[Y_s^2]
+        +Cn^{13}e^{-L}
         \leq\frac{Cn}{\lambda^2}.
+        \ineqlabel{conc:point-variance}
     \end{align}
-    For the range, the Gaussian norm bound in $\mathcal T_s$
-    gives the same coefficient estimate with $d+L$ in place of
-    $L$, which is at most $Cd/\lambda$. Hence
+
+    \proofstepinline{7.4}
+    We apply Freedman's inequality at the fixed point. Put
     \begin{align}
-        |J_sV_s\1_{\mathcal T_s}|
-        \leq\frac{CdL}{\lambda\eps}.
+        b=\frac{CdL}{\lambda\eps},\qquad r=\frac{C\sqrt n}{\lambda},
+        \qquad z=\sqrt{8dL}.
     \end{align}
-    Apply Freedman's inequality with $z=4dL$ separately to the two
-    centered truncated scores. By \cref{conc:centering}, on
-    $\mathcal G$ each satisfies
+    By \cref{conc:point-range,conc:point-variance}, \cref{lem:freedman}
+    applies to $\iota_sD_s$. Applying it for each
+    $t\leq n_{\mathrm{epoch}}$ and for each of the two choices of $V_s$,
+    and using \cref{conc:point-centering}, shows that, with probability at
+    least $1-4ne^{-4dL}$, on $\mathcal G$,
     \begin{align}
-        \left|\sum_{s=1}^tJ_s(V_s-\E_sV_s)\right|
-        &\leq\frac C\lambda\left(\sqrt{dnL}
-        +\frac{d^2L^2}{\eps}\right)+nb_n\notag\\
-        &\leq\frac{CL^2\sqrt{dn}}\lambda.
+        \left|\sum_{s=1}^t\chi_s\iota_s(V_s-\E_sV_s)\right|
+        \leq rz+\frac{bz^2}{3}+1
+        \leq\frac C\lambda\left(\sqrt{dnL}+\frac{d^2L^2}{\eps}\right)+1
+        \leq\frac\Delta2
         \ineqlabel{conc:point}
     \end{align}
-    The last step uses \cref{conc:parameters}.
-    We need both applications: an estimate for the sum of a linear
-    and a quadratic error does not by itself bound the quadratic
-    error in $\Gamma_t$.
+    for both choices of $V_s$ and every $t\leq n_{\mathrm{epoch}}$. The last
+    inequality uses $\eps\geq d^{3/2}L/\sqrt n$, $\lambda\leq1$, and the
+    definition $\Delta=CL^2\sqrt{dn}/\lambda$ with $C$ large enough.
 
-    \proofstepinline{5}
-    We make the bounds uniform on the random focus set.
-    Fix a deterministic $h$-net of $\mathbb B_{2d+1}$, with
-    $h=n^{-40}$, having at most $(7dn^{40})^d$ points.
-    Take both estimates in \cref{conc:point} at every net point.
-    Now let $x\in K_t$ and choose a net point $x_0$ with
-    $\|x-x_0\|\leq h$. The focus sets are nested and
-    $K_s\subseteq E_s$, so every $s\leq t$ satisfies
+    \proofstepinline{7.5}
+    We pass to every point of the focus set. Let $h=n^{-40}$, and fix a set
+    $\mathcal N'$ of at most $(7dn^{40})^d$ points of $\mathbb B_{2d+1}$
+    such that every point of $\mathbb B_{2d+1}$ is within distance $h$ of
+    some element of $\mathcal N'$. A union bound over $\mathcal N'$ shows
+    that, with probability at least $1-(7dn^{40})^d\,4ne^{-4dL}$,
+    \cref{conc:point} holds at every $x_0\in\mathcal N'$.
+
+    Let $t\leq n_{\mathrm{epoch}}$ and $x\in K_t$, and choose
+    $x_0\in\mathcal N'$ with $\|x-x_0\|\leq h$. The focus sets are nested
+    and $K_s\subseteq E_s$, so $\|x-\mu_s\|_{\Sigma_s^{-1}}\leq R$ for every
+    $s\leq t$. Since $\|\Sigma_s^{-1}\|_{\op}\leq2n^2$ and $R\geq1$, this
+    gives
     \begin{align}
         \|x_0-\mu_s\|_{\Sigma_s^{-1}}
-        &\leq\|x-\mu_s\|_{\Sigma_s^{-1}}
-        +\|\Sigma_s^{-1}\|_{\op}^{1/2}h\notag\\
-        &\leq R+2n^{-39}\leq2R.
+        \leq R+\sqrt2\,n\,h\leq2R
+        \qquad\text{for every }s\leq t.
     \end{align}
-    Step~3 established $I_s=1$ throughout the actual epoch. Thus
-    every selector in Step~4 is also one at $x_0$, and the two
-    selected sums in \cref{conc:point} are precisely
-    \begin{align}
-        Q_t(x_0)-\bar Q_t(x_0),\qquad
-        \frac{\Gamma_t(x_0)-\bar\Gamma_t(x_0)}\eta.
-    \end{align}
+    Hence $\iota_s=1$ at $x_0$ for every $s\leq t$, and $\chi_s=1$ by
+    Step~6.7, so the two sums in \cref{conc:point} at $x_0$ are
+    $Q_t(x_0)-\bar Q_t(x_0)$ and $(\Gamma_t(x_0)-\bar\Gamma_t(x_0))/\eta$.
 
-    It remains to pass from $x_0$ to $x$. For
-    $z\in\mathbb B_{2d+1}$, differentiation gives
+    It remains to pass from $x_0$ to $x$. For $z\in\mathbb B_{2d+1}$,
     \begin{align}
         \nabla(Q_t-\bar Q_t)(z)
-        &=\sum_{s=1}^t\bigl[g_s-\bar g_s
-        +\lambda(H_s-\bar H_s)(z-\mu_s)\bigr],\notag\\
+        &=\sum_{s=1}^t\bigl(g_s-\bar g_s
+        +\lambda(H_s-\bar H_s)(z-\mu_s)\bigr),\notag\\
         \nabla\left(\frac{\Gamma_t-\bar\Gamma_t}{\eta}\right)(z)
-        &=\frac\lambda2\sum_{s=1}^t
-        (H_s-\bar H_s)(z-\mu_s).
+        &=\frac\lambda2\sum_{s=1}^t(H_s-\bar H_s)(z-\mu_s).
     \end{align}
-    The bounds in Step~3, $\lambda\leq1$, and
-    $\|z-\mu_s\|\leq4d+1$ bound both gradient norms by $Cn^7$.
-    The line segment joining $x$ to $x_0$ lies in
+    On $\mathcal G$, \cref{conc:scores,conc:stopped,conc:response-range}
+    give $\|g_s\|\leq|Y_s|\,\|\Sigma_s^{-1}\|_{\op}^{1/2}\|Z_s\|\leq Cn^3$,
+    and \cref{lem:extension} gives $\|\bar g_s\|\leq5/\eps$. Together with
+    the bound $\|H_s-\bar H_s\|_{\op}\leq Cn^5$ from Step~6.6,
+    $\lambda\leq1$ and $\|z-\mu_s\|\leq4d+1$, both gradients have norm at
+    most $Cn^7$. The segment joining $x$ to $x_0$ lies in
     $\mathbb B_{2d+1}$, so each error changes by at most
-    $Cn^7h=Cn^{-33}$. Absorb this in the constant defining
-    $\Delta$ to obtain \cref{conc:quadratics} for every $x\in K_t$.
-    The net was deterministic; only this final interpolation uses
-    the random focus set.
+    $Cn^7h\leq1\leq\Delta/2$ between $x_0$ and $x$. Therefore
+    \begin{align}
+        |Q_t(x)-\bar Q_t(x)|\leq\Delta,\qquad
+        |\Gamma_t(x)-\bar\Gamma_t(x)|\leq\eta\Delta
+        \qquad\text{for every }x\in K_t,
+    \end{align}
+    which proves \cref{conc:quadratics}.
 
-    \proofstepinline{6}
-    We obtain one event for every epoch and prefix.
-    There are at most $n$ choices of $\tau$
-    and at most $n$ prefixes for each. Steps~2 and~4 use the sphere
-    net, the dyadic levels, and the two scores on the spatial net.
-    Their total number of applications is at most
+    \proofstepinline{8}
+    We collect the failure probabilities. For a fixed start round and
+    number of rounds, Steps~5, 6 and~7 fail with probability at most
     \begin{align}
-        Cn^2(1+\log n)(7dn^{40})^d\leq e^{dL}.
+        2ne^{-2L}+(3n^{40})^d\,2n(2\log_2n+2)e^{-4dL}
+        +(7dn^{40})^d\,4ne^{-4dL}
+        \leq2ne^{-2L}+e^{-3dL},
     \end{align}
-    The last inequality uses $L=100\log(100nd/\delta)$ and
-    sufficiently large $A$. With $z=4dL$, their combined failure
-    probability is at most $2e^{-3dL}$. Step~1 uses at most
-    $n^2$ applications with $z=4L$, contributing
-    $2n^2e^{-4L}$. Finally, \cref{conc:truncation-event} contributes
-    $4ne^{-2L}$. Thus the total failure probability is at most
+    where the inequality uses $L=100\log(100nd/\delta)$. Taking a union
+    bound over the at most $n^2$ pairs of start round and number of rounds,
+    and adding the bound \cref{conc:truncation-event} on
+    $\Pp(\mathcal G^c)$, the total failure probability is at most
     \begin{align}
-        2e^{-3dL}+2n^2e^{-4L}+4ne^{-2L}\leq\delta/4.
+        n^2\bigl(2ne^{-2L}+e^{-3dL}\bigr)+4ne^{-2L}
+        \leq7n^3e^{-2L}\leq\frac\delta4.
     \end{align}
-    On the complementary event, Steps~1--5 apply simultaneously
-    to every actual epoch prefix, including a prefix ending at a
-    restart. This proves all assertions of the lemma.
+    Every epoch of the algorithm begins at some round and lasts some number
+    of rounds, so on the complement of these events Steps~5--7 apply to
+    every epoch. This proves \cref{conc:uniform}.
 \end{proof}
+
 \section{Regret of the sampled algorithm}
 \label{transfer:section}
 
