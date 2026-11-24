@@ -3219,4 +3219,610 @@ outside the focus region.
     \endgroup
 \end{proof}
 
+\section{Affine preprocessing}
+\label{app:positioning}
+
+The bound on $M$ needed for the regret guarantee can be obtained by putting
+the scaled polar body in approximately isotropic position. The following
+proposition states that the required geometric bounds can be achieved for
+any convex body by randomized polynomial-time preprocessing.
+
+\begin{proposition}
+    \label{prop:positioning}
+    Let $\K\subset\R^d$ be a convex body given by a separation oracle,
+    together with known $x_0\in\R^d$ and $0<r\leq R$ such that
+    $x_0+\mathbb B_r\subseteq\K\subseteq x_0+\mathbb B_R$.
+    For every $\delta\in(0,1)$, there is a randomized algorithm that
+    returns an invertible affine map $T$ such that, with probability at
+    least $1-\delta$, the body $J=T(\K)$ satisfies
+    \begin{align}
+        \mathbb B_1\subseteq J\subseteq\mathbb B_{2d},
+        \qquad
+        \max\left\{\frac1{\sqrt d},\E[\pi_J(U)]\right\}
+        \leq C\sqrt{\frac{\log(ed)}d}.
+        \ineqlabel{eq:positioning}
+    \end{align}
+    Here $U$ is uniform on the Euclidean unit sphere, $\pi_J$ is the
+    Minkowski functional of $J$, and $C\geq1$ is a universal constant.
+    The number of oracle calls and arithmetic operations is polynomial
+    in $d$, $\log(R/r)$, and $\log(1/\delta)$.
+\end{proposition}
+
+For a convex body $J$ with the origin in its interior, the polar body is
+\begin{align}
+    J^\circ=\left\{y\in\R^d:\ip{x}{y}\leq1\text{ for all }x\in J\right\}.
+\end{align}
+For $s$ in the interior of $\K$, the volume of $(\K-s)^\circ$ is a strictly
+convex function of $s$ that tends to infinity as $s$ approaches the boundary
+of $\K$. The Santal\'o point $s(\K)$ is the unique point at which this volume
+is minimal \citep{santalo1949affine}. Equivalently, it is the unique point
+$s$ for which the centroid of $(\K-s)^\circ$ is the origin, since the
+gradient of the volume of $(\K-s)^\circ$ with respect to $s$ equals
+$(d+1)\int_{(\K-s)^\circ}y\,dy$.
+
+We seek a position $J$ for which $L=(d+1)J^\circ$ is isotropic, meaning
+that its uniform distribution has mean zero and covariance $I$.
+For $d\geq2$, \citet[Theorem~1.1]{bizeul2026optimal} proves that
+\begin{align}
+    (d+1)\E[\pi_J(U)]=\E[h_L(U)]\leq C\sqrt{d\log d},
+    \qquad h_L(u)=\sup_{y\in L}\ip{u}{y},
+\end{align}
+without any symmetry assumption. Since
+$\pi_J=h_{J^\circ}=h_L/(d+1)$, this gives
+\begin{align}
+    M(J)
+    =\max\left\{\frac1{\sqrt d},\frac{\E[h_L(U)]}{d+1}\right\}
+    \leq C\sqrt{\frac{\log(ed)}d}.
+\end{align}
+It's worth noting that the same $d^{-1/2}$ dependence up to logarithmic factors already follows
+from \citet[Theorem~1.2]{milman2015mean}, with $\log^2(1+d)$ in place
+of $\sqrt{\log d}$ in the mean-width bound. The rest of the appendix
+constructs an approximate version of this position in polynomial time
+and controls the effect of the approximation errors on $M$ and the ball
+inclusions in \cref{prop:positioning}.
+
+\begin{theorem}
+    \label{thm:approximate-positioning}
+    Let $\K\subset\R^d$ be a convex body containing
+    $x_0+\mathbb B_r$ for some $x_0\in\R^d$ and $r>0$, and let
+    $s=s(\K)$ be its Santal\'o point. Suppose that
+    \begin{align}
+        \|\hat s-s\|_2\leq\zeta,
+        \qquad 0\leq\zeta\leq\frac{r}{16(d+1)^4}.
+    \end{align}
+    Then $\hat s$ lies in the interior of $\K$.
+    Set
+    \begin{align}
+        P=(\K-\hat s)^\circ,
+        \qquad \Sigma=\operatorname{Cov}(\operatorname{Unif}(P)).
+    \end{align}
+    If a positive definite matrix $A$ satisfies
+    \begin{align}
+        (1-\nu)\Sigma\preceq A\preceq(1+\nu)\Sigma,
+        \qquad 0\leq\nu\leq\frac1{16(d+1)^2},
+    \end{align}
+    then the body $J=(d+1)A^{1/2}(\K-\hat s)$ satisfies
+    \begin{align}
+        \mathbb B_1\subseteq J\subseteq\mathbb B_{d+1}
+        \subseteq\mathbb B_{2d},
+        \qquad
+        M(J)=\max\left\{\frac1{\sqrt d},\E[\pi_J(U)]\right\}
+        \leq C\sqrt{\frac{\log(ed)}d},
+    \end{align}
+    where $U$ is uniform on the Euclidean unit sphere and $C\geq1$
+    is a universal constant.
+\end{theorem}
+
+\begin{proof}
+    Write $B=\mathbb B_1$.
+
+    \proofstepinline{1} We first establish the bounds for the exact
+    Santal\'o point and covariance. Define
+    \begin{align}
+        P_0=(\K-s)^\circ,
+        \qquad \Sigma_0=\operatorname{Cov}(\operatorname{Unif}(P_0)),
+        \qquad H=\Sigma_0^{-1/2}P_0.
+    \end{align}
+    Since $s$ is the Santal\'o point, $P_0$ has centroid zero. Thus $H$
+    is isotropic. By \citet[Theorem~4.1]{kannan1995isoperimetric},
+    \begin{align}
+        \sqrt{\frac{d+2}{d}}B\subseteq H\subseteq\sqrt{d(d+2)}B.
+        \ineqlabel{eq:positioning-isotropic-balls}
+    \end{align}
+    For $d\geq2$, \citet[Theorem~1.1]{bizeul2026optimal} gives
+    \begin{align}
+        \E[h_H(U)]\leq C\sqrt{d\log d}.
+        \ineqlabel{eq:positioning-isotropic-width}
+    \end{align}
+    The exact construction $J_0=(d+1)\Sigma_0^{1/2}(\K-s)$ satisfies
+    $(d+1)J_0^\circ=H$. Taking polars in
+    \cref{eq:positioning-isotropic-balls} therefore gives
+    \begin{align}
+        \frac{d+1}{\sqrt{d(d+2)}}B
+        \subseteq J_0\subseteq(d+1)\sqrt{\frac d{d+2}}B.
+    \end{align}
+    Since $d(d+2)<(d+1)^2$ and $d/(d+2)<1$, this implies
+    $B\subseteq J_0\subseteq(d+1)B$. Also, for $d\geq2$,
+    \begin{align}
+        \E[\pi_{J_0}(U)]
+        =\frac1{d+1}\E[h_H(U)]
+        \leq\frac C{d+1}\sqrt{d\log d}.
+    \end{align}
+    We next control the changes caused by replacing $s$ and $\Sigma_0$
+    with $\hat s$ and $A$.
+
+    \proofstepinline{2} We compare the polars after changing the center.
+    First, \cref{eq:positioning-isotropic-balls} gives
+    $-H\subseteq\sqrt{d(d+2)}B\subseteq dH$. Undoing the linear transformation
+    yields $-P_0\subseteq dP_0$, and taking polars gives
+    $-(\K-s)\subseteq d(\K-s)$. Since
+    $x_0+rB\subseteq\K$, we have
+    \begin{align}
+        rB\subseteq\K-\K
+        =(\K-s)-(\K-s)
+        \subseteq(\K-s)+d(\K-s)
+        =(d+1)(\K-s).
+    \end{align}
+    In particular, $\frac r{d+1}B\subseteq\K-s$. Set
+    \begin{align}
+        e=\hat s-s,
+        \qquad \beta=\frac{(d+1)\zeta}{r}
+        \leq\frac1{16(d+1)^3}<1.
+    \end{align}
+    The bound $\|e\|_2\leq\zeta$ now gives
+    $e,-e\in\beta(\K-s)$. By convexity,
+    \begin{align}
+        (\K-s)-e&\subseteq(1+\beta)(\K-s),\\
+        (1-\beta)(\K-s)+e&\subseteq\K-s.
+    \end{align}
+    Therefore
+    \begin{align}
+        (1-\beta)(\K-s)
+        \subseteq\K-\hat s
+        \subseteq(1+\beta)(\K-s).
+    \end{align}
+    The first inclusion shows that $\hat s$ lies in the interior of
+    $\K$. Taking polars gives
+    \begin{align}
+        \frac1{1+\beta}P_0\subseteq P
+        \subseteq\frac1{1-\beta}P_0.
+        \ineqlabel{eq:positioning-polar-comparison}
+    \end{align}
+
+    \proofstepinline{3} We compare the covariance matrices.
+    For a convex body $Q$, let $\Sigma_Q$ be the covariance of its
+    uniform distribution and let $|Q|$ denote its volume.
+    If $Q\subseteq R$, then for every
+    $v\in\R^d$,
+    \begin{align}
+        v^\top\Sigma_Rv
+        &=\min_{t\in\R}\frac1{|R|}
+        \int_R(\ip{v}{y}-t)^2\,dy
+        \geq\frac1{|R|}\min_{t\in\R}
+        \int_Q(\ip{v}{y}-t)^2\,dy
+        =\frac{|Q|}{|R|}v^\top\Sigma_Qv.
+    \end{align}
+    The inequality follows from nonnegativity of the integrand before
+    minimizing over $t$. Consequently,
+    \begin{align}
+        \Sigma_R\succeq\frac{|Q|}{|R|}\Sigma_Q,
+        \ineqlabel{eq:positioning-covariance-inclusion}
+    \end{align}
+    without requiring the two centroids to agree.
+
+    Applying \cref{eq:positioning-covariance-inclusion} to
+    $(1+\beta)^{-1}P_0\subseteq P$ from
+    \cref{eq:positioning-polar-comparison},
+    \begin{align}
+        \Sigma
+        &\succeq\frac{|(1+\beta)^{-1}P_0|}{|P|}
+        \frac{\Sigma_0}{(1+\beta)^2}
+        =\frac{|P_0|}{(1+\beta)^{d+2}|P|}\Sigma_0
+        \succeq\frac{(1-\beta)^d}{(1+\beta)^{d+2}}\Sigma_0,
+    \end{align}
+    where the last inequality uses $|P|\leq(1-\beta)^{-d}|P_0|$.
+    Applying the same inequality to $P\subseteq(1-\beta)^{-1}P_0$
+    and rearranging,
+    \begin{align}
+        \Sigma
+        &\preceq\frac{|(1-\beta)^{-1}P_0|}{|P|}
+        \frac{\Sigma_0}{(1-\beta)^2}
+        =\frac{|P_0|}{(1-\beta)^{d+2}|P|}\Sigma_0
+        \preceq\frac{(1+\beta)^d}{(1-\beta)^{d+2}}\Sigma_0,
+    \end{align}
+    where the last inequality uses $|P|\geq(1+\beta)^{-d}|P_0|$.
+    Combining these bounds with the assumed accuracy of $A$ gives
+    \begin{align}
+        (1-\nu)\frac{(1-\beta)^d}{(1+\beta)^{d+2}}\Sigma_0
+        \preceq A\preceq
+        (1+\nu)\frac{(1+\beta)^d}{(1-\beta)^{d+2}}\Sigma_0.
+        \ineqlabel{eq:positioning-matrix-comparison}
+    \end{align}
+
+    \proofstepinline{4} We prove the ball inclusions for the approximate
+    construction. Set
+    \begin{align}
+        T=A^{-1/2}\Sigma_0^{1/2},
+        \qquad T^\top T=\Sigma_0^{1/2}A^{-1}\Sigma_0^{1/2}.
+    \end{align}
+    Then $T=I$ when $A=\Sigma_0$, and
+    $(d+1)J^\circ=A^{-1/2}P$.
+    Since $P_0=\Sigma_0^{1/2}H$,
+    \cref{eq:positioning-polar-comparison} implies
+    \begin{align}
+        \frac1{1+\beta}TH
+        \subseteq A^{-1/2}P
+        \subseteq\frac1{1-\beta}TH.
+        \ineqlabel{eq:positioning-transformed-polar}
+    \end{align}
+    To bound the eigenvalues of $T^\top T$, set
+    \begin{align}
+        \kappa=\frac1{\sqrt{1-\nu}}
+        \left(\frac{1+\beta}{1-\beta}\right)^{(d+2)/2}.
+    \end{align}
+    Inverting \cref{eq:positioning-matrix-comparison} and multiplying
+    on both sides by $\Sigma_0^{1/2}$ gives
+    \begin{align}
+        \frac{\lambda_{\min}(T^\top T)}
+        {(1+\beta)^2}
+        \geq\frac1{1+\nu}
+        \left(\frac{1-\beta}{1+\beta}\right)^{d+2}
+        \explan{\geq}{a}\frac1{\kappa^2},\qquad\text{and}\qquad
+        \frac{\lambda_{\max}(T^\top T)}
+        {(1-\beta)^2}
+        \leq\kappa^2.
+        \ineqlabel{eq:positioning-eigenvalues}
+    \end{align}
+    Here $\lambda_{\min}(\cdot)$ and $\lambda_{\max}(\cdot)$ denote
+    the smallest and largest eigenvalues, respectively and \reason{a} uses
+    $(1+\nu)^{-1}\geq1-\nu$.
+    For every $x\in\R^d$,
+    \begin{align}
+        \|Tx\|^2=x^\top T^\top Tx,
+    \end{align}
+    so the square roots of these eigenvalues bound the change in
+    Euclidean lengths. Combining
+    \cref{eq:positioning-isotropic-balls,eq:positioning-transformed-polar,eq:positioning-eigenvalues},
+    we obtain
+    \begin{align}
+        \frac1\kappa\sqrt{\frac{d+2}{d}}B
+        \subseteq A^{-1/2}P\subseteq\kappa\sqrt{d(d+2)}B.
+        \ineqlabel{eq:positioning-approximate-balls}
+    \end{align}
+
+    It remains to check that $\kappa$ is small enough. For
+    $0\leq t\leq1/2$, we have
+    $\log((1+t)/(1-t))\leq3t$ and $-\log(1-t)\leq2t$.
+    Since $\beta\leq1/(16(d+1)^3)$ and $\nu\leq1/(16(d+1)^2)$,
+    \begin{align}
+        \log\kappa^2
+        &=(d+2)\log\frac{1+\beta}{1-\beta}-\log(1-\nu)\\
+        &\leq3(d+2)\beta+2\nu
+        \leq\frac7{16(d+1)^2}
+        \leq-\log\left(1-\frac1{(d+1)^2}\right).
+    \end{align}
+    Thus $\kappa\leq(d+1)/\sqrt{d(d+2)}\leq2/\sqrt3$, and
+    \begin{align}
+        \kappa\sqrt{d(d+2)}\leq d+1,
+        \qquad \frac1\kappa\sqrt{\frac{d+2}{d}}
+        \geq\frac{d+2}{d+1}>1.
+    \end{align}
+    It follows from \cref{eq:positioning-approximate-balls} that
+    $B\subseteq A^{-1/2}P\subseteq(d+1)B$.
+    Since $A^{-1/2}P=(d+1)J^\circ$, taking polars gives
+    \begin{align}
+        B\subseteq J\subseteq(d+1)B\subseteq2dB.
+    \end{align}
+
+    \proofstepinline{5} We bound $M(J)$. First, we control the effect of
+    $T$ on the average support function.
+    Let $G\sim\N(0,I_d)$, and independently let $Z$ be centered
+    Gaussian with covariance
+    \begin{align}
+        \lambda_{\max}(T^\top T)I_d-T^\top T,
+    \end{align}
+    which is positive semidefinite. Then
+    \begin{align}
+        \E[h_{TH}(G)]
+        &=\E[h_H(T^\top G)]
+        \explan{\leq}{a}\E[h_H(T^\top G+Z)]
+        =\sqrt{\lambda_{\max}(T^\top T)}
+        \,\E[h_H(G)].
+    \end{align}
+    For \reason{a}, apply conditional Jensen to the convex support
+    function, using $\E[Z\mid G]=0$. The last equality uses
+    positive homogeneity and
+    \begin{align}
+        T^\top G+Z
+        \sim\N\!\left(0,
+        \lambda_{\max}(T^\top T)I_d\right).
+    \end{align}
+    The Gaussian radius and direction are independent,
+    so dividing by $\E\|G\|$ gives
+    \begin{align}
+        \E[h_{TH}(U)]
+        \leq\sqrt{\lambda_{\max}(T^\top T)}
+        \,\E[h_H(U)].
+        \ineqlabel{eq:positioning-width-transformation}
+    \end{align}
+    For $d\geq2$, we can therefore bound
+    \begin{align}
+        \E[\pi_J(U)]
+        &=\frac1{d+1}\E[h_{A^{-1/2}P}(U)]\\
+        &\explan{\leq}{a}\frac1{(d+1)(1-\beta)}
+        \E[h_{TH}(U)]\\
+        &\explan{\leq}{b}
+        \frac{\sqrt{\lambda_{\max}(T^\top T)}}
+        {(d+1)(1-\beta)}
+        \E[h_H(U)]\\
+        &\explan{\leq}{c}\frac\kappa{d+1}\E[h_H(U)]\\
+        &\explan{\leq}{d}\frac{C\kappa}{d+1}\sqrt{d\log d}
+        \leq C'\sqrt{\frac{\log(ed)}d}.
+    \end{align}
+    Here \reason{a} uses \cref{eq:positioning-transformed-polar};
+    \reason{b} uses \cref{eq:positioning-width-transformation};
+    \reason{c} uses \cref{eq:positioning-eigenvalues}; and
+    \reason{d} uses \cref{eq:positioning-isotropic-width}. The last
+    inequality uses $\kappa\leq2/\sqrt3$ and
+    $\sqrt d/(d+1)\leq d^{-1/2}$.
+    For $d=1$, the inclusion $B\subseteq J$ gives
+    $\pi_J(U)\leq1$ and hence $M(J)=1$. Finally, for every $d\geq1$,
+    the term $d^{-1/2}$ in the definition of $M(J)$ is also at most
+    $\sqrt{\log(ed)/d}$. This proves the stated bound on $M(J)$.
+\end{proof}
+
+\subsection{Computation}
+\label{app:positioning-computation}
+
+We first use the following consequence of
+\citet[Theorem~4.6.1]{grotschel1988geometric} to obtain the normalization
+required for computing the Santal\'o point.
+
+\begin{lemma}
+    \label{lem:initial-rounding}
+    Let $\K\subset\R^d$ be a convex body given by a separation oracle,
+    together with known $x_0\in\R^d$ and $0<r\leq R$ such that
+    $x_0+\mathbb B_r\subseteq\K\subseteq x_0+\mathbb B_R$.
+    A deterministic algorithm computes an invertible affine map $\Phi$
+    such that
+    \begin{align}
+        \mathbb B_1\subseteq\Phi(\K)
+        \subseteq\sqrt d(d+1)\mathbb B_1
+        \subseteq(d+1)^{3/2}\mathbb B_1,
+    \end{align}
+    using a number of oracle calls and arithmetic operations polynomial
+    in $d$ and $\log(R/r)$.
+\end{lemma}
+
+Apply the rounding theorem of
+\citet*[Theorem~4.6.1]{grotschel1988geometric} to
+$(\K-x_0)/r$, whose known inner and outer radii are $1$ and $R/r$.
+This theorem finds two ellipsoids with the same center and axes: an inner
+ellipsoid contained in the normalized body, and an outer ellipsoid
+containing it. Every radius of the outer ellipsoid is $\sqrt d(d+1)$
+times the corresponding inner radius. An affine map taking the inner
+ellipsoid to $\mathbb B_1$ therefore takes the outer ellipsoid to
+$\sqrt d(d+1)\mathbb B_1$, proving the stated ball inclusions.
+Separately, the running-time guarantee in GLS Theorem~4.6.1 gives a
+number of oracle calls and arithmetic operations polynomial in $d$ and
+$\log(R/r)$ for this normalized input.
+
+We use the following result of
+\citet[Proposition~31]{reis2023subspace}.\footnote{The confidence parameter
+    is not explicit in their statement, but the formulation below follows from
+    their proof. The proof uses at most $Q=\operatorname{poly}(d,1/\delta)$
+    volume estimates. By \citet[Theorem~2.1]{kannan1997random}, each estimate
+    can have failure probability at most $\alpha/Q$ at a cost logarithmic in
+    $Q/\alpha$. A union bound gives the stated success probability and
+polynomial dependence on $\log(1/\alpha)$.}
+
+\begin{theorem}
+    \label{thm:santalo}
+    Let $\K\subset\R^d$ be a convex body given by a separation oracle,
+    satisfying
+    \begin{align}
+        \mathbb B_1\subseteq\K\subseteq(d+1)^{3/2}\mathbb B_1,
+    \end{align}
+    and let $s(\K)$ be its Santal\'o point. For every distance accuracy
+    $\delta>0$ and failure probability $\alpha\in(0,1)$, there is a
+    randomized algorithm that returns $\hat s\in\R^d$ such that
+    \begin{align}
+        \Pp\left(\|\hat s-s(\K)\|_2\leq\delta\right)\geq1-\alpha.
+    \end{align}
+    The number of oracle calls and arithmetic operations is polynomial
+    in $d$, $1/\delta$, and $\log(1/\alpha)$.
+\end{theorem}
+
+The next step is to sample from $(\K-\hat s)^\circ$ to estimate its
+covariance. Given known inner and outer ball bounds centered at the origin
+for $\K-\hat s$, separation-oracle access to $\K$ gives an
+$\epsilon'$-weak membership oracle for $(\K-\hat s)^\circ$, for any
+$\epsilon'>0$, in deterministic polynomial time, with polynomial
+dependence on $\log(1/\epsilon')$ for $\epsilon'<1$
+\citep[Theorem~4.2.2 and Lemma~4.4.1]{grotschel1988geometric}.
+
+We use the following uniform-sampling special case of
+\citet[Theorem~B.6(1)]{dadush2011enumerative}, obtained by taking the
+density in their theorem to be constant.
+
+\begin{lemma}
+    \label{lem:uniform-sampling}
+    Let $P\subset\R^d$ be a convex body with known bounds
+    $\mathbb B_r\subseteq P\subseteq\mathbb B_R$, where $0<r\leq R$,
+    and access to an $\epsilon'$-weak membership oracle for every
+    $\epsilon'>0$. For every $\eta\in(0,1)$, there is a randomized
+    algorithm that produces $Y\in P$ such that
+    \begin{align}
+        d_{\mathrm{TV}}\!\left(\mathcal L(Y),\operatorname{Unif}(P)\right)
+        \leq\eta.
+    \end{align}
+    Here $d_{\mathrm{TV}}$ denotes total variation distance and
+    $\mathcal L(Y)$ is the distribution of $Y$. The number of oracle
+    calls and arithmetic operations is polynomial in $d$, $\log(R/r)$,
+    and $\log(1/\eta)$.
+\end{lemma}
+
+\begin{lemma}[{\citet[Lemma~4.2]{vempala2010learning}}]
+    \label{lem:covariance-estimation}
+    Let $X_1,\ldots,X_m$ be independent samples from an isotropic
+    log-concave distribution on $\R^d$, and define the sample mean and
+    covariance by
+    \begin{align}
+        \hat\mu=\frac1m\sum_{i=1}^m X_i,
+        \qquad
+        \widehat\Sigma=\frac1m\sum_{i=1}^m
+        (X_i-\hat\mu)(X_i-\hat\mu)^\top.
+    \end{align}
+    There is a universal constant $C>0$ such that, for every accuracy
+    $\eps\in(0,1)$ and failure probability $\alpha\in(0,1/2)$, if
+    \begin{align}
+        m>C\frac{d}{\eps^2}\log^2\!\left(\frac d\alpha\right),
+    \end{align}
+    then, with probability at least $1-\alpha$,
+    \begin{align}
+        \|\hat\mu\|_2\leq\eps,
+        \qquad
+        \|\widehat\Sigma-I\|_{\op}\leq\eps.
+    \end{align}
+\end{lemma}
+
+\begin{proof}[Proof of \cref{prop:positioning}]
+    Write $B=\mathbb B_1$.
+
+    \proofstepinline{1} We first round the original body.
+    Apply \cref{lem:initial-rounding} and write
+    $\widetilde\K=\Phi(\K)$, so that
+    \begin{align}
+        B\subseteq\widetilde\K\subseteq(d+1)^{3/2}B.
+    \end{align}
+    The known affine map $\Phi$ also gives separation-oracle access to
+    $\widetilde\K$. We perform the remaining steps in these coordinates.
+
+    \proofstepinline{2} We approximate the Santal\'o point and obtain
+    ball bounds for the shifted polar.
+    Apply \cref{thm:santalo} with distance accuracy
+    \begin{align}
+        \zeta=\frac1{16(d+1)^4}
+    \end{align}
+    and failure probability $\delta/3$. With probability at least
+    $1-\delta/3$,
+    \mbox{$\|\hat s-s(\widetilde\K)\|_2\leq\zeta$}.
+    On this event, Step~2 of the proof of
+    \cref{thm:approximate-positioning}, with $r=1$, gives
+    \begin{align}
+        \frac1{2(d+1)}B
+        \subseteq\widetilde\K-\hat s,
+    \end{align}
+    since $(d+1)^{-1}B\subseteq\widetilde\K-s(\widetilde\K)$
+    and $\zeta\leq1/(2(d+1))$.
+
+    We also ensure that the sampling procedure has valid ball bounds
+    when the center estimate fails. Using the separation oracle, test
+    whether
+    \begin{align}
+        \hat s\pm\frac{e_i}{2(d+1)}\in\widetilde\K,
+        \qquad i=1,\ldots,d,
+    \end{align}
+    where $e_1,\ldots,e_d$ are the coordinate unit vectors. If any test
+    fails, return $\Phi$. All tests pass whenever the center estimate
+    succeeds. Whenever they pass, convexity gives
+    \begin{align}
+        \hat s+\frac1{2\sqrt d(d+1)}B\subseteq\widetilde\K.
+    \end{align}
+    Also, $\hat s\in\widetilde\K$ implies
+    $\widetilde\K-\hat s\subseteq2(d+1)^{3/2}B$.
+    Thus the polar $P=(\widetilde\K-\hat s)^\circ$ has the known bounds
+    \begin{align}
+        \frac1{2(d+1)^{3/2}}B
+        \subseteq P\subseteq2(d+1)^{3/2}B.
+        \ineqlabel{eq:positioning-sampling-balls}
+    \end{align}
+
+    \proofstepinline{3} We sample from the shifted polar.
+    Set
+    \begin{align}
+        \nu=\frac1{16(d+1)^2},
+        \qquad
+        m=\left\lceil C\frac d{\nu^2}
+        \log^2\!\left(\frac{3d}{\delta}\right)\right\rceil,
+        \qquad \eta=\frac{\delta}{3m},
+    \end{align}
+    with a sufficiently large universal constant $C$.
+    The separation oracle for $\widetilde\K$ gives weak membership
+    access to $P$ as described above. Apply
+    \cref{lem:uniform-sampling} independently $m$ times, each with
+    total variation accuracy $\eta$, to obtain $Y_1,\ldots,Y_m$.
+    Conditional on any center that passes the tests in Step~2,
+    the joint law of these samples is within $m\eta=\delta/3$
+    in total variation of $m$ independent uniform samples from $P$.
+    This follows by coupling each sampler output with a uniform sample
+    and taking a union bound over the $m$ couplings.
+
+    \proofstepinline{4} We estimate the covariance.
+    Compute
+    \begin{align}
+        \bar Y=\frac1m\sum_{i=1}^m Y_i,
+        \qquad
+        A=\frac1m\sum_{i=1}^m(Y_i-\bar Y)(Y_i-\bar Y)^\top.
+    \end{align}
+    To analyze this estimate, first suppose that the $Y_i$ are exact
+    independent uniform samples from $P$. Let $\mu$ and $\Sigma$
+    be the mean and covariance of $\operatorname{Unif}(P)$.
+    The random vectors
+    $X_i=\Sigma^{-1/2}(Y_i-\mu)$ are isotropic and log-concave, and
+    their centered empirical covariance is
+    $\Sigma^{-1/2}A\Sigma^{-1/2}$.
+    Applying \cref{lem:covariance-estimation} with accuracy $\nu$
+    and failure probability $\delta/3$ therefore gives
+    \begin{align}
+        (1-\nu)\Sigma\preceq A\preceq(1+\nu)\Sigma
+        \ineqlabel{eq:positioning-empirical-covariance}
+    \end{align}
+    with probability at least $1-\delta/3$.
+    The total variation bound in Step~3 shows that
+    \cref{eq:positioning-empirical-covariance} holds for the actual
+    samples with conditional probability at least $1-2\delta/3$.
+    The unknown $\mu$ and $\Sigma$ are used only in this analysis;
+    the algorithm computes $A$ by subtracting the sample mean.
+
+    \proofstepinline{5} We construct the affine map.
+    If $A$ is not positive definite, return $\Phi$.
+    Otherwise, compute an upper triangular Cholesky factor $F$ with
+    $F^\top F=A$ and return
+    \begin{align}
+        T(x)=(d+1)F\bigl(\Phi(x)-\hat s\bigr).
+    \end{align}
+    This is an invertible affine map. Since $F=OA^{1/2}$ for an
+    orthogonal matrix $O$, its image of $\K$ is a rotation of
+    $(d+1)A^{1/2}(\widetilde\K-\hat s)$.
+    On the event that the center estimate and
+    \cref{eq:positioning-empirical-covariance} both hold,
+    \cref{thm:approximate-positioning} applies with $r=1$.
+    Euclidean balls and $M$ are invariant under orthogonal
+    transformations, so it gives precisely \cref{eq:positioning}
+    for $J=T(\K)$. The probability that either estimate fails is at
+    most $\delta/3+2\delta/3=\delta$.
+
+    \proofstepinline{6} We check the running time.
+    Initial rounding uses a number of oracle calls and arithmetic
+    operations polynomial in $d$ and $\log(R/r)$.
+    The Santal\'o computation is polynomial in $d$ and
+    $\log(1/\delta)$ because $1/\zeta=16(d+1)^4$.
+    The $2d$ membership tests add only polynomial work.
+    The ratio of the radii in
+    \cref{eq:positioning-sampling-balls} is $4(d+1)^3$, and
+    \begin{align}
+        m=O\!\left(d(d+1)^4\log^2\!\left(\frac{3d}{\delta}\right)\right),
+        \qquad
+        \log(1/\eta)=O\!\left(\log(d+1)+\log(1/\delta)\right).
+    \end{align}
+    Thus sampling is polynomial in $d$ and $\log(1/\delta)$,
+    including the implementation of the weak membership oracle by
+    separation. This composition is also used in the proof of
+    \citet[Theorem~3.7]{dadush2011enumerative}.
+    The sample covariance and Cholesky factor require $O(md^2+d^3)$
+    arithmetic operations, including scalar square roots.
+    The stated complexity follows.
+\end{proof}
+
 \end{document}
